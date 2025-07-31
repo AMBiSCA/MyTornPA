@@ -1,91 +1,81 @@
-/* mysite/css/home.css - Specific Styles for the Homepage */
+/* home.css: Specific Styles for the Homepage */
 
-/* Tool Sion Styles */
-.tool-category-section { width: 100%; margin-bottom: 8px; }
+/* Tool Section Styles */
+.tool-category-section { margin-bottom: 8px; width: 100%; }
 .tool-category-header {
-    display: flex; justify-content: center; align-items: center; color: #8ab4f8;
-    font-size: 1.15em; font-weight: 600; text-align: center; margin-bottom: 8px;
-    padding-bottom: 5px; border-bottom: 1px solid #00a8ff;
+    align-items: center; border-bottom: 1px solid #00a8ff; color: #8ab4f8; display: flex;
+    font-size: 1.15em; font-weight: 600; justify-content: center; margin-bottom: 8px;
+    padding-bottom: 5px; text-align: center;
 }
 .tool-buttons-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
 .tool-buttons-grid .btn.tool-item-button {
-    margin: 0; padding: 0 12px; height: 34px; font-size: 13px; border-radius: 17px;
+    border-radius: 17px; font-size: 13px; height: 34px; margin: 0; padding: 0 12px;
 }
 
 /* General Styled Container */
 .styled-container {
-    border: 1px solid #383c42; background-color: rgba(19, 19, 20, 0.75);
-    padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background-color: rgba(19, 19, 20, 0.75); border: 1px solid #383c42; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 15px; padding: 15px;
 }
 
 /* Homepage Layout */
 .homepage-content-wrapper {
-    width: 100%; padding: 10px; margin-top: 20px; display: flex;
-    flex-direction: column; align-items: center; box-sizing: border-box;
-    overflow-y: auto; height: auto;
+    box-sizing: border-box; display: flex; flex-direction: column; height: auto;
+    margin-top: 20px; overflow-y: auto; padding: 10px; width: 100%; align-items: center;
 }
 .welcome-block-area {
-    width: 80%; max-width: 900px; border: 1px solid #00a8ff;
-    background-color: rgba(19, 19, 20, 0.8); text-align: center;
-    padding: 10px; margin: 10px auto;
-    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
+    background-color: rgba(19, 19, 20, 0.8); border: 1px solid #00a8ff; box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
+    margin: 10px auto; padding: 10px; text-align: center; width: 80%; max-width: 900px;
 }
-.welcome-block-area h2#welcomeMessage { font-size: 1.8em; color: #fff; margin-top: 0; margin-bottom: 5px; }
-#factionHuddleMessage { margin-top: 5px; font-style: italic; color: #c0c0c0; font-size: 0.95em; }
+.welcome-block-area h2#welcomeMessage { color: #fff; font-size: 1.8em; margin-bottom: 5px; margin-top: 0; }
+#factionHuddleMessage { color: #c0c0c0; font-size: 0.95em; font-style: italic; margin-top: 5px; }
 
 .stats-tools-flex-container {
-    display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;
-    max-width: 1300px; gap: 10px; margin-left: auto; margin-right: auto;
+    display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;
+    margin-left: auto; margin-right: auto; max-width: 1300px; width: 100%;
 }
 .stats-column {
-    display: flex; flex-direction: column; flex: 1 1 500px; min-width: 300px;
-    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
-    border-radius: 8px; border: 1px solid #00a8ff; padding: 15px;
-    box-sizing: border-box; align-self: flex-start;
+    align-self: flex-start; border: 1px solid #00a8ff; border-radius: 8px; box-sizing: border-box;
+    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35); display: flex; flex: 1 1 500px;
+    flex-direction: column; min-width: 300px; padding: 15px;
 }
 .tools-column {
-    display: flex; flex-direction: column; flex: 2 1 60%; min-width: 300px;
-    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
-    border-radius: 8px; border: 1px solid #00a8ff; padding: 15px; box-sizing: border-box;
+    border: 1px solid #00a8ff; border-radius: 8px; box-sizing: border-box;
+    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35); display: flex; flex: 2 1 60%;
+    flex-direction: column; min-width: 300px; padding: 15px;
 }
 .stats-column .section-title, .tools-column .section-title {
-    color: #8ab4f8; text-align: center; font-size: 1.3em;
-    margin-bottom: 8px; width: 100%; padding-bottom: 5px;
-    border-bottom: 1px solid #00a8ff; font-weight: bold;
+    border-bottom: 1px solid #00a8ff; color: #8ab4f8; font-size: 1.3em;
+    font-weight: bold; margin-bottom: 8px; padding-bottom: 5px;
+    text-align: center; width: 100%;
 }
 .quick-stats-inner-box {
-    background-color: rgba(0,0,0,0.35); padding:10px; border-radius:6px;
-    border:1px solid #383c42; width:100%; box-sizing: border-box;
+    background-color: rgba(0,0,0,0.35); border:1px solid #383c42; border-radius:6px;
+    box-sizing: border-box; padding:10px; width:100%;
 }
 
-.dashboard-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 8px; margin-bottom: 10px;
-}
+.dashboard-grid { gap: 8px; grid-template-columns: 1fr 1fr; margin-bottom: 10px; display: grid; }
 .dash-item {
-    background-color:#2c2f33; padding:8px 10px; border-radius:6px; font-size:0.85em;
-    display:flex; justify-content:space-between; align-items:center;
-    border:1px solid #444950; min-height:34px; box-sizing: border-box;
+    align-items: center; background-color:#2c2f33; border:1px solid #444950;
+    box-sizing: border-box; display:flex; font-size:0.85em; justify-content:space-between;
+    min-height:34px; padding:8px 10px; border-radius:6px;
 }
-.dash-item-label { font-weight:bold; margin-right:5px; color:inherit; flex-shrink: 0; }
-.dash-item span.value { margin-left:auto; padding-left:5px; text-align:right; color: #00a8ff; }
+.dash-item-label { color:inherit; flex-shrink: 0; font-weight:bold; margin-right:5px; }
+.dash-item span.value { color: #00a8ff; margin-left:auto; padding-left:5px; text-align:right; }
 
 label[for="togglePersonalStatsCheckbox"].dash-item {
-    width:100%; display: flex; align-items:center; cursor:pointer;
-    font-weight:bold; color:inherit; font-size:inherit; justify-content:flex-start;
+    align-items:center; cursor:pointer; display: flex; font-size:inherit;
+    font-weight:bold; justify-content:flex-start; color:inherit; width:100%;
 }
-input[type="checkbox"]#togglePersonalStatsCheckbox {
-    margin-right:8px; transform:scale(1.05); accent-color:#00a8ff; flex-shrink: 0;
-}
-.error-message-centered { color: red; text-align: center; margin-top: 5px; min-height: 1em; }
-.share-stats-time-container { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 10px; width: 100%; }
+input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-shrink: 0; margin-right:8px; transform:scale(1.05); }
+.error-message-centered { color: red; min-height: 1em; margin-top: 5px; text-align: center; }
+.share-stats-time-container { align-items: center; display: flex; flex-direction: column; gap: 5px; margin-top: 10px; width: 100%; }
 #tornTimeContainer {
-    font-size: 0.8em; color: #00a8ff; background-color: rgba(0,0,0,0.4);
-    padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', Courier, monospace;
-    border: 1px solid #00a8ff;
+    background-color: rgba(0,0,0,0.4); border: 1px solid #00a8ff; border-radius: 4px;
+    color: #00a8ff; font-family: 'Courier New', Courier, monospace; font-size: 0.8em; padding: 4px 8px;
 }
-#lastLogonInfo { font-weight: bold; text-decoration: underline; color: #b0b0b0; font-size: 0.85em; margin-bottom: 5px; }
-.api-key-message-centered { font-size:0.8em; text-align:center; margin-top:5px; color:#FFC04D; }
+#lastLogonInfo { color: #b0b0b0; font-size: 0.85em; font-weight: bold; margin-bottom: 5px; text-decoration: underline; }
+.api-key-message-centered { color:#FFC04D; font-size:0.8em; margin-top:5px; text-align:center; }
 
 /* Stat value specific colors */
 .stat-value-green { color: #28a745 !important; }
@@ -97,230 +87,144 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .stat-value-cooldown-active { color: #e9c46a !important; }
 .stat-value-green, .stat-value-yellow, .stat-value-red, .stat-value-blue, .stat-value-orange, .stat-value-ok, .stat-value-cooldown-active { font-weight: bold; }
 
-/* === MODAL STYLES START === */
+/* Hidden by JS */
+.hidden-by-js { display: none !important; }
 
-/* Base Overlay for All Modals */
-.modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal, #subscribePromptModal, #termsPromptModal {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85);
-    z-index: 10000; display: none; justify-content: center; align-items: center;
-    padding: 15px; opacity: 1; box-sizing: border-box;
+/* Form Group Styles */
+.form-group { margin-bottom: 20px; text-align: center; }
+.form-group label { color: #b0b0b0; display: block; font-size:0.9em; font-weight: bold; margin-bottom: 5px; }
+.form-group input[type="text"], .form-group input[type="password"] {
+    background-color: #2c2f33; border: 1px solid #3a3a3a; border-radius: 4px;
+    box-sizing: border-box; color: #e0e0e0; font-size: 0.95em; padding: 10px 12px; width: 100%;
+}
+.form-group input[type="text"]:focus, .form-group input[type="password"]:focus {
+    background-color: #33373c; border-color: #00a8ff; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
 }
 
+#profileSetupApiKey { display: block; margin: 0 auto; max-width: 400px; width: 80%; }
+
+.modal-error-message { color: #ff6b6b; font-size: 0.8em; min-height: 1.2em; margin-top: 5px; text-align: left;}
+.helper-text { color: #fd7e14; display:block; font-size: 0.75em; margin-bottom: 15px; margin-top: 5px; }
+
+.checkbox-group { margin-bottom: -4px; text-align: center; }
+.checkbox-label-inline { align-items: center; color: #ccc; display: flex; font-size: 0.9em; margin-bottom: 5px; }
+.checkbox-label-inline input[type="checkbox"] { accent-color:#00a8ff; margin-right: 8px; transform: scale(1.1); }
+.modal-profile-setup .form-group a,
+.modal-profile-setup .checkbox-label-inline a { color: #00a8ff; text-decoration: none;}
+.modal-profile-setup .form-group a:hover,
+.modal-profile-setup .checkbox-label-inline a:hover { text-decoration: underline;}
+
+/* Modal Base Styles */
+.modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal, #subscribePromptModal, #termsPromptModal {
+    background-color: rgba(0, 0, 0, 0.85); box-sizing: border-box; display: none; height: 100%;
+    justify-content: center; left: 0; opacity: 1; padding: 15px; position: fixed;
+    right: 0; top: 0; width: 100%; z-index: 10000; align-items: center;
+}
 #personalStatsModal.visible { display: flex; }
 
-/* Base Content Box for All Modals */
+/* Modal Content Box Base Styles */
 .modal-profile-setup, #personalStatsModal .modal-content-box, .membership-modal, .confirmation-modal {
-    background-color: #181a1b; padding: 20px 25px; border-radius: 10px;
-    width: 100%; position: relative; color: #e0e0e0; border: 1px solid #007bff;
+    background-color: #181a1b; border: 1px solid #007bff; border-radius: 10px;
     border-top: 4px solid #00a8ff; box-shadow: 0 8px 30px rgba(0,0,0,0.75);
-    max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
+    color: #e0e0e0; display: flex; flex-direction: column; max-height: 90vh;
+    overflow-y: auto; padding: 20px 25px; position: relative; width: 100%;
 }
 
 /* Profile Setup Modal Specifics */
 .modal-profile-setup { max-width: 750px; }
 .modal-profile-setup .form-row { display: flex; gap: 15px; margin-bottom: 10px; }
 .modal-profile-setup .form-row .form-group { flex: 1; margin-bottom: 0; }
-.modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; color: #00a8ff; text-align: center; font-size: 1.4em; }
-.modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
+.modal-profile-setup h3 { color: #00a8ff; font-size: 1.4em; margin-bottom: 8px; margin-top: 0; text-align: center; }
+.modal-profile-setup .modal-subtitle { color: #bbb; font-size: 0.9em; font-weight: bold; margin-bottom: 15px; margin-top: 0; text-align: center; }
 .modal-profile-setup .modal-close-btn {
-    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
-    cursor: pointer; line-height: 1; padding: 0; background: none; border: none; z-index: 10;
-    transition: color 0.2s ease;
+    background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 2.2em; line-height: 1;
+    padding: 0; position: absolute; right: 10px; top: 8px; transition: color 0.2s ease; z-index: 10;
 }
 .modal-profile-setup .modal-close-btn:hover { color: #4dffff; }
-.modal-actions { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
 .modal-actions .btn { font-weight: bold; }
 
 /* Personal Stats Modal Specifics */
 #personalStatsModal .modal-content-box { max-width: 650px; }
 #closePersonalStatsDialogBtn {
-    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
-    background: none; border: none; padding: 0; line-height: 1; cursor: pointer; z-index: 10;
-    transition: color 0.2s ease;
+    background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 2.2em;
+    line-height: 1; padding: 0; position: absolute; right: 10px; top: 8px;
+    transition: color 0.2s ease; z-index: 10;
 }
 #closePersonalStatsDialogBtn:hover { color: #4dffff; }
-#personalStatsModalBody h4 { margin: 15px 0 8px 0; color: #8ab4f8; border-bottom: 1px solid #555; text-align: center; padding-bottom: 5px; font-size: 1.1em; font-weight: 600;}
+#personalStatsModalBody h4 {
+    border-bottom: 1px solid #555; color: #8ab4f8; font-size: 1.1em; font-weight: 600;
+    margin: 15px 0 8px 0; padding-bottom: 5px; text-align: center;
+}
 #personalStatsModalBody h4:first-child { margin-top: 0; }
-#personalStatsModalBody p { margin: 5px 0 8px 5px; line-height: 1.5; font-size: 0.9em; text-align: center; }
-#personalStatsModalBody p strong { color: #c5c5c5; display: inline-block; margin-right: 8px; font-weight:500; }
+#personalStatsModalBody p { font-size: 0.9em; line-height: 1.5; margin: 5px 0 8px 5px; text-align: center; }
+#personalStatsModalBody p strong { color: #c5c5c5; display: inline-block; font-weight:500; margin-right: 8px; }
 #personalStatsModalBody p span.stat-value-api { color: #34c9eb; font-weight: 500; }
-#personalStatsModalBody p span.sub-detail { font-size: 0.75em; color: #888; margin-left: 5px; font-style: italic; }
+#personalStatsModalBody p span.sub-detail { color: #888; font-size: 0.75em; font-style: italic; margin-left: 5px; }
 
-/* mysite/css/home.css - Specific Styles for the Homepage */
-
-/* Add this to your home.css or global.css */
-.hidden-by-js {
-    display: none !important; /* Use !important to override other display properties */
-}
-   
-/* ... (previous CSS) ... */
-
-/* Form Group Styles (Used in Profile Modal) */
-.form-group { margin-bottom: 20px; text-align: center; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size:0.9em; color: #b0b0b0;}
-.form-group input[type="text"], .form-group input[type="password"] {
-    width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid #3a3a3a;
-    background-color: #2c2f33; color: #e0e0e0; box-sizing: border-box; font-size: 0.95em;
-}
-.form-group input[type="text"]:focus, .form-group input[type="password"]:focus {
-    border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
-}
-
-#profileSetupApiKey {
-    display: block; /* Override default inline-block to allow margin: auto */
-    width: 80%;     /* Adjust this percentage as you like, or use a fixed pixel width */
-    max-width: 400px; /* Ensures it doesn't get too on large screens */
-    margin: 0 auto; /* Centers the block-level element horizontally */
-}
-
-.modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
-.helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
-
-/* Modified CSS for .checkbox-group */
-.checkbox-group {
-    /* Change text-align from left to center */
-    text-align: center;
-    margin-bottom: -4px;
-}
-
-.checkbox-label-inline {
-    display: flex;
-    align-items: center;
-    font-size: 0.9em;
-    margin-bottom: 5px;
-    color: #ccc;
-    /* Remove or keep this, it centers the flex items WITHIN the checkbox-label-inline.
-       If the label itself isn't full width, this won't center it within the modal. */
-    /* justify-content: center; */
-}
-.checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
-.modal-profile-setup .form-group a,
-.modal-profile-setup .checkbox-label-inline a { color: #00a8ff; text-decoration: none;}
-.modal-profile-setup .form-group a:hover,
-.modal-profile-setup .checkbox-label-inline a:hover { text-decoration: underline;}
-
-/* ... (rest of your CSS) ... */
-
-/* --- Membership & Confirmation Modal Styles --- */
+/* Membership & Confirmation Modal Styles */
 .membership-modal { max-width: 900px; padding: 30px; text-align: center; }
 .confirmation-modal { max-width: 450px; padding: 25px; text-align: center; }
 
 /* Custom Grid Layout for Membership Modal */
 .membership-options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    display: grid; gap: 20px;
     grid-template-areas:
-        "free-trial   free-trial"
+        "free-trial free-trial"
         "solo-monthly faction-monthly"
-        "solo-yearly  faction-yearly";
+        "solo-yearly faction-yearly";
+    grid-template-columns: 1fr 1fr;
 }
 
-/* Assigning each card to its named area in the gr-id n */
-.card-free-trial {
-    grid-area: free-trial;
-    justify-self: center;
-    width: 100%;
-    max-width: 350px;
-}
-.card-solo-monthly    { grid-area: solo-monthly; }
-.card-solo-yearly     { grid-area: solo-yearly; }
+/* Assigning each card to its named area in the grid */
+.card-free-trial { grid-area: free-trial; justify-self: center; max-width: 350px; width: 100%; }
+.card-solo-monthly { grid-area: solo-monthly; }
+.card-solo-yearly { grid-area: solo-yearly; }
 .card-faction-monthly { grid-area: faction-monthly; }
-.card-faction-yearly  { grid-area: faction-yearly; }
+.card-faction-yearly { grid-area: faction-yearly; }
 
 /* Individual Membership Option Card Styles */
 .membership-option-card {
-    background-color: #1e2022; border: 1px solid #383c42; border-radius: 8px; padding: 20px;
-    display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    align-items: center; background-color: #1e2022; border: 1px solid #383c42; border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column;
+    justify-content: space-between; padding: 20px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.membership-option-card:hover {
-    transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); border-color: black;
-}
+.membership-option-card:hover { border-color: black; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); transform: translateY(-5px); }
 .membership-option-card h4 {
-    color: #8ab4f8;
-    font-size: 1.3em;
-    margin-top: 0;
-    margin-bottom: 10px;
-    display: flex; /* ADD THIS */
-    justify-content: center; /* ADD THIS */
-    align-items: center; /* ADD THIS */
+    align-items: center; color: #8ab4f8; display: flex; font-size: 1.3em;
+    justify-content: center; margin-bottom: 10px; margin-top: 0;
 }
 /* Styling for the new faction warning text inside the membership card */
 .membership-option-card .faction-warning-text {
-    color: #ff6b6b; /* A nice, visible red color */
-    font-weight: bold;
-    font-size: 0.85em;
-    margin-top: -5px; /* Pulls it a bit closer to the text above */
-    margin-bottom: 15px; /* Adds some space before the numbered list */
+    color: #ff6b6b; font-size: 0.85em; font-weight: bold; margin-bottom: 15px; margin-top: -5px;
 }
-.membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
+.membership-option-card .savings-info { color: #FFC04D; font-size: 0.9em; font-weight: bold; margin-bottom: 15px; }
 
-/* --- Override card hover border to be black --- */
-.membership-options-grid .membership-option-card:hover {
-    border: 1px solid black;
-}
+/* Override card hover border to be black */
+.membership-options-grid .membership-option-card:hover { border: 1px solid black; }
 
-/* === Unified Style for ALL Modal 'X' Close Buttons === */
-
+/* Unified Style for ALL Modal 'X' Close Buttons */
 .modal-close-button {
-    position: absolute;
-    top: 12px;
-    right: 15px;
-    font-size: 2.2em;
-    color: #00a8ff; /* Default blue color */
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s ease;
-    padding: 0;
-    background: none;
-    border: none;
+    background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 2.2em;
+    line-height: 1; padding: 0; position: absolute; right: 15px; top: 12px; transition: color 0.2s ease;
 }
+.modal-close-button:hover { color: #4dffff; }
+.modal-close-button:active { color: #4dffff; }
 
-.modal-close-button:hover {
-    color: #4dffff; /* White color on hover */
-}
-
-/* NEW: Lighter blue color when you click the button */
-.modal-close-button:active {
-    color: #4dffff; 
-}
-
-/* --- Styling for the Profile Imagersonal Stats Modal --- */
-
+/* Styling for the Profile Image in Personal Stats Modal */
 .member-detail-profile-image-modal {
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;  /* This makes the image a circle */
-    object-fit: cover;
-    border: 2px solid #00a8ff;
-    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+    border: 2px solid #00a8ff; border-radius: 50%; box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+    height: 75px; object-fit: cover; width: 75px;
 }
-
-/* This centers the container that holds the image */
 .member-header-top-row.center-content-flex {
-    display: flex;
-    justify-content: center; /* This centers the image horizontally */
-    padding-top: 10px;
-    margin-bottom: 15px;
+    display: flex; justify-content: center; margin-bottom: 15px; padding-top: 10px;
 }
 
 .membership-select-btn {
-    margin-top: auto;
-    width: 100%;
-    padding: 12px 15px;
-    font-size: 1em;
-    font-weight: bold;
-    background-color: #007bff; /* Primary blue button */
-    border: 1px solid #0056b3;
-    color: black; 
-    border-radius: 5px;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    align-items: center; background-color: #007bff; border: 1px solid #0056b3; border-radius: 5px;
+    color: black; display: flex; font-size: 1em; font-weight: bold; justify-content: center;
+    margin-top: auto; padding: 12px 15px; transition: background-color 0.2s ease, transform 0.2s ease; width: 100%;
 }
 .membership-select-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
 
@@ -338,268 +242,139 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .yearly-membership-card .membership-select-btn:hover { background: linear-gradient(135deg, #FFE033, #FFB833); }
 
 /* Confirmation Modal Buttons */
-.confirmation-actions { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+.confirmation-actions { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
 .btn-confirm-yes {
-    background-color: #28a745; color: black; border: 1px solid #000; font-weight: bold;
-    padding: 10px 25px; border-radius: 5px; transition: background-color 0.2s ease, transform 0.1s ease;
+    background-color: #28a745; border: 1px solid #000; border-radius: 5px; color: black;
+    font-weight: bold; padding: 10px 25px; transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .btn-confirm-yes:hover { background-color: #218838; transform: translateY(-1px); }
 .btn-confirm-yes:active { transform: translateY(0); }
 .btn-confirm-no {
-    background-color: #dc3545; 
-	color: black; 
-	display: flex;
-    justify-content: center; 
-    align-items: center;  
-	border:  1px solid #000; 
-	font-weight: bold;
-    padding: 10px 25px; 
-	border-radius: 5px; 
-	transition: background-color 0.2s ease, transform 0.1s ease;
+    align-items: center; background-color: #dc3545; border: 1px solid #000; border-radius: 5px;
+    color: black; display: flex; font-weight: bold; justify-content: center; padding: 10px 25px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
 .btn-confirm-no:active { transform: translateY(0); }
 
-/* AFTER */
-.disabled-link {
-opacity: 0.5;
-cursor: not-allowed;
+/* Disabled Link Style */
+.disabled-link { opacity: 0.5; cursor: not-allowed; }
 
-}
-/* 3. Add blue borders and glow to the monthly cards */
-.card-solo-monthly,
-.card-faction-monthly {
-    border-color: #007bff; /* A nice primary blue */
+/* Monthly Membership Card Borders */
+.card-solo-monthly, .card-faction-monthly {
+    border-color: #007bff; /* Primary blue */
     box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
 }
+.card-solo-monthly:hover, .card-faction-monthly:hover { border-color: #0056b3; box-shadow: 0 8px 15px rgba(0, 123, 255, 0.5); }
 
-/* 4. Make the blue border darker on hover for a nice effect */
-.card-solo-monthly:hover,
-.card-faction-monthly:hover {
-    border-color: #0056b3; 
-    box-shadow: 0 8px 15px rgba(0, 123, 255, 0.5);
-}
-
-/* === Trial & Membership Countdown Timer Box === */
-.trial-countdown-container {
-  display: none; /* Hidden by default, JS will show it */
-  margin-top: 0px;
-  margin-left: 40px;
-  padding: 8px 12px;
-  background-color: #1e2022;        /* Dark background like the cards */
-  border: 1px solid #00a8ff;         /* Site's accent blue border */
-  border-radius: 6px;
-  color: #FFC04D;                   /* Gold text for contrast and importance */
-  font-size: 0.9em;
-  font-weight: bold;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  white-space: nowrap; /* Prevents the text from wrapping onto two lines */
-}
-
-/* === Styling for the "Subscribe Prompt" Modal === */
-
-/* Position the 'X' close button in the new modal */
-#subscribePromptModal .modal-close-button {
-    position: absolute;
-    top: 12px;
-    right: 15px;
-    font-size: 2.2em;
-    color: #00a8ff;
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s ease;
-    padding: 0;
-    background: none;
-    border: none;
-}
-
-#subscribePromptModal .modal-close-button:hover {
-    color: #4dffff;
-}
-
-/* Style the icon in the title */
-#subscribePromptModal h3 .btn-icon {
-    margin-right: 8px;
-}
-
-/* Optional: Make the two buttons in the prompt have the same width */
-#subscribePromptModal .confirmation-actions .btn {
-    min-width: 150px;
-}
-
-/* === MODAL STYLES END === */
-
-/* --- NEW: Specific Styling for the "Terms Prompt" Modal --- */
-#termsPromptModal {
-    /* The display: none; is initially set inline in HTML, JS will change it to 'flex' */
-    /* This rule primarily ensures it uses the shared modal overlay styles */
-}
-
-#termsPromptModal .modal-content-box {
-    /* Inherits most styles from .modal-content-box and .confirmation-modal,
-       but you can override or fine-tune here if needed for this specific modal. */
-    max-width: 450px; /* Matching your other confirmation modals */
-    padding: 25px; /* Matching your other confirmation modals */
-}
-
-#termsPromptModal h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    color: #00a8ff; /* Your site's accent blue */
-    text-align: center;
-    font-size: 1.4em;
-    display: flex; /* To align icon and text */
-    justify-content: center;
-    align-items: center;
-    gap: 10px; /* Space between icon and text */
-}
-
-#termsPromptModal h3 .btn-icon {
-    font-size: 1.2em; /* Adjust icon size if needed */
-    line-height: 1;
-}
-
-#termsPromptModal p {
-    color: #e0e0e0; /* Light text for readability */
+/* Trial & Membership Countdown Timer Box - NEW STYLING FOR FACTIONHUDDLEMESSAGE */
+.trial-countdown-display {
+    background-color: #1e2022; /* Dark background like the cards */
+    border: 1px solid #00a8ff; /* Site's accent blue border */
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    color: #FFC04D; /* Gold text for contrast and importance */
+    display: block; /* Ensure it behaves as a block element for padding/margin */
     font-size: 0.95em;
-    line-height: 1.4;
-    margin-bottom: 15px;
+    font-weight: bold;
+    margin: 5px auto 10px auto; /* Center it horizontally, add some vertical spacing */
+    padding: 8px 12px;
     text-align: center;
+    white-space: nowrap; /* Prevents the text from wrapping onto two lines */
+    width: fit-content; /* Make the background/border only as wide as the text */
 }
 
+/* Original .trial-countdown-container (kept but likely unused in HTML) */
+.trial-countdown-container {
+    display: none; /* Keep this if the HTML div still exists but is unused */
+    margin-left: 40px; /* Specific margin from its original position */
+    margin-top: 0px;
+    /* Other styles if still needed for the original div */
+}
+
+
+/* Styling for the "Subscribe Prompt" Modal */
+#subscribePromptModal .modal-close-button {
+    background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 2.2em;
+    line-height: 1; padding: 0; position: absolute; right: 15px; top: 12px;
+    transition: color 0.2s ease;
+}
+#subscribePromptModal .modal-close-button:hover { color: #4dffff; }
+#subscribePromptModal h3 .btn-icon { margin-right: 8px; }
+#subscribePromptModal .confirmation-actions .btn { min-width: 150px; }
+
+/* Styling for the "Terms Prompt" Modal */
+#termsPromptModal .modal-content-box { max-width: 450px; padding: 25px; }
+#termsPromptModal h3 {
+    align-items: center; color: #00a8ff; display: flex; font-size: 1.4em;
+    gap: 10px; justify-content: center; margin-bottom: 8px; margin-top: 0; text-align: center;
+}
+#termsPromptModal h3 .btn-icon { font-size: 1.2em; line-height: 1; }
+#termsPromptModal p { color: #e0e0e0; font-size: 0.95em; line-height: 1.4; margin-bottom: 15px; text-align: center; }
 #termsPromptModal p[style="font-size: 0.9em; color: #ccc;"] {
-    /* Targets the specific helper text like "You can do this in your profile settings." */
-    font-size: 0.85em !important; /* Make it slightly smaller */
-    color: #b0b0b0 !important; /* Slightly darker grey for less prominence */
-    margin-top: -10px; /* Pull it closer to the paragraph above */
-    margin-bottom: 20px;
+    color: #b0b0b0 !important; font-size: 0.85em !important; margin-bottom: 20px; margin-top: -10px;
 }
-
 #termsPromptModal .confirmation-actions {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Space between stacked buttons */
+    display: flex; flex-direction: column; gap: 10px; margin-top: 20px;
 }
-
 #termsPromptModal .confirmation-actions .btn {
-    width: 100%; /* Make buttons full width when stacked */
-    padding: 12px 15px;
-    font-size: 1em;
-    font-weight: bold;
-    border-radius: 5px;
-    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 5px; font-size: 1em; font-weight: bold; padding: 12px 15px;
+    transition: background-color 0.2s ease, transform 0.2s ease; width: 100%;
 }
+#termsPromptModal #goToProfileFromTermsPromptBtn { background-color: #00a8ff; border: 1px solid #007bff; color: black; }
+#termsPromptModal #goToProfileFromTermsPromptBtn:hover { background-color: #007bff; transform: translateY(-1px); }
+#termsPromptModal #closeTermsModalBtn { background-color: #6c757d; border: 1px solid #5a6268; color: black; }
+#termsPromptModal #closeTermsModalBtn:hover { background-color: #5a6268; transform: translateY(-1px); }
 
-/* Specific button styles for clarity */
-#termsPromptModal #goToProfileFromTermsPromptBtn { /* "Open Profile Settings" */
-    background-color: #00a8ff; /* Your site's accent blue */
-    border: 1px solid #007bff;
-    color: black;
-}
-
-#termsPromptModal #goToProfileFromTermsPromptBtn:hover {
-    background-color: #007bff;
-    transform: translateY(-1px);
-}
-
-#termsPromptModal #closeTermsModalBtn { /* "Close" button */
-    background-color: #6c757d; /* A neutral grey */
-    border: 1px solid #5a6268;
-    color: black;
-}
-
-#termsPromptModal #closeTermsModalBtn:hover {
-    background-color: #5a6268;
-    transform: translateY(-1px);
-}
-
-/* --- Style for the new 'Copy' Button --- */
-
+/* Style for the 'Copy' Button */
 .copy-btn {
-    /* Basic Appearance */
-    background-color: rgba(255, 255, 255, 0.1); /* A subtle, semi-transparent background */
-    color: #e0e0e0; /* Light text color to stand out on the dark card */
-    border: 1px solid rgba(255, 255, 255, 0.2); /* A faint border */
-    border-radius: 5px; /* Rounded corners to match your aesthetic */
-    
-    /* Spacing and Size */
-    padding: 3px 10px; /* A little bit of padding to make it easy to click */
-    margin-left: 8px; /* Adds space between the ID and the button */
-    font-size: 12px; /* Makes the button text slightly smaller */
-    font-weight: bold;
-    
-    /* Interactivity */
-    cursor: pointer; /* Shows a hand cursor on hover */
-    transition: background-color 0.2s ease, transform 0.1s ease; /* Smooths out animations */
-    vertical-align: middle; /* Helps align the button with the text */
+    background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px; color: #e0e0e0; cursor: pointer; font-size: 12px;
+    font-weight: bold; margin-left: 8px; padding: 3px 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease; vertical-align: middle;
 }
+.copy-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
+.copy-btn:active { transform: scale(0.95); }
 
-/* Style for when the user hovers over the button */
-.copy-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2); /* Makes it slightly brighter on hover */
-}
-
-/* Style for when the user clicks the button */
-.copy-btn:active {
-    transform: scale(0.95); /* A subtle "press down" effect */
-}
-
-/*
- This style targets the central error message container in the profile modal.
- It makes ALL profile errors centered, bold, and red.
-*/
-#profileSetupError {
-  text-align: center; /* This is the line that will center the text. */
-  font-weight: bold;  /* This will make the font thicker, like you wanted. */
-  color: #ff5555;     /* This sets a nice, visible red color. */
-  width: 100%;        /* Ensures the text centers properly within the available space. */
-}
+/* Profile Setup Error Message */
+#profileSetupError { color: #ff5555; font-weight: bold; text-align: center; width: 100%; }
 
 
-
-/* === RESPONSIVE STYLES === */
+/* RESPONSIVE STYLES */
 @media (max-width: 960px) {
-    .stats-tools-flex-container { flex-direction: column; align-items: center; gap: 15px; }
-    .stats-column, .tools-column { flex-basis: auto; width: 100%; max-width: 600px; margin-left:0; }
+    .stats-tools-flex-container { align-items: center; flex-direction: column; gap: 15px; }
+    .stats-column, .tools-column { flex-basis: auto; margin-left:0; max-width: 600px; width: 100%; }
     .welcome-block-area { width: 90%; }
 }
 
 @media (max-width: 768px) {
-    /* The new grid layout s naturally responsive, but we can adjust the gap */
-    .membership-options-grid {
-        gap: 15px;
-    }
+    .membership-options-grid { gap: 15px; }
 }
 
 @media (max-width: 580px) {
-    /* On small screens, stack all membership cards vertically */
     .membership-options-grid {
-        grid-template-columns: 1fr;
+        gap: 15px;
         grid-template-areas:
             "free-trial"
             "solo-monthly"
             "solo-yearly"
             "faction-monthly"
             "faction-yearly";
+        grid-template-columns: 1fr;
     }
-    .card-free-trial {
-        max-width: 100%; /* Allow it to be full width when stacked */
-    }
+    .card-free-trial { max-width: 100%; }
     .membership-modal { padding: 20px; }
 }
 
 @media (max-width: 480px) {
     .dashboard-grid { grid-template-columns: 1fr; }
-    .welcome-block-area h2#welcomeMessage { font-size: 1.3em; }
-    .welcome-block-area, .stats-column, .tools-column { padding: 15px 10px;}
     .homepage-content-wrapper { padding:5px; }
-    #personalStatsModal .modal-content-box, .modal-profile-setup { width: 98%; padding: 10px 15px; }
-    #personalStatsModalBody p strong { min-width: 100px; }
+    .stats-column, .tools-column, .welcome-block-area { padding: 15px 10px;}
+    .welcome-block-area h2#welcomeMessage { font-size: 1.3em; }
+    #personalStatsModal .modal-content-box, .modal-profile-setup { padding: 10px 15px; width: 98%; }
     #personalStatsModalBody p { font-size: 0.85em; }
-    .confirmation-modal { width: 95%; padding: 15px; }
+    #personalStatsModalBody p strong { min-width: 100px; }
     .confirmation-actions { flex-direction: column; gap: 10px; }
+    .confirmation-modal { padding: 15px; width: 95%; }
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
-
