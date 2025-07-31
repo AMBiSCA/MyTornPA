@@ -646,7 +646,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
+    margin-top: 30px; /* Increased from 15px to add more space */
     width: 100%;
 }
 .toggle-btn {
