@@ -2004,9 +2004,14 @@ input:checked + .slider:before {
     }
 
     /* Header adjustments for mobile */
-    body { padding-top: 0; padding-bottom: 0; }
-    header {
-        position: static;
+    body { padding-top: 90px !important; padding-bottom: 0; }
+   
+   header {
+        position: fixed !important; /* Forces header to stay fixed at the top */
+        top: 0 !important;         /* Aligns it to the top edge */
+        left: 0 !important;        /* Aligns it to the left edge */
+        width: 100% !important;    /* Ensures it spans full width */
+        z-index: 102 !important;   /* Keeps it on top of other content */
         height: auto;
         min-height: 70px;
         padding-top: 10px;
