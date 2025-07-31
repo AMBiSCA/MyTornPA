@@ -10,13 +10,14 @@ document.addEventListener('DOMContentLoaded', function() {
         messagingSenderId: "205970466308",
         appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
     };
-
-    window.addEventListener('pageshow', function(event) {
-        if (event.persisted) {
-            console.log('Page was loaded from the back-forward cache. Forcing a reload to ensure correct user state.');
-            window.location.reload();
-        }
-    });
+	
+	window.addEventListener('pageshow', function(event) {
+    // The 'persisted' property is true if the page was restored from the back-forward cache.
+    if (event.persisted) {
+        console.log('Page was loaded from the back-forward cache. Forcing a reload to ensure correct user state.');
+        window.location.reload();
+    }
+});
 
     let db = null;
     let auth = null;
@@ -80,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
     const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
     if (profileSetupProfileIdInput) {
-        profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
-    }
+    profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
+ }
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const nameErrorEl = document.getElementById('nameError');
     const profileSetupErrorEl = document.getElementById('profileSetupError');
@@ -113,124 +114,102 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
     const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
     const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
-    const subscribePromptModal = document.getElementById('subscribePromptModal');
-    const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
-    const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
-    const goToProfileBtn = document.getElementById('goToProfileBtn');
-    const termsCheckbox = document.getElementById('termsAgreementProfileModal');
+	const subscribePromptModal = document.getElementById('subscribePromptModal');
+const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
+const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
+const goToProfileBtn = document.getElementById('goToProfileBtn');
+const termsCheckbox = document.getElementById('termsAgreementProfileModal');
 
-    // NEW DOM ELEMENTS FOR COLLAPSE/EXPAND FUNCTIONALITY
-    const quickStatsToggle = document.getElementById('quickStatsToggle');
-    const quickStatsCollapsibleContent = document.getElementById('quickStatsCollapsibleContent');
-    const quickStatsSection = document.getElementById('quickStatsSection'); // ADD THIS LINE
-    const exploreToolsToggle = document.getElementById('exploreToolsToggle');
-    const exploreToolsCollapsibleContent = document.getElementById('exploreToolsCollapsibleContent');
-    const exploreToolsSection = document.getElementById('exploreToolsSection');
-
-    const hideSubscribePrompt = () => {
-        if (subscribePromptModal) {
-            subscribePromptModal.style.display = 'none';
-        }
-    };
-
-    if (closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
-    if (closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
-
-    // Make the 'View Memberships' button open the profile modal
-    if (goToProfileBtn) {
-        goToProfileBtn.addEventListener('click', () => {
-            hideSubscribePrompt();
-            membershipOptionsModal.style.display = 'flex';
-        });
+const hideSubscribePrompt = () => {
+    if (subscribePromptModal) {
+        subscribePromptModal.style.display = 'none';
     }
+};
 
-    // --- Logic for the new Terms Prompt Modal ---
-    const termsPromptModal = document.getElementById('termsPromptModal');
-    const closeTermsPromptBtn = document.getElementById('closeTermsPromptBtn');
-    const closeTermsModalBtn = document.getElementById('closeTermsModalBtn');
-    const goToProfileFromTermsPromptBtn = document.getElementById('goToProfileFromTermsPromptBtn');
+ if(closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
+ if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
 
-    // Function to close the new modal
-    const hideTermsPrompt = () => {
-        if (termsPromptModal) {
-            termsPromptModal.style.display = 'none';
-        }
-    };
+// Make the 'View Memberships' button open the profile modal
+if(goToProfileBtn) {
+    goToProfileBtn.addEventListener('click', () => {
+        hideSubscribePrompt();
+        membershipOptionsModal.style.display = 'flex';
+    });
+}
 
-    // Attach listeners to the new modal's buttons
-    if (closeTermsPromptBtn) closeTermsPromptBtn.addEventListener('click', hideTermsPrompt);
-    if (closeTermsModalBtn) closeTermsModalBtn.addEventListener('click', hideTermsPrompt);
-    if (goToProfileFromTermsPromptBtn) {
-        goToProfileFromTermsPromptBtn.addEventListener('click', () => {
-            hideTermsPrompt();
-            showProfileSetupModal(); // This opens the main profile settings
-        });
+// --- Logic for the new Terms Prompt Modal ---
+const termsPromptModal = document.getElementById('termsPromptModal');
+const closeTermsPromptBtn = document.getElementById('closeTermsPromptBtn');
+const closeTermsModalBtn = document.getElementById('closeTermsModalBtn');
+const goToProfileFromTermsPromptBtn = document.getElementById('goToProfileFromTermsPromptBtn');
+
+// Function to close the new modal
+const hideTermsPrompt = () => {
+    if (termsPromptModal) {
+        termsPromptModal.style.display = 'none';
     }
+};
 
-    // --- Dropdown Menu Logic ---
-    // This handles both 'Useful Links' and 'Contact' dropdowns
+// Attach listeners to the new modal's buttons
+if(closeTermsPromptBtn) closeTermsPromptBtn.addEventListener('click', hideTermsPrompt);
+if(closeTermsModalBtn) closeTermsModalBtn.addEventListener('click', hideTermsPrompt);
+if(goToProfileFromTermsPromptBtn) {
+    goToProfileFromTermsPromptBtn.addEventListener('click', () => {
+        hideTermsPrompt();
+        showProfileSetupModal(); // This opens the main profile settings
+    });
+}
 
-    const allDropdowns = [
-        { button: usefulLinksBtn, content: usefulLinksDropdown },
-        { button: headerContactUsBtn, content: headerContactUsDropdown }
-    ];
+// --- Dropdown Menu Logic ---
+// This handles both 'Useful Links' and 'Contact' dropdowns
 
-    allDropdowns.forEach(dropdown => {
-        if (dropdown.button && dropdown.content) {
-            // When a dropdown button is clicked...
-            dropdown.button.addEventListener('click', (event) => {
-                event.stopPropagation(); // Prevents the window click listener from firing immediately
+const allDropdowns = [
+    { button: usefulLinksBtn, content: usefulLinksDropdown },
+    { button: headerContactUsBtn, content: headerContactUsDropdown }
+];
 
-                const isAlreadyOpen = dropdown.content.style.display === 'block';
+allDropdowns.forEach(dropdown => {
+    if (dropdown.button && dropdown.content) {
+        // When a dropdown button is clicked...
+        dropdown.button.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevents the window click listener from firing immediately
 
-                // First, close all other dropdowns to avoid overlap
-                allDropdowns.forEach(otherDropdown => {
-                    if (otherDropdown.content !== dropdown.content) {
-                        otherDropdown.content.style.display = 'none';
-                    }
-                });
+            const isAlreadyOpen = dropdown.content.style.display === 'block';
 
-                // Then, toggle the visibility of the one that was clicked
-                dropdown.content.style.display = isAlreadyOpen ? 'none' : 'block';
+            // First, close all other dropdowns to avoid overlap
+            allDropdowns.forEach(otherDropdown => {
+                if (otherDropdown.content !== dropdown.content) {
+                    otherDropdown.content.style.display = 'none';
+                }
             });
+
+            // Then, toggle the visibility of the one that was clicked
+            dropdown.content.style.display = isAlreadyOpen ? 'none' : 'block';
+        });
+    }
+});
+
+// Add a single listener to the window to close any open dropdown when clicking elsewhere
+window.addEventListener('click', (event) => {
+    allDropdowns.forEach(dropdown => {
+        // If a dropdown is open AND the click was not on its button...
+        if (dropdown.content && dropdown.content.style.display === 'block' && !dropdown.button.contains(event.target)) {
+            // ...hide it.
+            dropdown.content.style.display = 'none';
         }
     });
-
-    // Add a single listener to the window to close any open dropdown when clicking elsewhere
-    window.addEventListener('click', (event) => {
-        allDropdowns.forEach(dropdown => {
-            // If a dropdown is open AND the click was not on its button...
-            if (dropdown.content && dropdown.content.style.display === 'block' && !dropdown.button.contains(event.target)) {
-                // ...hide it.
-                dropdown.content.style.display = 'none';
-            }
-        });
-    });
+});
 
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
     // --- Torn Tips ---
     const uselessTornTips = ["Always check your six.", "Flying is 90% waiting.", "A Xanax a day..."];
-    function displayRandomTip() {
-        if (tornTipPlaceholderEl) {
-            const tip = uselessTornTips[Math.floor(Math.random() * uselessTornTips.length)];
-            tornTipPlaceholderEl.textContent = "Torn Tip: " + tip;
-            tornTipPlaceholderEl.style.display = 'block';
-        }
-    }
+    function displayRandomTip() { if (tornTipPlaceholderEl) { const tip = uselessTornTips[Math.floor(Math.random() * uselessTornTips.length)]; tornTipPlaceholderEl.textContent = "Torn Tip: " + tip; tornTipPlaceholderEl.style.display = 'block'; } }
 
     // --- Torn Time ---
-    function updateTornTime() {
-        if (tornTimePlaceholder) {
-            const now = new Date();
-            tornTimePlaceholder.textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')}`;
-        }
-    }
-    if (tornTimePlaceholder) {
-        updateTornTime();
-        setInterval(updateTornTime, 1000);
-    }
+    function updateTornTime() { if (tornTimePlaceholder) { const now = new Date(); tornTimePlaceholder.textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')}`; } }
+    if (tornTimePlaceholder) { updateTornTime(); setInterval(updateTornTime, 1000); }
 
     // --- Cooldowns and Timers ---
     let activeCooldownIntervals = {};
@@ -239,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let membershipCountdownInterval = null;
     let currentUserProfile = null;
 
-
-    function formatTimeRemaining(secs) {
+	
+	function formatTimeRemaining(secs) {
         if (secs <= 0) return "OK 😊";
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
@@ -251,118 +230,57 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTimeAgo(tsSecs) {
         if (!tsSecs || tsSecs <= 0) return "a while ago";
         const diff = Math.floor(Date.now() / 1000) - tsSecs;
-        if (diff < 2) return "just now";
-        if (diff < 60) return `${diff} sec ago`;
-        const mins = Math.floor(diff / 60);
-        if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
-        const hrs = Math.floor(mins / 60);
-        if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
-        const days = Math.floor(hrs / 24);
-        return `${days} day${days === 1 ? "" : "s"} ago`;
+        if (diff < 2) return "just now"; if (diff < 60) return `${diff} sec ago`;
+        const mins = Math.floor(diff / 60); if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
+        const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+        const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
-	
-	 // --- NEW: Collapse/Expand Logic for Sections ---
-    // Helper function to check if current view is mobile
-    const isMobileView = () => window.matchMedia("(max-width: 768px)").matches;
-
-    // Generic function to toggle collapse/expand for a section
-    // Now toggles the 'collapsed' class on the *sectionElement* itself
-    const toggleSection = (toggleElement, sectionElement) => { // CHANGED parameter name
-        if (!toggleElement || !sectionElement) {
-            console.warn("Toggle or section element not found for collapse feature.");
-            return;
-        }
-
-        if (sectionElement.classList.contains('collapsed')) {
-            // It's currently collapsed, so expand it
-            sectionElement.classList.remove('collapsed');
-            toggleElement.textContent = '▲'; // Up arrow for expanded state (to collapse)
-            toggleElement.classList.remove('collapsed'); // Remove collapsed class from icon
-        } else {
-            // It's currently expanded, so collapse it
-            sectionElement.classList.add('collapsed');
-            toggleElement.textContent = '▼'; // Down arrow for collapsed state (to expand)
-            toggleElement.classList.add('collapsed'); // Add collapsed class to icon
-        }
-    };
-
-    // Event Listeners for Quick Stats
-    // Pass the main section element (#quickStatsSection)
-    if (quickStatsToggle && quickStatsSection) { // CHANGED `quickStatsCollapsibleContent` to `quickStatsSection`
-        quickStatsToggle.addEventListener('click', () => toggleSection(quickStatsToggle, quickStatsSection));
-    }
-
-    // Event Listeners for Explore Your Tools
-    // Pass the main section element (#exploreToolsSection)
-    if (exploreToolsToggle && exploreToolsSection) { // CHANGED `exploreToolsCollapsibleContent` to `exploreToolsSection`
-        exploreToolsToggle.addEventListener('click', () => toggleSection(exploreToolsToggle, exploreToolsSection));
-    }
-
-    // Set initial state on page load for mobile
-    // This runs after DOMContentLoaded, ensuring elements are available
-    if (isMobileView()) {
-        if (quickStatsSection && quickStatsToggle) { // CHANGED `quickStatsCollapsibleContent` to `quickStatsSection`
-            quickStatsSection.classList.add('collapsed'); // Add collapsed to the section
-            quickStatsToggle.textContent = '▼'; // Set initial down arrow for collapsed state
-            quickStatsToggle.classList.add('collapsed'); // Also add the class for consistency
-        }
-        if (exploreToolsSection && exploreToolsToggle) { // CHANGED `exploreToolsCollapsibleContent` to `exploreToolsSection`
-            exploreToolsSection.classList.add('collapsed'); // Add collapsed to the section
-            exploreToolsToggle.textContent = '▼'; // Set initial down arrow for collapsed state
-            exploreToolsToggle.classList.add('collapsed'); // Also add the class for consistency
-        }
-    }
-	
-    async function updateToolLinksAccess(profile) {
-        console.log('[DEBUG] Running updateToolLinksAccess...');
-        const toolLinks = document.querySelectorAll('.tool-item-button');
-
-        if (!profile) {
-            console.log('[DEBUG] No profile found. Disabling all member links.');
-            toolLinks.forEach(link => {
-                if (link.classList.contains('member-only')) {
-                    link.classList.add('disabled-link');
-                }
-            });
-            return;
-        }
-
-        const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
-        // --- THIS LINE IS CORRECTED ---
-        const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
-        const hasFactionComp = await isFactionComped(profile, db);
-
-        console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
-        console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
-        console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
-
-        const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
-        console.log('[DEBUG] Final isMember result:', isMember);
-
-        const hasAgreedToTerms = profile.termsAgreed === true;
-
+async function updateToolLinksAccess(profile) {
+    console.log('[DEBUG] Running updateToolLinksAccess...');
+    const toolLinks = document.querySelectorAll('.tool-item-button');
+    
+    if (!profile) {
+        console.log('[DEBUG] No profile found. Disabling all member links.');
         toolLinks.forEach(link => {
-            const isRestrictedByTerms = !hasAgreedToTerms;
-            const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
-
-            if (isRestrictedByTerms || isRestrictedByMembership) {
+            if (link.classList.contains('member-only')) {
                 link.classList.add('disabled-link');
-            } else {
-                link.classList.remove('disabled-link');
             }
         });
-        console.log('[DEBUG] Finished updateToolLinksAccess.');
+        return;
     }
 
-    function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
-        const element = document.getElementById(elementId);
-        if (!element) {
-            console.warn(`updateStatDisplay: Element ID ${elementId} not found.`);
-            return;
+    const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+    // --- THIS LINE IS CORRECTED ---
+    const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
+    const hasFactionComp = await isFactionComped(profile, db);
+
+    console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
+    console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
+    console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
+    
+    const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+    console.log('[DEBUG] Final isMember result:', isMember);
+
+    const hasAgreedToTerms = profile.termsAgreed === true;
+
+    toolLinks.forEach(link => {
+        const isRestrictedByTerms = !hasAgreedToTerms;
+        const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
+
+        if (isRestrictedByTerms || isRestrictedByMembership) {
+            link.classList.add('disabled-link');
+        } else {
+            link.classList.remove('disabled-link');
         }
+    });
+    console.log('[DEBUG] Finished updateToolLinksAccess.');
+}
+
+  function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
+        const element = document.getElementById(elementId);
+        if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
         if (activeCooldownIntervals[elementId]) clearInterval(activeCooldownIntervals[elementId]);
-        delete activeCooldownIntervals[elementId];
-        delete activeCooldownEndTimes[elementId];
+        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
         element.className = 'value';
         const classesToRemove = ["stat-value-green", "stat-value-yellow", "stat-value-red", "stat-value-blue", "stat-value-orange", "stat-value-ok", "stat-value-cooldown-active"];
         element.classList.remove(...classesToRemove);
@@ -392,8 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             element.classList.add("stat-value-ok");
                         }
                         clearInterval(activeCooldownIntervals[elementId]);
-                        delete activeCooldownIntervals[elementId];
-                        delete activeCooldownEndTimes[elementId];
+                        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
                     } else {
                         const remaining = endTime - nowSeconds;
                         let displayValue = formatTimeRemaining(remaining);
@@ -445,261 +362,245 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    function validateTornProfileIdInput(event) {
-        const input = event.target;
-        // Remove any character that is NOT a digit (0-9)
-        input.value = input.value.replace(/\D/g, '');
+	
+	function validateTornProfileIdInput(event) {
+    const input = event.target;
+    // Remove any character that is NOT a digit (0-9)
+    input.value = input.value.replace(/\D/g, '');
+}
+	
+	async function isFactionComped(profile, db) {
+    if (!profile || !profile.faction_id) {
+        return false;
     }
-
-    async function isFactionComped(profile, db) {
-        if (!profile || !profile.faction_id) {
+    const usersRef = db.collection('userProfiles');
+    const leaderQuery = usersRef
+        .where('faction_id', '==', profile.faction_id)
+        .where('position', '==', 'Leader')
+        .limit(1);
+    try {
+        const leaderSnapshot = await leaderQuery.get();
+        if (leaderSnapshot.empty) {
+            console.warn(`isFactionComped check: No leader found for faction ID: ${profile.faction_id}`);
             return false;
         }
-        const usersRef = db.collection('userProfiles');
-        const leaderQuery = usersRef
-            .where('faction_id', '==', profile.faction_id)
-            .where('position', '==', 'Leader')
-            .limit(1);
-        try {
-            const leaderSnapshot = await leaderQuery.get();
-            if (leaderSnapshot.empty) {
-                console.warn(`isFactionComped check: No leader found for faction ID: ${profile.faction_id}`);
-                return false;
-            }
-            const leaderProfile = leaderSnapshot.docs[0].data();
-            const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
-            // --- THIS LINE IS CORRECTED ---
-            const leaderHasFreeAccess = String(leaderProfile.hasFreeAccess) === 'true';
-            if (leaderHasMembership || leaderHasFreeAccess) {
-                console.log(`isFactionComped check: Access granted via faction leader's membership.`);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error("Error during isFactionComped check:", error);
-            return false;
+        const leaderProfile = leaderSnapshot.docs[0].data();
+        const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
+        // --- THIS LINE IS CORRECTED ---
+        const leaderHasFreeAccess = String(leaderProfile.hasFreeAccess) === 'true';
+        if (leaderHasMembership || leaderHasFreeAccess) {
+            console.log(`isFactionComped check: Access granted via faction leader's membership.`);
+            return true;
         }
+        return false;
+    } catch (error) {
+        console.error("Error during isFactionComped check:", error);
+        return false;
+    }
+}
+	
+	
+	function startMembershipCountdown(membershipInfo) {
+    if (membershipCountdownInterval) {
+        clearInterval(membershipCountdownInterval);
     }
 
+    // Changed to target the factionHuddleMessage element
+    const targetMessageEl = document.getElementById('factionHuddleMessage'); 
+    const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
 
-    function startMembershipCountdown(membershipInfo) {
-        if (membershipCountdownInterval) {
+    if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
+        // If target element is missing or no valid membership info, ensure original text is displayed
+        if (targetMessageEl) {
+            targetMessageEl.textContent = originalFactionMessage; // Reset to original if needed
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
+        }
+        return;
+    }
+    
+    // Function to update the timer text, runs every second
+    const updateTimer = () => {
+        const remainingTime = membershipInfo.membershipEndTime - Date.now();
+
+        if (remainingTime <= 0) {
             clearInterval(membershipCountdownInterval);
-        }
-
-        // Changed to target the factionHuddleMessage element
-        const targetMessageEl = document.getElementById('factionHuddleMessage');
-        const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
-
-        if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
-            // If target element is missing or no valid membership info, ensure original text is displayed
-            if (targetMessageEl) {
-                targetMessageEl.textContent = originalFactionMessage; // Reset to original if needed
-                targetMessageEl.style.display = 'block'; // Ensure it's visible
-            }
+            targetMessageEl.textContent = originalFactionMessage; // Revert to original message
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
             return;
         }
 
-        // Function to update the timer text, runs every second
-        const updateTimer = () => {
-            const remainingTime = membershipInfo.membershipEndTime - Date.now();
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
+        let countdownText = '';
 
-            if (remainingTime <= 0) {
-                clearInterval(membershipCountdownInterval);
-                targetMessageEl.textContent = originalFactionMessage; // Revert to original message
-                targetMessageEl.style.display = 'block'; // Ensure it's visible
-                return;
-            }
+        if (remainingTime > thirtyDaysInMs) {
+            const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+            countdownText = `${label} ends in: ${days} days`;
+        } else {
+            const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
+        }
+        
+        // Update the content of the target message element
+        targetMessageEl.textContent = countdownText;
+        targetMessageEl.style.display = 'block'; // Make sure it's visible
+    };
 
-            const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-            const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
-            let countdownText = '';
-
-            if (remainingTime > thirtyDaysInMs) {
-                const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
-                countdownText = `${label} ends in: ${days} days`;
-            } else {
-                const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
-            }
-
-            // Update the content of the target message element
-            targetMessageEl.textContent = countdownText;
-            targetMessageEl.style.display = 'block'; // Make sure it's visible
-        };
-
-        updateTimer(); // Run it once immediately
-        membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
-    }
+    updateTimer(); // Run it once immediately
+    membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
+}
 
     function clearQuickStats() {
         console.log("home.js: Clearing quick stats.");
-        updateStatDisplay("nerveStat", "--", "--");
-        updateStatDisplay("energyStat", "--", "--");
-        updateStatDisplay("happyStat", "--", "--");
-        updateStatDisplay("lifeStat", "--", "--");
+        updateStatDisplay("nerveStat", "--", "--"); updateStatDisplay("energyStat", "--", "--");
+        updateStatDisplay("happyStat", "--", "--"); updateStatDisplay("lifeStat", "--", "--");
         updateStatDisplay("travelStatus", null, null, false, "N/A");
         updateStatDisplay("hospitalStat", null, null, false, "N/A");
         const cooldownIds = ["drugCooldownStat", "boosterCooldownStat"];
         cooldownIds.forEach(id => updateStatDisplay(id, 0, 0, true, 0));
-        const errorEl = document.getElementById('quickStatsError');
-        if (errorEl) errorEl.textContent = '';
+        const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-        if (togglePersonalStatsCheckbox) {
-            togglePersonalStatsCheckbox.disabled = true;
-            togglePersonalStatsCheckbox.checked = false;
-        }
+        if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
         if (personalStatsModal) personalStatsModal.classList.remove('visible');
-        if (shareFactionStatsToggleDashboard) {
-            shareFactionStatsToggleDashboard.disabled = true;
-            shareFactionStatsToggleDashboard.checked = false;
-        }
+        if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
         if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
-        if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-        lastActiveTimeoutId = null;
+        if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-    async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
-        console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
+  async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+    console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
-        const personalStatsModal = document.getElementById('personalStatsModal');
-        const personalStatsModalBody = document.getElementById('personalStatsModalBody');
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
 
-        if (!personalStatsModal || !personalStatsModalBody) {
-            console.error("HTML Error: Personal Stats Modal elements not found!");
-            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-            return;
-        }
-
-        personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.classList.add('visible');
-
-        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-        const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
-
-        function formatTcpAnniversaryDate(dateObject) {
-            if (!dateObject) return 'N/A';
-            let jsDate;
-            if (dateObject instanceof Date) {
-                jsDate = dateObject;
-            } else if (dateObject && typeof dateObject.toDate === 'function') {
-                jsDate = dateObject.toDate();
-            } else {
-                return 'N/A';
-            }
-            const options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            };
-            return jsDate.toLocaleDateString(undefined, options);
-        }
-
-        try {
-            console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`);
-            const response = await fetch(apiUrl);
-            console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
-            const data = await response.json();
-            console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
-
-            if (!response.ok) {
-                const errorData = data || {
-                    message: "Failed to parse API error response."
-                };
-                console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
-                let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
-                throw new Error(errorMessage);
-            }
-            if (data.error) {
-                console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-                if (data.error.code === 2 || data.error.code === 10) {
-                    throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
-                } else {
-                    throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-                }
-            }
-
-            if (!data || Object.keys(data).length === 0) {
-                throw new Error("Failed to retrieve any meaningful data after API call.");
-            }
-
-
-            // --- THIS ENTIRE BLOCK HAS BEEN REMOVED ---
-            // The code that created `userDataToSave` and sent it to your Netlify function
-            // (`/.netlify/functions/update-user-faction`) used to be here.
-            // By removing it, this function will no longer save any data to your database.
-            // --- END OF REMOVED BLOCK ---
-
-
-            // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
-            let htmlContent = '<h4>User Information</h4>';
-            htmlContent += `
-            <div class="member-detail-header">
-                <div class="member-header-top-row center-content-flex">
-                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
-                </div>
-            </div>`;
-            htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
-
-            let xanaxDisplay = 'N/A';
-            if (data.personalstats && data.personalstats.xantaken !== undefined) {
-                xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
-            }
-            htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
-
-            const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
-            htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
-
-            htmlContent += '<h4>Battle Stats</h4>';
-            if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
-                const bsStrength = data.strength || data.battlestats?.strength;
-                const bsDefense = data.defense || data.battlestats?.defense;
-                const bsSpeed = data.speed || data.battlestats?.speed;
-                const bsDexterity = data.dexterity || data.battlestats?.dexterity;
-
-                const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
-                const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
-                const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
-                const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
-
-                const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
-                const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
-                const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
-                const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
-
-                const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
-
-                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Battle stats data not available.</p>';
-                console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
-            }
-
-            htmlContent += '<h4>Work Stats</h4>';
-            if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Work stats data not available.</p>';
-                console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
-            }
-
-            personalStatsModalBody.innerHTML = htmlContent;
-        } catch (error) {
-            console.error("Error fetching/displaying personal stats in modal:", error);
-            personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
-        }
+    if (!personalStatsModal || !personalStatsModalBody) {
+        console.error("HTML Error: Personal Stats Modal elements not found!");
+        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        return;
     }
+
+    personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
+    personalStatsModal.classList.add('visible');
+
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
+    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+
+    function formatTcpAnniversaryDate(dateObject) {
+        if (!dateObject) return 'N/A';
+        let jsDate;
+        if (dateObject instanceof Date) {
+            jsDate = dateObject;
+        } else if (dateObject && typeof dateObject.toDate === 'function') {
+            jsDate = dateObject.toDate();
+        } else {
+            return 'N/A';
+        }
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return jsDate.toLocaleDateString(undefined, options);
+    }
+
+    try {
+        console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`);
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
+
+        if (!response.ok) {
+            const errorData = data || { message: "Failed to parse API error response." };
+            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
+            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
+            if (data.error.code === 2 || data.error.code === 10) {
+                throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
+            } else {
+                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+            }
+        }
+
+        if (!data || Object.keys(data).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
+        }
+
+
+        // --- THIS ENTIRE BLOCK HAS BEEN REMOVED ---
+        // The code that created `userDataToSave` and sent it to your Netlify function
+        // (`/.netlify/functions/update-user-faction`) used to be here.
+        // By removing it, this function will no longer save any data to your database.
+        // --- END OF REMOVED BLOCK ---
+
+
+        // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
+        let htmlContent = '<h4>User Information</h4>';
+		htmlContent += `
+            <div class="member-detail-header">
+                <div class="member-header-top-row center-content-flex">
+                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
+                </div>
+            </div>`;
+        htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
+
+        let xanaxDisplay = 'N/A';
+        if (data.personalstats && data.personalstats.xantaken !== undefined) {
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
+        }
+        htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
+
+        const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
+        htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+        htmlContent += '<h4>Battle Stats</h4>';
+        if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
+            const bsStrength = data.strength || data.battlestats?.strength;
+            const bsDefense = data.defense || data.battlestats?.defense;
+            const bsSpeed = data.speed || data.battlestats?.speed;
+            const bsDexterity = data.dexterity || data.battlestats?.dexterity;
+            
+            const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
+            const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
+            const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
+            const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
+
+            const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
+            const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
+            const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
+            const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
+            
+            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
+
+            htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Battle stats data not available.</p>';
+            console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
+        }
+
+        htmlContent += '<h4>Work Stats</h4>';
+        if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
+            htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Work stats data not available.</p>';
+            console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
+        }
+
+        personalStatsModalBody.innerHTML = htmlContent;
+    } catch (error) {
+        console.error("Error fetching/displaying personal stats in modal:", error);
+        personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+    }
+}
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
             console.error("fetchAllRequiredData: User or DB not provided.");
@@ -837,46 +738,44 @@ document.addEventListener('DOMContentLoaded', function() {
             // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
             // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
-
+            
             if (factionData) {
-                const updatePayload = {
-                    uid: user.uid, // User's Firebase UID
-                    faction_id: factionData.faction_id ?? null,
-                    faction_name: factionData.faction_name ?? null,
-                    position: factionData.position ?? null,
-                    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
-                    profile_image: data.profile_image || null,
-                    name: data.name || null,
-                    // THIS LINE IS NOW FIXED
-                    tornProfileId: String(data.player_id || '')
-                    // --- END NEW ---
-                };
-                console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
+   const updatePayload = {
+    uid: user.uid, // User's Firebase UID
+    faction_id: factionData.faction_id ?? null,
+    faction_name: factionData.faction_name ?? null,
+    position: factionData.position ?? null,
+    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
+    profile_image: data.profile_image || null,
+    name: data.name || null,
+    // THIS LINE IS NOW FIXED
+    tornProfileId: String(data.player_id || '') 
+    // --- END NEW ---
+};
+    console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
-                try {
-                    const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(updatePayload),
-                    });
+    try {
+        const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatePayload),
+        });
 
-                    if (!factionUpdateResponse.ok) {
-                        const errorData = await factionUpdateResponse.json().catch(() => ({}));
-                        throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
-                    }
-                    const responseData = await factionUpdateResponse.json();
-                    console.log('Faction & Profile data update successful:', responseData.message);
+        if (!factionUpdateResponse.ok) {
+            const errorData = await factionUpdateResponse.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
+        }
+        const responseData = await factionUpdateResponse.json();
+        console.log('Faction & Profile data update successful:', responseData.message);
 
-                } catch (error) {
-                    console.error('Faction & Profile data update via Netlify function failed:', error.message);
-                }
-            } else {
-                // This 'else' block handles cases where no faction data is found, ensure it still clears errors
-                console.warn("No faction data found in API response to send to Netlify function.");
-                // Optionally, if you have a specific UI error display for this, update it here.
-            }
+    } catch (error) {
+        console.error('Faction & Profile data update via Netlify function failed:', error.message);
+    }
+} else {
+    // This 'else' block handles cases where no faction data is found, ensure it still clears errors
+    console.warn("No faction data found in API response to send to Netlify function.");
+    // Optionally, if you have a specific UI error display for this, update it here.
+}
 
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
@@ -895,7 +794,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (doc.exists && doc.data().tornApiKey) {
                             fetchDataForPersonalStatsModal(doc.data().tornApiKey, doc.data());
                         } else {
-                            if (personalStatsModalBody) {
+                           if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
                                 personalStatsModal.style.display = 'flex';
                             }
@@ -906,398 +805,355 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.checked = false;
                     });
                 }
-            } else {
+           } else {
                 if (personalStatsModal) personalStatsModal.classList.remove('visible');
             }
         });
     }
 
-    closePersonalStatsModalBtn.addEventListener('click', function() {
-        console.log("Personal Stats Modal close button clicked.");
-        personalStatsModal.classList.remove('visible');
-        if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-    });
+   closePersonalStatsModalBtn.addEventListener('click', function() {
+            console.log("Personal Stats Modal close button clicked.");
+            personalStatsModal.classList.remove('visible');
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
 
     if (shareFactionStatsToggleDashboard && auth && db) {
         shareFactionStatsToggleDashboard.addEventListener('change', async function() {
-            const user = auth.currentUser;
-            if (!user || !db) return;
+            const user = auth.currentUser; if (!user || !db) return;
             try {
-                await db.collection('userProfiles').doc(user.uid).set({
-                    shareFactionStats: this.checked
-                }, {
-                    merge: true
-                });
+                await db.collection('userProfiles').doc(user.uid).set({ shareFactionStats: this.checked }, { merge: true });
                 console.log("Faction share preference updated:", this.checked);
-                if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = this.checked;
-            } catch (error) {
-                console.error("Error updating faction share preference:", error);
-            }
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = this.checked;
+            } catch (error) { console.error("Error updating faction share preference:", error); }
         });
     }
+	
+	
 
-
-
-    function showProfileSetupModal() {
-        if (profileSetupModal) profileSetupModal.style.display = 'flex';
-    }
-
-    function hideProfileSetupModal() {
-        if (profileSetupModal) {
-            profileSetupModal.style.display = 'none';
-            if (nameErrorEl) nameErrorEl.textContent = '';
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-        }
-    }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
+    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
-    // Locate this block in your home.js and replace it completely.
-    if (headerEditProfileBtn && auth && db) {
-        headerEditProfileBtn.addEventListener('click', async function(event) {
-            event.preventDefault();
-            const user = auth.currentUser;
-            if (!user || !db) return;
+ // Locate this block in your home.js and replace it completely.
+if (headerEditProfileBtn && auth && db) {
+    headerEditProfileBtn.addEventListener('click', async function(event) {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user || !db) return;
 
-            // --- Prepare input fields ---
-            if (preferredNameInput) preferredNameInput.value = '';
-            if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-            if (termsCheckbox) termsCheckbox.checked = false;
-            if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+        // --- Prepare input fields ---
+        if(preferredNameInput) preferredNameInput.value = '';
+        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
+        if(termsCheckbox) termsCheckbox.checked = false;
+        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
 
-            // --- MODIFIED: We no longer make the Profile ID field read-only ---
-            if (profileSetupProfileIdInput) {
-                profileSetupProfileIdInput.value = ''; // Clear the value
-                profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
-                profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
-            }
-            // --- END MODIFICATION ---
+        // --- MODIFIED: We no longer make the Profile ID field read-only ---
+        if (profileSetupProfileIdInput) {
+            profileSetupProfileIdInput.value = ''; // Clear the value
+            profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
+            profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
+        }
+        // --- END MODIFICATION ---
 
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const doc = await userProfileRef.get(); // Fetch the current user profile
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get(); // Fetch the current user profile
 
-                if (doc.exists) {
-                    const data = doc.data();
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Populate fields with data from Firebase
+                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                
+                // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
+                if(profileSetupProfileIdInput) {
+                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                    // The line that set it to readonly here has been removed.
+                }
+                // --- END MODIFICATION ---
 
-                    // Populate fields with data from Firebase
-                    if (preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                    if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
 
-                    // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
-                    if (profileSetupProfileIdInput) {
-                        profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
-                        // The line that set it to readonly here has been removed.
-                    }
-                    // --- END MODIFICATION ---
+            } else {
+                // If no profile exists, set preferredName from Firebase displayName (if available)
+                if(preferredNameInput && user.displayName) {
+                    preferredNameInput.value = user.displayName.substring(0,10);
+                }
+                // We don't need to do anything to the profile ID input here, it's already cleared and writable.
+            }
+        } catch (err) {
+            console.error("Error fetching profile for edit:", err);
+            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
+        }
+        showProfileSetupModal(); // Show the modal after attempting to populate it
+    });
+}
 
-                    if (termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
-                    if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+  if (saveProfileBtn && auth && db) {
+    saveProfileBtn.addEventListener('click', async () => {
+        const profileSetupErrorEl = document.getElementById('profileSetupError');
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
 
-                } else {
-                    // If no profile exists, set preferredName from Firebase displayName (if available)
-                    if (preferredNameInput && user.displayName) {
-                        preferredNameInput.value = user.displayName.substring(0, 10);
-                    }
-                    // We don't need to do anything to the profile ID input here, it's already cleared and writable.
-                }
-            } catch (err) {
-                console.error("Error fetching profile for edit:", err);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            }
-            showProfileSetupModal(); // Show the modal after attempting to populate it
-        });
-    }
+        if (termsCheckbox && !termsCheckbox.checked) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
+            return;
+        }
+        
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
+            return;
+        }
 
-    if (saveProfileBtn && auth && db) {
-        saveProfileBtn.addEventListener('click', async () => {
-            const profileSetupErrorEl = document.getElementById('profileSetupError');
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
+        const preferredNameVal = preferredNameInput.value.trim();
+        const apiKeyVal = profileSetupApiKeyInput.value.trim();
+        const profileIdVal = profileSetupProfileIdInput.value.trim();
 
-            if (termsCheckbox && !termsCheckbox.checked) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
-                return;
-            }
+        if (!preferredNameVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
+            return;
+        }
+        if (preferredNameVal.length > 10) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
+            return;
+        }
+        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
+            return;
+        }
 
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
-                return;
-            }
+        if (!apiKeyVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
+            return;
+        }
+		
+		const tornApiKeyPattern = /^[a-zA-Z0-9]{16}$/; 
+        if (!tornApiKeyPattern.test(apiKeyVal)) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key format is invalid. It should be 16 alphanumeric characters.';
+            return;
+        }
 
-            const preferredNameVal = preferredNameInput.value.trim();
-            const apiKeyVal = profileSetupApiKeyInput.value.trim();
-            const profileIdVal = profileSetupProfileIdInput.value.trim();
+        if (!profileIdVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
+            return;
+        }
 
-            if (!preferredNameVal) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
-                return;
-            }
-            if (preferredNameVal.length > 10) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
-                return;
-            }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
-                return;
-            }
+        const user = auth.currentUser;
+        const profileDataToSave = {
+            preferredName: preferredNameVal,
+            tornApiKey: apiKeyVal,
+            tornProfileId: String(profileIdVal),
+            termsAgreed: termsCheckbox.checked,
+            profileSetupComplete: true,
+            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+        };
 
-            if (!apiKeyVal) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
-                return;
-            }
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const currentDoc = await userProfileRef.get();
 
-            const tornApiKeyPattern = /^[a-zA-Z0-9]{16}$/;
-            if (!tornApiKeyPattern.test(apiKeyVal)) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key format is invalid. It should be 16 alphanumeric characters.';
-                return;
-            }
-
-            if (!profileIdVal) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
-                return;
-            }
-
-            const user = auth.currentUser;
-            const profileDataToSave = {
-                preferredName: preferredNameVal,
-                tornApiKey: apiKeyVal,
-                tornProfileId: String(profileIdVal),
-                termsAgreed: termsCheckbox.checked,
-                profileSetupComplete: true,
-                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-            };
-
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const currentDoc = await userProfileRef.get();
-
-                if (!currentDoc.exists) {
-                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
-                }
-
-                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                }
-
-                await userProfileRef.set(profileDataToSave, {
-                    merge: true
-                });
-
-                // --- MODIFIED PART ---
-                // Start the background data save but DON'T wait for it to finish.
-                if (profileDataToSave.tornApiKey) {
-                    fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
-                }
-
-                // Refresh the page immediately.
-                location.reload();
-
-            } catch (error) {
-                console.error("Error saving profile: ", error);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
-            }
-        });
-    }
-
-    const toolsSection = document.getElementById('toolsSection');
-    if (toolsSection) {
-        toolsSection.addEventListener('click', async function(event) {
-            const link = event.target.closest('.tool-item-button');
-            if (!link) {
-                return;
+            if (!currentDoc.exists) {
+                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
             }
 
-            const needsMembership = link.classList.contains('member-only');
-            // If it's a public link (doesn't need membership), do nothing and let it navigate normally.
-            if (!needsMembership) {
-                return;
+            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
             }
 
-            // If we've reached this point, it IS a member-only link.
-            // We must stop the default navigation right now, before any 'await' calls.
-            event.preventDefault();
+            await userProfileRef.set(profileDataToSave, { merge: true });
 
-            const profile = currentUserProfile;
-            const hasAgreedToTerms = profile ? profile.termsAgreed === true : false;
-
-            // First, check if the issue is a lack of terms agreement.
-            if (!hasAgreedToTerms) {
-                const termsPromptModal = document.getElementById('termsPromptModal');
-                if (termsPromptModal) termsPromptModal.style.display = 'flex';
-                return; // Stop here, show the terms modal.
+            // --- MODIFIED PART ---
+            // Start the background data save but DON'T wait for it to finish.
+            if (profileDataToSave.tornApiKey) {
+                fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
             }
+            
+            // Refresh the page immediately.
+            location.reload();
 
-            // Now we can safely perform the async membership check.
-            let isMember = false;
-            if (profile) {
-                const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
-                const hasPersonalComp = profile.hasFreeAccess === true;
-                const hasFactionComp = await isFactionComped(profile, db);
-                isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
-            }
+        } catch (error) {
+            console.error("Error saving profile: ", error);
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
+        }
+    });
+}
 
-            // After checking, decide what to do.
-            if (isMember) {
-                // If they are a member, navigate to the link's URL for them.
-                window.location.href = link.href;
-            } else {
-                // If they are NOT a member, show the subscribe modal.
-                const subscribeModal = document.getElementById('subscribePromptModal');
-                if (subscribeModal) subscribeModal.style.display = 'flex';
-            }
-        });
-    }
+const toolsSection = document.getElementById('toolsSection');
+if (toolsSection) {
+    toolsSection.addEventListener('click', async function(event) {
+        const link = event.target.closest('.tool-item-button');
+        if (!link) {
+            return;
+        }
+
+        const needsMembership = link.classList.contains('member-only');
+        // If it's a public link (doesn't need membership), do nothing and let it navigate normally.
+        if (!needsMembership) {
+            return;
+        }
+
+        // If we've reached this point, it IS a member-only link.
+        // We must stop the default navigation right now, before any 'await' calls.
+        event.preventDefault();
+
+        const profile = currentUserProfile;
+        const hasAgreedToTerms = profile ? profile.termsAgreed === true : false;
+        
+        // First, check if the issue is a lack of terms agreement.
+        if (!hasAgreedToTerms) {
+            const termsPromptModal = document.getElementById('termsPromptModal');
+            if (termsPromptModal) termsPromptModal.style.display = 'flex';
+            return; // Stop here, show the terms modal.
+        }
+
+        // Now we can safely perform the async membership check.
+        let isMember = false;
+        if (profile) {
+            const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+            const hasPersonalComp = profile.hasFreeAccess === true;
+            const hasFactionComp = await isFactionComped(profile, db);
+            isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+        }
+
+        // After checking, decide what to do.
+        if (isMember) {
+            // If they are a member, navigate to the link's URL for them.
+            window.location.href = link.href;
+        } else {
+            // If they are NOT a member, show the subscribe modal.
+            const subscribeModal = document.getElementById('subscribePromptModal');
+            if (subscribeModal) subscribeModal.style.display = 'flex';
+        }
+    });
+}
     // ... (rest of your home.js file before onAuthStateChanged) ...
 
-    if (auth) {
-        auth.onAuthStateChanged(async function(user) {
-            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
-            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
-            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+   if (auth) {
+    auth.onAuthStateChanged(async function(user) {
+        console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+        const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+        const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
 
 
-            if (user) {
-                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+        if (user) {
+            if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
-                let userDisplayName = "User",
-                    showSetup = true,
-                    firstTip = false,
-                    profile = null;
-                if (db) {
-                    try {
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        profile = doc.exists ? doc.data() : null;
-                        currentUserProfile = profile;
-                        console.log("1. Profile loaded on page start:", currentUserProfile);
+            let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
+            if (db) {
+                try {
+                    const doc = await db.collection('userProfiles').doc(user.uid).get();
+                    profile = doc.exists ? doc.data() : null;
+                    currentUserProfile = profile;
+                    console.log("1. Profile loaded on page start:", currentUserProfile);
 
-                        // --- NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
+                    // --- NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
+                    if (factionHuddleMessageEl) {
+                        // Always start with the default message and no special styling class
+                        factionHuddleMessageEl.textContent = originalFactionMessageText;
+                        factionHuddleMessageEl.style.display = 'block';
+                        factionHuddleMessageEl.classList.remove('trial-countdown-display'); // Ensure clean slate
+                    }
+
+                    // Check for an active membership and temporarily show countdown with styling
+                    if (profile && profile.membershipEndTime && profile.membershipEndTime > Date.now()) {
+                        const membershipInfo = {
+                            membershipType: profile.membershipType,
+                            membershipEndTime: profile.membershipEndTime
+                        };
+
                         if (factionHuddleMessageEl) {
-                            // Always start with the default message and no special styling class
-                            factionHuddleMessageEl.textContent = originalFactionMessageText;
-                            factionHuddleMessageEl.style.display = 'block';
-                            factionHuddleMessageEl.classList.remove('trial-countdown-display'); // Ensure clean slate
+                           factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
                         }
+                        startMembershipCountdown(membershipInfo); // This function sets the trial countdown text
 
-                        // Check for an active membership and temporarily show countdown with styling
-                        if (profile && profile.membershipEndTime && profile.membershipEndTime > Date.now()) {
-                            const membershipInfo = {
-                                membershipType: profile.membershipType,
-                                membershipEndTime: profile.membershipEndTime
-                            };
-
+                        console.log("Free trial message shown temporarily with styling.");
+                        setTimeout(() => {
+                            // After 5 seconds, switch back to the original faction message and remove styling
                             if (factionHuddleMessageEl) {
-                                factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
+                                factionHuddleMessageEl.textContent = originalFactionMessageText;
+                                console.log("Switched back to faction recruitment message and removed styling after 5 seconds.");
+                                factionHuddleMessageEl.classList.remove('trial-countdown-display'); // REMOVE THE STYLING CLASS
                             }
-                            startMembershipCountdown(membershipInfo); // This function sets the trial countdown text
-
-                            console.log("Free trial message shown temporarily with styling.");
-                            setTimeout(() => {
-                                // After 5 seconds, switch back to the original faction message and remove styling
-                                if (factionHuddleMessageEl) {
-                                    factionHuddleMessageEl.textContent = originalFactionMessageText;
-                                    console.log("Switched back to faction recruitment message and removed styling after 5 seconds.");
-                                    factionHuddleMessageEl.classList.remove('trial-countdown-display'); // REMOVE THE STYLING CLASS
-                                }
-                                // Clear the continuous interval to stop it from overriding back to trial countdown
-                                if (membershipCountdownInterval) {
-                                    clearInterval(membershipCountdownInterval);
-                                    membershipCountdownInterval = null;
-                                    console.log("Membership countdown interval cleared.");
-                                }
-                            }, 5000); // 5 seconds delay
-                        }
-                        // --- END NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
-
-                        // --- Activate the gatekeeper for member-only links ---
-                        updateToolLinksAccess(profile);
-
-                        if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName;
-                            showSetup = false;
-                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
-                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
-                                lastLogonInfoEl.style.display = 'block';
-                                if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-                                lastActiveTimeoutId = setTimeout(() => {
-                                    if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
-                                }, 120000);
-                            } else if (lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = "Welcome!";
-                                lastLogonInfoEl.style.display = 'block';
+                            // Clear the continuous interval to stop it from overriding back to trial countdown
+                            if (membershipCountdownInterval) {
+                                clearInterval(membershipCountdownInterval);
+                                membershipCountdownInterval = null;
+                                console.log("Membership countdown interval cleared.");
                             }
-                            db.collection('userProfiles').doc(user.uid).update({
-                                lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-                            }).catch(console.error);
-                            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else {
-                            userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                        }
-                    } catch (e) {
-                        console.error("Error fetching profile on auth change:", e);
-                        userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
+                        }, 5000); // 5 seconds delay
                     }
-                } else {
-                    userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                }
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-                if (showSetup) {
-                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
-                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-                    showProfileSetupModal();
-                    clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-                } else {
-                    if (firstTip) {
-                        displayRandomTip();
-                        localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                    } else if (tornTipPlaceholderEl) {
-                        tornTipPlaceholderEl.style.display = 'none';
-                    }
-                    if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
-                        fetchAllRequiredData(user, db);
-                    } else {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                        clearQuickStats();
-                        if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
-                    }
-                }
+                    // --- END NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
 
-            } else { // User is signed out
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+                    // --- Activate the gatekeeper for member-only links ---
+                    updateToolLinksAccess(profile);
 
-                clearQuickStats();
-                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+                    if (profile && profile.preferredName && profile.profileSetupComplete) {
+                        userDisplayName = profile.preferredName; showSetup = false;
+                        if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                        if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                            lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                            lastLogonInfoEl.style.display = 'block';
+                            if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                            lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                        } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
+                        db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                        if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                    } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+            } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
+            if (showSetup) {
+                if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
                 if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-
-                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
-                const currentPath = window.location.pathname.toLowerCase();
-                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
-
-                if (!isPublicPage) {
-                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
-                    window.location.href = '../index.html';
+                showProfileSetupModal(); clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+            } else {
+                if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+                if (profile && profile.tornApiKey) {
+                    if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
+                    fetchAllRequiredData(user, db);
                 } else {
-                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    clearQuickStats();
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
                 }
             }
-        });
-    } else {
-        console.error("Firebase auth object not available for auth state listener.");
-    }
+
+        } else { // User is signed out
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+            if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+
+            clearQuickStats();
+            if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+            if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+
+            const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
+            const currentPath = window.location.pathname.toLowerCase();
+            const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+
+            if (!isPublicPage) {
+                console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
+                window.location.href = '../index.html';
+            } else {
+                console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+            }
+        }
+    });
+} else { console.error("Firebase auth object not available for auth state listener."); }
 
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
@@ -1309,59 +1165,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- NEW: Collapse/Expand Logic for Sections ---
-    // Helper function to check if current view is mobile
-    const isMobileView = () => window.matchMedia("(max-width: 768px)").matches;
-
-    // Generic function to toggle collapse/expand for a section
-    const toggleSection = (toggleElement, contentElement) => {
-        if (!toggleElement || !contentElement) {
-            console.warn("Toggle or content element not found for collapse feature.");
-            return;
-        }
-
-        if (contentElement.classList.contains('collapsed')) {
-            // It's currently collapsed, so expand it
-            contentElement.classList.remove('collapsed');
-            toggleElement.classList.remove('collapsed'); // Remove collapsed class from icon to rotate it
-        } else {
-            // It's currently expanded, so collapse it
-            contentElement.classList.add('collapsed');
-            toggleElement.classList.add('collapsed'); // Add collapsed class to icon to rotate it
-        }
-    };
-
-    // Event Listeners for Quick Stats
-    if (quickStatsToggle && quickStatsCollapsibleContent) {
-        quickStatsToggle.addEventListener('click', () => toggleSection(quickStatsToggle, quickStatsCollapsibleContent));
-    }
-
-    // Event Listeners for Explore Your Tools
-    if (exploreToolsToggle && exploreToolsCollapsibleContent) {
-        exploreToolsToggle.addEventListener('click', () => toggleSection(exploreToolsToggle, exploreToolsCollapsibleContent));
-    }
-
-    // Set initial state on page load for mobile
-    // This runs after DOMContentLoaded, ensuring elements are available
-    if (isMobileView()) {
-        if (quickStatsCollapsibleContent && quickStatsToggle) {
-            quickStatsCollapsibleContent.classList.add('collapsed');
-            quickStatsToggle.classList.add('collapsed');
-        }
-        if (exploreToolsCollapsibleContent && exploreToolsToggle) {
-            exploreToolsCollapsibleContent.classList.add('collapsed');
-            exploreToolsToggle.classList.add('collapsed');
-        }
-    }
-
-
-    // --- Existing tool-category-toggle (old style, likely unused now) ---
     document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const content = this.nextElementSibling;
-            if (content) content.classList.toggle('open');
-        });
+        toggle.addEventListener('click', function() { this.classList.toggle('active');
+        const content = this.nextElementSibling; if (content) content.classList.toggle('open'); });
     });
 
     // --- NEW: Membership Modals JavaScript ---
@@ -1374,31 +1180,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Locate this block in your home.js
-    if (upgradeMembershipBtn) {
-        upgradeMembershipBtn.addEventListener('click', () => {
-            // Find the entire free trial card element by its unique class
-            const freeTrialCard = document.querySelector('.card-free-trial');
-
-            // Check the globally available profile for the flag
-            if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-                // If trial has been used, HIDE the entire card
-                if (freeTrialCard) {
-                    freeTrialCard.classList.add('hidden-by-js'); // Add a class to hide it
-                }
-            } else {
-                // Otherwise, make sure the card is VISIBLE for new users (if it was hidden before)
-                if (freeTrialCard) {
-                    freeTrialCard.classList.remove('hidden-by-js'); // Remove class to show it
-                }
+if (upgradeMembershipBtn) {
+    upgradeMembershipBtn.addEventListener('click', () => {
+        // Find the entire free trial card element by its unique class
+        const freeTrialCard = document.querySelector('.card-free-trial');
+        
+        // Check the globally available profile for the flag
+        if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
+            // If trial has been used, HIDE the entire card
+            if (freeTrialCard) {
+                freeTrialCard.classList.add('hidden-by-js'); // Add a class to hide it
             }
-
-            // Now, hide the profile modal and show the membership options
-            hideProfileSetupModal();
-            if (membershipOptionsModal) {
-                membershipOptionsModal.style.display = 'flex';
+        } else {
+            // Otherwise, make sure the card is VISIBLE for new users (if it was hidden before)
+            if (freeTrialCard) {
+                freeTrialCard.classList.remove('hidden-by-js'); // Remove class to show it
             }
-        });
-    }
+        }
+
+        // Now, hide the profile modal and show the membership options
+        hideProfileSetupModal();
+        if (membershipOptionsModal) {
+            membershipOptionsModal.style.display = 'flex';
+        }
+    });
+}
     // 2. Close button for Membership Options Modal
     if (closeMembershipOptionsBtn && membershipOptionsModal) {
         closeMembershipOptionsBtn.addEventListener('click', () => {
@@ -1445,50 +1251,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 7. 'Yes' button in Free Trial Confirmation Modal
-    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
-        confirmFreeTrialYesBtn.addEventListener('click', async () => {
-            console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+    confirmFreeTrialYesBtn.addEventListener('click', async () => {
+        console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+        
+        const user = auth.currentUser;
+        if (!user) {
+            console.error("User not logged in. Cannot start trial.");
+            // Optionally show an error message to the user here
+            return;
+        }
 
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("User not logged in. Cannot start trial.");
-                // Optionally show an error message to the user here
-                return;
-            }
+        // Set the end time to 7 days from now
+        const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-            // Set the end time to 7 days from now
-            const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        const membershipInfo = {
+            membershipType: 'trial',
+            membershipEndTime: trialEndTime,
+            hasUsedTrial: true
+        };
 
-            const membershipInfo = {
-                membershipType: 'trial',
-                membershipEndTime: trialEndTime,
-                hasUsedTrial: true
-            };
+        try {
+            // Get a reference to the user's profile document
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            
+            // Update the document with the new membership fields
+            await userProfileRef.update(membershipInfo);
+            
+            console.log("Successfully saved trial info to Firebase.");
 
-            try {
-                // Get a reference to the user's profile document
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            // Hide the confirmation modal
+            freeTrialConfirmationModal.style.display = 'none';
 
-                // Update the document with the new membership fields
-                await userProfileRef.update(membershipInfo);
+            // Start the countdown timer with the new info
+            startMembershipCountdown(membershipInfo);
+			
+			// >>> ADD THIS LINE TO REFRESH THE PAGE <<<
+            location.reload(); 
 
-                console.log("Successfully saved trial info to Firebase.");
-
-                // Hide the confirmation modal
-                freeTrialConfirmationModal.style.display = 'none';
-
-                // Start the countdown timer with the new info
-                startMembershipCountdown(membershipInfo);
-
-                // >>> ADD THIS LINE TO REFRESH THE PAGE <<<
-                location.reload();
-
-            } catch (error) {
-                console.error("Error saving trial info to Firebase:", error);
-                // Optionally show an error message to the user here
-            }
-        });
-    }
+        } catch (error) {
+            console.error("Error saving trial info to Firebase:", error);
+            // Optionally show an error message to the user here
+        }
+    });
+}
     // 8. 'No' button in Free Trial Confirmation Modal
     if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
         confirmFreeTrialNoBtn.addEventListener('click', () => {
@@ -1531,14 +1337,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // For now, it just alerts.
         });
     }
-
-
-    // --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
+	
+	
+	
+	
+// --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
     document.addEventListener('click', function(event) {
 
         // Check if the clicked element is one of our copy buttons
         if (event.target.matches('.copy-btn')) {
-
+            
             // Find the ID of the text we need to copy from the button's 'data-copy-target' attribute
             const targetId = event.target.dataset.copyTarget;
             const targetElement = document.getElementById(targetId);
@@ -1549,11 +1357,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Use the modern navigator.clipboard API to copy the text
                 navigator.clipboard.writeText(textToCopy.trim()).then(() => {
-
+                    
                     // --- Provide feedback to the user ---
                     const originalText = event.target.textContent; // "Copy"
                     event.target.textContent = 'Copied!'; // Change button text
-
+                    
                     // Change it back to "Copy" after 2 seconds
                     setTimeout(() => {
                         event.target.textContent = originalText;
@@ -1565,7 +1373,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
+	
+	
+  
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded
