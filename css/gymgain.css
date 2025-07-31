@@ -114,10 +114,15 @@
     flex-direction: column;
     gap: 8px;
 }
-/* Reusing the .stat-item for consistency */
-.current-stats-personal .stat-item {
-    padding: 5px 10px; /* Added horizontal padding */
-    border-bottom: none;
+
+/* Reusing the .stat-item for consistency across main stats, personal current stats, and gains */
+.current-stats .stat-item, 
+.current-stats-personal .stat-item,
+.personal-gains-display .stat-item, /* ADDED: To style stat-items in gains display */
+.current-work-stats .stat-item,
+.current-crime-stats .stat-item {
+    padding: 5px 10px; /* Added horizontal padding for all stat-items */
+    border-bottom: none; /* No bottom border as they are individual blocks */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -127,11 +132,32 @@
     border: 1px solid rgba(255,255,255,0.1);
     color: #f0f0f0; /* Ensure text is visible */
 }
-.current-stats-personal .stat-item strong {
-    color: var(--primary-text-color); /* From global.css */
+
+/* For the old structure, this applied to the last child in the main .current-stats */
+/* Now applies to last stat-item in any of the new personal sections */
+.current-stats .stat-item:last-child,
+.current-stats-personal .stat-item:last-child,
+.personal-gains-display .stat-item:last-child,
+.current-work-stats .stat-item:last-child,
+.current-crime-stats .stat-item:last-child {
+    border-bottom: none;
 }
-.current-stats-personal .stat-item span {
-    color: var(--secondary-text-color); /* From global.css */
+
+/* Ensure strong and span colors are consistent */
+.current-stats .stat-item strong,
+.current-stats-personal .stat-item strong,
+.personal-gains-display .stat-item strong,
+.current-work-stats .stat-item strong,
+.current-crime-stats .stat-item strong {
+    color: var(--primary-text-color);
+}
+
+.current-stats .stat-item span,
+.current-stats-personal .stat-item span,
+.personal-gains-display .stat-item span, /* ADDED: Apply bold to gain values */
+.current-work-stats .stat-item span,
+.current-crime-stats .stat-item span {
+    color: var(--secondary-text-color);
     font-weight: bold;
 }
 
@@ -142,17 +168,6 @@
     margin-bottom: 15px;
     color: var(--accent-color);
     font-size: 1.1em;
-}
-
-.stat-item:last-child {
-    border-bottom: none;
-}
-.stat-item strong {
-    color: var(--primary-text-color);
-}
-.stat-item span {
-    color: var(--secondary-text-color);
-    font-weight: bold;
 }
 
 /* Gain Summary Box (Left Panel) */
@@ -257,9 +272,6 @@
     color: var(--button-hover-text-color, #8ab4f8);
 }
 
-/* REMOVED: Old Custom Stat Toggle Button Styles */
-/* These styles were for the chart's toggle buttons and are now obsolete. */
-
 
 /* Styling for the new log confirmation popup (if still in use on left panel) */
 .gain-details-list p {
@@ -362,100 +374,11 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 }
 
 /* ==========================================================================
-   INTEGRATED TABLE STYLES (from tornpas-big-brother.css)
+   UPDATED GAINS TRACKING TAB STYLES (NOW USING STAT-ITEM LOOK)
    ========================================================================== */
 
-/* Table container for consistency */
-.gains-table-container {
-    background-color: #222; /* Matches tab content background */
-    border: 1px solid black; /* Matches tab content border */
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    /* No explicit height here; let content define or flex-grow */
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Allow table container to take available space */
-}
-
-.gains-overview-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed; /* Fixed layout for consistent columns */
-    flex-grow: 1; /* Allow table to fill container */
-    display: table; /* Required for sticky header */
-}
-
-.gains-overview-table thead th {
-    background-color: #00a8ff;
-    color: #1e1e1e;
-    font-weight: bold;
-    text-align: center;
-    padding: 10px 8px;
-    border-bottom: 2px solid #1e1e1e;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-right: 1px solid #303030;
-    position: sticky; /* Sticky header for tables */
-    top: 0;
-    z-index: 1; /* Ensure header stays above scrolling content */
-}
-
-.gains-overview-table thead th:last-child {
-    border-right: none;
-}
-
-.gains-overview-table tbody td {
-    padding: 8px 8px;
-    border-bottom: 1px solid #3a3a40;
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    border-right: 1px solid #303030;
-}
-
-.gains-overview-table tbody td:last-child {
-    border-right: none;
-}
-
-.gains-overview-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.gains-overview-table tbody tr:hover {
-    background-color: #38383e;
-}
-
-.gains-overview-table a {
-    color: #f0f0f0;
-    text-decoration: none;
-}
-
-.gains-overview-table a:hover {
-    text-decoration: underline;
-    color: #8ab4f8;
-}
-
-/* Specific Column Widths for Personal Gains Table */
-.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Date */
-.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
-.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
-.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
-.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
-.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
-
-
-/* ==========================================================================
-   INTEGRATED GAINS TRACKING CONTROLS (from tornpas-big-brother.css)
-   ========================================================================== */
+/* Removed .gains-table-container, .gains-overview-table, and their specific th/td/row styles */
+/* They are no longer needed as we're using .stat-item for gains display */
 
 .gains-tracking-controls {
     background-color: #1a1a1a;
@@ -474,7 +397,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 
 #personalTrackingStatus { /* Renamed ID for specificity */
     font-weight: bold;
-    color: #e0a71a;
+    color: #e0a71a; /* Yellow/Orange for tracking status */
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -485,7 +408,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     margin-top: 5px;
 }
 
-.action-btn-bb {
+.action-btn-bb { /* Reused for start/stop tracking buttons */
     background-color: #007bff;
     color: white;
     padding: 8px 15px;
@@ -513,22 +436,37 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     display: none !important;
 }
 
-/* Color coding for gains data */
-.gain-positive {
-    color: #4CAF50; /* Green */
+/* Container for personal gains stat-items */
+.personal-gains-display {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(0, 168, 255, 0.3); /* Consistent border */
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+/* Color coding for gain values within stat-items */
+.personal-gains-display .gain-positive {
+    color: #4CAF50; /* Green for positive gains */
     font-weight: bold;
 }
 
-.gain-negative {
-    color: #dc3545; /* Red */
+.personal-gains-display .gain-negative {
+    color: #dc3545; /* Red for negative gains */
     font-weight: bold;
 }
 
-.gain-neutral {
-    color: #f0f0f0; /* Light gray */
+.personal-gains-display .gain-neutral {
+    color: #bbb; /* Grey for zero gains */
+    font-weight: bold;
 }
 
-/* Download Button styles (from tornpas-big-brother.css, adjusted positioning) */
+
+/* Download Button styles (from tornpas-big-brother.css, adjusted positioning in HTML) */
 .download-button {
     /* Positioned absolutely in HTML for specific top-right in statProgressionContainer */
     padding: 8px 15px;
@@ -559,28 +497,9 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     gap: 8px;
 }
 
-/* Reusing .stat-item for consistency in work/crime stats */
-.current-work-stats .stat-item, .current-crime-stats .stat-item {
-    padding: 5px 10px;
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #f0f0f0;
-}
-.current-work-stats .stat-item strong, .current-crime-stats .stat-item strong {
-    color: var(--primary-text-color);
-}
-.current-work-stats .stat-item span, .current-crime-stats .stat-item span {
-    color: var(--secondary-text-color);
-    font-weight: bold;
-}
-
 
 /* ==========================================================================
-   Responsive Adjustments (Copied from tornpas-big-brother.css and gymgain.css)
+   Responsive Adjustments
    ========================================================================== */
 
 @media (max-width: 992px) {
@@ -609,25 +528,19 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
 
     /* Adjust font size for content inside tabs */
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td,
     .current-stats-personal .stat-item,
+    .personal-gains-display .stat-item, /* ADDED: Ensure stat-items in gains tab also adjust */
     .current-work-stats .stat-item,
     .current-crime-stats .stat-item {
         font-size: 0.8em;
         padding: 6px 4px;
     }
 
-    /* Make tables horizontally scrollable if content overflows */
-    .tab-pane-bb .table-container { /* Target the table container within the tab pane */
+    /* Since we're not using tables anymore for gains, this is less critical
+       but left for other possible tables or future content */
+    .tab-pane-bb .table-container { 
         overflow-x: auto;
     }
-
-    .gains-overview-table {
-        min-width: 500px; /* Ensure table has a minimum width to scroll if needed */
-        table-layout: auto; /* Allow columns to adjust if min-width is hit */
-    }
-    /* Specific Column Widths will then be overridden by auto on small screens if min-width is used */
 }
 
 @media (max-width: 768px) {
@@ -642,16 +555,17 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
 
     /* Further reduce font sizes for very small screens */
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td,
     .current-stats-personal .stat-item,
+    .personal-gains-display .stat-item, /* ADDED: Ensure stat-items in gains tab also adjust */
     .current-work-stats .stat-item,
     .current-crime-stats .stat-item {
         font-size: 0.75em;
         padding: 5px 3px;
     }
-    .gains-overview-table {
-        min-width: 400px; /* Even smaller min-width for mobile */
+    
+    .gains-tracking-controls .action-btn-bb {
+        font-size: 0.75em;
+        padding: 6px 10px;
     }
 }
 
@@ -664,11 +578,5 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
         font-size: 0.8em;
         padding: 6px 8px;
     }
-    .gains-overview-table {
-        min-width: 350px;
-    }
-    .gains-tracking-controls .action-btn-bb {
-        font-size: 0.75em;
-        padding: 6px 10px;
-    }
+    /* No need for min-width on tables as they are removed for gains */
 }
