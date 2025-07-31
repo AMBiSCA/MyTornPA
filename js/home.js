@@ -1054,35 +1054,41 @@ if (toolsSection) {
 						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
 						
 						// ... inside onAuthStateChanged, after fetching the profile
-                        profile = doc.exists ? doc.data() : null;
+profile = doc.exists ? doc.data() : null;
 
-                        // --- Check for an active membership and start the countdown ---
-                        if (profile && profile.membershipEndTime) {
-                            const membershipInfo = {
-                                membershipType: profile.membershipType,
-                                membershipEndTime: profile.membershipEndTime
-                            };
-                            // If the membership is still active, start the timer
-                            if (membershipInfo.membershipEndTime > Date.now()) {
-                                startMembershipCountdown(membershipInfo);
-                            }
-                        }
+// START: Add this new block
+// --- Check for an active membership and start the countdown ---
+if (profile && profile.membershipEndTime) {
+    const membershipInfo = {
+        membershipType: profile.membershipType,
+        membershipEndTime: profile.membershipEndTime
+    };
+    // If the membership is still active, start the timer
+    if (membershipInfo.membershipEndTime > Date.now()) {
+        startMembershipCountdown(membershipInfo);
+		const countdownContainer = document.getElementById('trialCountdownContainer');
+                                if (countdownContainer) {
+                                    console.log("Free trial banner shown on login."); // For debugging
+                                    setTimeout(() => {
+                                        countdownContainer.style.display = 'none';
+                                        console.log("Free trial banner hidden after 15 seconds."); // For debugging
+                                    }, 15000);
+                                }
+		
+    
 
-                        // >>> MAJOR CHANGE HERE: This block now *always* runs if user is logged in <<<
-                        // AND the modal element exists. The 15-second timer is set here.
-                        if (membershipOptionsModal && user) {
-                            membershipOptionsModal.style.display = 'flex'; // Show the modal
-                            console.log("Membership prompt shown on login."); // Log when it's shown
-                            setTimeout(() => {
-                                membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                                console.log("Membership prompt hidden after 15 seconds."); // Log when it's hidden
-                            }, 15000);
-                        }
-                        // >>> END MAJOR CHANGE <<<
+ if (membershipOptionsModal && user && !profile?.membershipEndTime || profile?.membershipEndTime < Date.now()) {
+                  membershipOptionsModal.style.display = 'flex'; // Show the modal
+                  setTimeout(() => {
+                    membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
+                    console.log("Membership prompt hidden after 15 seconds.");
+                  }, 15000);
+                }
 
 
-                        // --- Activate the gatekeeper for member-only links ---
-                        updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
+
+// --- Activate the gatekeeper for member-only links ---
+updateToolLinksAccess(profile);; //
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
@@ -1109,7 +1115,7 @@ if (toolsSection) {
                     if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
                     else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
                         fetchAllRequiredData(user, db);
                     } else {
                         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
@@ -1143,7 +1149,7 @@ if (toolsSection) {
             }
         });
     } else { console.error("Firebase auth object not available for auth state listener."); }
-	
+
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
             auth.signOut().then(() => {
