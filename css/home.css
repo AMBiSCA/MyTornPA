@@ -558,46 +558,70 @@ cursor: not-allowed;
 }
 
 
-/* --- Default (Desktop) Styles for the banner --- */
-/* Your existing styles for #trialCountdownContainer and its parent .header-left will apply here */
-/* Ensure #trialCountdownContainer is visible by default on desktop */
+/* === Trial & Membership Countdown Timer Box (Original, desktop position) === */
+/* These are the styles for the banner when it's in its default header location */
 #trialCountdownContainer {
-    display: block; /* Ensure it's not hidden by previous mobile rules */
-    /* Keep its existing desktop positioning and styling here */
-    /* Example: width: auto; max-width: none; etc. */
+    /* Your original styles for the banner as you had them before */
+    /* This ensures it looks correct in the header on desktop */
+    display: block; /* Ensure it's shown by default */
+    margin-top: 0px; /* Adjust as needed for its header position */
+    margin-left: 40px; /* Adjust as needed for its header position */
+    padding: 8px 12px;
+    background-color: #1e2022;
+    border: 1px solid #00a8ff;
+    border-radius: 6px;
+    color: #FFC04D;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    /* Crucial for desktop: ensure it's not hidden by display:none from JS logic */
+    /* This will be managed by JS, but if there's any lingering global CSS overriding it, this helps */
+    visibility: visible;
+    opacity: 1;
 }
 
-/* Hide the new mobile insertion point by default on desktop */
+/* === Mobile Insertion Point Styling === */
+/* This is the new div that acts as a container for the banner on mobile */
 #mobileBannerInsertionPoint {
-    display: none;
+    display: none; /* Hidden by default on desktop */
+    /* Add mobile-specific styling for the *container* here */
+    text-align: center;
+    padding: 8px 10px;
+    background-color: #3f3f3f; /* Darker background for the marked area */
+    color: orange; /* Keep text color consistent */
+    font-weight: bold;
+    font-size: 0.9em;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    width: calc(100% - 20px); /* Adjust width to fit the container, accounting for padding/margin */
+    max-width: 400px; /* Prevent it from getting too wide on slightly larger mobile devices */
+    margin-left: auto; /* Center it horizontally */
+    margin-right: auto; /* Center it horizontally */
 }
 
-
-/* --- Mobile-specific styles using a Media Query --- */
-@media (max-width: 768px) { /* Adjust 768px if your mobile breakpoint is different */
+/* === Media Query for Mobile-Specific Behavior === */
+@media (max-width: 768px) { /* Adjust 768px to your desired breakpoint */
     
-    /* Hide the original banner in the header on mobile */
+    /* On mobile, HIDE the original banner in the header */
     #trialCountdownContainer {
-        display: none !important; /* Hides the original element on mobile */
+        display: none !important; /* Force hide the original element in its header location */
+        visibility: hidden !important; /* Extra hide for robustness */
     }
 
-    /* Make the mobile insertion point visible on mobile */
+    /* On mobile, SHOW the mobile insertion point */
     #mobileBannerInsertionPoint {
-        display: block !important; /* Make it visible on mobile */
-        /* Basic styling for the new mobile banner area itself */
-        text-align: center; /* Center the text */
-        padding: 8px 10px; /* Add some padding */
-        background-color: #3f3f3f; /* Darker background for the marked area */
-        color: orange; /* Keep text color consistent */
-        font-weight: bold;
-        font-size: 0.9em;
-        border-radius: 5px;
-        margin-top: 10px; /* Add space above it if needed */
-        margin-bottom: 15px; /* Add space below it */
-        width: calc(100% - 20px); /* Adjust width to fit the container, accounting for padding/margin */
-        max-width: 400px; /* Prevent it from getting too wide on slightly larger mobile devices */
-        margin-left: auto; /* Center it horizontally */
-        margin-right: auto; /* Center it horizontally */
+        display: block !important; /* Force show the mobile placeholder */
+        visibility: visible !important; /* Force visible */
+    }
+
+    /* Adjust the header layout if the banner created space */
+    header .header-left {
+        /* If .header-left needs specific adjustments after banner is removed, add them here */
+        /* For example, if it had padding-right to accommodate the banner: */
+        /* padding-right: 0; */
     }
 }
 

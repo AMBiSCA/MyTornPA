@@ -1067,33 +1067,38 @@ if (toolsSection) {
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
-            // --- NEW: Function to manage banner's parent based on screen size (moved here for encapsulation) ---
-            // It's generally better to declare functions at a higher scope (e.g., global or right after DOMContentLoaded)
-            // but if you prefer to keep it within this listener for some reason, this is where it would go.
-            // For cleaner code, I recommend declaring manageBannerParentOnResize outside of this listener,
-            // but for a direct replacement of this block, I'll include it here.
-            function manageBannerParentOnResize() {
-                if (!trialCountdownContainer || !mobileBannerInsertionPoint || !originalBannerParent) {
-                    console.warn("One or more banner elements/parents not found. Cannot manage position.");
-                    return;
-                }
+           // --- NEW: Function to manage banner's parent based on screen size ---
+function manageBannerParentOnResize() {
+    // Only proceed if all necessary elements are found
+    if (!trialCountdownContainer || !mobileBannerInsertionPoint || !originalBannerParent) {
+        console.warn("One or more banner elements/parents not found. Cannot manage position.");
+        return;
+    }
 
-                const isMobileView = window.matchMedia("(max-width: 768px)").matches;
+    const isMobileView = window.matchMedia("(max-width: 768px)").matches; // Use your CSS breakpoint
 
-                if (isMobileView) {
-                    if (trialCountdownContainer.parentNode !== mobileBannerInsertionPoint) {
-                        mobileBannerInsertionPoint.appendChild(trialCountdownContainer);
-                        console.log("Banner moved to mobile position.");
-                    }
-                } else {
-                    if (trialCountdownContainer.parentNode !== originalBannerParent) {
-                        originalBannerParent.appendChild(trialCountdownContainer); 
-                        console.log("Banner moved back to desktop position.");
-                    }
-                }
-            }
-            // --- END manageBannerParentOnResize function definition ---
-
+    if (isMobileView) {
+        // On mobile: Move the actual 'trialCountdownContainer' DOM element to the mobile placeholder
+        if (trialCountdownContainer.parentNode !== mobileBannerInsertionPoint) {
+            mobileBannerInsertionPoint.appendChild(trialCountdownContainer);
+            console.log("Banner moved to mobile position.");
+            // We set display:block in CSS media query for #mobileBannerInsertionPoint.
+            // The banner itself should not need inline display block here for mobile.
+            // However, it's safer to ensure its content is styled by the parent.
+            // Remove any inline styles that might conflict, or manage via CSS.
+            trialCountdownContainer.style.cssText = ''; // Clear inline styles from previous states
+        }
+    } else {
+        // On desktop: Move the 'trialCountdownContainer' DOM element back to its original parent
+        if (trialCountdownContainer.parentNode !== originalBannerParent) {
+            // Re-append to its original parent to put it back in the header.
+            originalBannerParent.appendChild(trialCountdownContainer);
+            console.log("Banner moved back to desktop position.");
+            // Clear any inline styles that might conflict with desktop CSS rules
+            trialCountdownContainer.style.cssText = ''; 
+        }
+    }
+}
 
             if (user) {
                 if (mainHomepageContent) mainHomepageContent.style.display = 'block';
