@@ -1191,6 +1191,6 @@ header {
   }
 
   .main-content {
-    padding-top: -10px !important; /* You can change this value */
+    padding-top: -40px !important; /* You can change this value */
   }
 }
