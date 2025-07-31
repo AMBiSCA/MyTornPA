@@ -10,7 +10,7 @@
 </head>
 <body>
     
-	<div id="global-header-placeholder"></div>
+    <div id="global-header-placeholder"></div>
 
     <div class="body-content-wrapper">
         <div class="gym-main-content styled-container">
@@ -77,41 +77,77 @@
         </div>
         <div class="gym-sidebar-right styled-container">
             <div id="statProgressionContainer" class="stat-progression-box styled-container">
-                <h3 class="underlined-heading">📈 Stat Progression. 📈</h3>
-                <div id="statProgressionGraph" class="graph-placeholder">
-                    <canvas id="statChart"></canvas>
-                </div>
-              <div class="progression-options" style="position: relative;"> <a href="#" class="btn btn-small" data-time-filter="7">Last 7 Days</a>
-    <a href="#" class="btn btn-small" data-time-filter="30">Last 30 Days</a>
-    <a href="#" class="btn btn-small" data-time-filter="all">All Time</a>
-    <button id="logStatsBtn" class="btn btn-small" style="background-color: #28a745; border-color: #28a745;">Log Stats</button>
+                <h3 class="underlined-heading">📈 Your Progression. 📈</h3>
+                
+                <button id="downloadPersonalTabBtn" class="download-button" style="position: absolute; top: 10px; right: 10px; z-index: 10;">Download Current Tab</button>
 
-    <div id="logConfirmationModal" class="log-popup-dropdown" style="display:none;"> 
-        <div class="modal-content"> <span class="modal-close-btn" id="closeLogModalBtn">&times;</span>
-            <div id="logConfirmationBody">
-            </div>
-        </div>
-    </div>
-</div>
-                <div class="stat-toggle-options" style="text-align: center; margin-top: 10px;">
-                    <button class="btn btn-small" data-stat-toggle="0">Strength</button>
-                    <button class="btn btn-small" data-stat-toggle="1">Defense</button>
-                    <button class="btn btn-small" data-stat-toggle="2">Speed</button>
-                    <button class="btn btn-small" data-stat-toggle="3">Dexterity</button>
-                    <button class="btn btn-small" data-stat-toggle="all">Show All</button>
+                <div class="tab-navigation-bb" style="margin-top: 20px;">
+                    <button class="tab-button-bb active" data-tab="current-gym-stats">Current Gym Stats</button>
+                    <button class="tab-button-bb" data-tab="personal-gym-gains">Gym Gains Tracking</button>
+                    <button class="tab-button-bb" data-tab="personal-work-stats">Work Stats</button>
+                    <button class="tab-button-bb" data-tab="personal-crimes">Crimes</button>
+                </div>
+
+                <div class="tab-content-container-bb" id="personalTabContentContainer">
+                    
+                    <div id="current-gym-stats-tab" class="tab-pane-bb active">
+                        <p style="text-align: center; margin-top: 20px;">Your current gym stats:</p>
+                        <div class="current-stats-personal" style="margin-top: 15px;">
+                            <div class="stat-item"><strong>Strength💪:</strong> <span id="currentGymStr">--</span></div>
+                            <div class="stat-item"><strong>Defense🛡️:</strong> <span id="currentGymDef">--</span></div>
+                            <div class="stat-item"><strong>Speed⚡:</strong> <span id="currentGymSpd">--</span></div>
+                            <div class="stat-item"><strong>Dexterity🎯:</strong> <span id="currentGymDex">--</span></div>
+                            <div class="stat-item"><strong>Total Stats:</strong> <span id="currentGymTotal">--</span></div>
+                        </div>
+                    </div>
+
+                    <div id="personal-gym-gains-tab" class="tab-pane-bb">
+                        <div class="gains-tracking-controls" style="text-align: center; margin-top: 15px;">
+                            <button id="startPersonalTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
+                            <button id="stopPersonalTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
+                            <div id="personalTrackingStatus">Not currently tracking.</div>
+                            <span id="personalGainsStartedAt"></span>
+                        </div>
+                        <div class="gains-table-container table-container" style="margin-top: 15px;">
+                            <p id="noPersonalGainsData" style="text-align: center;">No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
+                            <table class="gains-overview-table" id="personal-gains-overview-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Strength Gain</th>
+                                        <th>Dexterity Gain</th>
+                                        <th>Speed Gain</th>
+                                        <th>Defense Gain</th>
+                                        <th>Total Gain</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="personal-gains-overview-tbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="personal-work-stats-tab" class="tab-pane-bb">
+                        <p style="text-align: center; margin-top: 20px;">Current Work Stats will be displayed here.</p>
+                        <div class="current-work-stats" style="margin-top: 15px;">
+                            <div class="stat-item"><strong>Job:</strong> <span id="workJob">--</span></div>
+                            <div class="stat-item"><strong>Job Rank:</strong> <span id="workRank">--</span></div>
+                            <div class="stat-item"><strong>Working Stats:</strong> <span id="workStats">--</span></div>
+                        </div>
+                    </div>
+
+                    <div id="personal-crimes-tab" class="tab-pane-bb">
+                        <p style="text-align: center; margin-top: 20px;">Current Crime Stats will be displayed here.</p>
+                        <div class="current-crime-stats" style="margin-top: 15px;">
+                            <div class="stat-item"><strong>Crimes Committed:</strong> <span id="crimesCommitted">--</span></div>
+                            <div class="stat-item"><strong>Nerve Gained:</strong> <span id="nerveGained">--</span></div>
+                            <div class="stat-item"><strong>Jail Time:</strong> <span id="jailTime">--</span></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <div id="gymProgressionContainer" class="gym-progression-box styled-container">
-                <h3 class="underlined-heading">🏆 Gym Progression. 🏆</h3>
-                <div class="progression-details">
-                    <p><strong>Current Gym:</strong> <span id="currentGymName">--</span></p>
-                    <p><strong>Next Gym:</strong> <span id="nextGymName">--</span></p>
-                    <p><strong>Req. Total Stats:</strong> <span id="nextGymReqStats">--</span></p>
-                    <p><strong>Stats Remaining:</strong> <span id="statsRemaining">--</span></p>
-                    <p><strong>Est. Energy to Next:</strong> <span id="eToNextGymDetailed">--</span></p>
-                </div>
             </div>
-        </div>
     </div>
 
 
@@ -132,12 +168,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
-	<div id="chat-system-placeholder"></div>
-	
+    <div id="chat-system-placeholder"></div>
+    
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
     <script src="../js/gymgain.js"></script>
-	<script src="../js/global.js" defer></script>
+    <script src="../js/global.js" defer></script>
 </body>
 </html>
