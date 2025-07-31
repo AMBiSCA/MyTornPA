@@ -544,18 +544,18 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 }
 
 .personal-gains-display .gain-positive {
-    color: #4CAF50; /* Green for positive gains */
-    font-weight: bold;
+    color: #4CAF50 !important; /* Green for positive gains */
+    font-weight: bold !important;
 }
 
 .personal-gains-display .gain-negative {
-    color: #dc3545; /* Red for negative gains */
-    font-weight: bold;
+    color: #dc3545 !important; /* Red for negative gains */
+    font-weight: bold !important;
 }
 
 .personal-gains-display .gain-neutral {
-    color: #bbb; /* Grey for zero gains */
-    font-weight: bold;
+    color: #bbb !important; /* Grey for zero gains */
+    font-weight: bold !important;
 }
 
 @media (max-width: 768px) {
