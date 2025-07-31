@@ -503,7 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- DEBUG: Added console.trace() here ---
             console.trace("Error setting gymError.textContent from general fetch error.");
             console.error("Error fetching Torn API stats:", error);
-            gymError.textContent = `Failed to fetch live game stats. Error: ${error.message}. Check your connection or API key.`;
         }
     }
 
