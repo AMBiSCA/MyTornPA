@@ -1884,13 +1884,11 @@ input:checked + .slider:before {
 }
 
   .homepage-content-wrapper {
-        margin-top: 0px !important; /* Remove or reduce top margin of the main content wrapper */
-        padding-top: 0px !important; /* Ensure no unwanted padding pushes it down */
+        margin-top: 5px !important;
+        padding-top: 5px !important;
     }
-
     .welcome-block-area {
-        margin-top: 0px !important; /* Remove or reduce top margin of the welcome block itself */
-        /* You might also consider adjusting padding-bottom if needed for the internal spacing */
+        margin-top: 5px !important;
     }
 
 /* All other @media (max-width: 480px) and @media (max-width: 991px) blocks
