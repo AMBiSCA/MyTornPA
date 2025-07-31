@@ -1220,3 +1220,9 @@ header {
     /* Give buttons a minimum width */
     text-align: center;
 }
+
+@media (max-width: 768px) {
+  .index-main-feature-box {
+    display: none;
+  }
+}
