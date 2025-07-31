@@ -2138,7 +2138,7 @@ input:checked + .slider:before {
 
     /* Adjust the header's own padding for a more compact look */
     header {
-        padding-top: 10px !important;
+        padding-top: 8px !important;
         padding-bottom: 5px !important;
         min-height: auto !important;
         height: auto !important;
