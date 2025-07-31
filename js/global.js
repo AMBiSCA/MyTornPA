@@ -523,7 +523,67 @@ if (openGraphIcon) {
                         populateIgnoreListTab(friendsPanelContent);
                     });
                 }
+				
+				
+// NEW FUNCTION: Display Faction Members in the Chat Tab (add this function)
+window.displayFactionMembersInChatTab = async function(membersData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Faction Members tab.");
+        return;
+    }
 
+    // Convert membersData object to an array of members, and sort them by name
+    const membersArray = Object.values(membersData).map(member => ({
+        id: member.player_id, // Torn ID
+        name: member.name,
+        // Include firebaseUid if it's available in the member data or can be fetched
+        // For now, we'll fetch it in the loop if needed for direct chat
+    }));
+
+    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+
+    let membersHtml = '';
+    if (membersArray.length === 0) {
+        membersHtml = '<p style="text-align:center; padding: 20px;">No faction members found or data unavailable.</p>';
+    } else {
+        // Use Promise.all to fetch profile images and Firebase UIDs in parallel
+        const memberHtmlPromises = membersArray.map(async (member) => {
+            const userDoc = await db.collection('users').doc(String(member.id)).get();
+            const profileImage = userDoc.exists && userDoc.data().profile_image ? userDoc.data().profile_image : DEFAULT_PROFILE_ICONS[0];
+            const firebaseUid = userDoc.exists && userDoc.data().firebaseUid ? userDoc.data().firebaseUid : null;
+
+            return `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profileImage}" alt="${member.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" class="member-name">${member.name} [${member.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        ${firebaseUid ? `<button class="item-button message-member-button" data-torn-id="${member.id}" data-torn-name="${member.name}" data-firebase-uid="${firebaseUid}" title="Send Message">✉️</button>` : `<span title="User not registered on this platform" style="opacity: 0.5;">✉️</span>`}
+                    </div>
+                </div>`;
+        });
+        membersHtml = (await Promise.all(memberHtmlPromises)).join('');
+    }
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.className = 'members-list-container';
+    membersListContainer.innerHTML = membersHtml;
+    targetDisplayElement.innerHTML = ''; // Clear previous content
+    targetDisplayElement.appendChild(membersListContainer);
+
+    // Add event listeners for message buttons within this newly added content
+    membersListContainer.querySelectorAll('.message-member-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const tornId = event.target.dataset.tornId;
+            const tornName = event.target.dataset.tornName;
+            // The firebaseUid is implicitly available to openPrivateChatWindow which fetches it internally,
+            // but explicitly passing it via data-attribute makes it clearer if needed for other uses.
+            // openPrivateChatWindow will handle fetching the firebaseUid if it's not directly passed.
+            window.openPrivateChatWindow(tornId, tornName);
+        });
+    });
+};
 
                 // --- Send Message Logic ---
                 function setupMessageSending(textInput, sendBtn, collectionType) {
