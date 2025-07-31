@@ -1858,6 +1858,10 @@ input:checked + .slider:before {
         justify-content: center !important;
         margin-bottom: 0 !important; /* Remove default margins that create space between these elements */
     }
+	
+	#chat-window.keyboard-visible {
+    height: 45vh !important; /* Shrinks the height when keyboard is visible */
+}
 
     /* Specific spacing for MyTornPA and buttons within the header */
     .header-left {
@@ -2122,4 +2126,14 @@ input:checked + .slider:before {
     .confirmation-actions { flex-direction: column !important; gap: 10px !important; }
     .confirmation-modal { padding: 15px !important; width: 95% !important; }
     .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
+}
+
+/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
+@media only screen and (max-width: 991px) {
+    #globalfooterplaceholder {
+        display: none !important;
+    }
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+        display: none !important;
+    }
 }
