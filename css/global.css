@@ -1883,3 +1883,30 @@ input:checked + .slider:before {
     display: none !important; /* Added !important */
   }
 }
+
+@media only screen and (max-width: 991px) {
+  /* Hide the text part of the header buttons on mobile/tablet */
+  #headerButtonsContainer .btn-text {
+    display: none;
+  }
+
+  /* Adjust padding for the header buttons now that the text is gone */
+  #headerButtonsContainer .btn.header-btn,
+  #headerButtonsContainer .dropdown > .btn.header-btn { /* Target buttons directly and within dropdowns */
+    padding: 8px 12px; /* Example padding; adjust as needed for desired size */
+    min-width: unset; /* Remove any fixed min-width if present */
+  }
+
+  /* Adjust spacing between the buttons */
+  #headerButtonsContainer {
+    display: flex; /* Use flexbox to arrange buttons horizontally */
+    justify-content: space-around; /* Distribute space evenly */
+    align-items: center; /* Align items vertically */
+    gap: 5px; /* Add a small gap between buttons */
+  }
+
+  /* Ensure dropdowns within the header buttons also adjust */
+  #headerButtonsContainer .dropdown {
+    display: flex; /* Treat dropdown as a flex item to align its button */
+  }
+}
