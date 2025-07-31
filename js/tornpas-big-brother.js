@@ -704,130 +704,126 @@ async function displayGainsTable() {
  * Captures the currently active tab's content (with selected columns) as an image
  * and triggers a download. Requires html2canvas library to be loaded.
  */
+/**
+ * Captures the currently active tab's content (with selected columns) as an image
+ * and triggers a download. Requires html2canvas library to be loaded.
+ */
 function downloadCurrentTabAsImage() {
-    const activeTabPane = document.querySelector('.tab-pane-bb.active');
+    const activeTabPane = document.querySelector('.tab-pane-bb.active');
 
-    if (!activeTabPane) {
-        console.error('No active tab pane found to screenshot.');
-        alert('Could not find active content to download.');
-        return;
-    }
+    if (!activeTabPane) {
+        console.error('No active tab pane found to screenshot.');
+        alert('Could not find active content to download.');
+        return;
+    }
 
-    let originalTable;
-    let columnIndicesToKeep = [];
-    let headerTextsToKeep = [];
-    let filename = 'tornpas_data.png';
+    let originalTable;
+    let columnIndicesToKeep = [];
+    let headerTextsToKeep = [];
+    let filename = 'tornpas_data.png';
 
-    if (activeTabPane.id === 'current-stats-tab') {
-        originalTable = document.getElementById('friendly-members-table');
-        // Indices of Name (0), Strength (2), Dexterity (3), Speed (4), Defense (5), Total (6)
-        columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; 
-        headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
-        filename = 'tornpas_current_stats_filtered.png';
-    } else if (activeTabPane.id === 'gains-tracking-tab') {
-        originalTable = document.getElementById('gains-overview-table');
-        // Indices of Name (0), Strength Gain (1), Dexterity Gain (2), Speed Gain (3), Defense Gain (4), Total Gain (5)
-        columnIndicesToKeep = [0, 1, 2, 3, 4, 5];
-        headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
-        filename = 'tornpas_gains_tracking_filtered.png';
-    } else {
-        console.error('Unknown active tab for screenshot.');
-        alert('Cannot download data for this tab.');
-        return;
-    }
+    if (activeTabPane.id === 'current-stats-tab') {
+        originalTable = document.getElementById('friendly-members-table');
+        columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; 
+        headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
+        filename = 'tornpas_current_stats_filtered.png';
+    } else if (activeTabPane.id === 'gains-tracking-tab') {
+        originalTable = document.getElementById('gains-overview-table');
+        columnIndicesToKeep = [0, 1, 2, 3, 4, 5];
+        headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
+        filename = 'tornpas_gains_tracking_filtered.png';
+    } else {
+        console.error('Unknown active tab for screenshot.');
+        alert('Cannot download data for this tab.');
+        return;
+    }
 
-    if (!originalTable) {
-        console.error('Original table not found for screenshot.');
-        alert('Could not find table data to download.');
-        return;
-    }
+    if (!originalTable) {
+        console.error('Original table not found for screenshot.');
+        alert('Could not find table data to download.');
+        return;
+    }
 
-    // Create a temporary container for the filtered table, hidden off-screen
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.width = originalTable.offsetWidth + 'px'; // Maintain original table width for styling
-    tempContainer.style.backgroundColor = '#222'; // Match your table's background for capture
-    tempContainer.style.padding = '15px'; // Add some padding around the captured content
-    tempContainer.style.borderRadius = '8px'; // Match the border-radius of your tab content container
-    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)'; // Match box-shadow
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    // THIS IS THE CORRECTED LINE:
+    tempContainer.style.width = '810px'; // Set fixed width to match CSS columns
+    tempContainer.style.backgroundColor = '#222';
+    tempContainer.style.padding = '15px';
+    tempContainer.style.borderRadius = '8px';
+    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
 
-    const tempTable = document.createElement('table');
-    // Copy the original table's classes to apply its styling
-    tempTable.className = originalTable.className; 
-    tempTable.classList.add('download-table-preview'); // ADDED: Apply new class for condensed rows
-    tempTable.style.width = '100%'; // Ensure it takes full width of tempContainer
+    const tempTable = document.createElement('table');
+    tempTable.className = originalTable.className; 
+    tempTable.classList.add('download-table-preview');
+    tempTable.style.width = '100%';
 
-    const tempThead = document.createElement('thead');
-    const tempTbody = document.createElement('tbody');
+    const tempThead = document.createElement('thead');
+    const tempTbody = document.createElement('tbody');
 
-    // Populate header
-    const originalHeaderRow = originalTable.querySelector('thead tr');
-    if (originalHeaderRow) {
-        const tempHeaderRow = document.createElement('tr');
-        columnIndicesToKeep.forEach(index => {
-            const originalTh = originalHeaderRow.children[index];
-            if (originalTh) {
-                const clonedTh = originalTh.cloneNode(true); // Clone with content and attributes
-                tempHeaderRow.appendChild(clonedTh);
-            }
-        });
-        tempThead.appendChild(tempHeaderRow);
-    } else {
-        // Fallback if original header row is not found or is empty
-        const tempHeaderRow = document.createElement('tr');
-        headerTextsToKeep.forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            tempHeaderRow.appendChild(th);
-        });
-        tempThead.appendChild(tempHeaderRow);
-    }
+    const originalHeaderRow = originalTable.querySelector('thead tr');
+    if (originalHeaderRow) {
+        const tempHeaderRow = document.createElement('tr');
+        columnIndicesToKeep.forEach(index => {
+            const originalTh = originalHeaderRow.children[index];
+            if (originalTh) {
+                const clonedTh = originalTh.cloneNode(true);
+                tempHeaderRow.appendChild(clonedTh);
+            }
+        });
+        tempThead.appendChild(tempHeaderRow);
+    } else {
+        const tempHeaderRow = document.createElement('tr');
+        headerTextsToKeep.forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            tempHeaderRow.appendChild(th);
+        });
+        tempThead.appendChild(tempHeaderRow);
+    }
 
-    // Populate body rows with only selected columns
-    const originalRows = originalTable.querySelectorAll('tbody tr');
-    originalRows.forEach(originalRow => {
-        const tempRow = document.createElement('tr');
-        const originalCells = originalRow.children;
-        
-        columnIndicesToKeep.forEach(index => {
-            const originalCell = originalCells[index];
-            if (originalCell) {
-                const clonedCell = originalCell.cloneNode(true); // Clone with content and attributes
-                tempRow.appendChild(clonedCell);
-            }
-        });
-        tempTbody.appendChild(tempRow);
-    });
+    const originalRows = originalTable.querySelectorAll('tbody tr');
+    originalRows.forEach(originalRow => {
+        const tempRow = document.createElement('tr');
+        const originalCells = originalRow.children;
+        
+        columnIndicesToKeep.forEach(index => {
+            const originalCell = originalCells[index];
+            if (originalCell) {
+                const clonedCell = originalCell.cloneNode(true);
+                tempRow.appendChild(clonedCell);
+            }
+        });
+        tempTbody.appendChild(tempRow);
+    });
 
-    tempTable.appendChild(tempThead);
-    tempTable.appendChild(tempTbody);
-    tempContainer.appendChild(tempTable);
+    tempTable.appendChild(tempThead);
+    tempTable.appendChild(tempTbody);
+    tempContainer.appendChild(tempTable);
 
-    document.body.appendChild(tempContainer);
+    document.body.appendChild(tempContainer);
 
-    // Use html2canvas to capture the temporary container
-    html2canvas(tempContainer, {
-        scale: 2, // Increase resolution for a sharper image
-        useCORS: true, // Important if your table has images or content from different origins (e.g., player profile pictures)
-        logging: false, // Set to true for debugging html2canvas issues in the console
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = canvas.toDataURL('image/png');
+    html2canvas(tempContainer, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }).catch(error => {
-        console.error('Error capturing element for download:', error);
-        alert('Could not download image. An error occurred. Please check the console for details.');
-    }).finally(() => {
-        // Clean up the temporary element regardless of success or failure
-        if (tempContainer.parentNode) {
-            document.body.removeChild(tempContainer);
-        }
-    });
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }).catch(error => {
+        console.error('Error capturing element for download:', error);
+        alert('Could not download image. An error occurred. Please check the console for details.');
+    }).finally(() => {
+        if (tempContainer.parentNode) {
+            document.body.removeChild(tempContainer);
+        }
+    });
 }
 // NEWLY MODIFIED CODE ENDS HERE
 
