@@ -419,9 +419,7 @@ async function updateToolLinksAccess(profile) {
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-   // Replace your entire fetchDataForPersonalStatsModal function with this updated code
-// Replace your entire fetchDataForPersonalStatsModal function with this updated code
-async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+  async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
     const personalStatsModal = document.getElementById('personalStatsModal');
@@ -436,7 +434,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
     personalStatsModal.classList.add('visible');
 
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars"; // Keep all selections to fetch data
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     function formatTcpAnniversaryDate(dateObject) {
@@ -479,81 +477,12 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data to send to Netlify function (this remains comprehensive for saving) ---
-        const userId = data.player_id;
-        if (userId) {
-            const userDataToSave = {
-                name: data.name || null,
-                tornProfileId: data.player_id || null,
-                profile_image: data.profile_image || null,
-                level: data.level || null,
-                rank: data.rank || null,
-                age: data.age || null,
-                gender: data.gender || null,
-                role: data.role || null,
-                donator: data.donator || false,
-                revivable: data.revivable || null,
-                signup_date: data.signup || null,
-                last_action_timestamp: data.last_action?.timestamp || null,
-                faction_id: data.faction?.faction_id || null,
-                faction_name: data.faction?.faction_name || null,
-                faction_tag: data.faction?.faction_tag || null,
-                faction_position: data.faction?.position || null,
-                nerve: data.nerve || {},
-                energy: data.energy || {},
-                happy: data.happy || {},
-                life: data.life || {},
-                status: data.status || {},
-                traveling: data.status?.state === 'Traveling' || false,
-                hospitalized: data.status?.state === 'Hospital' || false,
-                cooldowns: data.cooldowns || {},
-                personalstats: data.personalstats || {},
-                battlestats: data.battlestats || {},
-                workstats: data.workstats || {},
-                awards: data.awards || null,
-                basicicons: data.basicicons || null,
-                chain: data.chain || null,
-                competition: data.competition || null,
-                enemies: data.enemies || null,
-                friends: data.friends || null,
-                job: data.job || null,
-                karma: data.karma || null,
-                married: data.married || null,
-                property: data.property || null,
-                property_id: data.property_id || null,
-                states: data.states || {},
-                travel: data.travel || {},
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
 
-            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
-            console.log(`[DEBUG] userDataToSave.profile_image:`, userDataToSave.profile_image);
-
-            try {
-                // Call the Netlify Function to securely save ALL data to Firestore
-                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', { // Changed to update-user-faction
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        uid: auth.currentUser.uid, // Firebase UID
-                        tornPlayerId: String(userId), // Torn Player ID
-                        userData: userDataToSave // Send the whole comprehensive object
-                    }),
-                });
-
-                if (!netlifyFunctionResponse.ok) {
-                    const errorDetails = await netlifyFunctionResponse.json();
-                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
-                }
-
-                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
-            } catch (functionError) {
-                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
-            }
-        } else {
-            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
-        }
-        // --- End: Call Netlify Function for Secure Firebase Storage ---
+        // --- THIS ENTIRE BLOCK HAS BEEN REMOVED ---
+        // The code that created `userDataToSave` and sent it to your Netlify function
+        // (`/.netlify/functions/update-user-faction`) used to be here.
+        // By removing it, this function will no longer save any data to your database.
+        // --- END OF REMOVED BLOCK ---
 
 
         // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
