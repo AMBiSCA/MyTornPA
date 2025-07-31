@@ -1978,28 +1978,6 @@ input:checked + .slider:before {
         overflow: visible !important; /* Ensure content is not clipped */
     }
 
-    /* This targets the dropdown arrow pseudo-element for Useful Links and Contact */
-    #usefulLinksBtn .btn-icon::after,
-    #headerContactUsBtn .btn-icon::after {
-        content: '🔽' !important;         /* Force the dropdown arrow emoji */
-        font-size: 0.8em !important;     /* Size of the dropdown arrow relative to main icon */
-        margin-left: 0.2em !important;   /* Small space between main icon and arrow */
-        
-        /* Ensure proper display and clear any conflicting positioning */
-        display: inline-block !important; /* Make it render */
-        position: static !important;     /* Keep it in normal flow (not absolutely positioned relative to window) */
-        transform: none !important;      /* Clear any unwanted transforms from other rules */
-
-        /* Clear any conflicting styles */
-        line-height: 1 !important;
-        vertical-align: middle !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        z-index: auto !important;
-        opacity: 1 !important; /* Ensure visibility */
-    }
-}
-
+   
 
 
