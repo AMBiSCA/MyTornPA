@@ -361,9 +361,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .btn-confirm-no:active { transform: translateY(0); }
 
 .disabled-link {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: all !important; /* This makes sure our JS click still works */
+opacity: 0.5;
+cursor: not-allowed;
+pointer-events: none !important; /* This is the correct value to disable clicks. */
 }
 
 /* 3. Add blue borders and glow to the monthly cards */
