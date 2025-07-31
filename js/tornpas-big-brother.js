@@ -13,13 +13,13 @@ let currentFirebaseUserUid = null; // Store current user's UID
 let currentUserIsAdmin = false; // Store admin status
 let userFactionIdFromProfile = null; // Store user's faction ID, retrieved from profile
 
-let activeTrackingSessionId = null; // Stores the ID of the currently active session
-let activeTrackingStartedAt = null; // Stores the start timestamp of the active session
-let baselineStatsCache = {}; // Cache for the baseline stats of the active session
+let activeTrackingSessionId = null; // Stores the ID of the currently active session for the user's faction
+let activeTrackingStartedAt = null; // Stores the start timestamp of the active session for the user's faction
+let baselineStatsCache = {}; // Cache for the baseline stats of the active session for the user's faction
 
 // Firestore references for gain tracking
 const GAIN_TRACKING_SESSIONS_COLLECTION = 'gainTrackingSessions'; // Collection for individual snapshots
-const GAIN_TRACKING_STATUS_DOC = 'currentTrackingStatus'; // Document to hold active tracking session ID for a faction
+// Removed: const GAIN_TRACKING_STATUS_DOC = 'currentTrackingStatus'; // This will now be dynamic (faction ID)
 
 // Real-time Firestore unsubscribe functions
 let unsubscribeFromTrackingStatus = null;
@@ -177,6 +177,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         console.log("Triggering backend refresh for faction data...");
+        // This Netlify function is assumed to be authorized and update 'users' collection
         const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
         if (!refreshResponse.ok) {
             const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
@@ -304,7 +305,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
  * Helper to format gain values (+X, -Y, 0) with appropriate CSS class.
  * @param {number} gain The numerical gain.
  * @returns {string} HTML string with formatted gain and class.
-*/
+ */
 function formatGainValue(gain) {
     if (typeof gain !== 'number') {
         return '<span class="gain-neutral">N/A</span>';
@@ -342,6 +343,7 @@ function updateGainTrackingUI() {
         return;
     }
 
+    // Check if there is an active session for *this faction*
     if (activeTrackingSessionId) {
         startTrackingBtn.classList.add('hidden');
         stopTrackingBtn.classList.remove('hidden');
@@ -374,8 +376,8 @@ async function startTrackingGains() {
         alert("Permission denied. Only leaders/co-leaders can start tracking.");
         return;
     }
-    if (!userApiKey || !currentFirebaseUserUid) {
-        alert("Cannot start tracking: User not fully logged in or API key missing.");
+    if (!userApiKey || !currentFirebaseUserUid || !userFactionIdFromProfile) {
+        alert("Cannot start tracking: User not fully logged in, API key missing, or Faction ID missing from profile.");
         return;
     }
 
@@ -386,10 +388,9 @@ async function startTrackingGains() {
     }
 
     try {
-        const userProfileDoc = await db.collection('userProfiles').doc(currentFirebaseUserUid).get();
-        const userFactionId = userProfileDoc.data()?.faction_id;
-        if (!userFactionId) throw new Error("User's faction ID not found.");
-
+        // Use userFactionIdFromProfile directly as it's already fetched and validated.
+        const userFactionId = userFactionIdFromProfile; 
+        
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}&comment=MyTornPA_BigBrother_Snapshot`;
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
@@ -424,7 +425,9 @@ async function startTrackingGains() {
             });
         });
 
-        const newSnapshotRef = await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).add({
+        // Create a new unique session document for this start
+        const newSessionDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(); // Auto-generated ID
+        await newSessionDocRef.set({
             factionId: userFactionId,
             startedByUid: currentFirebaseUserUid,
             startedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -432,14 +435,17 @@ async function startTrackingGains() {
             snapshot: currentStatsForSnapshot
         });
 
-        await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC).set({
-            activeSessionId: newSnapshotRef.id,
+        // Update the faction-specific status document to point to this new active session
+        // The document ID for the status is now the faction ID itself
+        const factionStatusDocId = String(userFactionId); // Use faction ID as the document name
+        await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(factionStatusDocId).set({
+            activeSessionId: newSessionDocRef.id,
             factionId: userFactionId,
             startedByUid: currentFirebaseUserUid,
             startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
+        }, { merge: true }); // Use merge:true in case it already exists but was not deleted properly
 
-        console.log("Gains tracking started. Snapshot saved with ID:", newSnapshotRef.id);
+        console.log("Gains tracking started. Snapshot saved with ID:", newSessionDocRef.id);
         
         alert("Gains tracking started successfully!");
 
@@ -455,12 +461,16 @@ async function startTrackingGains() {
 }
 
 /**
- * Stops the current gains tracking session.
+ * Stops the current gains tracking session for the user's faction.
  */
 async function stopTrackingGains() {
     console.log("Attempting to stop tracking gains...");
     if (!currentUserIsAdmin) {
         alert("Permission denied. Only leaders/co-leaders can stop tracking.");
+        return;
+    }
+    if (!userFactionIdFromProfile) {
+        alert("Cannot stop tracking: Faction ID not found in your profile.");
         return;
     }
 
@@ -471,25 +481,32 @@ async function stopTrackingGains() {
     }
 
     try {
-        const statusDoc = await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC).get();
-        if (statusDoc.exists && statusDoc.data().activeSessionId) {
-            const activeSessionIdToDelete = statusDoc.data().activeSessionId;
+        // Use the faction ID to get the specific status document
+        const factionStatusDocId = String(userFactionIdFromProfile);
+        const statusDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(factionStatusDocId);
+        const statusDoc = await statusDocRef.get();
 
-            await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(activeSessionIdToDelete).update({
+        if (statusDoc.exists && statusDoc.data().activeSessionId) {
+            const activeSessionIdToUpdate = statusDoc.data().activeSessionId;
+
+            // Mark the main session document as inactive and set stoppedAt
+            await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(activeSessionIdToUpdate).update({
                 isActive: false,
                 stoppedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC).delete();
+            // Delete the faction's active status document
+            await statusDocRef.delete();
             
-            console.log("Gains tracking stopped for session:", activeSessionIdToDelete);
+            console.log("Gains tracking stopped for session:", activeSessionIdToUpdate);
 
             alert("Gains tracking stopped successfully!");
 
         } else {
-            alert("No active tracking session found.");
-            updateGainTrackingUI();
+            alert("No active tracking session found for your faction.");
         }
+        updateGainTrackingUI(); // Re-render UI after stopping
+
     } catch (error) {
         console.error("Error stopping gains tracking:", error);
         alert("Failed to stop tracking gains: " + error.message);
@@ -502,21 +519,24 @@ async function stopTrackingGains() {
 }
 
 /**
- * Sets up a real-time listener for the active gains tracking session status.
- * This updates the buttons and status message for all connected clients.
+ * Sets up a real-time listener for the active gains tracking session status for the user's faction.
+ * This updates the buttons and status message for all connected clients of that faction.
  */
 function setupRealtimeTrackingStatusListener(userFactionId) {
     if (unsubscribeFromTrackingStatus) {
         unsubscribeFromTrackingStatus();
     }
 
-    const statusDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC);
+    // Listener now targets a document named after the faction ID
+    const statusDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(String(userFactionId));
 
     unsubscribeFromTrackingStatus = statusDocRef.onSnapshot(async (doc) => {
+        // Ensure the data corresponds to the expected faction (double-check if needed, though doc ID implies it)
         if (doc.exists && doc.data().factionId === userFactionId) {
             activeTrackingSessionId = doc.data().activeSessionId;
             activeTrackingStartedAt = doc.data().startedAt;
 
+            // Only fetch baseline if a new active session ID is set and not already cached
             if (activeTrackingSessionId && !baselineStatsCache[activeTrackingSessionId]) {
                 const baselineDoc = await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(activeTrackingSessionId).get();
                 if (baselineDoc.exists && baselineDoc.data().snapshot) {
@@ -529,11 +549,13 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
                 }
             }
         } else {
+            // No active session for this faction, or document was deleted
             activeTrackingSessionId = null;
             activeTrackingStartedAt = null;
             baselineStatsCache = {};
         }
         updateGainTrackingUI();
+        // Only call displayGainsTable if the gains tracking tab is currently active
         if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
             displayGainsTable();
         }
@@ -547,7 +569,7 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
              displayGainsTable();
         }
     });
-    console.log("Real-time tracking status listener set up.");
+    console.log(`Real-time tracking status listener set up for faction: ${userFactionId}`);
 }
 
 
@@ -567,8 +589,8 @@ async function displayGainsTable() {
     gainsMessageContainer.classList.remove('hidden');
     gainsMessageContainer.textContent = 'Loading gains data...';
 
-    if (!userApiKey || !currentFirebaseUserUid) {
-        gainsMessageContainer.textContent = 'Please log in with your API key to view gains.';
+    if (!userApiKey || !currentFirebaseUserUid || !userFactionIdFromProfile) {
+        gainsMessageContainer.textContent = 'Please log in with your API key and ensure your faction ID is set to view gains.';
         return;
     }
 
@@ -578,13 +600,7 @@ async function displayGainsTable() {
     }
 
     try {
-        const userProfileDoc = await db.collection('userProfiles').doc(currentFirebaseUserUid).get();
-        const userFactionId = userProfileDoc.data()?.faction_id;
-        if (!userFactionId) {
-            gainsMessageContainer.textContent = 'Your faction ID is not set. Cannot track gains.';
-            return;
-        }
-
+        const userFactionId = userFactionIdFromProfile; // Use the already fetched faction ID
         const baselineStats = baselineStatsCache[activeTrackingSessionId];
 
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}&comment=MyTornPA_BigBrother_GainsRefresh`;
@@ -612,6 +628,7 @@ async function displayGainsTable() {
             return;
         }
         
+        // Unsubscribe from any previous listener before setting up new queries
         if (unsubscribeFromGainsData) {
             unsubscribeFromGainsData();
             unsubscribeFromGainsData = null;
@@ -663,13 +680,13 @@ async function displayGainsTable() {
                  membersWithGains.push({
                     name: memberTornData.name,
                     memberId: memberId,
-                    strengthGain: current.strength,
+                    strengthGain: current.strength, // If no baseline, treat current as "gain" for display
                     dexterityGain: current.dexterity,
                     speedGain: current.speed,
                     defenseGain: current.defense,
                     totalGain: current.total,
                     initialTotal: current.total,
-                    isNew: true
+                    isNew: true // Mark as new if no baseline
                 });
             }
         });
@@ -700,126 +717,127 @@ async function displayGainsTable() {
 }
 
 /**
- * Captures the currently active tab's content (with selected columns) as an image
- * and triggers a download. Requires html2canvas library to be loaded.
- */
+ * Captures the currently active tab's content (with selected columns) as an image
+ * and triggers a download. Requires html2canvas library to be loaded.
+ */
 function downloadCurrentTabAsImage() {
-    const activeTabPane = document.querySelector('.tab-pane-bb.active');
+    const activeTabPane = document.querySelector('.tab-pane-bb.active');
 
-    if (!activeTabPane) {
-        console.error('No active tab pane found to screenshot.');
-        alert('Could not find active content to download.');
-        return;
-    }
+    if (!activeTabPane) {
+        console.error('No active tab pane found to screenshot.');
+        alert('Could not find active content to download.');
+        return;
+    }
 
-    let originalTable;
-    let columnIndicesToKeep = [];
-    let headerTextsToKeep = [];
-    let filename = 'tornpas_data.png';
+    let originalTable;
+    let columnIndicesToKeep = [];
+    let headerTextsToKeep = [];
+    let filename = 'tornpas_data.png';
 
-    if (activeTabPane.id === 'current-stats-tab') {
-        originalTable = document.getElementById('friendly-members-table');
-        columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; 
-        headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
-        filename = 'tornpas_current_stats_filtered.png';
-    } else if (activeTabPane.id === 'gains-tracking-tab') {
-        originalTable = document.getElementById('gains-overview-table');
-        columnIndicesToKeep = [0, 1, 2, 3, 4, 5];
-        headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
-        filename = 'tornpas_gains_tracking_filtered.png';
-    } else {
-        console.error('Unknown active tab for screenshot.');
-        alert('Cannot download data for this tab.');
-        return;
-    }
+    if (activeTabPane.id === 'current-stats-tab') {
+        originalTable = document.getElementById('friendly-members-table');
+        columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; // Name, Str, Dex, Spd, Def, Total
+        headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
+        filename = 'tornpas_current_stats_filtered.png';
+    } else if (activeTabPane.id === 'gains-tracking-tab') {
+        originalTable = document.getElementById('gains-overview-table');
+        columnIndicesToKeep = [0, 1, 2, 3, 4, 5]; // Name, Str Gain, Dex Gain, Spd Gain, Def Gain, Total Gain
+        headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
+        filename = 'tornpas_gains_tracking_filtered.png';
+    } else {
+        console.error('Unknown active tab for screenshot.');
+        alert('Cannot download data for this tab.');
+        return;
+    }
 
-    if (!originalTable) {
-        console.error('Original table not found for screenshot.');
-        alert('Could not find table data to download.');
-        return;
-    }
+    if (!originalTable) {
+        console.error('Original table not found for screenshot.');
+        alert('Could not find table data to download.');
+        return;
+    }
 
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.width = '850px';
-    tempContainer.style.backgroundColor = '#222';
-    tempContainer.style.padding = '15px';
-    tempContainer.style.borderRadius = '8px';
-    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = '850px'; // Set a fixed width for consistent screenshot size
+    tempContainer.style.backgroundColor = '#222';
+    tempContainer.style.padding = '15px';
+    tempContainer.style.borderRadius = '8px';
+    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
 
-    const tempTable = document.createElement('table');
-    tempTable.className = originalTable.className; 
-    tempTable.classList.add('download-table-preview');
-    tempTable.style.width = '100%';
+    const tempTable = document.createElement('table');
+    tempTable.className = originalTable.className; // Copy original table classes for styling
+    tempTable.classList.add('download-table-preview'); // Add a specific class for download preview styling
+    tempTable.style.width = '100%'; // Ensure it fills the temp container
 
-    const tempThead = document.createElement('thead');
-    const tempTbody = document.createElement('tbody');
+    const tempThead = document.createElement('thead');
+    const tempTbody = document.createElement('tbody');
 
-    const originalHeaderRow = originalTable.querySelector('thead tr');
-    if (originalHeaderRow) {
-        const tempHeaderRow = document.createElement('tr');
-        columnIndicesToKeep.forEach(index => {
-            const originalTh = originalHeaderRow.children[index];
-            if (originalTh) {
-                const clonedTh = originalTh.cloneNode(true);
-                tempHeaderRow.appendChild(clonedTh);
-            }
-        });
-        tempThead.appendChild(tempHeaderRow);
-    } else {
-        const tempHeaderRow = document.createElement('tr');
-        headerTextsToKeep.forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            tempHeaderRow.appendChild(th);
-        });
-        tempThead.appendChild(tempHeaderRow);
-    }
+    const originalHeaderRow = originalTable.querySelector('thead tr');
+    if (originalHeaderRow) {
+        const tempHeaderRow = document.createElement('tr');
+        columnIndicesToKeep.forEach(index => {
+            const originalTh = originalHeaderRow.children[index];
+            if (originalTh) {
+                const clonedTh = originalTh.cloneNode(true);
+                tempHeaderRow.appendChild(clonedTh);
+            }
+        });
+        tempThead.appendChild(tempHeaderRow);
+    } else {
+        // Fallback for headers if original table has no thead for some reason
+        const tempHeaderRow = document.createElement('tr');
+        headerTextsToKeep.forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            tempHeaderRow.appendChild(th);
+        });
+        tempThead.appendChild(tempHeaderRow);
+    }
 
-    const originalRows = originalTable.querySelectorAll('tbody tr');
-    originalRows.forEach(originalRow => {
-        const tempRow = document.createElement('tr');
-        const originalCells = originalRow.children;
-        
-        columnIndicesToKeep.forEach(index => {
-            const originalCell = originalCells[index];
-            if (originalCell) {
-                const clonedCell = originalCell.cloneNode(true);
-                tempRow.appendChild(clonedCell);
-            }
-        });
-        tempTbody.appendChild(tempRow);
-    });
+    const originalRows = originalTable.querySelectorAll('tbody tr');
+    originalRows.forEach(originalRow => {
+        const tempRow = document.createElement('tr');
+        const originalCells = originalRow.children;
+        
+        columnIndicesToKeep.forEach(index => {
+            const originalCell = originalCells[index];
+            if (originalCell) {
+                const clonedCell = originalCell.cloneNode(true);
+                tempRow.appendChild(clonedCell);
+            }
+        });
+        tempTbody.appendChild(tempRow);
+    });
 
-    tempTable.appendChild(tempThead);
-    tempTable.appendChild(tempTbody);
-    tempContainer.appendChild(tempTable);
+    tempTable.appendChild(tempThead);
+    tempTable.appendChild(tempTbody);
+    tempContainer.appendChild(tempTable);
 
-    document.body.appendChild(tempContainer);
+    document.body.appendChild(tempContainer); // Add to DOM to be rendered for html2canvas
 
-    html2canvas(tempContainer, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = canvas.toDataURL('image/png');
+    html2canvas(tempContainer, {
+        scale: 2, // Increase scale for higher resolution image
+        useCORS: true, // Needed if your images/fonts are from different origins
+        logging: false, // Disable verbose logging
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png'); // Get image data as PNG
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }).catch(error => {
-        console.error('Error capturing element for download:', error);
-        alert('Could not download image. An error occurred. Please check the console for details.');
-    }).finally(() => {
-        if (tempContainer.parentNode) {
-            document.body.removeChild(tempContainer);
-        }
-    });
+        document.body.appendChild(link); // Temporarily add to DOM to trigger download
+        link.click(); // Trigger the download
+        document.body.removeChild(link); // Clean up
+    }).catch(error => {
+        console.error('Error capturing element for download:', error);
+        alert('Could not download image. An error occurred. Please check the console for details.');
+    }).finally(() => {
+        // Ensure the temporary container is removed from the DOM
+        if (tempContainer.parentNode) {
+            document.body.removeChild(tempContainer);
+        }
+    });
 }
-// NEWLY MODIFIED CODE ENDS HERE
 
 
 // --- Main execution block and event listeners ---
@@ -893,12 +911,15 @@ document.addEventListener('DOMContentLoaded', () => {
             hideLoadingMessage();
 
             if (auth.currentUser && userFactionIdFromProfile) {
-                setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+                setupRealtimeTrackingStatusListener(userFactionIdFromProfile); // Pass the faction ID
             } else {
-                updateGainTrackingUI();
-                displayGainsTable();
+                // If no user or faction, update UI to reflect that tracking cannot happen
+                updateGainTrackingUI(); 
+                displayGainsTable(); // Display "No active session" or similar based on state
             }
-            displayGainsTable();
+            // Always call displayGainsTable to update the content based on current session state
+            // (it will show 'No active session' if activeTrackingSessionId is null)
+            displayGainsTable(); 
         }
     }
 
@@ -919,19 +940,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     const userData = userProfileDoc.data();
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
-                    userFactionIdFromProfile = userData.faction_id || null;
+                    userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
                     
                     if (userFactionIdFromProfile) {
+                        // Setup listener only if faction ID exists
                         setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                     } else {
-                        updateGainTrackingUI();
+                        // If no faction ID, ensure UI is updated correctly
+                        updateGainTrackingUI(); 
+                        console.warn("User has no faction ID. Gains tracking features might be limited.");
                     }
 
                     if (userApiKey && userTornProfileId) {
                         console.log("Logged in and API key/Profile ID found.");
                         
+                        // Only load current stats table if its tab is active on initial load
                         if (document.getElementById('current-stats-tab').classList.contains('active')) {
                             await updateFriendlyMembersTable(userApiKey, user.uid);
                         }
@@ -943,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (friendlyMembersTbody) {
                             friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
                         }
-                        updateGainTrackingUI();
+                        updateGainTrackingUI(); // Update gains UI for no API key scenario
                     }
                 } else {
                     console.warn("User profile document not found in Firestore.");
@@ -952,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (friendlyMembersTbody) {
                         friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
                     }
-                    updateGainTrackingUI();
+                    updateGainTrackingUI(); // Update gains UI for no profile scenario
                 }
             } catch (error) {
                 console.error("Error fetching user profile for TornPAs Big Brother page:", error);
@@ -961,7 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (friendlyMembersTbody) {
                     friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
                 }
-                updateGainTrackingUI();
+                updateGainTrackingUI(); // Update gains UI on error
             }
         } else {
             console.log("User not logged in. Displaying login message.");
