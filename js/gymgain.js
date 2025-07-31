@@ -284,9 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // =======================================================
-    // 3. CORE FUNCTIONS (RIGHT PANEL - NEW / MODIFIED)
-    // =======================================================
+   // ... (rest of your gymgain.js code remains the same above this point)
 
     /**
      * Fetches Torn API player stats and updates both left panel and "Current Gym Stats" tab.
@@ -335,6 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await response.json();
                     console.log("Torn API Response:", data);
                     if (!response.ok || data.error) {
+                        // --- DEBUG: Added console.trace() here ---
+                        console.trace("Error setting gymError.textContent from Torn API response failure.");
                         gymError.textContent = `Torn API Error: ${data.error?.error || 'Unknown error'}. Check your API key and Torn ID in profile.`;
                         console.error("Torn API returned an error:", data.error);
                         // Ensure all stat displays are N/A on error
@@ -412,15 +412,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             const XANAX_ENERGY = 250;
                             const trainsPerXanax = parseInt(XANAX_ENERGY / energyPerTrain);
                             const gainStrXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerXanax);
-                            const gainDefXanax = calculateTotal(currentDefense, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerXanax);
-                            const gainSpeXanax = calculateTotal(currentSpeed, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerXanax);
-                            const gainDexXanax = calculateTotal(currentDexterity, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerXanax);
+                            const gainDefXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerXanax);
+                            const gainSpeXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerXanax);
+                            const gainDexXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerXanax);
                             
                             const trainsPerMaxEnergy = parseInt(maxEnergy / energyPerTrain);
                             const gainStrMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerMaxEnergy);
-                            const gainDefMaxEnergy = calculateTotal(currentDefense, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerMaxEnergy);
-                            const gainSpeMaxEnergy = calculateTotal(currentSpeed, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerMaxEnergy);
-                            const gainDexMaxEnergy = calculateTotal(currentDexterity, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerMaxEnergy);
+                            const gainDefMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerMaxEnergy);
+                            const gainSpeMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerMaxEnergy);
+                            const gainDexMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerMaxEnergy);
                             
                             const HAPPY_JUMP_ENERGY = 1150;
                             const PI_HAPPY_BONUS = 4000;
@@ -428,9 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             const HAPPY_JUMP_HAPPY_VAL = (currentHappy + (5 * E_DVD_HAPPY_PER_UNIT) + PI_HAPPY_BONUS) * 2;
                             const trainsPerHappyJump = parseInt(HAPPY_JUMP_ENERGY / energyPerTrain);
                             const gainStrHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerHappyJump);
-                            const gainDefHappyJump = calculateTotal(currentDefense, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerHappyJump);
-                            const gainSpeHappyJump = calculateTotal(currentSpeed, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerHappyJump);
-                            const gainDexHappyJump = calculateTotal(currentDexterity, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerHappyJump);
+                            const gainDefHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerHappyJump);
+                            const gainSpeHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerHappyJump);
+                            const gainDexHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerHappyJump);
                             
                             const displayGain = (gainValue, gymDots) => gymDots > 0 ? ROUND(gainValue, 2).toLocaleString() : `<span style="color: grey;">N/A</span>`;
                             
@@ -488,18 +488,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 } else {
+                    // --- DEBUG: Added console.trace() here ---
+                    console.trace("Error setting gymError.textContent due to missing API key/Torn ID.");
                     gymError.textContent = "Torn Profile ID or API Key missing from your profile. Please update your profile settings.";
                     console.error("Torn Profile ID or API Key missing from user profile in Firestore.");
                 }
             } else {
+                // --- DEBUG: Added console.trace() here ---
+                console.trace("Error setting gymError.textContent due to missing user profile doc.");
                 gymError.textContent = "Player profile data not found in Firestore. Make sure you are logged in.";
                 console.error("User profile document not found in Firestore for UID:", userId);
             }
         } catch (error) {
+            // --- DEBUG: Added console.trace() here ---
+            console.trace("Error setting gymError.textContent from general fetch error.");
             console.error("Error fetching Torn API stats:", error);
             gymError.textContent = `Failed to fetch live game stats. Error: ${error.message}. Check your connection or API key.`;
         }
     }
+
 
     /**
      * Updates the UI elements related to personal gains tracking status (buttons, text).
