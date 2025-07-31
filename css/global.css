@@ -1883,6 +1883,16 @@ input:checked + .slider:before {
     /* ... rest of your mobile styles ... */
 }
 
+  .homepage-content-wrapper {
+        margin-top: 0px !important; /* Remove or reduce top margin of the main content wrapper */
+        padding-top: 0px !important; /* Ensure no unwanted padding pushes it down */
+    }
+
+    .welcome-block-area {
+        margin-top: 0px !important; /* Remove or reduce top margin of the welcome block itself */
+        /* You might also consider adjusting padding-bottom if needed for the internal spacing */
+    }
+
 /* All other @media (max-width: 480px) and @media (max-width: 991px) blocks
    and the Custom Overrides for Mobile Header Buttons should remain as they are,
    typically placed after this main 768px media query. */
