@@ -1993,29 +1993,63 @@ input:checked + .slider:before {
 /* ABSOLUTE FINAL OVERRIDE FOR MOBILE HEADER BUTTON ICONS - PLACE THIS BLOCK AT THE VERY, VERY END OF global.css */
 @media (max-width: 768px) {
 
-    /* This targets the main icon container for Useful Links and Contact buttons */
+/* Inside your @media (max-width: 768px) block in global.css */
+
+    /* First, hide ALL original content of the .btn-icon for dropdown buttons */
     #usefulLinksBtn .btn-icon,
     #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;    /* Force main emoji size (e.g., 🔗, 💬) */
-        display: flex !important;       /* Ensure flex container behavior */
-        align-items: center !important; /* Vertically center content */
-        justify-content: center !important; /* Horizontally center content */
-        margin: auto !important;        /* Center the span within its button */
-        position: relative !important;  /* Essential for pseudo-element positioning */
-        width: auto !important;         /* Allow content to define width */
-        height: auto !important;        /* Allow content to define height */
+        font-size: 0 !important; /* Hide original font content */
+        color: transparent !important; /* Ensure no residual color */
+        position: relative !important; /* Needed for pseudo-elements positioning */
+        display: flex !important;       /* Use flexbox to align pseudo-elements */
+        align-items: center !important; /* Vertically center */
+        justify-content: center !important; /* Horizontally center */
+        width: auto !important;         /* Allow width to adjust to new content */
+        height: auto !important;        /* Allow height to adjust */
         min-width: unset !important;    /* Remove minimum width constraints */
-        
-        /* Crucial: Ensure no other rule is hiding or transforming the base content */
-        line-height: 1 !important;
+        overflow: hidden !important;    /* Ensure nothing peeks out */
+        text-indent: 0 !important;      /* Clear any text indentation */
+        margin: auto !important;        /* Center the button icon area */
+    }
+
+    /* Add the original main icon (🔗 or 💬) using ::before */
+    #usefulLinksBtn .btn-icon::before {
+        content: '🔗' !important; /* Main icon for Useful Links */
+        font-size: 1.6em !important; /* Size of the main icon */
+        color: inherit !important; /* Inherit color from button */
+        display: inline-block !important; /* Display it */
         vertical-align: middle !important;
-        text-indent: 0 !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        outline: none !important;
-        text-shadow: none !important;
-        overflow: visible !important; /* Ensure content is not clipped */
+        line-height: 1 !important;
+    }
+
+    #headerContactUsBtn .btn-icon::before {
+        content: '💬' !important; /* Main icon for Contact */
+        font-size: 1.6em !important; /* Size of the main icon */
+        color: inherit !important; /* Inherit color from button */
+        display: inline-block !important; /* Display it */
+        vertical-align: middle !important;
+        line-height: 1 !important;
+    }
+
+    /* Add the NEW dropdown arrow (▼) using ::after */
+    #usefulLinksBtn .btn-icon::after,
+    #headerContactUsBtn .btn-icon::after {
+        content: '▼' !important; /* The new dropdown arrow character */
+        font-size: 0.8em !important; /* Smaller size for the arrow */
+        margin-left: 0.2em !important; /* Space between main icon and arrow */
+        color: inherit !important; /* Inherit color from button */
+        display: inline-block !important; /* Display it */
+        vertical-align: middle !important; /* Align with main icon */
+        line-height: 1 !important; /* Clean line height */
+
+        /* Clear any positioning from previous attempts */
+        position: static !important;
+        transform: none !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        opacity: 1 !important;
     }
 
    
