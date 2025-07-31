@@ -1854,77 +1854,33 @@ input:checked + .slider:before {
     footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
     footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 
+    #chat-bar-collapsed {
+        position: fixed !important;
+        bottom: 0px !important;
+        left: 0px !important;
+        right: 0px !important;
+        width: 100% !important;
+        
+        z-index: 1001 !important;
 
-    /* ================================================= */
-    /* ======== CHAT SYSTEM MOBILE SPECIFIC STYLES ===== */
-    /* ================================================= */
-/* Inside your @media (max-width: 768px) block */
+        display: flex !important;
+        flex-direction: row !important;
+        /* --- THIS IS THE ONLY LINE YOU NEED TO CHANGE --- */
+        justify-content: center !important; /* CENTERS THE ICONS NOW */
+        /* --- END OF CHANGE --- */
+        align-items: center !important;
+        gap: 5px !important;
 
-#tornpa-chat-system {
-    /* Keep these as they are, they correctly make the container full width */
-    position: fixed !important;
-    bottom: 0px !important;
-    left: 0px !important;
-    right: 0px !important;
-    width: 100% !important;
-    z-index: 1000 !important;
-    
-    /* Crucial change here: Change flex-direction to row and justify-content to space-between
-       if you want the icons spread across, or flex-start if you want them on the left.
-       For a full-width bar with content typically on the right, we need a different approach.
-       Let's actually change tornpa-chat-system to a simple block and let chat-bar-collapsed
-       handle its own full-width fixed positioning directly for simplicity.
-       This will override the previous flex settings for tornpa-chat-system in mobile mode.
-    */
-    display: block !important; /* Change to block for simplicity in this scenario */
-    flex-direction: unset !important; /* Remove flex direction */
-    justify-content: unset !important; /* Remove justify content */
-    align-items: unset !important; /* Remove align items */
+        padding: 8px 10px !important;
+        background-color: #0d1b2a !important;
+        border: 1px solid #415a77 !important;
+        border-radius: 0 !important;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+    }
 
-    padding: 0 !important;
-    margin: 0 !important;
-    background-color: #0d1b2a !important;
-    height: auto !important; /* Allow its height to be determined by its content */
-}
-
-#chat-bar-collapsed {
-    /* CHANGE THESE RULES FOR #chat-bar-collapsed */
-    position: fixed !important; /* Keep it fixed to the viewport */
-    bottom: 0px !important; /* Flush with the bottom */
-    left: 0px !important;   /* Flush with the left edge */
-    right: 0px !important;  /* Flush with the right edge */
-    width: 100% !important; /* Make it full width */
-    
-    z-index: 1001 !important; /* Ensure it stays on top of #tornpa-chat-system if necessary */
-
-    /* Keep existing display/layout for its internal icons */
-    display: flex !important;
-    flex-direction: row !important; /* Ensures icons are side-by-side */
-    justify-content: flex-end !important; /* Pushes icons to the right within the full-width bar */
-    align-items: center !important; /* Vertically align icons */
-    gap: 5px !important;
-
-    padding: 8px 10px !important; /* Adjust padding if needed for a better look */
-    background-color: #0d1b2a !important; /* Ensure background color */
-    border: 1px solid #415a77 !important; /* Keep border */
-    border-radius: 0 !important; /* Remove border-radius for a flush bottom look */
-    box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
-    cursor: pointer !important;
-    margin: 0 !important; /* Ensure no internal margins push it */
-}
-
-#chat-window {
-    /* Keep these rules as they are from the previous attempt */
-    position: fixed !important;
-    bottom: 50px !important;   /* **IMPORTANT:** Adjust this based on ACTUAL height of #chat-bar-collapsed once it's full width. */
-    left: 0px !important;
-    right: 0px !important;
-    width: 100% !important;
-    max-width: unset !important;
-    height: 80vh !important;
-    border-radius: 0 !important;
-    z-index: 1000 !important;
-    background-color: #1b263b !important;
+    /* ... rest of your mobile styles ... */
 }
 
 /* All other @media (max-width: 480px) and @media (max-width: 991px) blocks
