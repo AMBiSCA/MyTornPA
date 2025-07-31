@@ -2013,7 +2013,7 @@ input:checked + .slider:before {
         justify-content: center !important;
         margin: 0 !important; /* Remove any external margins */
 		background-color: #1b263b !important;
-		border-top: 1px solid black;
+		border-top: 2px solid black;
     }
 
    #chat-window {
