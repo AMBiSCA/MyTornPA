@@ -1,6 +1,12 @@
 // mysite/js/globalheader.js
 // This script dynamically loads the global header HTML and manages its UI based on Firebase authentication state.
 
+// Declare custom alert elements globally so they can be accessed by functions within this script
+let customAlertEl;
+let customAlertTitleEl;
+let customAlertMessageEl;
+let customAlertOkBtn;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("globalheader.js: DOMContentLoaded event fired.");
 
@@ -8,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadGlobalHeaderAndInitializeLogic() {
         // IMPORTANT: Adjust this path based on where your globalheader.html is located.
         // Based on our last successful attempt, it's in the 'pages/' folder.
-        const headerPath = '../pages/globalheader.html'; 
+        const headerPath = '../pages/globalheader.html';    
 
         try {
             const response = await fetch(headerPath);
@@ -31,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const authModal = tempDiv.querySelector('#authModal');
                 const profileSetupModal = tempDiv.querySelector('#profileSetupModal');
+                // NEW: Select the custom alert and global confirm modal from the fetched HTML
+                const customAlertFromHTML = tempDiv.querySelector('#customAlert');
+                const globalConfirmModalFromHTML = tempDiv.querySelector('#globalConfirmModal');
                 
                 if (authModal) {
                     // Check if modal already exists to prevent duplicates if this runs multiple times unexpectedly
@@ -40,10 +49,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 if (profileSetupModal) {
-                     // Check if modal already exists to prevent duplicates
+                    // Check if modal already exists to prevent duplicates
                     if (!document.getElementById('profileSetupModal')) {
                         document.body.appendChild(profileSetupModal);
                         console.log("globalheader.js: Profile Setup Modal appended to body.");
+                    }
+                }
+                // NEW: Append customAlert to body if not already there
+                if (customAlertFromHTML) {
+                    if (!document.getElementById('customAlert')) {
+                        document.body.appendChild(customAlertFromHTML);
+                        console.log("globalheader.js: Custom Alert Modal appended to body.");
+                    }
+                }
+                // NEW: Append globalConfirmModal to body if not already there
+                if (globalConfirmModalFromHTML) {
+                    if (!document.getElementById('globalConfirmModal')) {
+                        document.body.appendChild(globalConfirmModalFromHTML);
+                        console.log("globalheader.js: Global Confirm Modal appended to body.");
                     }
                 }
 
@@ -60,6 +83,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Custom Alert System Functions (NEW) ---
+
+    // Function to show the custom alert
+    window.showCustomAlert = function(message, title = 'Notification') {
+        // Ensure elements are selected AFTER they are appended to the DOM
+        if (!customAlertEl) customAlertEl = document.getElementById('customAlert');
+        if (!customAlertTitleEl) customAlertTitleEl = document.getElementById('customAlertTitle');
+        if (!customAlertMessageEl) customAlertMessageEl = document.getElementById('customAlertMessage');
+        if (!customAlertOkBtn) customAlertOkBtn = document.getElementById('customAlertOkBtn');
+
+        if (customAlertEl && customAlertMessageEl && customAlertOkBtn) {
+            customAlertTitleEl.textContent = title;
+            customAlertMessageEl.textContent = message;
+            customAlertEl.classList.add('visible'); // Make it visible with transition
+
+            // Remove any existing listener before adding a new one to prevent duplicates
+            customAlertOkBtn.removeEventListener('click', hideCustomAlert);
+            customAlertOkBtn.addEventListener('click', hideCustomAlert);
+
+            // Also allow clicking anywhere on the overlay to close it for simple alerts
+            customAlertEl.removeEventListener('click', handleCustomAlertOverlayClick);
+            customAlertEl.addEventListener('click', handleCustomAlertOverlayClick);
+        } else {
+            console.error("Custom alert elements not found, falling back to native alert.");
+            alert(message); // Fallback to native alert if elements aren't ready
+        }
+    };
+
+    // Function to hide the custom alert
+    window.hideCustomAlert = function() {
+        if (customAlertEl) {
+            customAlertEl.classList.remove('visible'); // Hide with transition
+            // Clean up event listener to prevent memory leaks, though optional for global element
+            if (customAlertOkBtn) {
+                customAlertOkBtn.removeEventListener('click', hideCustomAlert);
+            }
+            if (customAlertEl) {
+                customAlertEl.removeEventListener('click', handleCustomAlertOverlayClick);
+            }
+        }
+    };
+
+    // Handler for clicking on the custom alert overlay
+    function handleCustomAlertOverlayClick(event) {
+        // If the click is on the overlay itself and not the content box, hide the alert
+        const contentBox = customAlertEl.querySelector('.modal-content-box');
+        if (event.target === customAlertEl || (contentBox && !contentBox.contains(event.target))) {
+            hideCustomAlert();
+        }
+    }
+
+    // Override the native alert function (NEW & IMPORTANT)
+    const originalAlert = window.alert; // Store a reference to the original alert if needed
+    window.alert = function(message) {
+        window.showCustomAlert(message);
+    };
+
+    // --- End Custom Alert System Functions ---
+
     // This function contains all the *header-specific* JavaScript logic
     // that needs to run *AFTER* the global header HTML (including modals) has been loaded into the DOM.
     function initializeHeaderLogicAfterLoad() {
@@ -72,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Fallback initialization (less ideal, but robust) - only if firebase-init.js failed or is missing
             if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && !firebase.apps.length) {
                 try {
-                     const firebaseConfig = { // Using a placeholder config, should ideally be from firebase-init.js
+                    const firebaseConfig = { // Using a placeholder config, should ideally be from firebase-init.js
                         apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // REPLACE WITH YOUR ACTUAL KEY from your firebase-init.js
                         authDomain: "mytorn-d03ae.firebaseapp.com",
                         projectId: "mytorn-d03ae",
@@ -95,14 +177,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- Header Elements (selected AFTER HTML is in DOM) ---
         const headerButtonsContainer = document.getElementById('headerButtonsContainer');
         const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-        const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); 
-        const tornCityHomepageLink = document.getElementById('tornCityHomepageLink'); 
+        const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');    
+        const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');    
         const signUpButtonHeader = document.getElementById('signUpButtonHeader');
         const usefulLinksBtn = document.getElementById('usefulLinksBtn');
         const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
         const contactUsBtn = document.getElementById('contactUsBtn');
         const contactUsDropdown = document.getElementById('contactUsDropdown');
-        const loggedInUserDisplay = document.getElementById('logged-in-user-display'); 
+        const loggedInUserDisplay = document.getElementById('logged-in-user-display');    
         const homeButtonHeader = document.getElementById('homeButtonHeader');
         const headerLogoLink = document.getElementById('headerLogoLink'); // Get the logo link
 
@@ -111,8 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
         const profileSetupModal = document.getElementById('profileSetupModal');
         const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
-        // No direct use of saveProfileBtn or skipProfileSetupBtn here; they're handled by firebase-init.js
-
+        const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');    
 
         // Initially hide all dynamic sections to prevent flash of incorrect content
         // (These styles will be overridden by auth.onAuthStateChanged)
@@ -134,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentPagePath = window.location.pathname;
                 const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase().replace('.html', '');
                 const isLoginPage = (pageName === 'index' || pageName === ''); // Consider index as login
-                const isHomePage = (pageName === 'home'); 
+                const isHomePage = (pageName === 'home');    
 
                 // Reset display styles for all relevant elements before applying new state
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
@@ -166,8 +247,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     // Attach Home Button Listener
                     if (homeButtonHeader) {
-                         homeButtonHeader.removeEventListener('click', handleHomeNavigation);
-                         homeButtonHeader.addEventListener('click', handleHomeNavigation);
+                        homeButtonHeader.removeEventListener('click', handleHomeNavigation);
+                        homeButtonHeader.addEventListener('click', handleHomeNavigation);
                     }
                      // Attach Logo Link Listener
                     if (headerLogoLink) {
@@ -224,7 +305,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '../index.html'; // Redirect to login/landing
             }).catch((error) => {
                 console.error('Sign out error:', error);
-                alert('Error signing out: ' + error.message);
+                // This alert() will now be intercepted by our custom alert
+                alert('Error signing out: ' + error.message); 
             });
         }
 
@@ -280,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let clickedInsideADropdownTriggerOrContent = false;
             
             // Check if click target is a dropdown button or inside a dropdown content
-            const currentUsefulLinksBtn = document.getElementById('usefulLinksBtn'); 
+            const currentUsefulLinksBtn = document.getElementById('usefulLinksBtn');    
             const currentContactUsBtn = document.getElementById('contactUsBtn');
 
             if (currentUsefulLinksBtn && (currentUsefulLinksBtn === event.target || currentUsefulLinksBtn.contains(event.target))) {
@@ -306,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeAuthModalBtnEl = document.getElementById('closeAuthModalBtn');
         const profileSetupModalEl = document.getElementById('profileSetupModal');
         const closeProfileModalBtnEl = document.getElementById('closeProfileModalBtn');
-        const skipProfileSetupBtnEl = document.getElementById('skipProfileSetupBtn'); 
+        const skipProfileSetupBtnEl = document.getElementById('skipProfileSetupBtn');    
 
         if (closeAuthModalBtnEl) {
             closeAuthModalBtnEl.removeEventListener('click', closeModalAuth);
