@@ -2141,9 +2141,9 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
     /* ... (Your existing 768px mobile rules) ... */
 
-    /* Adjust the header's own padding for a more compact look */
+    /* Adjust the header's own padding to move buttons up slightly */
     header {
-        padding-top: 8px !important;
+        padding-top: 8px !important; /* REDUCE this from 10px to 8px to move content up */
         padding-bottom: 5px !important;
         min-height: auto !important;
         height: auto !important;
@@ -2151,12 +2151,12 @@ input:checked + .slider:before {
 
     /* Add space between MyTornPA and the buttons */
     .header-left {
-        margin-bottom: 10px !important; /* This will create the gap below "MyTornPA" */
+        margin-bottom: 10px !important;
     }
 
     /* Ensure .header-center and .header-right-controls are compact */
     .header-center, .header-right-controls {
-        margin-bottom: 0px !important; /* Keep this at 0 to avoid extra space below buttons */
+        margin-bottom: 0px !important;
     }
 
     /* Further reduce top margins of the content immediately following the header */
