@@ -51,8 +51,11 @@
   #signUpButtonHeader {
     display: none !important;
   }
-}
 
+  .main-content {
+    padding-top: 30px; /* You can change this value */
+  }
+}
 
 .btn {
     -moz-user-select: none;
