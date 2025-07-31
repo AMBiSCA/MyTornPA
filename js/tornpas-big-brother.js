@@ -747,8 +747,8 @@ function downloadCurrentTabAsImage() {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
-    // THIS IS THE CORRECTED LINE:
-    tempContainer.style.width = '810px'; // Set fixed width to match CSS columns
+    // CORRECTED LINE: Set width to 810px (table) + 30px (padding) = 840px
+    tempContainer.style.width = '840px';
     tempContainer.style.backgroundColor = '#222';
     tempContainer.style.padding = '15px';
     tempContainer.style.borderRadius = '8px';
