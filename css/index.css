@@ -1190,7 +1190,18 @@ header {
     display: none !important;
   }
 
-  .main-content {
-    margin-top: -40px !important; /* This will pull the content UP by 40px */
+  .login-page-layout-container {
+    margin-top: -40px !important;
+  }
+
+  /* --- Styles to force the footer to show --- */
+  body {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh !important;
+  }
+  
+  .main-content-wrapper {
+    flex-grow: 1 !important;
   }
 }
