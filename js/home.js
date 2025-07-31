@@ -344,6 +344,50 @@ async function updateToolLinksAccess(profile) {
         }
     }
 	
+	async function isFactionComped(profile, db) {
+    // If there's no profile or the user isn't in a faction, they can't be 'comped'.
+    if (!profile || !profile.faction_id) {
+        return false;
+    }
+
+    const usersRef = db.collection('userProfiles');
+    // Query to find a user who is in the same faction AND is the "Leader".
+    const leaderQuery = usersRef
+        .where('faction_id', '==', profile.faction_id)
+        .where('position', '==', 'Leader')
+        .limit(1);
+
+    try {
+        const leaderSnapshot = await leaderQuery.get();
+
+        // If no document for a leader is found, the user is not comped.
+        if (leaderSnapshot.empty) {
+            console.warn(`isFactionComped check: No leader found for faction ID: ${profile.faction_id}`);
+            return false;
+        }
+
+        // Get the leader's profile data from the document.
+        const leaderProfile = leaderSnapshot.docs[0].data();
+
+        // Check if THE LEADER has an active membership or free access.
+        const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
+        const leaderHasFreeAccess = leaderProfile.hasFreeAccess === true;
+
+        // If the leader has access, the member is considered 'comped'.
+        if (leaderHasMembership || leaderHasFreeAccess) {
+            console.log(`isFactionComped check: Access granted via faction leader's membership.`);
+            return true;
+        }
+        
+        // If the leader has no active membership, return false.
+        return false;
+
+    } catch (error) {
+        console.error("Error during isFactionComped check:", error);
+        return false; // Default to false in case of an error to be safe.
+    }
+}
+	
 	
 	
 	function startMembershipCountdown(membershipInfo) {
