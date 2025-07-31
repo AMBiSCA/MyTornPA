@@ -400,16 +400,20 @@ async function updateToolLinksAccess(profile) {
 	
 	
 	function startMembershipCountdown(membershipInfo) {
-    // Clear any existing timer to prevent multiple timers running
     if (membershipCountdownInterval) {
         clearInterval(membershipCountdownInterval);
     }
 
-    const countdownContainer = document.getElementById('trialCountdownContainer');
+    // Changed to target the factionHuddleMessage element
+    const targetMessageEl = document.getElementById('factionHuddleMessage'); 
+    const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
 
-    // If the container element is missing, or if no valid info was passed to the function, stop.
-    if (!countdownContainer || !membershipInfo || !membershipInfo.membershipEndTime) {
-        if(countdownContainer) countdownContainer.style.display = 'none'; // Ensure it's hidden
+    if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
+        // If target element is missing or no valid membership info, ensure original text is displayed
+        if (targetMessageEl) {
+            targetMessageEl.textContent = originalFactionMessage; // Reset to original if needed
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
+        }
         return;
     }
     
@@ -417,38 +421,30 @@ async function updateToolLinksAccess(profile) {
     const updateTimer = () => {
         const remainingTime = membershipInfo.membershipEndTime - Date.now();
 
-        // When the timer runs out...
         if (remainingTime <= 0) {
-            clearInterval(membershipCountdownInterval); // Stop the timer
-            countdownContainer.style.display = 'none'; // Hide the box
+            clearInterval(membershipCountdownInterval);
+            targetMessageEl.textContent = originalFactionMessage; // Revert to original message
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
             return;
         }
-
-        // --- NEW LOGIC STARTS HERE ---
 
         const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
         const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
         let countdownText = '';
 
         if (remainingTime > thirtyDaysInMs) {
-            // If MORE than 30 days are left, show only the total number of days
             const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
             countdownText = `${label} ends in: ${days} days`;
-
         } else {
-            // If 30 days or LESS are left, show the detailed d h m countdown
             const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
             const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
             countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
         }
         
-        countdownContainer.textContent = countdownText;
-
-        // --- NEW LOGIC ENDS HERE ---
-        
-        // Make sure the box is visible
-        countdownContainer.style.display = 'block';
+        // Update the content of the target message element
+        targetMessageEl.textContent = countdownText;
+        targetMessageEl.style.display = 'block'; // Make sure it's visible
     };
 
     updateTimer(); // Run it once immediately
@@ -1032,128 +1028,141 @@ if (toolsSection) {
     });
 }
     if (auth) {
-        auth.onAuthStateChanged(async function(user) {
-            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
-            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
-            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+    auth.onAuthStateChanged(async function(user) {
+        console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+        const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+        const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
-            if (user) {
-                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+        // ADDED: Get the element we will manipulate for both messages
+        const factionHuddleMessageEl = document.getElementById('factionHuddleMessage');
+        const originalFactionMessageText = "Looking for a Faction? Try out Faction Recruitment!"; // Store original message
 
-                let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
-                if (db) {
-                    try {
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        profile = doc.exists ? doc.data() : null;
-						currentUserProfile = profile;
-						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
-						
-						// --- Check for an active membership and start the countdown ---
-                        if (profile && profile.membershipEndTime) {
-                            const membershipInfo = {
-                                membershipType: profile.membershipType,
-                                membershipEndTime: profile.membershipEndTime
-                            };
-                            // If the membership is still active, start the timer
-                            if (membershipInfo.membershipEndTime > Date.now()) {
-                                startMembershipCountdown(membershipInfo);
-                                const countdownContainer = document.getElementById('trialCountdownContainer');
-                                if (countdownContainer) {
-                                    console.log("Free trial banner shown on login."); // For debugging
-                                    const hideTimer = setTimeout(() => { // Store the setTimeout ID
-                                        countdownContainer.style.display = 'none';
-                                        console.log("Free trial banner hidden after 15 seconds."); // For debugging
-                                        // NEW: Clear the ongoing membership countdown interval here too
-                                        if (membershipCountdownInterval) {
-                                            clearInterval(membershipCountdownInterval);
-                                            membershipCountdownInterval = null; // Reset to prevent issues
-                                            console.log("Membership countdown interval cleared.");
-                                        }
-                                    }, 5000);
-                                }
-                            }
-                        }
+        if (user) {
+            if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
-                        // REMOVED: This entire block was causing the 'catch' syntax error.
-                        // It was redundant and misplaced based on the surrounding try/catch.
-                        /*
-                        if (membershipOptionsModal && user && (!profile?.membershipEndTime || profile?.membershipEndTime < Date.now())) {
-                            membershipOptionsModal.style.display = 'flex'; // Show the modal
-                            setTimeout(() => {
-                                membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                                console.log("Membership prompt hidden after 15 seconds.");
-                            }, 15000);
-                        }
-                        */
+            let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
+            if (db) {
+                try {
+                    const doc = await db.collection('userProfiles').doc(user.uid).get();
+                    profile = doc.exists ? doc.data() : null;
+                    currentUserProfile = profile;
+                    console.log("1. Profile loaded on page start:", currentUserProfile);
 
-
-                        // --- Activate the gatekeeper for member-only links ---
-                        updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
-
-                        if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName; showSetup = false;
-                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
-                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
-                                lastLogonInfoEl.style.display = 'block';
-                                if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-                                lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
-                            } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
-                            db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                            if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
-                    } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
-                } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-                if (showSetup) {
-                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
-                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-                    showProfileSetupModal(); clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-                } else {
-                    if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
-                    else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
-                    if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
-                        fetchAllRequiredData(user, db);
-                    } else {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                        clearQuickStats();
-                        if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                    // --- NEW LOGIC FOR MESSAGE SWAP ---
+                    // Initially, set the faction message element to its default or the trial message
+                    if (factionHuddleMessageEl) {
+                        factionHuddleMessageEl.textContent = originalFactionMessageText; // Default to original
+                        factionHuddleMessageEl.style.display = 'block'; // Ensure it's visible
                     }
-                }
 
-            } else { // User is signed out
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+                    // Check for an active membership and temporarily show countdown
+                    if (profile && profile.membershipEndTime && profile.membershipEndTime > Date.now()) {
+                        const membershipInfo = {
+                            membershipType: profile.membershipType,
+                            membershipEndTime: profile.membershipEndTime
+                        };
 
-                clearQuickStats();
-                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+                        // Immediately start the countdown using the existing function.
+                        // The startMembershipCountdown function will now update `factionHuddleMessageEl`.
+                        startMembershipCountdown(membershipInfo); // This will set the trial countdown text
+
+                        console.log("Free trial message shown temporarily in faction huddle area.");
+                        setTimeout(() => {
+                            // After 5 seconds, switch back to the original faction message
+                            if (factionHuddleMessageEl) {
+                                factionHuddleMessageEl.textContent = originalFactionMessageText;
+                                console.log("Switched back to faction recruitment message after 5 seconds.");
+                            }
+                            // Important: Do NOT clear membershipCountdownInterval here.
+                            // The startMembershipCountdown function manages its own interval clearing
+                            // when the trial expires, or it can continue running in the background if
+                            // you adapt it to show the full-time countdown elsewhere later.
+                            // For this specific request, the main goal is the initial 5-second swap.
+                        }, 5000); // 5 seconds delay
+                    }
+                    // --- END NEW LOGIC FOR MESSAGE SWAP ---
+
+                    // REMOVED: This entire block was causing the 'catch' syntax error.
+                    // It was redundant and misplaced based on the surrounding try/catch.
+                    /*
+                    if (membershipOptionsModal && user && (!profile?.membershipEndTime || profile?.membershipEndTime < Date.now())) {
+                        membershipOptionsModal.style.display = 'flex'; // Show the modal
+                        setTimeout(() => {
+                            membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
+                            console.log("Membership prompt hidden after 15 seconds.");
+                        }, 15000);
+                    }
+                    */
+
+
+                    // --- Activate the gatekeeper for member-only links ---
+                    updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
+
+                    if (profile && profile.preferredName && profile.profileSetupComplete) {
+                        userDisplayName = profile.preferredName; showSetup = false;
+                        if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                        if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                            lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                            lastLogonInfoEl.style.display = 'block';
+                            if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                            lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                        } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
+                        db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                        if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                    } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+            } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
+            if (showSetup) {
+                if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
                 if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-
-                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
-                const currentPath = window.location.pathname.toLowerCase();
-                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
-
-                if (!isPublicPage) {
-                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
-                    window.location.href = '../index.html';
+                showProfileSetupModal(); clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+            } else {
+                if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+                if (profile && profile.tornApiKey) {
+                    if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
+                    fetchAllRequiredData(user, db);
                 } else {
-                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    clearQuickStats();
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
                 }
             }
-        });
-    } else { console.error("Firebase auth object not available for auth state listener."); }
+
+        } else { // User is signed out
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+            if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+
+            clearQuickStats();
+            if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+            if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+
+            const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
+            const currentPath = window.location.pathname.toLowerCase();
+            const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+
+            if (!isPublicPage) {
+                console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
+                window.location.href = '../index.html';
+            } else {
+                console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+            }
+        }
+    });
+} else { console.error("Firebase auth object not available for auth state listener."); }
+
 
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
