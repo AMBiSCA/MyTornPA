@@ -80,7 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const preferredNameInput = document.getElementById('preferredName');
     const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
     const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
-    // Removed as per user request: const profileSetupTornStatsApiKeyInput = document.getElementById('profileSetupTornStatsApiKey');
+    if (profileSetupProfileIdInput) {
+    profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
+ }
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const nameErrorEl = document.getElementById('nameError');
     const profileSetupErrorEl = document.getElementById('profileSetupError');
@@ -116,11 +118,6 @@ const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn
 const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
 const goToProfileBtn = document.getElementById('goToProfileBtn');
 const termsCheckbox = document.getElementById('termsAgreementProfileModal');
-
-const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
-if (profileSetupProfileIdInput) {
-    profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
-}
 
 const hideSubscribePrompt = () => {
     if (subscribePromptModal) {
