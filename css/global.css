@@ -1877,3 +1877,9 @@ input:checked + .slider:before {
     display: none;
   }
 }
+
+@media only screen and (max-width: 991px) {
+  .footer {
+    display: none;
+  }
+}
