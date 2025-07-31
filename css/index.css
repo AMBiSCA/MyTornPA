@@ -1195,10 +1195,12 @@ header {
   }
 }
 
-/* Override global.css to show footer on index page for mobile */
 @media (max-width: 991px) {
   .footer {
-    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
   }
 }
 
