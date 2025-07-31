@@ -1818,30 +1818,29 @@ input:checked + .slider:before {
     /* Base HTML & Body adjustments for fixed header and proper scrolling */
     html, body {
         height: 100%; /* Important for fixed positioning to work reliably */
-        overflow-x: hidden;
-        overflow-y: auto; /* Allow overall page scrolling */
+        width: 100%; /* Ensure they take full width */
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important; /* Force hide horizontal overflow */
+        overflow-y: auto !important; /* Ensure vertical scrolling is enabled */
         
-        /* Hide scrollbars across browsers for html and body */
+        /* Force hide scrollbars across browsers for html and body */
         -ms-overflow-style: none !important;  /* For Internet Explorer and Edge */
         scrollbar-width: none !important;     /* For Firefox */
-        
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
     }
 
-    /* Hide Webkit scrollbars for html and body */
+    /* Force hide Webkit scrollbars for html and body */
     body::-webkit-scrollbar,
     html::-webkit-scrollbar {
         display: none !important;
     }
 
     /* Set body padding-top equal to the header's height to prevent content from going under it */
-    /* Estimate header height. Adjust '110px' as needed after testing. */
+    /* Adjust '115px' (increased from 110px) as needed after testing for top cutoff */
     body {
-        padding-top: 110px !important; /* NEW: Space for the fixed header */
+        padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
         padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
+        display: block !important; /* Ensure body behaves as a block, not flex column, if it causes issues */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
