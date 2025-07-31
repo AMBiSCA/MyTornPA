@@ -1992,15 +1992,15 @@ input:checked + .slider:before {
 
     /* --- BEGIN CHAT SYSTEM MOBILE ADJUSTMENTS --- */
     #tornpa-chat-system {
-        bottom: 0px !important; /* Keep it fixed at the very bottom */
-        right: 0px !important;
-        left: 0px !important; /* Span full width at the bottom */
-        width: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-end !important; /* Aligns children to the right */
-        z-index: 1000 !important; /* Ensure it's above other page content */
-    }
+    bottom: 0px !important;
+    right: 0px !important;
+    left: 0px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important; /* This is the fix */
+    z-index: 1000 !important;
+}
 
    #chat-bar-collapsed {
     display: flex !important; /* Added this to enable flexbox centering */
