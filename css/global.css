@@ -2136,44 +2136,44 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
     /* ... (Your existing 768px mobile rules) ... */
 
-    /* Adjust the header's own padding for a more compact look */
+    /* Adjust the header's own padding to move buttons down slightly */
     header {
-        padding-top: 5px !important; /* Reduce top padding within the header itself */
-        padding-bottom: 5px !important; /* Reduce bottom padding within the header itself */
-        min-height: auto !important; /* Allow height to shrink based on content */
-        height: auto !important; /* Allow height to shrink based on content */
+        padding-top: 10px !important; /* INCREASE this from 5px to 10px (or more) to push buttons down */
+        padding-bottom: 5px !important; /* Keep as is or adjust if needed for bottom spacing */
+        min-height: auto !important;
+        height: auto !important;
     }
 
     /* Reduce margin-bottom of header-left, header-center, header-right-controls */
     .header-left, .header-center, .header-right-controls {
-        margin-bottom: 0px !important; /* Remove or drastically reduce margin between header rows */
+        margin-bottom: 0px !important;
     }
 
     /* Further reduce top margins of the content immediately following the header */
     .homepage-content-wrapper {
-        margin-top: 8px !important; /* Further reduce margin from your previous suggestion */
-        padding-top: 0px !important; /* Ensure no top padding on this wrapper */
+        margin-top: 8px !important;
+        padding-top: 0px !important;
     }
 
     .welcome-block-area {
-        margin-top: 5px !important; /* Reduce the top margin of the welcome block */
-        margin-bottom: 5px !important; /* Also reduce bottom margin for overall compactness */
-        padding: 8px !important; /* Slightly reduce internal padding of the welcome block */
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+        padding: 10px !important;
     }
 
     .welcome-block-area h2#welcomeMessage {
-        font-size: 1.2em !important; /* Make the welcome message text slightly smaller */
+        font-size: 1.2em !important;
         margin-bottom: 3px !important;
     }
 
     #factionHuddleMessage {
-        font-size: 0.85em !important; /* Make the faction message text slightly smaller */
+        font-size: 0.85em !important;
         margin-top: 3px !important;
     }
 
     /* Target specific buttons within the header if they have their own margins */
     .header-buttons .btn, .header-buttons .header-text-link {
-        margin: 2px 2px !important; /* Reduce margin around individual header buttons */
-        height: 30px !important; /* Set a fixed smaller height for header buttons */
+        margin: 2px 2px !important;
+        height: 30px !important;
     }
 }
