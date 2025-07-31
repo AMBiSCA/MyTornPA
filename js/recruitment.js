@@ -7,6 +7,7 @@ let currentUserTornApiKey = null;
 let currentUserData = null; // To store the currently logged-in user's fetched Torn data
 let currentUserIsLeader = false; // Flag to check if current user is a leader
 let isCurrentlyListed = false; // NEW: To track if the user is already listed
+let isFactionCurrentlyAdvertised = false; // NEW: To track if the user's faction is advertised
 
 // DOM Elements for this page (from recruitment.html)
 const factionsSeekingMembersTbody = document.getElementById('factions-seeking-members-tbody');
@@ -56,6 +57,15 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+// NEW: Helper function to open internal private chat
+function openInternalPrivateChat(tornId, tornName, firebaseUid) {
+    if (window.openPrivateChatWindow) {
+        window.openPrivateChatWindow(tornId, tornName);
+    } else {
+        alert(`Failed to open internal chat. User: ${tornName} [${tornId}]. (openPrivateChatWindow function not found)`);
+        console.error('global.js openPrivateChatWindow function not loaded or accessible.');
+    }
+}
 
 // --- Core Functions for this page ---
 
@@ -72,13 +82,13 @@ async function displayFactionsSeekingMembers() {
         snapshot.docs.forEach(doc => {
             const faction = doc.data();
             const profileUrl = `https://www.torn.com/factions.php?step=profile&ID=${faction.factionId}`;
-            
+
             // Format respect to be more readable (e.g., 1,234,567)
-            const formattedRespect = (faction.factionRespect || 0).toLocaleString(); 
-            
+            const formattedRespect = (faction.factionRespect || 0).toLocaleString();
+
             // Ensure rank tier is capitalized for display
-            const displayedRankTier = faction.factionRankTier ? 
-                                      faction.factionRankTier.charAt(0).toUpperCase() + faction.factionRankTier.slice(1) : 
+            const displayedRankTier = faction.factionRankTier ?
+                                      faction.factionRankTier.charAt(0).toUpperCase() + faction.factionRankTier.slice(1) :
                                       'N/A';
 
             tableHtml += `
@@ -161,7 +171,7 @@ async function removeSelfFromRecruitment() {
     try {
         // The document ID is the user's Firebase UID, so we know exactly which one to delete.
         const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
-        
+
         await listingDocRef.delete();
 
 
@@ -171,7 +181,7 @@ async function removeSelfFromRecruitment() {
     } catch (error) {
         console.error("Error removing self from listing:", error);
         alert(`Failed to remove your listing: ${error.message}`);
-    } 
+    }
     // We don't need a 'finally' block to re-enable the button,
     // because the next step will handle setting its text and state correctly.
 }
@@ -207,8 +217,10 @@ async function displayPlayersSeekingFactions() {
             const player = doc.data();
             console.log("5. Adding row for player: ", player.playerName); // DEBUG
             const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
-            const messageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${player.playerId}`; // Torn message URL
 
+            // --- MODIFIED LINE FOR INTERNAL CHAT ---
+            // Use player.firebaseUid and player.playerName for the openInternalPrivateChat function
+            // The Torn ID (player.playerId) is passed too, as your openPrivateChatWindow might still use it or display it.
             tableHtml += `
                 <tr>
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
@@ -218,7 +230,7 @@ async function displayPlayersSeekingFactions() {
                     <td>${(player.warHits || 0).toLocaleString()}</td>
                     <td>${(player.energyRefills || 0).toLocaleString()}</td>
                     <td>${(player.bestActiveStreak || 0).toLocaleString()}</td>
-                    <td><a href="${messageUrl}" target="_blank" rel="noopener noreferrer" class="action-button">Message</a></td>
+                    <td><button class="action-button message-internal-button" data-torn-id="${player.playerId}" data-torn-name="${player.playerName}" data-firebase-uid="${player.firebaseUid}">Message</button></td>
                 </tr>
             `;
         });
@@ -226,12 +238,22 @@ async function displayPlayersSeekingFactions() {
         console.log("6. Finished building HTML. Final content length:", tableHtml.length); // DEBUG
         playersSeekingFactionsTbody.innerHTML = tableHtml;
 
+        // --- NEW: Add event listener for the internal message buttons ---
+        playersSeekingFactionsTbody.querySelectorAll('.message-internal-button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const tornId = event.target.dataset.tornId;
+                const tornName = event.target.dataset.tornName;
+                const firebaseUid = event.target.dataset.firebaseUid; // Though not directly used by openPrivateChatWindow, it's good to keep
+                openInternalPrivateChat(tornId, tornName, firebaseUid);
+            });
+        });
+
+
     } catch (error) {
         console.error("7. Error fetching players:", error); // DEBUG
         playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="8">Error loading player listings.</td></tr>`; // Adjusted colspan to 8
     }
 }
-
 
 
 async function advertiseFaction() {
@@ -249,6 +271,10 @@ async function advertiseFaction() {
         return;
     }
 
+    // Disable button and change text immediately
+    advertiseFactionButton.disabled = true;
+    advertiseFactionButton.textContent = 'Advertising...';
+
     try {
         const userTornFactionId = currentUserData?.faction_id;
         if (!userTornFactionId) {
@@ -256,9 +282,9 @@ async function advertiseFaction() {
             return;
         }
 
-        const selections = 'basic,members'; 
+        const selections = 'basic,members';
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
-        
+
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
 
@@ -266,7 +292,7 @@ async function advertiseFaction() {
             const errorText = await response.text().catch(() => "Could not read error text");
             throw new Error(`Torn API HTTP error: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 100)}`);
         }
-        
+
         const data = await response.json();
 
         if (data.error) {
@@ -274,11 +300,11 @@ async function advertiseFaction() {
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
-        
+
         // CORRECTED: Access properties from 'data.basic' object
-        const factionName = data.basic?.name || 'Unknown Faction'; 
-        const totalMembers = data.members ? Object.keys(data.members).length : 0; 
-        const factionRespect = data.basic?.respect || 0; 
+        const factionName = data.basic?.name || 'Unknown Faction';
+        const totalMembers = data.members ? Object.keys(data.members).length : 0;
+        const factionRespect = data.basic?.respect || 0;
         const factionRankTier = data.basic?.rank?.name || 'N/A'; // Access rank.name from data.basic.rank
 
         const contactInfo = ''; // Temporarily empty, will be added via a UI later
@@ -287,9 +313,9 @@ async function advertiseFaction() {
             factionId: String(userTornFactionId), // Faction ID is at top-level data.ID, but also in data.basic.ID
             factionName: factionName,
             totalMembers: totalMembers,
-            factionRespect: factionRespect, 
-            factionRankTier: factionRankTier, 
-            contactInfo: contactInfo.trim(), 
+            factionRespect: factionRespect,
+            factionRankTier: factionRankTier,
+            contactInfo: contactInfo.trim(),
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
@@ -302,12 +328,68 @@ async function advertiseFaction() {
 
         alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
-        displayFactionsSeekingMembers(); 
+
+        // Update state and button for immediate feedback
+        isFactionCurrentlyAdvertised = true;
+        advertiseFactionButton.textContent = 'Remove My Faction';
+        advertiseFactionButton.classList.add('remove');
+        advertiseFactionButton.disabled = false; // Re-enable for removal
+
+        displayFactionsSeekingMembers(); // Refresh the display
     } catch (error) {
         console.error("Error during faction advertisement:", error);
         alert(`Failed to advertise faction: ${error.message}`);
+        advertiseFactionButton.disabled = false; // Re-enable if an error occurred
+        advertiseFactionButton.textContent = 'Advertise My Faction'; // Revert text
+        advertiseFactionButton.classList.remove('remove');
     }
 }
+
+// NEW FUNCTION: Remove faction advertisement
+async function removeFactionAdvertisement() {
+    console.log("Attempting to remove faction advertisement.");
+    if (!auth.currentUser) {
+        alert("You must be logged in to do this.");
+        return;
+    }
+    if (!currentUserIsLeader) {
+        alert("Only designated faction leaders can remove faction advertisements.");
+        return;
+    }
+    const userTornFactionId = currentUserData?.faction_id;
+    if (!userTornFactionId) {
+        alert("Your Torn Faction ID is missing. Cannot remove advertisement.");
+        return;
+    }
+
+    // Disable button and change text immediately
+    advertiseFactionButton.disabled = true;
+    advertiseFactionButton.textContent = 'Removing...';
+
+    try {
+        const docRef = db.collection('recruitingFactions').doc(String(userTornFactionId));
+        await docRef.delete();
+
+        alert(`Successfully removed your faction's advertisement.`);
+        console.log("Faction advertisement removed for ID:", userTornFactionId);
+
+        // Update state and button for immediate feedback
+        isFactionCurrentlyAdvertised = false;
+        advertiseFactionButton.textContent = 'Advertise My Faction';
+        advertiseFactionButton.classList.remove('remove');
+        advertiseFactionButton.disabled = false; // Re-enable for new advertisement
+
+        displayFactionsSeekingMembers(); // Refresh the display
+    } catch (error) {
+        console.error("Error removing faction advertisement:", error);
+        alert(`Failed to remove faction advertisement: ${error.message}`);
+        advertiseFactionButton.disabled = false; // Re-enable if an error occurred
+        advertiseFactionButton.textContent = 'Remove My Faction'; // Revert text if failed to remove
+        advertiseFactionButton.classList.add('remove');
+    }
+}
+
+
 // --- Main Initialization for Page (UPDATED with User ID Exemption) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
@@ -319,10 +401,33 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornId = userData.tornProfileId || null;
             currentUserTornApiKey = userData.tornApiKey || null;
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
-            
-            if (advertiseFactionButton) {
-                advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
+
+            // --- Check Faction Advertisement Status on load ---
+            if (advertiseFactionButton && currentUserData?.faction_id) {
+                const factionListingDocRef = db.collection('recruitingFactions').doc(String(currentUserData.faction_id));
+                const factionListingDoc = await factionListingDocRef.get();
+                isFactionCurrentlyAdvertised = factionListingDoc.exists && factionListingDoc.data().isActive === true;
+
+                if (currentUserIsLeader) {
+                    advertiseFactionButton.style.display = 'block';
+                    if (isFactionCurrentlyAdvertised) {
+                        advertiseFactionButton.textContent = 'Remove My Faction';
+                        advertiseFactionButton.classList.add('remove');
+                    } else {
+                        advertiseFactionButton.textContent = 'Advertise My Faction';
+                        advertiseFactionButton.classList.remove('remove');
+                    }
+                    advertiseFactionButton.disabled = false; // Enable if leader, then specific conditions might disable it below
+                } else {
+                    advertiseFactionButton.style.display = 'none'; // Hide if not a leader
+                    advertiseFactionButton.disabled = true;
+                }
+            } else if (advertiseFactionButton) {
+                advertiseFactionButton.style.display = 'none'; // Hide if no faction ID for current user
+                advertiseFactionButton.disabled = true;
             }
+            // --- END Faction Advertisement Status Check ---
+
 
             // --- NEW EXEMPTION LOGIC ---
             const hasFaction = userData.faction_id && userData.faction_id != 0;
@@ -342,11 +447,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     // If user is NOT in a faction, OR they ARE an exempt user, proceed normally
                     listSelfButton.disabled = false;
-                    listSelfButton.title = ''; 
+                    listSelfButton.title = '';
 
                     const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
                     const listingDoc = await listingDocRef.get();
-                    isCurrentlyListed = listingDoc.exists; 
+                    isCurrentlyListed = listingDoc.exists;
 
                     if (isCurrentlyListed) {
                         listSelfButton.textContent = 'Remove Listing';
@@ -358,14 +463,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             // --- END NEW EXEMPTION LOGIC ---
-            
+
             if (!currentUserTornId || !currentUserTornApiKey) {
                 // Also check isInDisallowedFaction here to avoid re-enabling a disabled button
                 if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = true;
-                if (advertiseFactionButton) advertiseFactionButton.disabled = true;
+                // No need to disable advertiseFactionButton here based on API key, as it's already handled above
             } else {
                 if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = false;
-                if (advertiseFactionButton) advertiseFactionButton.disabled = !currentUserIsLeader;
+                // The advertiseFactionButton's disabled state is now handled by the isFactionCurrentlyAdvertised check and currentUserIsLeader.
             }
 
         } else {
@@ -375,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserData = null;
             currentUserIsLeader = false;
             isCurrentlyListed = false;
+            isFactionCurrentlyAdvertised = false; // Reset on logout
             if (listSelfButton) {
                 listSelfButton.textContent = 'List Myself';
                 listSelfButton.disabled = true;
@@ -383,20 +489,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = 'none';
                 advertiseFactionButton.disabled = true;
+                advertiseFactionButton.textContent = 'Advertise My Faction'; // Reset text
+                advertiseFactionButton.classList.remove('remove');
             }
         }
-        
+
         displayFactionsSeekingMembers();
         displayPlayersSeekingFactions();
     });
 
-    // Event listener for "Enlist" buttons
+    // Event listener for "Enlist" buttons (if you add them to factionsSeekingMembersTbody)
     if (factionsSeekingMembersTbody) {
         factionsSeekingMembersTbody.addEventListener('click', (event) => {
             const button = event.target.closest('.enlist-button');
             if (button && !button.disabled) {
                 const factionId = button.dataset.factionId;
-                enlistPlayer(factionId);
+                // enlistPlayer(factionId); // Assuming enlistPlayer is defined elsewhere if needed
             }
         });
     }
@@ -406,24 +514,26 @@ document.addEventListener('DOMContentLoaded', () => {
         listSelfButton.addEventListener('click', () => {
             if (isCurrentlyListed) {
                 removeSelfFromRecruitment().then(() => {
-                    isCurrentlyListed = false;
-                    listSelfButton.textContent = 'List Myself';
-                    listSelfButton.classList.remove('remove');
-                    listSelfButton.disabled = false;
+                    // isCurrentlyListed state updated within removeSelfFromRecruitment's finally block or after displayPlayersSeekingFactions.
+                    // The onAuthStateChanged listener also re-evaluates the button state, ensuring consistency.
                 });
             } else {
                 listSelfForRecruitment().then(() => {
-                    isCurrentlyListed = true;
-                    listSelfButton.textContent = 'Remove Listing';
-                    listSelfButton.classList.add('remove');
-                    listSelfButton.disabled = false;
+                    // isCurrentlyListed state updated within listSelfForRecruitment's finally block or after displayPlayersSeekingFactions.
+                    // The onAuthStateChanged listener also re-evaluates the button state, ensuring consistency.
                 });
             }
         });
     }
 
-    // Event listener for "Advertise My Faction" button
+    // NEW: Event listener for "Advertise/Remove My Faction" button
     if (advertiseFactionButton) {
-        advertiseFactionButton.addEventListener('click', advertiseFaction);
+        advertiseFactionButton.addEventListener('click', () => {
+            if (isFactionCurrentlyAdvertised) {
+                removeFactionAdvertisement();
+            } else {
+                advertiseFaction();
+            }
+        });
     }
 });
