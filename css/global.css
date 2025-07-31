@@ -1825,6 +1825,7 @@ input:checked + .slider:before {
   header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
   .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
   #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+ 
   .header-left h1 { font-size: 1.4rem; }
   .tagline { font-size: 0.7rem; }
   .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
@@ -1931,5 +1932,59 @@ input:checked + .slider:before {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%); /* Center the emoji precisely */
+    }
+}
+
+/* Custom Overrides for Mobile Header Buttons - Place at the very END of global.css */
+@media (max-width: 768px) {
+
+    /* Ensure the Useful Links button is displayed and compact on mobile */
+    #usefulLinksBtn,
+    #headerContactUsBtn,
+    #headerEditProfileBtn,
+    #logoutButtonHeader {
+        display: inline-flex !important; /* Force display for all header buttons */
+        padding: 5px 8px !important;    /* Force compact padding */
+        min-width: unset !important;    /* Allow shrinking */
+        width: auto !important;         /* Let content define width */
+        justify-content: center !important; /* Center content */
+        overflow: hidden !important;    /* Hide overflows */
+    }
+
+    /* Hide the text part for all header buttons (redundant if already hidden, but safe override) */
+    header .btn-text {
+        display: none !important;
+    }
+
+    /* Style for Profile and Logout icons */
+    #headerEditProfileBtn .btn-icon,
+    #logoutButtonHeader .btn-icon {
+        font-size: 1.6em !important; /* Larger icon */
+        line-height: 1 !important;   /* Better alignment */
+        display: block !important;   /* Force block for centering */
+        margin: auto !important;     /* Center icon */
+        content: none !important;    /* Clear any pseudo-content */
+    }
+
+    /* Specific styling for Useful Links and Contact icons (Option B: original icon + dropdown arrow) */
+    #usefulLinksBtn .btn-icon,
+    #headerContactUsBtn .btn-icon {
+        font-size: 1.6em !important;    /* Keep original icon size */
+        display: flex !important;       /* Use flexbox to align original icon and ::after arrow */
+        align-items: center !important; /* Vertically align content */
+        justify-content: center !important; /* Center content */
+        position: relative !important;  /* For ::after positioning */
+        margin: auto !important;        /* Center the overall icon span */
+    }
+
+    /* Add the dropdown arrow emoji using a pseudo-element for dropdown buttons */
+    #usefulLinksBtn .btn-icon::after,
+    #headerContactUsBtn .btn-icon::after {
+        content: '🔽' !important;        /* The dropdown arrow emoji */
+        font-size: 0.8em !important;    /* Make dropdown arrow slightly smaller */
+        margin-left: 0.2em !important;  /* Small space between original icon and dropdown arrow */
+        position: static !important;    /* Keep it in the normal flow of the flex container */
+        transform: none !important;     /* Remove previous absolute centering transform */
+        display: inline-block !important; /* Ensure it renders properly after margin-left */
     }
 }
