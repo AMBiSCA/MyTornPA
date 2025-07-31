@@ -1830,7 +1830,6 @@ input:checked + .slider:before {
     body {
         padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
         padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
-        display: block !important; /* Ensure body behaves as a block, not flex column, if it causes issues */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
