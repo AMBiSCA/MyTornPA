@@ -232,13 +232,12 @@ window.addEventListener('click', (event) => {
         const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
         const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
-	
 async function updateToolLinksAccess(profile) {
-    console.log('[DEBUG] Running updateToolLinksAccess...'); // New log
+    console.log('[DEBUG] Running updateToolLinksAccess...');
     const toolLinks = document.querySelectorAll('.tool-item-button');
     
     if (!profile) {
-        console.log('[DEBUG] No profile found. Disabling all member links.'); // New log
+        console.log('[DEBUG] No profile found. Disabling all member links.');
         toolLinks.forEach(link => {
             if (link.classList.contains('member-only')) {
                 link.classList.add('disabled-link');
@@ -247,19 +246,17 @@ async function updateToolLinksAccess(profile) {
         return;
     }
 
-    // --- MEMBERSHIP CHECK ---
     const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
-    const hasPersonalComp = profile.hasFreeAccess === true;
+    // --- THIS LINE IS CORRECTED ---
+    const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
     const hasFactionComp = await isFactionComped(profile, db);
 
-    // --- DEBUG LOGS (THE IMPORTANT PART) ---
     console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
     console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
     console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
     
     const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
     console.log('[DEBUG] Final isMember result:', isMember);
-    // --- END DEBUG LOGS ---
 
     const hasAgreedToTerms = profile.termsAgreed === true;
 
@@ -273,9 +270,10 @@ async function updateToolLinksAccess(profile) {
             link.classList.remove('disabled-link');
         }
     });
-    console.log('[DEBUG] Finished updateToolLinksAccess.'); // New log
+    console.log('[DEBUG] Finished updateToolLinksAccess.');
 }
-    function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
+
+  function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
         if (activeCooldownIntervals[elementId]) clearInterval(activeCooldownIntervals[elementId]);
@@ -363,49 +361,34 @@ async function updateToolLinksAccess(profile) {
     }
 	
 	async function isFactionComped(profile, db) {
-    // If there's no profile or the user isn't in a faction, they can't be 'comped'.
     if (!profile || !profile.faction_id) {
         return false;
     }
-
     const usersRef = db.collection('userProfiles');
-    // Query to find a user who is in the same faction AND is the "Leader".
     const leaderQuery = usersRef
         .where('faction_id', '==', profile.faction_id)
         .where('position', '==', 'Leader')
         .limit(1);
-
     try {
         const leaderSnapshot = await leaderQuery.get();
-
-        // If no document for a leader is found, the user is not comped.
         if (leaderSnapshot.empty) {
             console.warn(`isFactionComped check: No leader found for faction ID: ${profile.faction_id}`);
             return false;
         }
-
-        // Get the leader's profile data from the document.
         const leaderProfile = leaderSnapshot.docs[0].data();
-
-        // Check if THE LEADER has an active membership or free access.
         const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
-        const leaderHasFreeAccess = leaderProfile.hasFreeAccess === true;
-
-        // If the leader has access, the member is considered 'comped'.
+        // --- THIS LINE IS CORRECTED ---
+        const leaderHasFreeAccess = String(leaderProfile.hasFreeAccess) === 'true';
         if (leaderHasMembership || leaderHasFreeAccess) {
             console.log(`isFactionComped check: Access granted via faction leader's membership.`);
             return true;
         }
-        
-        // If the leader has no active membership, return false.
         return false;
-
     } catch (error) {
         console.error("Error during isFactionComped check:", error);
-        return false; // Default to false in case of an error to be safe.
+        return false;
     }
 }
-	
 	
 	
 	function startMembershipCountdown(membershipInfo) {
