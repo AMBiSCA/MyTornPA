@@ -234,8 +234,11 @@ window.addEventListener('click', (event) => {
     }
 	
 async function updateToolLinksAccess(profile) {
+    console.log('[DEBUG] Running updateToolLinksAccess...'); // New log
     const toolLinks = document.querySelectorAll('.tool-item-button');
+    
     if (!profile) {
+        console.log('[DEBUG] No profile found. Disabling all member links.'); // New log
         toolLinks.forEach(link => {
             if (link.classList.contains('member-only')) {
                 link.classList.add('disabled-link');
@@ -244,13 +247,19 @@ async function updateToolLinksAccess(profile) {
         return;
     }
 
-    // --- MODIFIED MEMBERSHIP CHECK ---
+    // --- MEMBERSHIP CHECK ---
     const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
     const hasPersonalComp = profile.hasFreeAccess === true;
-    const hasFactionComp = await isFactionComped(profile, db); // Check the leader's status
+    const hasFactionComp = await isFactionComped(profile, db);
 
+    // --- DEBUG LOGS (THE IMPORTANT PART) ---
+    console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
+    console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
+    console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
+    
     const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
-    // --- END MODIFICATION ---
+    console.log('[DEBUG] Final isMember result:', isMember);
+    // --- END DEBUG LOGS ---
 
     const hasAgreedToTerms = profile.termsAgreed === true;
 
@@ -264,6 +273,7 @@ async function updateToolLinksAccess(profile) {
             link.classList.remove('disabled-link');
         }
     });
+    console.log('[DEBUG] Finished updateToolLinksAccess.'); // New log
 }
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
