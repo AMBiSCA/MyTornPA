@@ -470,6 +470,10 @@ ul li:last-child { border-bottom: none; }
     justify-content: center;
 }
 
+.chat-bar-icon:first-child {
+    margin-left: 80px !important;
+}
+
 .chat-bar-icon .chat-icon-text {
     font-size: 0.8em; /* Make text slightly smaller than icon */
     margin-left: 5px; /* Space between icon and text */
