@@ -1998,7 +1998,8 @@ input:checked + .slider:before {
     }
 
    #chat-bar-collapsed {
-    text-align: center !important; /* Use text-align for centering */
+    -webkit-tap-highlight-color: transparent !important; /* This disables the tap flash */
+    text-align: center !important;
     position: static !important;
     bottom: unset !important;
     right: unset !important;
@@ -2009,8 +2010,8 @@ input:checked + .slider:before {
     margin: 0 !important;
     background-color: #1b263b !important;
     border-top: 2px solid black;
-    border-left: 2px solid black;  /* Added this line */
-    border-right: 2px solid black; /* Added this line */
+    border-left: 2px solid black;
+    border-right: 2px solid black;
 }
 
    #chat-window {
