@@ -100,7 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-
+    const factionHuddleMessageEl = document.getElementById('factionHuddleMessage');
+    const originalFactionMessageText = "Looking for a Faction? Try out Faction Recruitment!";
     // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
@@ -1029,22 +1030,20 @@ if (toolsSection) {
 }
     // ... (rest of your home.js file before onAuthStateChanged) ...
 
-    if (auth) {
+   if (auth) {
     auth.onAuthStateChanged(async function(user) {
         console.log('Auth State Changed. User:', user ? user.uid : 'No user');
         const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
         const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
-        // ADDED: Get the element we will manipulate for both messages
-        const factionHuddleMessageEl = document.getElementById('factionHuddleMessage');
-        const originalFactionMessageText = "Looking for a Faction? Try out Faction Recruitment!"; // Store original message
+
 
         if (user) {
             if (mainHomepageContent) mainHomepageContent.style.display = 'block';
             if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
             if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
             if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+            if (logoutButtonHeader) logoutL`ogoutButtonHeader`.style.display = 'inline-flex';
             if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
             let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
@@ -1055,56 +1054,46 @@ if (toolsSection) {
                     currentUserProfile = profile;
                     console.log("1. Profile loaded on page start:", currentUserProfile);
 
-                    // --- NEW LOGIC FOR MESSAGE SWAP ---
-                    // Initially, set the faction message element to its default or the trial message
+                    // --- NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
                     if (factionHuddleMessageEl) {
-                        factionHuddleMessageEl.textContent = originalFactionMessageText; // Default to original
-                        factionHuddleMessageEl.style.display = 'block'; // Ensure it's visible
+                        // Always start with the default message and no special styling class
+                        factionHuddleMessageEl.textContent = originalFactionMessageText;
+                        factionHuddleMessageEl.style.display = 'block';
+                        factionHuddleMessageEl.classList.remove('trial-countdown-display'); // Ensure clean slate
                     }
 
-                    // Check for an active membership and temporarily show countdown
+                    // Check for an active membership and temporarily show countdown with styling
                     if (profile && profile.membershipEndTime && profile.membershipEndTime > Date.now()) {
                         const membershipInfo = {
                             membershipType: profile.membershipType,
                             membershipEndTime: profile.membershipEndTime
                         };
 
-                        // Immediately start the countdown using the existing function.
-                        // The startMembershipCountdown function will now update `factionHuddleMessageEl`.
-                        startMembershipCountdown(membershipInfo); // This will set the trial countdown text
+                        if (factionHuddleMessageEl) {
+                           factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
+                        }
+                        startMembershipCountdown(membershipInfo); // This function sets the trial countdown text
 
-                        console.log("Free trial message shown temporarily in faction huddle area.");
+                        console.log("Free trial message shown temporarily with styling.");
                         setTimeout(() => {
-                            // After 5 seconds, switch back to the original faction message
+                            // After 5 seconds, switch back to the original faction message and remove styling
                             if (factionHuddleMessageEl) {
                                 factionHuddleMessageEl.textContent = originalFactionMessageText;
-                                console.log("Switched back to faction recruitment message after 5 seconds.");
+                                console.log("Switched back to faction recruitment message and removed styling after 5 seconds.");
+                                factionHuddleMessageEl.classList.remove('trial-countdown-display'); // REMOVE THE STYLING CLASS
                             }
-                            // *** CORRECTED LINE: Clear the interval here to stop continuous updates ***
+                            // Clear the continuous interval to stop it from overriding back to trial countdown
                             if (membershipCountdownInterval) {
                                 clearInterval(membershipCountdownInterval);
-                                membershipCountdownInterval = null; // Reset for future use if needed
-                                console.log("Membership countdown interval cleared to prevent override.");
+                                membershipCountdownInterval = null;
+                                console.log("Membership countdown interval cleared.");
                             }
                         }, 5000); // 5 seconds delay
                     }
-                    // --- END NEW LOGIC FOR MESSAGE SWAP ---
-
-                    // REMOVED: This entire block was causing the 'catch' syntax error.
-                    // It was redundant and misplaced based on the surrounding try/catch.
-                    /*
-                    if (membershipOptionsModal && user && (!profile?.membershipEndTime || profile?.membershipEndTime < Date.now())) {
-                        membershipOptionsModal.style.display = 'flex'; // Show the modal
-                        setTimeout(() => {
-                            membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                            console.log("Membership prompt hidden after 15 seconds.");
-                        }, 15000);
-                    }
-                    */
-
+                    // --- END NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
 
                     // --- Activate the gatekeeper for member-only links ---
-                    updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
+                    updateToolLinksAccess(profile);
 
                     if (profile && profile.preferredName && profile.profileSetupComplete) {
                         userDisplayName = profile.preferredName; showSetup = false;
@@ -1165,6 +1154,7 @@ if (toolsSection) {
         }
     });
 } else { console.error("Firebase auth object not available for auth state listener."); }
+
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
             auth.signOut().then(() => {
