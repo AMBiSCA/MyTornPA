@@ -119,12 +119,12 @@ function parseStatValue(statString) {
     return isNaN(number) ? 0 : number * multiplier;
 }
 
-// Helper to format gain values (+X, -Y, 0) with appropriate CSS class.
 function formatGainValue(gain) {
     if (typeof gain !== 'number' || isNaN(gain)) {
         return '<span class="gain-neutral">N/A</span>';
     }
-    const formatted = gain.toLocaleString();
+    const formatted = gain.toLocaleString(); // Already formats numbers with commas
+
     if (gain > 0) {
         return `<span class="gain-positive">+${formatted}</span>`;
     } else if (gain < 0) {

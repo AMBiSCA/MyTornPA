@@ -543,6 +543,21 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
 }
 
+.personal-gains-display .gain-positive {
+    color: #4CAF50; /* Green for positive gains */
+    font-weight: bold;
+}
+
+.personal-gains-display .gain-negative {
+    color: #dc3545; /* Red for negative gains */
+    font-weight: bold;
+}
+
+.personal-gains-display .gain-neutral {
+    color: #bbb; /* Grey for zero gains */
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     /* Tab navigation can stack vertically on very small screens */
     .tab-navigation-bb {
