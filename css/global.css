@@ -2651,7 +2651,7 @@ input:checked + .slider:before {
         min-height: 70px !important;
         padding-top: 10px !important;
         padding-bottom: 10px !important;
-        display: flex !important; /* Ensure footer displays */
+        display: none !important; /* Ensure footer displays */
         box-shadow: 0 -2px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow */
         border-top: 2px solid #00a8ff !important;
     }
