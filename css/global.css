@@ -2514,36 +2514,176 @@ input:checked + .slider:before {
         you would need a more complex strategy, but the 768px block now overrides display. */
 }
 
-/* CONSOLIDATED MOBILE MEDIA QUERIES - REPLACE ALL OTHER @media (max-width: 768px) BLOCKS WITH THIS ONE */
+/* CONSOLIDATED MOBILE MEDIA QUERIES - GLOBAL.CSS */
 @media (max-width: 768px) {
-    /* ... (Your existing 768px mobile rules) ... */
+    /* Base HTML & Body adjustments for fixed header and proper scrolling */
+    html, body {
+        height: 100%; /* Important for fixed positioning to work reliably */
+        overflow-x: hidden;
+        overflow-y: auto; /* Allow overall page scrolling */
+        -ms-overflow-style: none; /* Hides scrollbar on IE/Edge */
+        scrollbar-width: none;    /* Hides scrollbar on Firefox */
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
 
-    /* Adjust the header's own padding for a more compact look */
+    body::-webkit-scrollbar {
+        display: none; /* Hides scrollbar on Chrome/Safari */
+    }
+
+    /* Set body padding-top equal to the header's height to prevent content from going under it */
+    /* Estimate header height. Adjust '110px' as needed after testing. */
+    body {
+        padding-top: 110px !important; /* NEW: Space for the fixed header */
+        padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
+    }
+
+    /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
-        padding-top: 8px !important;
-        padding-bottom: 5px !important;
-        min-height: auto !important;
-        height: auto !important;
+        position: fixed !important; /* Forces header to stay fixed at the top */
+        top: 0 !important;          /* Aligns it to the top edge */
+        left: 0 !important;         /* Aligns it to the left edge */
+        width: 100% !important;     /* Ensures it spans full width */
+        z-index: 102 !important;    /* Keeps it on top of other content */
+        
+        height: auto !important;    /* Allow height to adjust based on content */
+        min-height: unset !important; /* Remove fixed min-height if present globally */
+        padding-top: 8px !important; /* Top padding within the fixed header itself (adjust to move contents down) */
+        padding-bottom: 5px !important; /* Bottom padding within the fixed header itself */
+        
+        flex-wrap: wrap !important; /* Ensure items wrap */
+        justify-content: center !important; /* Center the wrapped items */
+        border-bottom: 3px solid #00a8ff !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow for fixed header */
+    }
+    
+    .header-left, .header-center, .header-right-controls {
+        flex-basis: auto !important;
+        width: 100% !important; /* Forces each of these to take full width and stack */
+        justify-content: center !important;
+        margin-bottom: 0 !important; /* Remove default margins that create space between these elements */
     }
 
-    /* Add space between MyTornPA and the buttons */
+    /* Specific spacing for MyTornPA and buttons within the header */
     .header-left {
-        margin-bottom: 10px !important; /* This will create the gap below "MyTornPA" */
+        margin-bottom: 10px !important; /* Creates space between "MyTornPA" and the buttons below it */
+    }
+    
+    #headerMainLogo {
+        max-height: 50px !important;
+        margin-top: 0 !important;
+        display: none !important; /* Hides header logo on mobile */
+    }
+    .header-left h1 {
+        font-size: 1.4rem !important;
+    }
+    .tagline {
+        font-size: 0.7rem !important;
+    }
+    .header-text-link, .btn.header-btn, .btn-header { /* Consolidated header button styling */
+        padding: 5px 8px !important;
+        font-size: 0.85rem !important;
+        height: 30px !important; /* Consistent small height for header buttons */
+        margin: 2px !important; /* Small margin around each button */
+        flex-shrink: 1 !important; /* Allow buttons to shrink if needed */
+        flex-basis: auto !important; /* Let content define initial width */
     }
 
-    /* Ensure .header-center and .header-right-controls are compact */
-    .header-center, .header-right-controls {
-        margin-bottom: 0px !important; /* Keep this at 0 to avoid extra space below buttons */
+    /* Ensure all header buttons are visible and compact */
+    #usefulLinksBtn,
+    #headerContactUsBtn,
+    #headerEditProfileBtn,
+    #logoutButtonHeader {
+        display: inline-flex !important;
+        padding: 5px 8px !important;
+        min-width: unset !important;
+        width: auto !important;
+        justify-content: center !important;
+        overflow: hidden !important;
     }
 
-    /* Further reduce top margins of the content immediately following the header */
-    .homepage-content-wrapper {
-        margin-top: 8px !important;
-        padding-top: 0px !important;
+    /* Hide the text part of all header buttons definitively */
+    header .btn-text {
+        display: none !important;
     }
 
+    /* Style for Profile and Logout icons (single emoji buttons) */
+    #headerEditProfileBtn .btn-icon,
+    #logoutButtonHeader .btn-icon {
+        font-size: 1.6em !important;
+        line-height: 1 !important;
+        display: block !important;
+        margin: auto !important;
+        content: none !important;
+    }
+
+    /* Style for Useful Links & Contact buttons - display original icon + original dropdown arrow */
+    #usefulLinksBtn .btn-icon,
+    #headerContactUsBtn .btn-icon {
+        font-size: 1.6em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        margin: auto !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        text-indent: 0 !important;
+        color: inherit !important;
+        background: none !important;
+        border: none !important;
+        outline: none !important;
+        text-shadow: none !important;
+        overflow: visible !important;
+    }
+
+
+    /* FOOTER Styles for Mobile (Fixed at bottom) */
+    footer.footer {
+        position: fixed !important; /* Keep footer fixed at the bottom */
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        z-index: 102 !important; /* Keep it on top */
+        height: auto !important;
+        min-height: 70px !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        display: flex !important; /* Ensure footer displays */
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow */
+        border-top: 2px solid #00a8ff !important;
+    }
+    footer.footer .footer-links {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 5px 10px !important;
+        margin-bottom: 8px !important;
+    }
+    footer.footer > p {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Hide the global footer placeholder that might push content down */
+    #globalfooterplaceholder {
+        display: none !important;
+    }
+
+    /* Main content wrapper adjustments (to start below fixed header) */
+    .main-content-wrapper {
+        margin-top: 0px !important; /* This should now rely on body padding-top */
+        padding-top: 0px !important; /* Remove any padding that would push content down */
+        padding-left: 15px !important; /* Keep consistent side padding for content */
+        padding-right: 15px !important;
+    }
+
+    /* Welcome Container Gap Adjustment within content wrapper */
     .welcome-block-area {
-        margin-top: 5px !important;
+        margin-top: 5px !important; /* Small margin to separate from the top of the content area */
         margin-bottom: 5px !important;
         padding: 10px !important;
     }
@@ -2558,9 +2698,127 @@ input:checked + .slider:before {
         margin-top: 3px !important;
     }
 
-    /* Target specific buttons within the header if they have their own margins */
-    .header-buttons .btn, .header-buttons .header-text-link {
-        margin: 2px 2px !important;
-        height: 30px !important;
+    /* General main section styles */
+    main {
+        margin-top: 0px !important; /* This should start relative to its parent/body padding */
+        margin-left: 15px !important;
+        margin-right: 15px !important;
+        padding: 25px 20px !important;
+        width: auto !important;
+    }
+
+    /* --- BEGIN CHAT SYSTEM MOBILE ADJUSTMENTS --- */
+    #tornpa-chat-system {
+        bottom: 0px !important; /* Keep it fixed at the very bottom */
+        right: 0px !important;
+        left: 0px !important; /* Span full width at the bottom */
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important; /* Aligns children to the right */
+        z-index: 1000 !important; /* Ensure it's above other page content */
+    }
+
+    #chat-bar-collapsed {
+        position: static !important; /* Make it flow with tornpa-chat-system */
+        bottom: unset !important;
+        right: unset !important;
+        left: unset !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+        padding: 8px 10px !important;
+        justify-content: center !important;
+        margin: 0 !important; /* Remove any external margins */
+    }
+
+    #chat-window {
+        bottom: 73px !important; /* Height of the collapsed bar if it's 70px + 3px gap, adjust as needed */
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: unset !important;
+        height: calc(100vh - 73px) !important; /* Fill remaining height, accounting for collapsed bar */
+        border-radius: 0 !important;
+        box-shadow: 0 0 15px rgba(0,0,0,0.5) !important;
+        background-color: #1b263b !important;
+        border: 1px solid #415a77 !important;
+        z-index: 1000 !important;
+    }
+    
+    .chat-main-tabs-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        padding: 5px !important;
+        gap: 5px !important;
+    }
+
+    #dynamic-tabs-container,
+    #static-tabs-container {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 5px !important;
+        flex-grow: 1 !important;
+    }
+
+    .chat-tab {
+        padding: 8px 10px !important;
+        font-size: 14px !important;
+        flex-shrink: 0 !important;
+        flex-basis: auto !important;
+        white-space: nowrap !important;
+    }
+    .chat-tab .material-icons, .chat-tab .fa {
+        font-size: 18px !important;
+    }
+
+    #faction-chat-panel, #alliance-chat-panel, #war-chat-panel,
+    #friends-panel, #notifications-panel, #settings-panel {
+        height: 100% !important;
+    }
+
+    .chat-input-area {
+        padding: 8px !important;
+    }
+    .chat-text-input {
+        padding: 8px !important;
+        font-size: 1em !important;
+    }
+    .chat-send-btn {
+        padding: 8px 12px !important;
+    }
+
+    .private-chat-window {
+        right: 0px !important;
+        left: 0px !important;
+        width: 100% !important;
+        height: 300px !important;
+        bottom: 73px !important; /* Place above the collapsed bar */
+        z-index: 999 !important; /* Ensure it's below main chat, but fixed */
+    }
+    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
+}
+
+/* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
+@media (max-width: 480px) {
+    .dashboard-grid { grid-template-columns: 1fr !important; }
+    .homepage-content-wrapper { padding: 5px !important; }
+    .stats-column, .tools-column, .welcome-block-area { padding: 15px 10px !important; }
+    .welcome-block-area h2#welcomeMessage { font-size: 1.3em !important; }
+    #personalStatsModal .modal-content-box, .modal-profile-setup { padding: 10px 15px !important; width: 98% !important; }
+    #personalStatsModalBody p { font-size: 0.85em !important; }
+    #personalStatsModalBody p strong { min-width: 100px !important; }
+    .confirmation-actions { flex-direction: column !important; gap: 10px !important; }
+    .confirmation-modal { padding: 15px !important; width: 95% !important; }
+    .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
+}
+
+/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
+@media only screen and (max-width: 991px) {
+    #globalfooterplaceholder {
+        display: none !important;
+    }
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+        display: none !important; 
     }
 }
