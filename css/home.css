@@ -360,12 +360,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
 .btn-confirm-no:active { transform: translateY(0); }
 
+/* AFTER */
 .disabled-link {
 opacity: 0.5;
 cursor: not-allowed;
-pointer-events: none !important; /* This is the correct value to disable clicks. */
-}
 
+}
 /* 3. Add blue borders and glow to the monthly cards */
 .card-solo-monthly,
 .card-faction-monthly {
