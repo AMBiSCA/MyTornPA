@@ -41,6 +41,17 @@
     --loginui-modal-shadow: 0 8px 30px rgba(0,0,0,0.75);
     --loginui-modal-subtitle-color: #bbb;
 }
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content-wrapper {
+  flex: 1;
+}
+
 .btn {
     -moz-user-select: none;
     -webkit-user-select: none;
