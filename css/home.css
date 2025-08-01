@@ -422,6 +422,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     display: none !important;
   }
 }
+
+/* Hide the Torn Time and Last active container on mobile */
+  .share-stats-time-container {
+    display: none !important;
+  }
+}
 	
 
 @media (max-width: 580px) {
