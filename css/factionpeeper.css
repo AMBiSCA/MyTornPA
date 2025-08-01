@@ -545,7 +545,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         
         /* NEW: This will make the modal shorter to fit the screen */
         max-height: calc(100vh - 100px) !important;
-        margin-top: 94px !important;
+        margin-top: 93px !important;
     }
 
     /* Table Styles */
