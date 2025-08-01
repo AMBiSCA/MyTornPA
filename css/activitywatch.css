@@ -472,6 +472,11 @@ ul li:last-child { border-bottom: none; }
     flex-wrap: wrap;
 }
 
+.control-grid-item {
+    flex: 1 1 45%; /* This tells each item to take up about half the space */
+    box-sizing: border-box;
+}
+
     .control-grid-item label { text-align: left; }
     
     .control-grid-item input[type="text"],
