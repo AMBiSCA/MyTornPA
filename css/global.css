@@ -1816,7 +1816,7 @@ input:checked + .slider:before {
         
         /* Force hide scrollbars across browsers for html and body */
         -ms-overflow-style: none !important;  /* For Internet Explorer and Edge */
-        scrollbar-width: none !important;     /* For Firefox */
+        scrollbar-width: none !important;      /* For Firefox */
     }
 
     /* Force hide Webkit scrollbars for html and body */
@@ -1835,12 +1835,12 @@ input:checked + .slider:before {
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
         position: fixed !important; /* Forces header to stay fixed at the top */
-        top: 0 !important;          /* Aligns it to the top edge */
-        left: 0 !important;         /* Aligns it to the left edge */
-        width: 100% !important;     /* Ensures it spans full width */
-        z-index: 102 !important;    /* Keeps it on top of other content */
+        top: 0 !important;           /* Aligns it to the top edge */
+        left: 0 !important;          /* Aligns it to the left edge */
+        width: 100% !important;      /* Ensures it spans full width */
+        z-index: 102 !important;     /* Keeps it on top of other content */
         
-        height: auto !important;    /* Allow height to adjust based on content */
+        height: auto !important;     /* Allow height to adjust based on content */
         min-height: unset !important; /* Remove fixed min-height if present globally */
         padding-top: 8px !important; /* Top padding within the fixed header itself (adjust to move contents down) */
         padding-bottom: 5px !important; /* Bottom padding within the fixed header itself */
@@ -1857,10 +1857,10 @@ input:checked + .slider:before {
         justify-content: center !important;
         margin-bottom: 0 !important; /* Remove default margins that create space between these elements */
     }
-	
-	#chat-window.keyboard-visible {
-    height: 45vh !important; /* Shrinks the height when keyboard is visible */
-}
+    
+    #chat-window.keyboard-visible {
+        height: 45vh !important; /* Shrinks the height when keyboard is visible */
+    }
 
     /* Specific spacing for MyTornPA and buttons within the header */
     .header-left {
@@ -1935,8 +1935,6 @@ input:checked + .slider:before {
         overflow: visible !important;
     }
 
-
-  
     /* Hide the global footer placeholder that might push content down */
     #globalfooterplaceholder {
         display: none !important;
@@ -2027,17 +2025,44 @@ input:checked + .slider:before {
     z-index: 1000 !important;
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
+    /* ADDED: Flexbox to position the input area at the bottom */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
     #chat-window::-webkit-scrollbar {
         display: none !important;
     }
     
+    /* MODIFIED: This is now the outer container for the tabs and input */
+    .chat-input-area {
+        order: 2; /* Put this section at the bottom */
+        padding: 8px !important;
+        border-top: 1px solid #415a77;
+        flex-shrink: 0;
+        /* ADDED: The key change to make it a flex container to stack items */
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* MODIFIED: The tabs container is now a direct child of the new flex container */
     .chat-main-tabs-container {
-        display: flex !important;
+        /* This container is now nested inside .chat-input-area */
+        order: -1; /* This will make it appear at the top of the .chat-input-area */
+        margin-bottom: 5px; /* Add some space between tabs and the input field */
+        
+        display: none !important; /* Hide by default on mobile */
         flex-wrap: wrap !important;
         justify-content: center !important;
-        padding: 5px !important;
+        padding: 0; /* Remove padding here, handled by margin/gap */
         gap: 5px !important;
+        background-color: transparent !important;
+        border-bottom: none !important;
+    }
+
+    /* ADDED: Show the tab bar when the keyboard is visible */
+    #chat-window.keyboard-visible .chat-main-tabs-container {
+        display: flex !important; /* Make it visible */
     }
 
     #dynamic-tabs-container,
@@ -2072,13 +2097,24 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    .chat-input-area {
-        padding: 8px !important;
+    /* ADDED: New container for the input and send button */
+    .chat-input-row {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Space between input and button */
+        width: 100%;
     }
+
     .chat-text-input {
+        flex-grow: 1;
+        border: 1px solid #778da9;
+        background-color: #e0e1dd;
+        color: #0d1b2a;
         padding: 8px !important;
+        border-radius: 3px;
         font-size: 1em !important;
     }
+
     .chat-send-btn {
         padding: 8px 12px !important;
     }
@@ -2109,7 +2145,6 @@ input:checked + .slider:before {
 
     /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
-
 /* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
 @media (max-width: 480px) {
     .dashboard-grid { grid-template-columns: 1fr !important; }
