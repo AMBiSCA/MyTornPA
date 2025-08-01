@@ -209,12 +209,13 @@
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
     .peeper-tool-container {
-        width: 95% !important;
-        padding: 20px !important;
+        width: 95%;
+        padding: 20px;
         
-        /* FIX: Added !important to force these styles to apply */
-        margin: 0 auto !important; 
-        margin-top: -20px !important; /* Adjust this value to move it up or down */
+        /* FIX: Resetting margins and using a negative top margin to pull it up
+                and center it vertically. You can adjust this value if needed. */
+        margin: 0 auto; 
+        margin-top: -20px; !important /* Adjust this value to move it up or down */
     }
     
     /* Page Title (e.g., "Personal Target Finder") */
@@ -256,12 +257,6 @@
     .image-glow, .image-glow-flipped {
         display: none; /* Hide glow images on smaller screens */
     }
-}
-@media (max-width: 480px) {
-    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
-    .script-title { font-size: 1.6rem; }
-    .battle-stats-box, .faction-search-box { max-width: 95%; }
-    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
 }
 @media (max-width: 480px) {
     .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
