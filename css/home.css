@@ -401,8 +401,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         padding-bottom: 8px !important; /* Slightl padding inside the welcome block */
     }
 }
-
-
 	
 
 @media (max-width: 580px) {
@@ -440,29 +438,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 
   /* Webkit-based browsers (Chrome, Safari) */
-  .homepage-content-wrapper::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/*
- * Fix for homepage mobile scrolling.
- * This overrides a global rule that may be preventing scrolling.
- */
-@media (max-width: 991px) {
-  /* Step 1: Allow scrolling on the page-index body, overriding any global 'overflow: hidden' rule. */
-  body.page-index {
-    overflow-y: auto !important;
-  }
-  
-  /* Step 2: Hide the visual scrollbar on the main content area, but still keep it scrollable. */
-  .homepage-content-wrapper {
-    /* For IE, Edge, and Firefox */
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* For Chrome, Safari, and other Webkit browsers */
   .homepage-content-wrapper::-webkit-scrollbar {
     display: none;
   }
