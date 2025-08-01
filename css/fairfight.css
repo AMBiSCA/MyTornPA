@@ -205,23 +205,26 @@
     overflow-x: hidden; /* Hide horizontal scroll on the table container itself */
 }
 
-/* Responsive Media Queries (Specific to tool containers) */
+//* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
     .peeper-tool-container {
         width: 95%; 
-        /* UPDATED: Removed fixed margin to let content flow better on mobile */
-        margin: 0 auto; 
         padding: 20px;
-		margin-top: 60px;
-		margin-left: 20px;
+        
+        /* FIX: This code will center the container horizontally and vertically
+                by using absolute positioning relative to the viewport. */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0; /* Clear any conflicting margins */
     }
     
     /* Page Title (e.g., "Personal Target Finder") */
     .script-title {
-        font-size: 1.8rem; 
-        /* UPDATED: Removed top margin to tighten the layout */
-        margin-top: 0; 
+        font-size: 1.8rem;  
+        margin-top: 0;  
     }
     
     /* The main description paragraph */
@@ -229,37 +232,40 @@
         margin-bottom: 20px;
     }
     
-    /* Container for Individual and Faction Search Boxes */
     .stats-container {
-        flex-direction: column; 
-        align-items: center; 
-        gap: 25px; 
+        flex-direction: column;  
+        align-items: center;   
+        gap: 25px;   
     }
     
-    /* Styling for Individual and Faction Search Boxes */
-    .battle-stats-box, .faction-search-box { 
-        max-width: 90%; 
-        width: 100%; 
-        min-height: auto; 
+    .battle-stats-box, .faction-search-box {  
+        max-width: 90%;   
+        width: 100%;   
+        min-height: auto;   
     }
     
-    .battle-stats-box p, .faction-search-box p { 
-        min-height: 50px; 
+    .battle-stats-box p, .faction-search-box p {   
+        min-height: 50px;   
     }
     
-    /* Disclaimer text at bottom of container */
     .note {
         text-align: center;
         font-size: 0.9rem;
         color: #f39c12; /* Caution orange */
         padding: 0px;
-        /* UPDATED: Adjusted margin to reduce large gap at the bottom */
-        margin-top: 20px; 
+        margin-top: 20px;  
         margin-bottom: 0;
     }
-    .image-glow, .image-glow-flipped { 
+    
+    .image-glow, .image-glow-flipped {  
         display: none; /* Hide glow images on smaller screens */
-    } 
+    }   
+}
+@media (max-width: 480px) {
+    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
+    .script-title { font-size: 1.6rem; }
+    .battle-stats-box, .faction-search-box { max-width: 95%; }
+    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
 }
 @media (max-width: 480px) {
     .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
