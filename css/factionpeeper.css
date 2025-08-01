@@ -537,54 +537,20 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         font-size: 0.9rem; /* Smaller summary text */
     }
 
-    /* FIX: Corrected Table Styles to make it "snapshot wide" */
-    .modal-table {
-        width: 100%;
-        /* NEW: This forces the table columns to shrink and fit the available width */
-        table-layout: fixed; 
-        border-collapse: collapse;
-        background-color: #1a1a1a;
-    }
+    /* Table Styles */
     .modal-table-container {
-        max-height: calc(90vh - 150px) !important;
-        /* NEW: This ensures there is no horizontal scrolling at all */
-        overflow-x: hidden !important; 
+        /* This rule adds a scrollbar *just* to the table if it's too wide,
+           without breaking the rest of the page. */
+        overflow-x: auto !important;
     }
     .modal-table thead th, 
     .modal-table tbody td {
-        padding: 5px !important; /* Reduced padding on table cells */
-        font-size: 0.7rem !important; /* Smaller text inside the table */
-        
-        /* NEW: This prevents long text from breaking the layout */
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap; 
-    }
-    .modal-table thead th {
-        font-size: 0.8rem !important; /* Keep header font slightly larger */
+        padding: 5px 8px !important; /* Reduced padding on table cells */
+        font-size: 0.75rem !important; /* Smaller text inside the table */
+        white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
     }
 }
 
-/* For even smaller screens, let's make things even more compact */
-@media (max-width: 480px) {
-    .faction-peeper-tool-container {
-        padding: 10px; /* Minimal padding on very small screens */
-    }
-    .script-title {
-        font-size: 1.8rem;
-    }
-    .action-buttons-container .action-btn {
-        min-width: unset;
-        width: 100%;
-    }
-    .modal-content {
-        padding: 10px !important;
-    }
-    .modal-table thead th,
-    .modal-table tbody td {
-        font-size: 0.7rem !important; /* Even smaller font */
-    }
-}
 .image-glow,
     .image-glow-flipped {
         display: none !important;
