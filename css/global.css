@@ -10,6 +10,12 @@ html, body {
     color: #eee; /* Default text color for the whole site */
 }
 
+/* Add this to your global.css file to fix content overlapping with the chatbox and footer */
+body {
+  /* Increase padding-bottom to create space for the fixed chatbox and footer */
+  padding-bottom: 300px !important; /* Adjust this value as needed */
+}
+
 body {
     display: flex;
     flex-direction: column;
