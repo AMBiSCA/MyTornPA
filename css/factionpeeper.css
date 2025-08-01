@@ -522,7 +522,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .faction-peeper-tool-container {
         padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
         width: 95%; /* Ensures the container fits well on most phones */
-		margin-left: -5px !important;
+		margin-left: -3px !important;
     }
 
     /* Modal Styles */
@@ -545,7 +545,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         
         /* NEW: This will make the modal shorter to fit the screen */
         max-height: calc(100vh - 100px) !important;
-        margin-top: 25px !important;
+        margin-top: 65px !important;
     }
 
     /* Table Styles */
