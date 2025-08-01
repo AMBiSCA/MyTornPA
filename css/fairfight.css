@@ -207,14 +207,58 @@
 
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
-    .peeper-tool-container { width: 95%; margin: 20px auto; padding: 20px; }
-    .script-title { font-size: 1.8rem; }
-    .stats-container { flex-direction: column; align-items: center; gap: 25px; }
-    .battle-stats-box, .faction-search-box { max-width: 90%; width: 100%; min-height: auto; }
-    .battle-stats-box p, .faction-search-box p { min-height: 50px; }
-    .image-glow, .image-glow-flipped { display: none; } /* Hide glow images on smaller screens */
+    /* Main Peeper Tool Container - Overall Box */
+    .peeper-tool-container {
+        width: 95%; 
+        /* UPDATED: Removed fixed margin to let content flow better on mobile */
+        margin: 0 auto; 
+        padding: 20px;
+    }
+    
+    /* Page Title (e.g., "Personal Target Finder") */
+    .script-title {
+        font-size: 1.8rem; 
+        /* UPDATED: Removed top margin to tighten the layout */
+        margin-top: 0; 
+    }
+    
+    /* The main description paragraph */
+    .peeper-tool-container p {
+        margin-bottom: 20px;
+    }
+    
+    /* Container for Individual and Faction Search Boxes */
+    .stats-container {
+        flex-direction: column; 
+        align-items: center; 
+        gap: 25px; 
+    }
+    
+    /* Styling for Individual and Faction Search Boxes */
+    .battle-stats-box, .faction-search-box { 
+        max-width: 90%; 
+        width: 100%; 
+        min-height: auto; 
+    }
+    
+    .battle-stats-box p, .faction-search-box p { 
+        min-height: 50px; 
+    }
+    
+    /* Disclaimer text at bottom of container */
+    .note {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #f39c12; /* Caution orange */
+        padding: 0px;
+        /* UPDATED: Adjusted margin to reduce large gap at the bottom */
+        margin-top: 20px; 
+        margin-bottom: 0;
+    }
+    .image-glow, .image-glow-flipped { 
+        display: none; /* Hide glow images on smaller screens */
+    } 
 }
-
 @media (max-width: 480px) {
     .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
     .script-title { font-size: 1.6rem; }
