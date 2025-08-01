@@ -784,7 +784,7 @@ ul li:last-child { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
-    /* Main mobile styles to override desktop layout */
+    /* Main container and layout adjustments for mobile */
     body { padding-top: 0; padding-bottom: 0; }
     header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
@@ -803,7 +803,7 @@ ul li:last-child { border-bottom: none; }
         min-height: unset;
     }
     
-    /* NEW: Tab Container Styling */
+    /* Tabs and overall container styling */
     #mobileTabs {
         display: flex;
         justify-content: space-around;
@@ -846,80 +846,98 @@ ul li:last-child { border-bottom: none; }
         display: flex;
     }
 
-    /* NEW: Layout for the 'Setup' tab content */
-    #setup-tab {
-        flex-direction: column;
-        gap: 15px;
-        padding: 10px;
-    }
-
-    /* NEW: A new flex container to group elements on the same row */
-    .mobile-row-group {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    /* Styles for the input fields and buttons */
+    /* NEW: CSS GRID LAYOUT FOR MOBILE */
     #topControlPanel {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+        grid-template-rows: auto;
+        gap: 15px 10px;
+        padding: 10px;
+        border-bottom: 1px solid rgba(0, 168, 255, 0.4);
     }
-    .control-grid-item {
+
+    /* Positioning of the elements on the grid */
+    #myFactionIDGroup {
+        grid-column: 1 / span 2; /* Spans both columns */
+        grid-row: 1;
+        text-align: center;
+    }
+    #myFactionIDGroup label, #myFactionIDGroup input { text-align: center; }
+
+    #enemyFactionIDGroup {
+        grid-column: 1 / span 2; /* Spans both columns */
+        grid-row: 2;
+        text-align: center;
+    }
+    #enemyFactionIDGroup label, #enemyFactionIDGroup input { text-align: center; }
+
+    #statusGroup {
+        grid-column: 1 / span 2; /* Spans both columns */
+        grid-row: 3;
+        text-align: center;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    /* NEW: Grouping the bottom two lines to be side-by-side */
+    #factionNameGroup {
+        grid-column: 1;
+        grid-row: 4;
+        text-align: center;
+        margin: 0;
+    }
+    #totalMembersGroup {
+        grid-column: 2;
+        grid-row: 4;
+        text-align: center;
+        margin: 0;
+    }
+
+    /* Buttons group below the name and members */
+    #actionButtonsGroup {
+        grid-column: 1 / span 2; /* Spans both columns */
+        grid-row: 5;
         flex-direction: column;
         align-items: center;
-        text-align: center;
-        width: 100%;
+        gap: 10px;
+        margin-top: 10px;
     }
-    .control-grid-item label { text-align: center; }
-    .control-grid-item input, .control-grid-item select, .control-grid-item button {
+
+    /* NEW: Styles for the buttons */
+    .action-btn {
         width: 100%;
-        max-width: 300px; /* Keep elements from getting too wide */
+        max-width: 250px;
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+    
+    /* "Last cycle refresh" and "Stop Running In" lines */
+    #lastRefreshGroup {
+        grid-column: 1;
+        grid-row: 6;
+        text-align: center;
+    }
+    #stopTimerGroup {
+        grid-column: 2;
+        grid-row: 6;
+        text-align: center;
+    }
+
+    .control-grid-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        white-space: nowrap;
+        font-size: 0.95rem;
         box-sizing: border-box;
     }
-
-    /* NEW: Position "Faction Name" and "Total Members" on one line */
-    #factionNameGroup, #totalMembersGroup {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+    .control-grid-item label { text-align: left; }
+    .control-grid-item input[type="text"], .control-grid-item select {
         width: 100%;
-        text-align: left;
-    }
-    #factionNameGroup span, #totalMembersGroup span { text-align: right; }
-    
-    /* NEW: Position "Last cycle refresh" and "Status" on one line */
-    #lastRefreshGroup, #statusGroup {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        text-align: left;
-    }
-
-    /* NEW: Style the buttons to stack cleanly */
-    #actionButtonsGroup {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 300px;
-        gap: 10px;
-        margin: auto;
-    }
-
-    /* NEW: Style the dropdown for "Stop Running In" */
-    #stopTimerGroup {
-        flex-direction: column;
-        align-items: center;
+        max-width: 100%;
+        box-sizing: border-box;
         text-align: center;
-        width: 100%;
-    }
-    #stopTimerGroup select {
-        width: 80%;
+        margin-top: 5px;
     }
 
     /* Charts Grid Area for mobile */
@@ -932,7 +950,6 @@ ul li:last-child { border-bottom: none; }
         height: auto;
         min-height: 250px;
     }
-
     .chart-panel canvas {
         width: 100% !important;
         height: 100% !important;
