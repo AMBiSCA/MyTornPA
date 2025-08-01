@@ -205,7 +205,9 @@ if (clearSelectionsBtn) {
 
 // NEW: Function to export the table data to a CSV file (for mobile)
 function exportTableToCSV(filename) {
-    const table = document.getElementById('results-table'); // Assuming your table has this ID
+    const tableContainer = document.querySelector('.modal-table-container'); // Find the table container
+    const table = tableContainer ? tableContainer.querySelector('table') : null; // Find the table inside the container
+
     if (!table) {
         showMainError("Error: Could not find table to export.");
         return;
