@@ -401,6 +401,38 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         padding-bottom: 8px !important; /* Slightl padding inside the welcome block */
     }
 }
+
+/* New CSS for the Special Notice Modal */
+#mobileNoticeModal .confirmation-modal {
+  max-width: 450px;
+  padding: 25px;
+  text-align: center;
+}
+
+#mobileNoticeModal h3 {
+  color: #ffc107; /* A yellow/gold color for the warning */
+  font-size: 1.4em;
+  margin-top: 0;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+#mobileNoticeModal p {
+  font-size: 0.95em;
+  line-height: 1.4;
+  margin-bottom: 15px;
+}
+
+#mobileNoticeModal .checkbox-label-inline {
+  justify-content: center;
+}
+
+#mobileNoticeModal .confirmation-actions {
+  margin-top: 20px;
+}
 	
 
 @media (max-width: 580px) {
