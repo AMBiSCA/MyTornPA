@@ -463,6 +463,15 @@ ul li:last-child { border-bottom: none; }
     align-items: center;
     justify-content: space-between;
 }
+
+#topControlPanel {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
     .control-grid-item label { text-align: left; }
     
     .control-grid-item input[type="text"],
