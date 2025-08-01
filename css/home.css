@@ -430,3 +430,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     .confirmation-modal { padding: 15px; width: 95%; }
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: hidden !important;
+  }
+}
