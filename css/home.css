@@ -401,6 +401,27 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         padding-bottom: 8px !important; /* Slightl padding inside the welcome block */
     }
 }
+
+/* Hide the Happy stat (it's the 3rd item in the list) */
+  .dashboard-grid .dash-item:nth-child(3) {
+    display: none !important;
+  }
+  
+  /* Hide the Life stat (it's the 4th item in the list) */
+  .dashboard-grid .dash-item:nth-child(4) {
+    display: none !important;
+  }
+  
+  /* Hide the Booster C/D stat (it's the 6th item in the list) */
+  .dashboard-grid .dash-item:nth-child(6) {
+    display: none !important;
+  }
+  
+  /* Hide the Personal Stats checkbox (it's the 9th item in the list) */
+  .dashboard-grid .dash-item:nth-child(9) {
+    display: none !important;
+  }
+}
 	
 
 @media (max-width: 580px) {
