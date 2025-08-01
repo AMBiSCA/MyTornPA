@@ -212,7 +212,7 @@
         width: 95%;
         padding: 20px;
         margin-top: 75px !important; 
-        margin-left: auto !important; /* Set a specific left margin */
+        margin-left: -20px !important; /* Set a specific left margin */
         margin-right: auto !important; /* Pushes the container to the left */
     }
     
