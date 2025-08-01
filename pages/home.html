@@ -1,391 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTornPA - Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTornPA - Home</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/home.css">
 </head>
 <body>
-    <header>
-        <div class="header-left">
-            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-            <div id="trialCountdownContainer" class="trial-countdown-container"></div>
-        </div>
-        <div class="header-center">
-            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-        </div>
-        <div class="header-right-controls">
-            <div class="header-buttons" id="headerButtonsContainer">
-                <button class="btn header-btn" id="headerEditProfileBtn">
-                    <span class="btn-text">Profile:</span>
-                    <span class="btn-icon">⚙️</span>
-                </button>
+    <header>
+        <div class="header-left">
+            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+            <div id="trialCountdownContainer" class="trial-countdown-container"></div>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-buttons" id="headerButtonsContainer">
+                <button class="btn header-btn" id="headerEditProfileBtn">
+                    <span class="btn-text">Profile:</span>
+                    <span class="btn-icon">⚙️</span>
+                </button>
 
-                <div class="dropdown" id="usefulLinksDropdownContainer">
-                    <button class="btn header-btn" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗 🔽 </span>
-                    </button>
-                    <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                    </div>
-                </div>
+                <div class="dropdown" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗 🔽 </span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
 
-                <div class="dropdown" id="headerContactUsContainer">
-                    <button class="btn header-btn" id="headerContactUsBtn">
-                        <span class="btn-text">Contact:</span>
-                        <span class="btn-icon">💬 🔽 </span>
-                    </button>
-                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
-                        <a href="report.html">Report an Issue</a>
-                        <a href="#">Live Chat (Soon™)</a>
-                        <a href="FAQ.html">F.A.Q</a>
-                    </div>
-                </div>
+                <div class="dropdown" id="headerContactUsContainer">
+                    <button class="btn header-btn" id="headerContactUsBtn">
+                        <span class="btn-text">Contact:</span>
+                        <span class="btn-icon">💬 🔽 </span>
+                    </button>
+                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+                        <a href="report.html">Report an Issue</a>
+                        <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a>
+                    </div>
+                </div>
 
-                <button class="btn header-btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span>
-                    <span class="btn-icon">🚪</span>
-                </button>
-            </div>
-        </div>
-    </header>
+                <button class="btn header-btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span>
+                    <span class="btn-icon">🚪</span>
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <div class="homepage-content-wrapper" id="mainHomepageContent">
-        <div class="welcome-block-area styled-container">
-            <h2 id="welcomeMessage">Welcome!</h2>
-            <p id="factionHuddleMessage">Looking for a Faction? Try out Faction Recruitment!</p>
-        </div>
+    <div class="homepage-content-wrapper" id="mainHomepageContent">
+        <div class="welcome-block-area styled-container">
+            <h2 id="welcomeMessage">Welcome!</h2>
+            <p id="factionHuddleMessage">Looking for a Faction? Try out Faction Recruitment!</p>
+        </div>
 
-        <div class="stats-tools-flex-container">
-            <div id="mobile-tab-buttons-container">
-                <button class="tab-button" id="stats-tab-btn" data-tab-id="stats-tab">Stats</button>
-                <button class="tab-button" id="tools-tab-btn" data-tab-id="tools-tab">Tools</button>
-            </div>
+        <div class="stats-tools-flex-container">
+            <div class="stats-column home-section styled-container" id="quickStatsSection">
+                <h3 class="section-title">
+                    📊👤 Your Quick Stats. 👤📊
+                    <span class="collapse-toggle-icon" id="quickStatsToggle"></span> </h3>
+                <div id="quickStatsCollapsibleContent" class="collapsible-content"> <div id="quickStatsContainerBox" class="quick-stats-inner-box">
+                        <div class="dashboard-grid">
+                            <div class="dash-item non-essential-stat"><span class="dash-item-label">Nerve:🧠</span> <span class="value" id="nerveStat">--/--</span></div>
+                            
+                            <div class="dash-item essential-stat"><span class="dash-item-label">Energy:🔋</span> <span class="value" id="energyStat">--/--</span></div>
+                            
+                            <div class="dash-item non-essential-stat"><span class="dash-item-label">Happy:😄</span> <span class="value" id="happyStat">--/--</span></div>
+                            
+                            <div class="dash-item non-essential-stat"><span class="dash-item-label">Life:❤️</span> <span class="value" id="lifeStat">--/--</span></div>
+                            
+                            <div class="dash-item essential-stat"><span class="dash-item-label">Drug C/D:🍁</span> <span class="value" id="drugCooldownStat">OK</span></div>
+                            
+                            <div class="dash-item non-essential-stat"><span class="dash-item-label">Booster C/D:⏱️</span> <span class="value" id="boosterCooldownStat">OK</span></div>
+                            
+                            <div class="dash-item essential-stat"><span class="dash-item-label">Travelling?✈️</span> <span class="value" id="travelStatus">No Data</span></div>
+                            
+                            <div class="dash-item essential-stat"> 
+                                <span class="dash-item-label">Hospital?:🏥</span>
+                                <span class="value" id="hospitalStat">No Data.</span>
+                            </div>
+                            
+                            <div class="dash-item non-essential-stat">
+                                <div class="dashboard-feature-toggle share-faction-stats-toggle">
+                                    <label for="togglePersonalStatsCheckbox" class="dash-item" id="personalStatsLabel" style="cursor:pointer;">
+                                        <input type="checkbox" id="togglePersonalStatsCheckbox" disabled style="margin-right: 8px;"> <span class="dash-item-label">Personal Stats. 🏋️💼</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <label for="shareFactionStatsToggleDashboard"></label>
+                        </div>
+                        <div class="share-stats-time-container non-essential-stat"> 
+                            <div id="tornTimeContainer">TornCityTime : <span id="tornTimePlaceholder">[Time]</span></div>
+                   <p id="lastLogonInfo" class="mobile-hide">Last active: <span id="lastLogonValue">loading...</span></p>
+                        </div>
+                        <div id="quickStatsError" class="error-message-centered non-essential-stat"></div>
+                        <p id="apiKeyMessage" class="api-key-message-centered non-essential-stat">(Full dashboard functionality requires API key integration from your profile setup)</p>
+                    </div>
+                </div> </div> <section class="tools-column home-section styled-container" id="exploreToolsSection">
+                <h2 class="section-title">
+                    🧰🧭 Explore Your Tools.️🧭🧰
+                    <span class="collapse-toggle-icon" id="exploreToolsToggle"></span> </h2>
+                <div id="exploreToolsCollapsibleContent" class="collapsible-content"> <div class="tool-category-section essential-tool-category"> <h4 class="tool-category-header">⭐🔥 Most Popular! 🔥⭐</h4>
+                        <div class="tool-buttons-grid">
+                            <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
+                            <a href="FactionPeeper.html" class="btn tool-item-button member-only">Faction Members Overview</a>
+                            <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor</a>
+                            <a href="tornpas-big-brother.html" class="btn tool-item-button member-only">TornPAs Big Brother</a>
+                            <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub</a>
+                            <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruiment</a>
+                        </div>
+                    </div>
+                    <div class="tool-category-section non-essential-tool-category">
+                        <h4 class="tool-category-header">📈 Player Development. 📊 </h4>
+                        <div class="tool-buttons-grid">
+                            <a href="gymgain.html" class="btn tool-item-button member-only">Character Progression</a>
+                            <a href="merits.html" class="btn tool-item-button">Merit/Honor Tracker</a>
+                            <a href="war_page_hub.html?view=friendly-status" class="btn tool-item-button member-only">Faction BattleStats Overview</a>
+                        </div>
+                    </div>
+                    <div class="tool-category-section non-essential-tool-category">
+                        <h4 class="tool-category-header">👥 Faction Operations. 👥</h4>
+                        <div class="tool-buttons-grid">
+                            <a href="factionpeeper.html" class="btn tool-item-button member-only">Faction Members Overview</a>
+                            <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor</a>
+                            <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub</a>
+							<a href="tornpas-big-brother.html" class="btn tool-item-button member-only">TornPAs Big Brother</a>
+                            <a href="factionoverview.html" class="btn tool-item-button member-only">Faction Financials</a>
+                            <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruitment</a>
+                            <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
+                        </div>
+                    </div>
+                    <div class="tool-category-section non-essential-tool-category">
+                        <h4 class="tool-category-header">⚖️ General Utilities & Market. ⚖️ </h4>
+                        <div class="tool-buttons-grid">
+                            <a href="travel.html" class="btn tool-item-button">Travel Helper</a>
+                            <a href="market-pulse.html" class="btn tool-item-button member-only">Item Market Watcher</a>
+                            <a href="eventcalendar.html" class="btn tool-item-button">Event Calendar</a>
+                        </div>
+                    </div>
+                </div> </section> </div> <div class="modal-overlay-profile" id="profileSetupModal">
+            <div class="modal-profile-setup">
+                <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
+                <h3>Complete Your Profile!</h3>
+                <p class="modal-subtitle">Help us personalize your MyTornPA experience!</p>
 
-            <div id="stats-tab" class="tab-content active-tab-content">
-                <div class="stats-column home-section styled-container" id="quickStatsSection">
-                    <h3 class="section-title">
-                        📊👤 Your Quick Stats. 👤📊
-                        <span class="collapse-toggle-icon" id="quickStatsToggle"></span> 
-                    </h3>
-                    <div id="quickStatsCollapsibleContent" class="collapsible-content"> 
-                        <div id="quickStatsContainerBox" class="quick-stats-inner-box">
-                            <div class="dashboard-grid">
-                                <div class="dash-item non-essential-stat"><span class="dash-item-label">Nerve:🧠</span> <span class="value" id="nerveStat">--/--</span></div>
-                                
-                                <div class="dash-item essential-stat"><span class="dash-item-label">Energy:🔋</span> <span class="value" id="energyStat">--/--</span></div>
-                                
-                                <div class="dash-item non-essential-stat"><span class="dash-item-label">Happy:😄</span> <span class="value" id="happyStat">--/--</span></div>
-                                
-                                <div class="dash-item non-essential-stat"><span class="dash-item-label">Life:❤️</span> <span class="value" id="lifeStat">--/--</span></div>
-                                
-                                <div class="dash-item essential-stat"><span class="dash-item-label">Drug C/D:🍁</span> <span class="value" id="drugCooldownStat">OK</span></div>
-                                
-                                <div class="dash-item non-essential-stat"><span class="dash-item-label">Booster C/D:⏱️</span> <span class="value" id="boosterCooldownStat">OK</span></div>
-                                
-                                <div class="dash-item essential-stat"><span class="dash-item-label">Travelling?✈️</span> <span class="value" id="travelStatus">No Data</span></div>
-                                
-                                <div class="dash-item essential-stat"> 
-                                    <span class="dash-item-label">Hospital?:🏥</span>
-                                    <span class="value" id="hospitalStat">No Data.</span>
-                                </div>
-                                
-                                <div class="dash-item non-essential-stat">
-                                    <div class="dashboard-feature-toggle share-faction-stats-toggle">
-                                        <label for="togglePersonalStatsCheckbox" class="dash-item" id="personalStatsLabel" style="cursor:pointer;">
-                                            <input type="checkbox" id="togglePersonalStatsCheckbox" disabled style="margin-right: 8px;"> <span class="dash-item-label">Personal Stats. 🏋️💼</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <label for="shareFactionStatsToggleDashboard"></label>
-                            </div>
-                            <div class="share-stats-time-container non-essential-stat"> 
-                                <div id="tornTimeContainer">TornCityTime : <span id="tornTimePlaceholder">[Time]</span></div>
-                                <p id="lastLogonInfo" class="mobile-hide">Last active: <span id="lastLogonValue">loading...</span></p>
-                            </div>
-                            <div id="quickStatsError" class="error-message-centered non-essential-stat"></div>
-                            <p id="apiKeyMessage" class="api-key-message-centered non-essential-stat">(Full dashboard functionality requires API key integration from your profile setup)</p>
-                        </div>
-                    </div> 
-                </div>
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="preferredName">Preferred Display Name:</label>
+                        <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
+                        <span class="helper-text name-warning">(Requiered - Max 10 characters. Preferably Torn Name.)</span>
+                        <div class="modal-error-message" id="nameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileSetupProfileId">Your Torn Profile ID:</label>
+                        <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID (e.g., 436324)" autocomplete="off">
+                        <span class="helper-text">(Requiered - Helps Personalize Features - Numeric characters only.)</span>
+                    </div>
+                </div>
 
-            <div id="tools-tab" class="tab-content">
-                <section class="tools-column home-section styled-container" id="exploreToolsSection">
-                    <h2 class="section-title">
-                        🧰🧭 Explore Your Tools.️🧭🧰
-                        <span class="collapse-toggle-icon" id="exploreToolsToggle"></span> 
-                    </h2>
-                    <div id="exploreToolsCollapsibleContent" class="collapsible-content"> 
-                        <div class="tool-category-section essential-tool-category"> 
-                            <h4 class="tool-category-header">⭐🔥 Most Popular! 🔥⭐</h4>
-                            <div class="tool-buttons-grid">
-                                <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
-                                <a href="FactionPeeper.html" class="btn tool-item-button member-only">Faction Members Overview</a>
-                                <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor</a>
-                                <a href="tornpas-big-brother.html" class="btn tool-item-button member-only">TornPAs Big Brother</a>
-                                <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub</a>
-                                <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruiment</a>
-                            </div>
-                        </div>
-                        <div class="tool-category-section non-essential-tool-category">
-                            <h4 class="tool-category-header">📈 Player Development. 📊 </h4>
-                            <div class="tool-buttons-grid">
-                                <a href="gymgain.html" class="btn tool-item-button member-only">Character Progression</a>
-                                <a href="merits.html" class="btn tool-item-button">Merit/Honor Tracker</a>
-                                <a href="war_page_hub.html?view=friendly-status" class="btn tool-item-button member-only">Faction BattleStats Overview</a>
-                            </div>
-                        </div>
-                        <div class="tool-category-section non-essential-tool-category">
-                            <h4 class="tool-category-header">👥 Faction Operations. 👥</h4>
-                            <div class="tool-buttons-grid">
-                                <a href="factionpeeper.html" class="btn tool-item-button member-only">Faction Members Overview</a>
-                                <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor</a>
-                                <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub</a>
-                                <a href="tornpas-big-brother.html" class="btn tool-item-button member-only">TornPAs Big Brother</a>
-                                <a href="factionoverview.html" class="btn tool-item-button member-only">Faction Financials</a>
-                                <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruitment</a>
-                                <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
-                            </div>
-                        </div>
-                        <div class="tool-category-section non-essential-tool-category">
-                            <h4 class="tool-category-header">⚖️ General Utilities & Market. ⚖️ </h4>
-                            <div class="tool-buttons-grid">
-                                <a href="travel.html" class="btn tool-item-button">Travel Helper</a>
-                                <a href="market-pulse.html" class="btn tool-item-button member-only">Item Market Watcher</a>
-                                <a href="eventcalendar.html" class="btn tool-item-button">Event Calendar</a>
-                            </div>
-                        </div>
-                    </div> 
-                </section>
-            </div>
-        </div>
-    </div>
+                <div class="form-row single-column"> <div class="form-group">
+                    <label for="profileSetupApiKey">Torn API Key (Limited Access Requiered.):</label>
+                    <input type="password" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
+                    <span class="helper-text">(Requiered - Enables Richer Data in Tools. <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">How to get?</a>)</span>
+                </div>
+            </div>
 
-    <div class="modal-overlay-profile" id="profileSetupModal">
-        <div class="modal-profile-setup">
-            <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
-            <h3>Complete Your Profile!</h3>
-            <p class="modal-subtitle">Help us personalize your MyTornPA experience!</p>
+            <div class="form-group checkbox-group">
+                <label for="termsAgreementProfileModal" class="checkbox-label-inline">
+                    I have read and agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                    <input type="checkbox" id="termsAgreementProfileModal" name="termsAgreementProfileModal">
+                </label>
+            </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="preferredName">Preferred Display Name:</label>
-                    <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
-                    <span class="helper-text name-warning">(Requiered - Max 10 characters. Preferably Torn Name.)</span>
-                    <div class="modal-error-message" id="nameError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="profileSetupProfileId">Your Torn Profile ID:</label>
-                    <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID (e.g., 436324)" autocomplete="off">
-                    <span class="helper-text">(Requiered - Helps Personalize Features - Numeric characters only.)</span>
-                </div>
-            </div>
+            <div class="modal-error-message" id="profileSetupError"></div>
 
-            <div class="form-row single-column"> 
-                <div class="form-group">
-                    <label for="profileSetupApiKey">Torn API Key (Limited Access Requiered.):</label>
-                    <input type="password" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
-                    <span class="helper-text">(Requiered - Enables Richer Data in Tools. <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">How to get?</a>)</span>
-                </div>
-            </div>
+            <div class="modal-actions">
+                <button id="deleteAccountBtn" class="btn delete-account-btn">Delete Account. 🗑️ </button>
+                <button id="upgradeMembershipBtn" class="btn upgrade-membership-btn">Upgrade Membership! ✨ </button>
+                <button id="saveProfileBtn" class="btn">Save Profile. ✔️ </button>
+            </div>
+        </div>
+    </div>
 
-            <div class="form-group checkbox-group">
-                <label for="termsAgreementProfileModal" class="checkbox-label-inline">
-                    I have read and agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
-                    <input type="checkbox" id="termsAgreementProfileModal" name="termsAgreementProfileModal">
-                </label>
-            </div>
+    <div id="personalStatsModal" class="modal-overlay">
+        <div class="modal-content-box">
+            <span class="modal-close-button" id="closePersonalStatsDialogBtn">&times;</span>
+            <div id="personalStatsModalBody">
+                <p>Loading stats...</p>
+            </div>
+        </div>
+    </div>
 
-            <div class="modal-error-message" id="profileSetupError"></div>
+    <div class="modal-overlay" id="membershipOptionsModal">
+        <div class="modal-content-box membership-modal">
+            <span class="modal-close-button" id="closeMembershipOptionsBtn">&times;</span>
+            <h3>Choose Your Membership!</h3>
+            <p class="modal-subtitle">Unlock advanced features and support MyTornPA.</p>
 
-            <div class="modal-actions">
-                <button id="deleteAccountBtn" class="btn delete-account-btn">Delete Account. 🗑️ </button>
-                <button id="upgradeMembershipBtn" class="btn upgrade-membership-btn">Upgrade Membership! ✨ </button>
-                <button id="saveProfileBtn" class="btn">Save Profile. ✔️ </button>
-            </div>
-        </div>
-    </div>
+            <div class="membership-options-grid">
+                <div class="membership-option-card free-trial-card card-free-trial">
+                    <h4>🚀 1 Week Free Trial</h4>
+                    <p>Experience all features, no commitment!</p>
+                    <button class="btn membership-select-btn" id="startFreeTrialBtn">Start Your Free Trial</button>
+                </div>
 
-    <div id="personalStatsModal" class="modal-overlay">
-        <div class="modal-content-box">
-            <span class="modal-close-button" id="closePersonalStatsDialogBtn">&times;</span>
-            <div id="personalStatsModalBody">
-                <p>Loading stats...</p>
-            </div>
-        </div>
-    </div>
+                <div class="membership-option-card solo-membership-card card-solo-monthly">
+                    <h4>💎 Individual Monthly Membership.</h4>
+                    <div class="payment-instructions">
+                        <p><strong>To activate, send these items in-game:</strong></p>
+                        <ol>
+                            <li><strong>Item:</strong> Xanax</li>
+                            <li><strong>Amount:</strong> 15 (exactly)</li>
+                            <li><strong>To:</strong>
+                                <span id="player-to-copy-solo-month">AMBiSCA [2662550]</span>
+                                <button class="copy-btn" data-copy-target="player-to-copy-solo-month">Copy</button>
+                            </li>
+                        </ol>
+                    </div>
+                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                </div>
 
-    <div class="modal-overlay" id="membershipOptionsModal">
-        <div class="modal-content-box membership-modal">
-            <span class="modal-close-button" id="closeMembershipOptionsBtn">&times;</span>
-            <h3>Choose Your Membership!</h3>
-            <p class="modal-subtitle">Unlock advanced features and support MyTornPA.</p>
+                <div class="membership-option-card yearly-membership-card card-solo-yearly">
+                    <h4>🌟 Individual Yearly Membership.</h4>
+                    <div class="payment-instructions">
+                        <p><strong>Save 30 Xanax per year!</strong></p>
+                        <ol>
+                            <li><strong>Item:</strong> Xanax</li>
+                            <li><strong>Amount:</strong> 150 (exactly)</li>
+                            <li><strong>To:</strong>
+                                <span id="player-to-copy-solo-year">AMBiSCA [2662550]</span>
+                                <button class="copy-btn" data-copy-target="player-to-copy-solo-year">Copy</button>
+                            </li>
+                        </ol>
+                    </div>
+                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                </div>
 
-            <div class="membership-options-grid">
-                <div class="membership-option-card free-trial-card card-free-trial">
-                    <h4>🚀 1 Week Free Trial</h4>
-                    <p>Experience all features, no commitment!</p>
-                    <button class="btn membership-select-btn" id="startFreeTrialBtn">Start Your Free Trial</button>
-                </div>
+                <div class="membership-option-card card-faction-monthly">
+                    <h4>👥 Faction Monthly Membership.</h4>
+                    <div class="payment-instructions">
+                        <p><strong>For you and your entire faction!</strong></p>
+                        <p class="faction-warning-text">( Must be Leader or Co-Leader! )</p>
+                        <ol>
+                            <li><strong>Item:</strong> Xanax</li>
+                            <li><strong>Amount:</strong> 40 (exactly)</li>
+                            <li><strong>To:</strong>
+                                <span id="player-to-copy-faction-month">AMBiSCA [2662550]</span>
+                                <button class="copy-btn" data-copy-target="player-to-copy-faction-month">Copy</button>
+                            </li>
+                        </ol>
+                    </div>
+                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                </div>
 
-                <div class="membership-option-card solo-membership-card card-solo-monthly">
-                    <h4>💎 Individual Monthly Membership.</h4>
-                    <div class="payment-instructions">
-                        <p><strong>To activate, send these items in-game:</strong></p>
-                        <ol>
-                            <li><strong>Item:</strong> Xanax</li>
-                            <li><strong>Amount:</strong> 15 (exactly)</li>
-                            <li><strong>To:</strong>
-                                <span id="player-to-copy-solo-month">AMBiSCA [2662550]</span>
-                                <button class="copy-btn" data-copy-target="player-to-copy-solo-month">Copy</button>
-                            </li>
-                        </ol>
-                    </div>
-                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
-                </div>
+                <div class="membership-option-card yearly-membership-card card-faction-yearly">
+                    <h4>🌟 Faction Yearly Membership.</h4>
+                    <div class="payment-instructions">
+                        <p><strong>Save 80 Xanax per year!</strong></p>
+                        <ol>
+                            <li><strong>Item:</strong> Xanax</li>
+                            <li><strong>Amount:</strong> 400 (exactly)</li>
+                            <li><strong>To:</strong>
+                                <span id="player-to-copy-faction-year">AMBiSCA [2662550]</span>
+                                <button class="copy-btn" data-copy-target="player-to-copy-faction-year">Copy</button>
+                            </li>
+                        </ol>
+                    </div>
+                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                </div>
+            </div>
 
-                <div class="membership-option-card yearly-membership-card card-solo-yearly">
-                    <h4>🌟 Individual Yearly Membership.</h4>
-                    <div class="payment-instructions">
-                        <p><strong>Save 30 Xanax per year!</strong></p>
-                        <ol>
-                            <li><strong>Item:</strong> Xanax</li>
-                            <li><strong>Amount:</strong> 150 (exactly)</li>
-                            <li><strong>To:</strong>
-                                <span id="player-to-copy-solo-year">AMBiSCA [2662550]</span>
-                                <button class="copy-btn" data-copy-target="player-to-copy-solo-year">Copy</button>
-                            </li>
-                        </ol>
-                    </div>
-                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
-                </div>
+            <div class="modal-error-message" id="membershipOptionsError"></div>
+        </div>
+    </div>
 
-                <div class="membership-option-card card-faction-monthly">
-                    <h4>👥 Faction Monthly Membership.</h4>
-                    <div class="payment-instructions">
-                        <p><strong>For you and your entire faction!</strong></p>
-                        <p class="faction-warning-text">( Must be Leader or Co-Leader! )</p>
-                        <ol>
-                            <li><strong>Item:</strong> Xanax</li>
-                            <li><strong>Amount:</strong> 40 (exactly)</li>
-                            <li><strong>To:</strong>
-                                <span id="player-to-copy-faction-month">AMBiSCA [2662550]</span>
-                                <button class="copy-btn" data-copy-target="player-to-copy-faction-month">Copy</button>
-                            </li>
-                        </ol>
-                    </div>
-                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
-                </div>
+    <div class="modal-overlay" id="freeTrialConfirmationModal">
+        <div class="modal-content-box confirmation-modal">
+            <span class="modal-close-button" id="closeFreeTrialConfirmationBtn">&times;</span>
+            <h3>Confirm Free Trial Activation</h3>
+            <p>Are you sure you want to start your 1-week free trial?</p>
+            <div class="confirmation-actions">
+                <button id="confirmFreeTrialYesBtn" class="btn btn-confirm-yes">Yes</button>
+                <button id="confirmFreeTrialNoBtn" class="btn btn-confirm-no">No</button>
+            </div>
+            <div class="modal-error-message" id="freeTrialConfirmationError"></div>
+        </div>
+    </div>
 
-                <div class="membership-option-card yearly-membership-card card-faction-yearly">
-                    <h4>🌟 Faction Yearly Membership.</h4>
-                    <div class="payment-instructions">
-                        <p><strong>Save 80 Xanax per year!</strong></p>
-                        <ol>
-                            <li><strong>Item:</strong> Xanax</li>
-                            <li><strong>Amount:</strong> 400 (exactly)</li>
-                            <li><strong>To:</strong>
-                                <span id="player-to-copy-faction-year">AMBiSCA [2662550]</span>
-                                <button class="copy-btn" data-copy-target="player-to-copy-faction-year">Copy</button>
-                            </li>
-                        </ol>
-                    </div>
-                    <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
-                </div>
-            </div>
+    <div class="modal-overlay" id="subscribePromptModal">
+        <div class="modal-content-box confirmation-modal">
+            <span class="modal-close-button" id="closeSubscribePromptBtn">&times;</span>
+            <h3><span class="btn-icon">💎</span> Membership Required! 💎</h3>
+            <p>To access this feature, a Solo or Faction membership is required.</p>
+            <p style="font-size: 0.9em; color: #ccc;">Please choose a plan from your profile settings.</p>
+            <div class="confirmation-actions">
+                <button id="goToProfileBtn" class="btn membership-select-btn">View Memberships</button>
+                <button id="closeSubscribeModalBtn" class="btn btn-confirm-no">Close</button>
+            </div>
+        </div>
+    </div>
 
-            <div class="modal-error-message" id="membershipOptionsError"></div>
-        </div>
-    </div>
+    <div class="modal-overlay" id="termsPromptModal" style="display: none;">
+        <div class="modal-content-box confirmation-modal">
+            <span class="modal-close-button" id="closeTermsPromptBtn">&times;</span>
+            <h3><span class="btn-icon">📜</span> Agreement Required</h3>
+            <p>To access our tools, you must first agree to the Terms of Service and Privacy Policy.</p>
+            <p style="font-size: 0.9em; color: #ccc;">You can do this in your profile settings.</p>
+            <div class="confirmation-actions">
+                <button id="goToProfileFromTermsPromptBtn" class="btn membership-select-btn">Open Profile Settings</button>
+                <button id="closeTermsModalBtn" class="btn btn-confirm-no">Close</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal-overlay" id="freeTrialConfirmationModal">
-        <div class="modal-content-box confirmation-modal">
-            <span class="modal-close-button" id="closeFreeTrialConfirmationBtn">&times;</span>
-            <h3>Confirm Free Trial Activation</h3>
-            <p>Are you sure you want to start your 1-week free trial?</p>
-            <div class="confirmation-actions">
-                <button id="confirmFreeTrialYesBtn" class="btn btn-confirm-yes">Yes</button>
-                <button id="confirmFreeTrialNoBtn" class="btn btn-confirm-no">No</button>
-            </div>
-            <div class="modal-error-message" id="freeTrialConfirmationError"></div>
-        </div>
-    </div>
+    <div class="modal-overlay" id="factionWarningModal">
+        <div class="modal-content-box confirmation-modal">
+            <span class="modal-close-button" id="closeFactionWarningBtn">&times;</span>
+            <h3>⚠️ Faction Membership Confirmation</h3>
+            <p>Please confirm that you are a Leader or Co-Leader of your faction. Activating this will grant membership to your **entire faction**.</p>
+            <div class="confirmation-actions">
+                <a href="https://www.torn.com/item.php" target="_blank" id="confirmFactionPurchaseBtn" class="btn membership-select-btn">Continue to Torn</a>
+                <button id="cancelFactionPurchaseBtn" class="btn btn-confirm-no">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal-overlay" id="subscribePromptModal">
-        <div class="modal-content-box confirmation-modal">
-            <span class="modal-close-button" id="closeSubscribePromptBtn">&times;</span>
-            <h3><span class="btn-icon">💎</span> Membership Required! 💎</h3>
-            <p>To access this feature, a Solo or Faction membership is required.</p>
-            <p style="font-size: 0.9em; color: #ccc;">Please choose a plan from your profile settings.</p>
-            <div class="confirmation-actions">
-                <button id="goToProfileBtn" class="btn membership-select-btn">View Memberships</button>
-                <button id="closeSubscribeModalBtn" class="btn btn-confirm-no">Close</button>
-            </div>
-        </div>
-    </div>
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
 
-    <div class="modal-overlay" id="termsPromptModal" style="display: none;">
-        <div class="modal-content-box confirmation-modal">
-            <span class="modal-close-button" id="closeTermsPromptBtn">&times;</span>
-            <h3><span class="btn-icon">📜</span> Agreement Required</h3>
-            <p>To access our tools, you must first agree to the Terms of Service and Privacy Policy.</p>
-            <p style="font-size: 0.9em; color: #ccc;">You can do this in your profile settings.</p>
-            <div class="confirmation-actions">
-                <button id="goToProfileFromTermsPromptBtn" class="btn membership-select-btn">Open Profile Settings</button>
-                <button id="closeTermsModalBtn" class="btn btn-confirm-no">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="factionWarningModal">
-        <div class="modal-content-box confirmation-modal">
-            <span class="modal-close-button" id="closeFactionWarningBtn">&times;</span>
-            <h3>⚠️ Faction Membership Confirmation</h3>
-            <p>Please confirm that you are a Leader or Co-Leader of your faction. Activating this will grant membership to your **entire faction**.</p>
-            <div class="confirmation-actions">
-                <a href="https://www.torn.com/item.php" target="_blank" id="confirmFactionPurchaseBtn" class="btn membership-select-btn">Continue to Torn</a>
-                <button id="cancelFactionPurchaseBtn" class="btn btn-confirm-no">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="home.html" id="homeButtonFooter">Home</a>
-            <a href="FAQ.html">F.A.Q</a>
-            <a href="Terms.html">Disclaimer & Terms</a>
-            <a href="report.html">Report an Issue</a>
-            <a href="about.html">About Us</a>
-            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-        </div>
-        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-    </footer>
-
-    <div id="chat-system-placeholder"></div>
-    <script src="../js/firebase-init.js"></script>
-    <script src="../js/globalheader.js"></script>
-    <script src="../js/global.js"></script>
-    <script src="../js/home.js"></script>
+    <div id="chat-system-placeholder"></div>
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/home.js"></script>
 </body>
 </html>
