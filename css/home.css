@@ -41,14 +41,17 @@
     width: 100%;
 }
 .stats-column {
-    align-self: flex-start; border: 1px solid #00a8ff; border-radius: 8px; box-sizing: border-box;
-    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35); display: flex; flex: 1 1 500px;
-    flex-direction: column; min-width: 300px; padding: 15px;
+    /* These styles will be overridden on desktop to move them to the parent div */
+    align-self: flex-start; 
+    display: flex; 
+    flex-direction: column; 
+    min-width: 300px; 
 }
 .tools-column {
-    border: 1px solid #00a8ff; border-radius: 8px; box-sizing: border-box;
-    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35); display: flex; flex: 2 1 60%;
-    flex-direction: column; min-width: 300px; padding: 15px;
+    /* These styles will be overridden on desktop to move them to the parent div */
+    display: flex; 
+    flex-direction: column; 
+    min-width: 300px; 
 }
 .stats-column .section-title, .tools-column .section-title {
     border-bottom: 1px solid #00a8ff; color: #8ab4f8; font-size: 1.3em;
@@ -365,26 +368,35 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         width: 100%;
     }
 
-    /* Ensure the tab content panels are also flex containers on desktop to allow inner elements to lay out properly */
+    /* Apply the main card styling to the tab containers on desktop */
     #stats-tab, #tools-tab {
-        display: flex !important; /* Use !important to ensure this overrides the mobile rule */
-        flex-direction: row;
-        width: auto;
-    }
-
-    /* Re-establish the original flex-grow proportions for the columns */
-    #stats-tab {
+        border: 1px solid #00a8ff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
+        padding: 15px; /* Also apply the original padding */
+        
+        /* Re-establish the original flex-grow proportions */
         flex: 1 1 500px;
+        
+        /* Ensure these are flex containers for their children */
+        display: flex !important; /* Use !important to ensure this overrides the mobile rule */
+        flex-direction: column;
+        width: auto;
     }
     #tools-tab {
         flex: 2 1 60%;
     }
 
-    /* Make sure the inner columns are visible and take up space */
-    #quickStatsSection, #exploreToolsSection {
-        display: flex;
-        /* The original styles on these classes will still apply, so they should look correct. */
+    /* Now, reset the inner columns to remove their duplicate styling */
+    #quickStatsSection,
+    #exploreToolsSection {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 0;
+        margin-bottom: 0;
     }
+    
 }
 
 /* Mobile Styles (max-width: 768px) */
