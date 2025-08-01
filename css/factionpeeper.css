@@ -536,6 +536,16 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .modal-summary {
         font-size: 0.9rem; /* Smaller summary text */
     }
+	
+	 .modal-content {
+        width: 95% !important; /* Makes the modal itself narrower */
+        max-width: 100% !important; /* Ensures it never goes off screen */
+        padding: 15px !important; /* Reduces padding inside the modal */
+        
+        /* NEW: This will make the modal shorter to fit the screen */
+        max-height: calc(100vh - 100px) !important;
+        margin-top: 20px !important;
+    }
 
     /* Table Styles */
     .modal-table-container {
