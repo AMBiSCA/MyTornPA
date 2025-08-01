@@ -13,7 +13,7 @@ html, body {
 /* Add this to your global.css file to fix content overlapping with the chatbox and footer */
 body {
   /* Increase padding-bottom to create space for the fixed chatbox and footer */
-  padding-bottom: 300px !important; /* Adjust this value as needed */
+  padding-bottom: 600px !important; /* Adjust this value as needed */
 }
 
 body {

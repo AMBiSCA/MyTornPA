@@ -1,5 +1,12 @@
 /* home.css: Specific Styles for the Homepage */
 
+/* Add this to your global.css file to fix content overlapping with the chatbox and footer */
+body {
+  /* Increase padding-bottom to create space for the fixed chatbox and footer */
+  padding-bottom: 600px !important; /* Adjust this value as needed */
+}
+
+
 /* Tool Section Styles */
 .tool-category-section { margin-bottom: 8px; width: 100%; }
 .tool-category-header {
