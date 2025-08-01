@@ -1,2 +1,7 @@
 [functions]
   directory = "netlify-functions"
+  
+  [[redirects]]
+  from = "/__/auth/handler"
+  to = "https://mytorn-d03ae.firebaseapp.com/__/auth/handler"
+  status = 200
