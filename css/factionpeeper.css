@@ -551,6 +551,11 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
+.image-glow,
+    .image-glow-flipped {
+        display: none !important;
+    }
+
 /* For even smaller screens, let's make things even more compact */
 @media (max-width: 480px) {
     .faction-peeper-tool-container {
