@@ -516,3 +516,58 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     background-color: #333333;
     color: #00c0ff;
 }
+
+@media (max-width: 768px) {
+    /* Main Faction Tool Container */
+    .faction-peeper-tool-container {
+        padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
+        width: 95%; /* Ensures the container fits well on most phones */
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        width: 95% !important; /* Makes the modal itself narrower */
+        max-width: 100% !important; /* Ensures it never goes off screen */
+        padding: 15px !important; /* Reduces padding inside the modal */
+    }
+    .modal-title {
+        font-size: 1.5rem; /* Smaller title font size for mobile */
+    }
+    .modal-summary {
+        font-size: 0.9rem; /* Smaller summary text */
+    }
+
+    /* Table Styles */
+    .modal-table-container {
+        /* This rule adds a scrollbar *just* to the table if it's too wide,
+           without breaking the rest of the page. */
+        overflow-x: auto !important;
+    }
+    .modal-table thead th, 
+    .modal-table tbody td {
+        padding: 5px 8px !important; /* Reduced padding on table cells */
+        font-size: 0.75rem !important; /* Smaller text inside the table */
+        white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
+    }
+}
+
+/* For even smaller screens, let's make things even more compact */
+@media (max-width: 480px) {
+    .faction-peeper-tool-container {
+        padding: 10px; /* Minimal padding on very small screens */
+    }
+    .script-title {
+        font-size: 1.8rem;
+    }
+    .action-buttons-container .action-btn {
+        min-width: unset;
+        width: 100%;
+    }
+    .modal-content {
+        padding: 10px !important;
+    }
+    .modal-table thead th,
+    .modal-table tbody td {
+        font-size: 0.7rem !important; /* Even smaller font */
+    }
+}
