@@ -32,14 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const factionNameDisplay = document.getElementById('factionNameDisplay');
     const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
     
-    // NEW: Tab DOM elements
+    // Original page containers we need to reorganize
     const activityPeeperContainer = document.getElementById('activityPeeperContainer');
-    const setupTabContent = document.getElementById('setup-tab');
-    const overallTabContent = document.getElementById('overall-tab');
-    const individualsTabContent = document.getElementById('individuals-tab');
     const topControlPanel = document.getElementById('topControlPanel');
     const chartsGridArea = document.getElementById('chartsGridArea');
-
 
     // --- 2. Global Variables & State ---
     let rawActivityChartInstance = null;
@@ -54,43 +50,61 @@ document.addEventListener('DOMContentLoaded', function() {
     let historicalData = [];
     const SKIP_CONFIRM_KEY = 'skipClearConfirmation';
 
-    // --- NEW: Dynamic Mobile Tabs Functionality ---
-    function setupMobileTabs() {
-        if (!activityPeeperContainer || !setupTabContent || !overallTabContent || !individualsTabContent) {
-            console.error("Missing container elements for mobile tabs.");
+
+    // --- NEW: Dynamic Content Reorganization for Mobile ---
+    function reorganizeContentForMobile() {
+        if (!activityPeeperContainer || !topControlPanel || !chartsGridArea) {
+            console.error("Missing core container elements for reorganization.");
             return;
         }
 
-        // Create the buttons container and append it
+        // 1. Create the mobile tabs container and buttons
         const tabButtonsContainer = document.createElement('div');
         tabButtonsContainer.id = 'mobileTabs';
         tabButtonsContainer.className = 'mobile-tabs-container';
         activityPeeperContainer.prepend(tabButtonsContainer);
 
-        const tabButtons = {
-            setup: createTabButton('Setup', 'setup-tab'),
-            overall: createTabButton('Overall', 'overall-tab'),
-            individuals: createTabButton('Individuals', 'individuals-tab')
-        };
-        tabButtonsContainer.appendChild(tabButtons.setup);
-        tabButtonsContainer.appendChild(tabButtons.overall);
-        tabButtonsContainer.appendChild(tabButtons.individuals);
+        const setupButton = createTabButton('Setup', 'setup-tab');
+        const overallButton = createTabButton('Overall', 'overall-tab');
+        const individualsButton = createTabButton('Individuals', 'individuals-tab');
+        tabButtonsContainer.appendChild(setupButton);
+        tabButtonsContainer.appendChild(overallButton);
+        tabButtonsContainer.appendChild(individualsButton);
 
-        // Put the original elements into their correct tab content wrappers
-        // The HTML you provided already has the content in the right places,
-        // so we just need to ensure the container is set up correctly.
-        // We'll leave the HTML structure as-is since you already updated it.
+        // 2. Create the tab content containers
+        const setupContent = createTabContent('setup-tab');
+        const overallContent = createTabContent('overall-tab');
+        const individualsContent = createTabContent('individuals-tab');
+        activityPeeperContainer.appendChild(setupContent);
+        activityPeeperContainer.appendChild(overallContent);
+        activityPeeperContainer.appendChild(individualsContent);
+        
+        // 3. Move the existing content into the new containers
+        setupContent.appendChild(topControlPanel);
+        
+        const overallCharts = [
+            document.getElementById('rawActivityChart').parentNode,
+            document.getElementById('activityDifferenceChart').parentNode
+        ];
+        overallCharts.forEach(chartPanel => overallContent.appendChild(chartPanel));
+        
+        const individualCharts = [
+            document.getElementById('myFactionIndividualsChart').parentNode,
+            document.getElementById('enemyFactionIndividualsChart').parentNode
+        ];
+        individualCharts.forEach(chartPanel => individualsContent.appendChild(chartPanel));
 
-        // Add a click handler to all buttons
-        Object.values(tabButtons).forEach(button => {
+        // 4. Add click handlers to the new tabs
+        const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
+        const allContents = activityPeeperContainer.querySelectorAll('.tab-content');
+        
+        allButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetTabId = button.dataset.tab;
-                const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
-                const allContents = document.querySelectorAll('.tab-content');
                 
                 allButtons.forEach(btn => btn.classList.remove('active'));
                 allContents.forEach(content => content.classList.remove('active'));
-
+                
                 button.classList.add('active');
                 const targetContent = document.getElementById(targetTabId);
                 if (targetContent) {
@@ -100,7 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Set the initial active tab
-        tabButtons.setup.click();
+        setupButton.classList.add('active');
+        setupContent.classList.add('active');
     }
 
     function createTabButton(text, targetId) {
@@ -110,12 +125,19 @@ document.addEventListener('DOMContentLoaded', function() {
         button.dataset.tab = targetId;
         return button;
     }
-
-    // Call this function on mobile only
-    if (window.innerWidth <= 768) {
-        setupMobileTabs();
+    
+    function createTabContent(id) {
+        const content = document.createElement('div');
+        content.id = id;
+        content.className = 'tab-content';
+        return content;
     }
-    // --- END NEW: Dynamic Mobile Tabs Functionality ---
+
+    // Check if on a mobile screen to run the reorganization
+    if (window.innerWidth <= 768) {
+        reorganizeContentForMobile();
+    }
+    // --- END NEW: Dynamic Content Reorganization for Mobile ---
 
 
     function saveSessionState(state) {
@@ -1109,3 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
+
+// Please note that this version of the file does not include the functions that were commented out
+// in your previous provided file for brevity. It is assumed they are not necessary for the
+// functionality you are currently working on.
