@@ -19,6 +19,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+ const mobileTabButtonsContainer = document.getElementById('mobile-tab-buttons-container');
+    const tabPanels = document.querySelectorAll('.tab-content');
+
+    if (mobileTabButtonsContainer && tabPanels.length > 0) {
+        // Set the initial active tab and content on load
+        const statsTabBtn = document.getElementById('stats-tab-btn');
+        if (statsTabBtn) {
+            statsTabBtn.classList.add('active-tab');
+            document.getElementById('stats-tab').classList.add('active-tab-content');
+        }
+
+        mobileTabButtonsContainer.addEventListener('click', function(event) {
+            const clickedButton = event.target.closest('.tab-button');
+            if (!clickedButton) return;
+
+            const tabIdToShow = clickedButton.getAttribute('data-tab-id');
+
+            // Deactivate all buttons and content panels
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active-tab'));
+            tabPanels.forEach(panel => panel.classList.remove('active-tab-content'));
+
+            // Activate the clicked button and its corresponding content panel
+            clickedButton.classList.add('active-tab');
+            document.getElementById(tabIdToShow).classList.add('active-tab-content');
+        });
+    }
+
     let db = null;
     let auth = null;
 
