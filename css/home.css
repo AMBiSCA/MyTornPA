@@ -433,6 +433,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 
 @media (max-width: 768px) {
   .homepage-content-wrapper {
-    overflow-y: hidden !important;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Webkit-based browsers (Chrome, Safari) */
+  .homepage-content-wrapper::-webkit-scrollbar {
+    display: none;
   }
 }
