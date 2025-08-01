@@ -427,6 +427,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     display: none !important;
   }
 }
+
+  .non-essential-tool-category {
+    display: none !important;
+  }
+}
+
 @media (max-width: 580px) {
     .membership-options-grid {
         gap: 15px;
