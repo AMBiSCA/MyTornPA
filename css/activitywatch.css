@@ -784,7 +784,7 @@ ul li:last-child { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
-    /* Main container and layout adjustments for mobile */
+    /* Main mobile styles to override desktop layout */
     body { padding-top: 0; padding-bottom: 0; }
     header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
@@ -805,7 +805,7 @@ ul li:last-child { border-bottom: none; }
     
     /* Tabs and overall container styling */
     #mobileTabs {
-        display: flex;
+        display: flex !important;
         justify-content: space-around;
         gap: 5px;
         background-color: #1a1a1a;
@@ -846,83 +846,90 @@ ul li:last-child { border-bottom: none; }
         display: flex;
     }
 
-    /* NEW: CSS GRID LAYOUT FOR MOBILE */
+    /* NEW: FOOLPROOF CSS GRID LAYOUT FOR MOBILE */
     #topControlPanel {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Two equal-width columns */
-        grid-template-rows: auto;
-        gap: 15px 10px;
-        padding: 10px;
+        display: grid !important; /* Force the grid layout to be applied */
+        grid-template-columns: 1fr 1fr !important; /* Two equal-width columns */
+        grid-template-rows: auto !important;
+        gap: 15px 10px !important;
+        padding: 10px !important;
         border-bottom: 1px solid rgba(0, 168, 255, 0.4);
     }
 
     /* Positioning of the elements on the grid */
     #myFactionIDGroup {
-        grid-column: 1 / span 2; /* Spans both columns */
-        grid-row: 1;
+        grid-column: 1 / span 2 !important; /* Spans both columns */
+        grid-row: 1 !important;
         text-align: center;
     }
     #myFactionIDGroup label, #myFactionIDGroup input { text-align: center; }
 
     #enemyFactionIDGroup {
-        grid-column: 1 / span 2; /* Spans both columns */
-        grid-row: 2;
+        grid-column: 1 / span 2 !important; /* Spans both columns */
+        grid-row: 2 !important;
         text-align: center;
     }
     #enemyFactionIDGroup label, #enemyFactionIDGroup input { text-align: center; }
 
     #statusGroup {
-        grid-column: 1 / span 2; /* Spans both columns */
-        grid-row: 3;
-        text-align: center;
-        flex-direction: column;
-        gap: 5px;
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 5px !important;
+    }
+    #lastRefreshGroup {
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 5px !important;
     }
 
-    /* NEW: Grouping the bottom two lines to be side-by-side */
     #factionNameGroup {
-        grid-column: 1;
-        grid-row: 4;
-        text-align: center;
-        margin: 0;
+        grid-column: 1 !important;
+        grid-row: 4 !important;
+        text-align: center !important;
+        margin: 0 !important;
     }
     #totalMembersGroup {
-        grid-column: 2;
-        grid-row: 4;
-        text-align: center;
-        margin: 0;
+        grid-column: 2 !important;
+        grid-row: 4 !important;
+        text-align: center !important;
+        margin: 0 !important;
     }
 
-    /* Buttons group below the name and members */
     #actionButtonsGroup {
-        grid-column: 1 / span 2; /* Spans both columns */
-        grid-row: 5;
+        grid-column: 1 / span 2 !important; /* Spans both columns */
+        grid-row: 5 !important;
         flex-direction: column;
         align-items: center;
         gap: 10px;
         margin-top: 10px;
     }
 
-    /* NEW: Styles for the buttons */
-    .action-btn {
-        width: 100%;
-        max-width: 250px;
-        font-size: 1rem;
-        padding: 10px 15px;
-    }
-    
-    /* "Last cycle refresh" and "Stop Running In" lines */
-    #lastRefreshGroup {
-        grid-column: 1;
-        grid-row: 6;
-        text-align: center;
+    /* NEW: Style the dropdowns for comparing individuals and stop timer */
+    #compareIndividualsGroup {
+        grid-column: 1 / span 2 !important;
+        grid-row: 6 !important;
+        text-align: center !important;
     }
     #stopTimerGroup {
-        grid-column: 2;
-        grid-row: 6;
-        text-align: center;
+        grid-column: 1 / span 2 !important;
+        grid-row: 7 !important;
+        text-align: center !important;
+    }
+    #compareUser1, #compareUser2, #stopTimerHours {
+        width: 80% !important;
+        max-width: 250px !important;
+        margin: 5px auto !important;
     }
 
+    /* Input/Select/Button general styles */
     .control-grid-item {
         display: flex;
         flex-direction: column;
@@ -931,7 +938,7 @@ ul li:last-child { border-bottom: none; }
         font-size: 0.95rem;
         box-sizing: border-box;
     }
-    .control-grid-item label { text-align: left; }
+    .control-grid-item label, .control-grid-item span { text-align: center !important; }
     .control-grid-item input[type="text"], .control-grid-item select {
         width: 100%;
         max-width: 100%;
