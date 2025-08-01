@@ -423,12 +423,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 }
 
-/* Hide the Torn Time and Last active container on mobile */
-  .share-stats-time-container {
+/  #lastLogonInfo {
     display: none !important;
   }
 }
-	
 
 @media (max-width: 580px) {
     .membership-options-grid {
