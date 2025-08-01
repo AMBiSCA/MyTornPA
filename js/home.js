@@ -19,32 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
- const mobileTabButtonsContainer = document.getElementById('mobile-tab-buttons-container');
-    const tabPanels = document.querySelectorAll('.tab-content');
-
-    if (mobileTabButtonsContainer && tabPanels.length > 0) {
-        // Set the initial active tab and content on load
-        const statsTabBtn = document.getElementById('stats-tab-btn');
-        if (statsTabBtn) {
-            statsTabBtn.classList.add('active-tab');
-            document.getElementById('stats-tab').classList.add('active-tab-content');
-        }
-
-        mobileTabButtonsContainer.addEventListener('click', function(event) {
-            const clickedButton = event.target.closest('.tab-button');
-            if (!clickedButton) return;
-
-            const tabIdToShow = clickedButton.getAttribute('data-tab-id');
-
-            // Deactivate all buttons and content panels
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active-tab'));
-            tabPanels.forEach(panel => panel.classList.remove('active-tab-content'));
-
-            // Activate the clicked button and its corresponding content panel
-            clickedButton.classList.add('active-tab');
-            document.getElementById(tabIdToShow).classList.add('active-tab-content');
-        });
-    }
+ 
 
     let db = null;
     let auth = null;
@@ -275,6 +250,59 @@ async function updateToolLinksAccess(profile) {
         });
         return;
     }
+	
+	// --- New: Dynamic Mobile Tab Logic ---
+    function setupMobileTabs() {
+        const statsColumn = document.getElementById('quickStatsSection');
+        const toolsColumn = document.getElementById('exploreToolsSection');
+        const flexContainer = document.querySelector('.stats-tools-flex-container');
+        
+        if (!statsColumn || !toolsColumn || !flexContainer) return;
+        
+        // Hide the tools section by default on mobile
+        toolsColumn.classList.add('mobile-hidden');
+
+        // Create the buttons
+        const tabButtonsContainer = document.createElement('div');
+        tabButtonsContainer.id = 'mobile-tab-buttons-container';
+        
+        const statsButton = document.createElement('button');
+        statsButton.className = 'tab-button active-tab';
+        statsButton.textContent = 'Stats';
+        
+        const toolsButton = document.createElement('button');
+        toolsButton.className = 'tab-button';
+        toolsButton.textContent = 'Tools';
+        
+        tabButtonsContainer.appendChild(statsButton);
+        tabButtonsContainer.appendChild(toolsButton);
+        
+        // Insert buttons at the top of the flex container
+        flexContainer.prepend(tabButtonsContainer);
+        
+        // Add click handlers
+        statsButton.addEventListener('click', () => {
+            toolsColumn.classList.add('mobile-hidden');
+            statsColumn.classList.remove('mobile-hidden');
+            statsButton.classList.add('active-tab');
+            toolsButton.classList.remove('active-tab');
+        });
+        
+        toolsButton.addEventListener('click', () => {
+            statsColumn.classList.add('mobile-hidden');
+            toolsColumn.classList.remove('mobile-hidden');
+            toolsButton.classList.add('active-tab');
+            statsButton.classList.remove('active-tab');
+        });
+    }
+
+    const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
+    
+    // Call this function only on mobile devices
+    if (mediaQueryMobile.matches) {
+        setupMobileTabs();
+    }
+    // --- End New: Dynamic Mobile Tab Logic ---
 
     const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
     // --- THIS LINE IS CORRECTED ---
