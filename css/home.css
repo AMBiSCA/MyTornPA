@@ -492,3 +492,19 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
       color: white;
     }
   }
+  
+  #mobile-tab-buttons-container {
+    margin-bottom: 0 !important;
+  }
+
+  /* Remove gap from the parent flexbox container */
+  .stats-tools-flex-container {
+    gap: 0 !important;
+  }
+  
+  /* Reset the top margin on the sections to ensure they are flush */
+  .stats-column, .tools-column {
+    margin-top: 0 !important;
+  }
+
+}
