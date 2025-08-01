@@ -423,11 +423,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 }
 
-/  #lastLogonInfo {
+  .mobile-hide {
     display: none !important;
   }
 }
-
 @media (max-width: 580px) {
     .membership-options-grid {
         gap: 15px;
