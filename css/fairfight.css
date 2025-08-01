@@ -208,11 +208,12 @@
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
-    .peeper-tool-container {
-        width: 95% !important;
-        padding: 20px !important;
-        margin: 0 auto !important; 
-        margin-top: 75px !important;
+       .peeper-tool-container {
+        width: 95%;
+        padding: 20px;
+        margin-top: 75px !important; 
+        margin-left: -8px !important; /* Set a specific left margin */
+        margin-right: auto !important; /* Pushes the container to the left */
     }
     
     /* Page Title (e.g., "Personal Target Finder") */
