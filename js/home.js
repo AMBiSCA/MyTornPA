@@ -460,26 +460,27 @@ async function updateToolLinksAccess(profile) {
         clearInterval(membershipCountdownInterval);
     }
 
-    const targetMessageEl = document.getElementById('factionHuddleMessage');
-    const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!";
+    // Changed to target the factionHuddleMessage element
+    const targetMessageEl = document.getElementById('factionHuddleMessage'); 
+    const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
 
     if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
+        // If target element is missing or no valid membership info, ensure original text is displayed
         if (targetMessageEl) {
-            targetMessageEl.textContent = originalFactionMessage;
-            targetMessageEl.style.display = 'block';
+            targetMessageEl.textContent = originalFactionMessage; // Reset to original if needed
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
         }
         return;
     }
     
+    // Function to update the timer text, runs every second
     const updateTimer = () => {
         const remainingTime = membershipInfo.membershipEndTime - Date.now();
 
         if (remainingTime <= 0) {
             clearInterval(membershipCountdownInterval);
-            if (targetMessageEl) {
-                targetMessageEl.textContent = originalFactionMessage;
-                targetMessageEl.classList.remove('trial-countdown-display');
-            }
+            targetMessageEl.textContent = originalFactionMessage; // Revert to original message
+            targetMessageEl.style.display = 'block'; // Ensure it's visible
             return;
         }
 
@@ -496,34 +497,14 @@ async function updateToolLinksAccess(profile) {
             const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
             countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
         }
-
+        
+        // Update the content of the target message element
         targetMessageEl.textContent = countdownText;
-        targetMessageEl.classList.add('trial-countdown-display');
+        targetMessageEl.style.display = 'block'; // Make sure it's visible
     };
 
-    updateTimer();
-    membershipCountdownInterval = setInterval(updateTimer, 1000);
-
-    // --- NEW: Hide both messages after a 5-second delay on mobile ---
-    const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
-    const welcomeMessageEl = document.getElementById('welcomeMessage');
-
-    if (mediaQueryMobile.matches) {
-        setTimeout(() => {
-            if (welcomeMessageEl) {
-                welcomeMessageEl.style.display = 'none';
-            }
-            if (targetMessageEl) {
-                targetMessageEl.textContent = originalFactionMessage;
-                targetMessageEl.classList.remove('trial-countdown-display');
-            }
-            if (membershipCountdownInterval) {
-                clearInterval(membershipCountdownInterval);
-                membershipCountdownInterval = null;
-            }
-        }, 5000);
-    }
-    // --- END NEW ---
+    updateTimer(); // Run it once immediately
+    membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
 }
 
     function clearQuickStats() {
