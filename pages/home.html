@@ -76,11 +76,18 @@
         </div>
 
         <div class="stats-tools-flex-container">
-            <div class="stats-column home-section styled-container" id="quickStatsSection">
-                <h3 class="section-title">
-                    📊👤 Your Quick Stats. 👤📊
-                    <span class="collapse-toggle-icon" id="quickStatsToggle"></span> </h3>
-                <div id="quickStatsCollapsibleContent" class="collapsible-content"> <div id="quickStatsContainerBox" class="quick-stats-inner-box">
+            <div id="mobile-tab-buttons-container">
+                <button class="tab-button" id="stats-tab-btn" data-tab-id="stats-tab">Stats</button>
+                <button class="tab-button" id="tools-tab-btn" data-tab-id="tools-tab">Tools</button>
+            </div>
+
+            <div id="stats-tab" class="tab-content active-tab-content">
+                <div class="stats-column home-section styled-container" id="quickStatsSection">
+                    <h3 class="section-title">
+                        📊👤 Your Quick Stats. 👤📊
+                        <span class="collapse-toggle-icon" id="quickStatsToggle"></span> 
+                    </h3>
+                    <div id="quickStatsCollapsibleContent" class="collapsible-content"> <div id="quickStatsContainerBox" class="quick-stats-inner-box">
                         <div class="dashboard-grid">
                             <div class="dash-item non-essential-stat"><span class="dash-item-label">Nerve:🧠</span> <span class="value" id="nerveStat">--/--</span></div>
                             
@@ -120,7 +127,8 @@
                 </div> </div> <section class="tools-column home-section styled-container" id="exploreToolsSection">
                 <h2 class="section-title">
                     🧰🧭 Explore Your Tools.️🧭🧰
-                    <span class="collapse-toggle-icon" id="exploreToolsToggle"></span> </h2>
+                    <span class="collapse-toggle-icon" id="exploreToolsToggle"></span> 
+                </h2>
                 <div id="exploreToolsCollapsibleContent" class="collapsible-content"> <div class="tool-category-section essential-tool-category"> <h4 class="tool-category-header">⭐🔥 Most Popular! 🔥⭐</h4>
                         <div class="tool-buttons-grid">
                             <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
@@ -345,6 +353,22 @@
             </div>
         </div>
     </div>
+	
+	<div id="mobileNoticeModal" class="modal-overlay">
+    <div class="modal-content-box confirmation-modal">
+        <h3>Special Notice! ⚠️</h3>
+        <p>This application has limited functionality on mobile devices. For a better experience, please use a desktop computer.</p>
+        <div class="form-group checkbox-group">
+            <label for="doNotRemindCheckbox" class="checkbox-label-inline">
+                <input type="checkbox" id="doNotRemindCheckbox" name="doNotRemindCheckbox">
+                Don't remind me again.
+            </label>
+        </div>
+        <div class="confirmation-actions">
+            <button id="closeMobileNoticeBtn" class="btn btn-confirm-yes">Understood</button>
+        </div>
+    </div>
+</div>
 
     <footer class="footer">
         <div class="footer-links">
