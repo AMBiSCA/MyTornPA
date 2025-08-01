@@ -220,14 +220,22 @@ if (downloadDataBtn) {
         // Temporarily store original styles
         const originalModalContentMaxHeight = modalContent.style.maxHeight;
         const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
-        const originalModalTableContainerOverflow = tableContainer.style.overflowY;
+        const originalModalTableContainerOverflowY = tableContainer.style.overflowY;
+        const originalModalTableContainerOverflowX = tableContainer.style.overflowX; // NEW: Save original horizontal overflow
         const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
+        const originalScrollLeft = tableContainer.scrollLeft; // NEW: Save current horizontal scroll position
 
         // Apply temporary styles to capture full content
         modalContent.style.maxHeight = 'fit-content';
         tableContainer.style.maxHeight = 'fit-content';
         tableContainer.style.overflowY = 'visible';
+        tableContainer.style.overflowX = 'visible'; // NEW: Make horizontal overflow visible
         tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
+        tableContainer.scrollLeft = 0; // NEW: Scroll to the left to capture the beginning of the table
+
+        // We need to capture the full width of the table, not just the visible part
+        const fullTableWidth = tableContainer.scrollWidth;
+        const fullTableHeight = tableContainer.scrollHeight;
 
         // Adding a small delay to allow reflow and repaint before capturing
         setTimeout(() => {
@@ -236,6 +244,12 @@ if (downloadDataBtn) {
                 useCORS: true, // Important if you have images (like background) loaded from different origins
                 logging: false, // Turn off console logging from html2canvas
                 allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
+                
+                // NEW: Capture the full width and height of the scrollable content
+                width: fullTableWidth,
+                height: fullTableHeight,
+                windowWidth: fullTableWidth, // Force the window width for the capture
+                windowHeight: fullTableHeight // Force the window height for the capture
             }).then(function(canvas) {
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
@@ -253,8 +267,10 @@ if (downloadDataBtn) {
                 // Restore original styles immediately after capture
                 modalContent.style.maxHeight = originalModalContentMaxHeight;
                 tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-                tableContainer.style.overflowY = originalModalTableContainerOverflow;
+                tableContainer.style.overflowY = originalModalTableContainerOverflowY;
+                tableContainer.style.overflowX = originalModalTableContainerOverflowX; // NEW: Restore original horizontal overflow
                 tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+                tableContainer.scrollLeft = originalScrollLeft; // NEW: Restore horizontal scroll position
 
             }).catch(error => {
                 console.error('Error generating image:', error);
@@ -263,13 +279,14 @@ if (downloadDataBtn) {
                 // Ensure styles are restored even on error
                 modalContent.style.maxHeight = originalModalContentMaxHeight;
                 tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-                tableContainer.style.overflowY = originalModalTableContainerOverflow;
+                tableContainer.style.overflowY = originalModalTableContainerOverflowY;
+                tableContainer.style.overflowX = originalModalTableContainerOverflowX; // NEW: Restore original horizontal overflow
                 tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+                tableContainer.scrollLeft = originalScrollLeft; // NEW: Restore horizontal scroll position
             });
         }, 100); // Small delay to allow CSS changes to apply and browser to render
     });
 }
-
 function showLoadingSpinner() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) overlay.classList.add('visible');
