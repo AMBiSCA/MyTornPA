@@ -205,6 +205,13 @@
     overflow-x: hidden; /* Hide horizontal scroll on the table container itself */
 }
 
+ /* Also, ensure the modal table container doesn't restrict width too much */
+    .modal-table-container {
+        /* FIX: Change overflow to auto to allow horizontal scrolling on mobile */
+        max-height: calc(90vh - 200px); 
+        overflow-x: auto; 
+    }
+
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
@@ -212,7 +219,7 @@
         width: 95%;
         padding: 20px;
         margin-top: 75px !important; 
-        margin-left: -7px !important; /* Set a specific left margin */
+        margin-left: -8px !important; /* Set a specific left margin */
         margin-right: auto !important; /* Pushes the container to the left */
     }
     
