@@ -522,6 +522,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .faction-peeper-tool-container {
         padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
         width: 95%; /* Ensures the container fits well on most phones */
+		margin-left: 45px !important;
     }
 
     /* Modal Styles */
