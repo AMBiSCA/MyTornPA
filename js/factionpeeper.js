@@ -239,7 +239,7 @@ function exportTableToCSV(filename) {
     document.body.removeChild(downloadLink);
 }
 
-// NEW: This is the updated event listener with a conditional check for screen size.
+// CORRECTED & UPDATED: This is the definitive event listener for your download button.
 const downloadDataBtn = document.getElementById('downloadDataBtn');
 if (downloadDataBtn) {
     downloadDataBtn.addEventListener('click', () => {
@@ -261,10 +261,10 @@ if (downloadDataBtn) {
             // For desktop, use the original html2canvas logic
             const modalContent = document.querySelector('.modal-content');
             const tableContainer = document.querySelector('.modal-table-container');
-            const modalTableBody = document.getElementById('modal-results-table-body');
-            const tableHeaders = document.querySelectorAll('.modal-table thead th'); // NEW: Select table headers
+            const tableElement = document.querySelector('.modal-table'); // NEW: Get the actual table element
+            const tableHeaders = document.querySelectorAll('.modal-table thead th');
 
-            if (!modalContent || !tableContainer || !modalTableBody || tableHeaders.length === 0) {
+            if (!modalContent || !tableContainer || !tableElement || tableHeaders.length === 0) {
                 console.error('Error: Required modal elements not found for screenshot.');
                 alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
                 return;
@@ -276,8 +276,8 @@ if (downloadDataBtn) {
             const originalModalTableContainerOverflowX = tableContainer.style.overflowX;
             const originalScrollTop = tableContainer.scrollTop;
             const originalScrollLeft = tableContainer.scrollLeft;
-            
-            // NEW: Save original header styles and remove sticky position
+
+            // Save original header styles and remove sticky position
             const originalHeaderStyles = [];
             tableHeaders.forEach(th => {
                 originalHeaderStyles.push({ position: th.style.position, top: th.style.top });
@@ -292,19 +292,18 @@ if (downloadDataBtn) {
             tableContainer.scrollTop = 0;
             tableContainer.scrollLeft = 0;
 
-            const fullTableWidth = tableContainer.scrollWidth;
-            const fullTableHeight = tableContainer.scrollHeight;
+            const fullTableWidth = tableElement.scrollWidth; // NEW: Get the full width from the table itself
+            const fullTableHeight = tableElement.scrollHeight; // NEW: Get the full height from the table itself
 
             setTimeout(() => {
-                html2canvas(tableContainer, {
+                html2canvas(tableElement, { // NEW: Pass the table element directly
                     scale: 2,
                     useCORS: true,
                     logging: false,
                     allowTaint: true,
+                    // Pass the full dimensions to force the capture
                     width: fullTableWidth,
-                    height: fullTableHeight,
-                    windowWidth: fullTableWidth,
-                    windowHeight: fullTableHeight
+                    height: fullTableHeight
                 }).then(function(canvas) {
                     const link = document.createElement('a');
                     link.href = canvas.toDataURL('image/png');
@@ -326,12 +325,11 @@ if (downloadDataBtn) {
                     tableContainer.scrollTop = originalScrollTop;
                     tableContainer.scrollLeft = originalScrollLeft;
                     
-                    // NEW: Restore original header styles
+                    // Restore original header styles
                     tableHeaders.forEach((th, index) => {
                         th.style.position = originalHeaderStyles[index].position;
                         th.style.top = originalHeaderStyles[index].top;
                     });
-
                 }).catch(error => {
                     console.error('Error generating image:', error);
                     alert('Failed to generate image. Please try again.');
@@ -344,7 +342,7 @@ if (downloadDataBtn) {
                     tableContainer.scrollTop = originalScrollTop;
                     tableContainer.scrollLeft = originalScrollLeft;
                     
-                    // NEW: Restore original header styles on error
+                    // Restore original header styles on error
                     tableHeaders.forEach((th, index) => {
                         th.style.position = originalHeaderStyles[index].position;
                         th.style.top = originalHeaderStyles[index].top;
