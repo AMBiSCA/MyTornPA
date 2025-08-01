@@ -215,7 +215,7 @@
         /* FIX: Resetting margins and using a negative top margin to pull it up
                 and center it vertically. You can adjust this value if needed. */
         margin: 0 auto; 
-        margin-top: -20px; !important /* Adjust this value to move it up or down */
+        margin-top: -20px !important /* Adjust this value to move it up or down */
     }
     
     /* Page Title (e.g., "Personal Target Finder") */
