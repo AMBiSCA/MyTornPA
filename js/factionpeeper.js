@@ -262,8 +262,9 @@ if (downloadDataBtn) {
             const modalContent = document.querySelector('.modal-content');
             const tableContainer = document.querySelector('.modal-table-container');
             const modalTableBody = document.getElementById('modal-results-table-body');
+            const tableHeaders = document.querySelectorAll('.modal-table thead th'); // NEW: Select table headers
 
-            if (!modalContent || !tableContainer || !modalTableBody) {
+            if (!modalContent || !tableContainer || !modalTableBody || tableHeaders.length === 0) {
                 console.error('Error: Required modal elements not found for screenshot.');
                 alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
                 return;
@@ -275,6 +276,14 @@ if (downloadDataBtn) {
             const originalModalTableContainerOverflowX = tableContainer.style.overflowX;
             const originalScrollTop = tableContainer.scrollTop;
             const originalScrollLeft = tableContainer.scrollLeft;
+            
+            // NEW: Save original header styles and remove sticky position
+            const originalHeaderStyles = [];
+            tableHeaders.forEach(th => {
+                originalHeaderStyles.push({ position: th.style.position, top: th.style.top });
+                th.style.position = 'static';
+                th.style.top = 'auto';
+            });
 
             modalContent.style.maxHeight = 'fit-content';
             tableContainer.style.maxHeight = 'fit-content';
@@ -309,23 +318,37 @@ if (downloadDataBtn) {
                     document.body.removeChild(link);
                     console.log('Image download initiated.');
 
+                    // Restore original styles
                     modalContent.style.maxHeight = originalModalContentMaxHeight;
                     tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
                     tableContainer.style.overflowY = originalModalTableContainerOverflowY;
                     tableContainer.style.overflowX = originalModalTableContainerOverflowX;
                     tableContainer.scrollTop = originalScrollTop;
                     tableContainer.scrollLeft = originalScrollLeft;
+                    
+                    // NEW: Restore original header styles
+                    tableHeaders.forEach((th, index) => {
+                        th.style.position = originalHeaderStyles[index].position;
+                        th.style.top = originalHeaderStyles[index].top;
+                    });
 
                 }).catch(error => {
                     console.error('Error generating image:', error);
                     alert('Failed to generate image. Please try again.');
 
+                    // Ensure styles are restored even on error
                     modalContent.style.maxHeight = originalModalContentMaxHeight;
                     tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
                     tableContainer.style.overflowY = originalModalTableContainerOverflowY;
                     tableContainer.style.overflowX = originalModalTableContainerOverflowX;
                     tableContainer.scrollTop = originalScrollTop;
                     tableContainer.scrollLeft = originalScrollLeft;
+                    
+                    // NEW: Restore original header styles on error
+                    tableHeaders.forEach((th, index) => {
+                        th.style.position = originalHeaderStyles[index].position;
+                        th.style.top = originalHeaderStyles[index].top;
+                    });
                 });
             }, 100);
         }
