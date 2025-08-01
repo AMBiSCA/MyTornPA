@@ -2025,44 +2025,49 @@ input:checked + .slider:before {
     z-index: 1000 !important;
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
-    /* ADDED: Flexbox to position the input area at the bottom */
+    /* This is the crucial part that was wrong before. `flex` property needs to be on the immediate parent of the children you want to order. */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
     #chat-window::-webkit-scrollbar {
         display: none !important;
     }
     
-    /* MODIFIED: This is now the outer container for the tabs and input */
+    /* We will use this to place tabs directly above the input, regardless of how other content is structured. */
     .chat-input-area {
-        order: 2; /* Put this section at the bottom */
+        position: relative; /* Set position for children to be absolute */
         padding: 8px !important;
         border-top: 1px solid #415a77;
         flex-shrink: 0;
-        /* ADDED: The key change to make it a flex container to stack items */
-        display: flex;
-        flex-direction: column;
+        /* The main chat area will now grow to fill space above this. */
+        margin-top: auto;
     }
     
-    /* MODIFIED: The tabs container is now a direct child of the new flex container */
+    /* MODIFIED: The tabs container now floats absolutely inside the input area. */
     .chat-main-tabs-container {
-        /* This container is now nested inside .chat-input-area */
-        order: -1; /* This will make it appear at the top of the .chat-input-area */
-        margin-bottom: 5px; /* Add some space between tabs and the input field */
-        
+        /* This positions the tabs absolutely relative to the top of the .chat-input-area */
+        position: absolute;
+        bottom: 100%; /* Places it directly above the top of its parent (.chat-input-area) */
+        left: 0;
+        width: 100%;
+
         display: none !important; /* Hide by default on mobile */
         flex-wrap: wrap !important;
         justify-content: center !important;
-        padding: 0; /* Remove padding here, handled by margin/gap */
+        padding: 5px !important;
         gap: 5px !important;
-        background-color: transparent !important;
+        background-color: transparent !important; /* Make it transparent */
         border-bottom: none !important;
+        
+        /* Adding transition for a smooth visual effect */
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
     }
 
     /* ADDED: Show the tab bar when the keyboard is visible */
     #chat-window.keyboard-visible .chat-main-tabs-container {
         display: flex !important; /* Make it visible */
+        transform: translateY(0); /* Slide it up into view */
     }
 
     #dynamic-tabs-container,
@@ -2097,14 +2102,6 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    /* ADDED: New container for the input and send button */
-    .chat-input-row {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Space between input and button */
-        width: 100%;
-    }
-
     .chat-text-input {
         flex-grow: 1;
         border: 1px solid #778da9;
@@ -2114,7 +2111,6 @@ input:checked + .slider:before {
         border-radius: 3px;
         font-size: 1em !important;
     }
-
     .chat-send-btn {
         padding: 8px 12px !important;
     }
@@ -2143,6 +2139,8 @@ input:checked + .slider:before {
         display: none !important;
     }
 
+    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
+}
     /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
 /* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
