@@ -396,22 +396,129 @@ ul li:last-child { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; }
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+    /* NEW: This block now correctly styles and displays the mobile tabs */
+    #mobileTabs {
+        display: flex;
+        justify-content: space-around;
+        gap: 5px;
+        background-color: #1a1a1a;
+        padding: 8px;
+        border-bottom: 2px solid #00a8ff;
+        margin-bottom: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .tab-button {
+        flex-grow: 1;
+        background-color: #222;
+        color: #eee;
+        border: 1px solid #00a8ff;
+        border-radius: 5px;
+        padding: 8px 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tab-button:hover {
+        background-color: #00a8ff;
+        color: #222;
+    }
+    .tab-button.active {
+        background-color: #00a8ff;
+        color: #222;
+        font-weight: bold;
+    }
 
-    .main-content-wrapper {
-        padding-top: 10px;
-        padding-bottom: 10px;
+    /* Tab content styling */
+    .tab-content {
+        display: none; /* Hide all tab content by default */
+        flex-direction: column;
+        width: 100%;
+    }
+    .tab-content.active {
+        display: flex; /* Only show the active tab's content */
+    }
+
+    /* Rest of your mobile-specific rules */
+    #activityPeeperContainer {
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    #topControlPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        padding: 10px;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto !important;
+    }
+
+    .control-grid-item {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 !important;
+        text-align: left;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        grid-column: auto !important;
+        grid-row: auto !important;
+    }
+    .control-grid-item label { text-align: left; }
+    
+    .control-grid-item input[type="text"],
+    .control-grid-item select {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    #statusGroup, #lastRefreshGroup {
+        flex-direction: row;
+        align-items: center;
+    }
+    #statusGroup label, #statusGroup span,
+    #lastRefreshGroup label, #lastRefreshGroup span {
+        text-align: left;
+    }
+    
+    #actionButtonsGroup {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .action-btn {
+        width: 100%;
+        max-width: 250px;
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+
+    #chartsGridArea {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .chart-panel {
         height: auto;
-        min-height: unset;
+        min-height: 250px;
+    }
+
+    /* Hiding the sticky chart headers that were causing a bug on desktop */
+    #myFactionIndividualsChart,
+    #enemyFactionIndividualsChart {
+        /* This is now handled by the tab content being hidden */
+    }
+
+    .chart-panel canvas {
+        width: 100% !important;
+        height: 100% !important;
     }
 }
 
