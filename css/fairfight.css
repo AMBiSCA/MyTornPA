@@ -205,22 +205,14 @@
     overflow-x: hidden; /* Hide horizontal scroll on the table container itself */
 }
 
- /* Also, ensure the modal table container doesn't restrict width too much */
-    .modal-table-container {
-        /* FIX: Change overflow to auto to allow horizontal scrolling on mobile */
-        max-height: calc(90vh - 200px); 
-        overflow-x: auto; 
-    }
-
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
     .peeper-tool-container {
-        width: 95%;
-        padding: 20px;
-        margin-top: 75px !important; 
-        margin-left: -8px !important; /* Set a specific left margin */
-        margin-right: auto !important; /* Pushes the container to the left */
+        width: 95% !important;
+        padding: 20px !important;
+        margin: 0 auto !important; 
+        margin-top: 75px !important;
     }
     
     /* Page Title (e.g., "Personal Target Finder") */
@@ -262,6 +254,25 @@
     .image-glow, .image-glow-flipped {
         display: none; /* Hide glow images on smaller screens */
     }
+    
+    /* NEW: Make the modal content and table responsive */
+    .modal-content {
+        width: 95% !important; /* Make the modal itself a bit narrower */
+        margin: auto !important;
+    }
+    .modal-table-container {
+        max-height: calc(90vh - 150px) !important; /* Adjust height for modal on mobile */
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch; /* Add smooth scrolling on iOS */
+    }
+    .modal-table thead th, .modal-table tbody td {
+        padding: 5px 8px !important; /* Reduce padding to make columns narrower */
+        font-size: 0.75rem !important; /* Reduce font size for readability on mobile */
+        white-space: nowrap; /* Prevent content from wrapping */
+    }
+    .modal-table thead th {
+        font-size: 0.8rem !important; /* Keep header font slightly larger */
+    }
 }
 @media (max-width: 480px) {
     .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
@@ -269,15 +280,10 @@
     .battle-stats-box, .faction-search-box { max-width: 95%; }
     .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
 }
-@media (max-width: 480px) {
-    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
-    .script-title { font-size: 1.6rem; }
-    .battle-stats-box, .faction-search-box { max-width: 95%; }
-    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
-}
-@media (max-width: 480px) {
-    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
-    .script-title { font-size: 1.6rem; }
-    .battle-stats-box, .faction-search-box { max-width: 95%; }
-    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
+
+/* Also, ensure the modal table container doesn't restrict width too much */
+.modal-table-container {
+    /* FIX: Change overflow to auto to allow horizontal scrolling on mobile */
+    max-height: calc(90vh - 200px); 
+    overflow-x: auto; 
 }
