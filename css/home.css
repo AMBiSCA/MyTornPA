@@ -493,6 +493,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     }
   }
   
+  .welcome-block-area {
+    display: none !important;
+  }
+}
+  
   #mobile-tab-buttons-container {
     margin-bottom: 0 !important;
   }
