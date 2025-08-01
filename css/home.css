@@ -448,3 +448,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     display: none;
   }
 }
+
+/* New rule for dynamically hidden elements on mobile */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+}
