@@ -677,15 +677,12 @@ html, body {
 @media (max-width: 768px) {
     /* This shows your blocker message and makes it full-screen */
     #mobile-blocker {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        display: block; /* We'll use JS to position it, so no flexbox */
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 50%; /* Start the element at the center */
+        left: 50%;
+        transform: translate(-50%, -50%); /* This is a common and reliable CSS trick for centering */
         width: 100%;
-        height: 100%;
         background: #222;
         color: #eee;
         text-align: center;

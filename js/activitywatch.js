@@ -133,6 +133,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setupContent.classList.add('active');
 }
 
+function centerMobileBlocker() {
+  const blocker = document.getElementById('mobile-blocker');
+  if (blocker) {
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const blockerHeight = blocker.offsetHeight;
+    const blockerWidth = blocker.offsetWidth;
+    
+    // Set the position and center the element
+    blocker.style.position = 'absolute';
+    blocker.style.top = `${(viewportHeight - blockerHeight) / 2}px`;
+    blocker.style.left = `${(viewportWidth - blockerWidth) / 2}px`;
+  }
+}
+
+// Call the function on page load and on window resize
+window.addEventListener('load', centerMobileBlocker);
+window.addEventListener('resize', centerMobileBlocker);
+
     function createTabButton(text, targetId) {
         const button = document.createElement('button');
         button.className = 'tab-button';
