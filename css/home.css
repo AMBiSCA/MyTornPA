@@ -581,5 +581,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
   .modal-actions .btn {
     width: 100%;
     max-width: 350px;
+	justify-content: center !important; /* <-- Added !important */
   }
 }
