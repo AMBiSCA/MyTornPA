@@ -85,7 +85,7 @@ header {
     width: 100%;
 }
 main {
-    max-width: 1800px;
+    max-width: 1500px;
     margin: 20px auto;
     padding: 20px;
     background-color: rgba(34, 34, 34, 0.85);
@@ -111,11 +111,12 @@ main {
     box-shadow: 0 0 15px rgba(0, 122, 204, 0.4);
     border: 1px solid #00a8ff;
     width: 95%;
-    max-width: 1500px;
+    max-width: 1800px;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+	min-height: 70vh;
 }
 #topControlPanel {
     display: grid;
