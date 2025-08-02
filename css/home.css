@@ -1184,10 +1184,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         color: white;
     }
 
-.welcome-block-area {
-    display: none !important;
-}
-
 #mobile-tab-buttons-container {
     margin-bottom: 0 !important;
 }
