@@ -239,10 +239,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const memberId = tornData.user_id || tornData.id;
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-            const strength = (firebaseData.battlestats?.strength || 0).toLocaleString();
-            const dexterity = (firebaseData.battlestats?.dexterity || 0).toLocaleString();
-            const speed = (firebaseData.battlestats?.speed || 0).toLocaleString();
-            const defense = (firebaseData.battlestats?.defense || 0).toLocaleString();
+            
+            // --- MODIFIED CODE START ---
+            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
+            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
+            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
+            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
+            // --- MODIFIED CODE END ---
+
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
             
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
