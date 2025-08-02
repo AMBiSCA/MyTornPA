@@ -409,12 +409,14 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 * All rules for screens 768px and smaller now live inside this single block.
 */
 @media (max-width: 768px) {
-     .dashboard-feature-toggle {
-    display: flex;
+	
+	div.dash-item:has(#personalStatsLabel) {
+    grid-column: 1 / -1;
     justify-content: center;
-    width: 100%;
   }
 }
+	
+    
     /* This rule hides the inactive content section when tabbing */
     .mobile-hidden {
         display: none !important;
