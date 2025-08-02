@@ -4643,6 +4643,10 @@ margin-right: auto !important;
   }
 }
 
+.summary-grid {
+  flex-wrap: wrap;
+}
+
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
