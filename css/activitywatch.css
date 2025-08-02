@@ -665,16 +665,14 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* This hides the blocker message on desktop and tablet */
-#mobile-blocker {
-    display: none;
-}
-
 /* This runs on screens 768px or smaller */
 @media (max-width: 768px) {
     /* This shows your blocker message and makes it full-screen */
-     #mobile-blocker {
-        display: grid;
-        place-items: center;
+    #mobile-blocker {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         position: fixed;
         top: 0;
         left: 0;
@@ -686,6 +684,15 @@ ul li:last-child { border-bottom: none; }
         padding: 20px;
         z-index: 9999;
     }
+
+    /* This centers the content inside the blocker */
+    #mobile-blocker h2,
+    #mobile-blocker p,
+    .mobile-blocker-btn {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     #mobile-blocker h2 {
         color: #00a8ff;
     }
