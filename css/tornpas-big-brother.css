@@ -561,3 +561,11 @@ h2 {
     display: none !important;
   }
 }
+
+@media (max-width: 380px) {
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td {
+        font-size: 0.6em; /* Even smaller font size */
+        padding: 3px 1px; /* Even less padding */
+    }
+}
