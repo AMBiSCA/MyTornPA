@@ -1205,6 +1205,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     margin-top: -15px !important;
 }
 
+#lastLogonInfo {
+    display: none !important;
+}
+
 /* Hide the landscape rotator by default */
 #landscape-rotator {
     display: none;
