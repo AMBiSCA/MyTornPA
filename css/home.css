@@ -512,22 +512,31 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 
 }
 @media (orientation: landscape) and (max-width: 1024px) {
-    #landscape-rotator {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-    }
+   #landscape-rotator {
+  display: none; /* Hide by default */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #222;
+  color: #eee;
+  text-align: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+#landscape-rotator h2 {
+  color: #00a8ff;
+}
+
+#landscape-rotator p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
 
     /* Hide the main page content when the rotator is visible */
     header,
