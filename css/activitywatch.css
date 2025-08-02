@@ -664,28 +664,12 @@ ul li:last-child { border-bottom: none; }
     text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
 }
 
-/* This hides the mobile blocker on desktop and tablet by default */
+/* This hides the blocker message on desktop and tablet */
 #mobile-blocker {
     display: none;
 }
-/* Style for the homepage button (used in the blocker) */
-.mobile-blocker-btn {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 12px 25px;
-    background-color: #00a8ff;
-    color: #1a1a1a;
-    font-weight: bold;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-}
-.mobile-blocker-btn:hover {
-    background-color: #4dc4ff;
-}
 
-
-//* --- Mobile Styles --- */
+/* This runs on screens 768px or smaller */
 @media (max-width: 768px) {
     /* This shows your blocker message and makes it full-screen */
     #mobile-blocker {
@@ -694,7 +678,10 @@ ul li:last-child { border-bottom: none; }
         justify-content: center;
         align-items: center;
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         background: #222;
         color: #eee;
         text-align: center;
@@ -707,7 +694,6 @@ ul li:last-child { border-bottom: none; }
     #mobile-blocker p {
         font-size: 1.1rem;
         line-height: 1.6;
-        max-width: 400px;
     }
 
     /* This hides the main page content on mobile */
