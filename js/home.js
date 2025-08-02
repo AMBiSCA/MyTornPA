@@ -472,6 +472,37 @@ async function updateToolLinksAccess(profile) {
         }
         return;
     }
+	
+	function toggleLandscapeBlocker() {
+    const blocker = document.getElementById('landscape-blocker');
+    const header = document.querySelector('header');
+    const mainContent = document.getElementById('mainHomepageContent');
+    const footer = document.querySelector('footer');
+    
+    // Check for landscape orientation on a mobile-sized device
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+    
+    if (isMobileLandscape) {
+        if (blocker) blocker.style.display = 'flex';
+        if (header) header.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        // You might need to hide other elements as well
+        const chatPlaceholder = document.getElementById('chat-system-placeholder');
+        if (chatPlaceholder) chatPlaceholder.style.display = 'none';
+    } else {
+        if (blocker) blocker.style.display = 'none';
+        if (header) header.style.display = ''; // Revert to default
+        if (mainContent) mainContent.style.display = '';
+        if (footer) footer.style.display = '';
+        const chatPlaceholder = document.getElementById('chat-system-placeholder');
+        if (chatPlaceholder) chatPlaceholder.style.display = '';
+    }
+}
+
+// Attach the function to run on page load and window resize
+window.addEventListener('load', toggleLandscapeBlocker);
+window.addEventListener('resize', toggleLandscapeBlocker);
     
     // Function to update the timer text, runs every second
     const updateTimer = () => {
@@ -507,49 +538,6 @@ async function updateToolLinksAccess(profile) {
     membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
 }
 
-function checkOrientation() {
-  const landscapeRotator = document.getElementById('landscape-rotator');
-  const mainContent = document.getElementById('mainHomepageContent'); // Corrected ID from your HTML
-  const header = document.querySelector('header');
-  const footer = document.querySelector('footer');
-
-  // Check if the screen width is greater than height (landscape) AND is a mobile size
-  const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
-
-  if (isMobileLandscape) {
-    // Show the landscape rotator and hide the other content
-    if (landscapeRotator) {
-      landscapeRotator.style.display = 'flex';
-    }
-    if (mainContent) {
-      mainContent.style.display = 'none';
-    }
-    if (header) {
-      header.style.display = 'none';
-    }
-    if (footer) {
-      footer.style.display = 'none';
-    }
-  } else {
-    // Hide the landscape rotator and show the other content
-    if (landscapeRotator) {
-      landscapeRotator.style.display = 'none';
-    }
-    if (mainContent) {
-      mainContent.style.display = ''; // Reset to default display
-    }
-    if (header) {
-      header.style.display = '';
-    }
-    if (footer) {
-      footer.style.display = '';
-    }
-  }
-}
-
-// Run the function on page load and whenever the window is resized
-window.addEventListener('load', checkOrientation);
-window.addEventListener('resize', checkOrientation);
 
     function clearQuickStats() {
         console.log("home.js: Clearing quick stats.");
