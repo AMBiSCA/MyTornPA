@@ -1202,7 +1202,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* Reset the top margin on the sections to ensure they are flush */
 .stats-column,
 .tools-column {
-    margin-top: -17px !important;
+    margin-top: -15px !important;
 }
 
 /* Hide the landscape rotator by default */
