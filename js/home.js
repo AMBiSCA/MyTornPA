@@ -473,37 +473,9 @@ async function updateToolLinksAccess(profile) {
         return;
     }
 	
-	function toggleLandscapeBlocker() {
-    const blocker = document.getElementById('landscape-blocker');
-    const header = document.querySelector('header');
-    const mainContent = document.getElementById('mainHomepageContent');
-    const footer = document.querySelector('footer');
-    
-    // Check for landscape orientation on a mobile-sized device
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
-    
-    if (isMobileLandscape) {
-        if (blocker) blocker.style.display = 'flex';
-        if (header) header.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'none';
-        if (footer) footer.style.display = 'none';
-        // You might need to hide other elements as well
-        const chatPlaceholder = document.getElementById('chat-system-placeholder');
-        if (chatPlaceholder) chatPlaceholder.style.display = 'none';
-    } else {
-        if (blocker) blocker.style.display = 'none';
-        if (header) header.style.display = ''; // Revert to default
-        if (mainContent) mainContent.style.display = '';
-        if (footer) footer.style.display = '';
-        const chatPlaceholder = document.getElementById('chat-system-placeholder');
-        if (chatPlaceholder) chatPlaceholder.style.display = '';
-    }
-}
 
-// Attach the function to run on page load and window resize
-window.addEventListener('load', toggleLandscapeBlocker);
-window.addEventListener('resize', toggleLandscapeBlocker);
-    
+
+
     // Function to update the timer text, runs every second
     const updateTimer = () => {
         const remainingTime = membershipInfo.membershipEndTime - Date.now();
@@ -1466,3 +1438,64 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded
+
+function toggleLandscapeBlocker() {
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+    let blocker = document.getElementById('landscape-blocker');
+
+    if (isMobileLandscape) {
+        // Only create the blocker if it doesn't already exist
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'landscape-blocker';
+            blocker.innerHTML = `
+                <h2>Please Rotate Your Device</h2>
+                <p>For the best experience, please use this page in portrait mode.</p>
+            `;
+            // Apply all the necessary styles directly with JavaScript
+            Object.assign(blocker.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#222',
+                color: '#eee',
+                textAlign: 'center',
+                padding: '20px',
+                zIndex: '99999'
+            });
+            document.body.appendChild(blocker);
+        }
+
+        // Hide main page content
+        document.body.style.overflow = 'hidden';
+        document.querySelector('header').style.display = 'none';
+        const mainContent = document.getElementById('mainHomepageContent');
+        if (mainContent) mainContent.style.display = 'none';
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = 'none';
+
+    } else {
+        // Remove the blocker if it exists
+        if (blocker) {
+            blocker.remove();
+        }
+
+        // Re-show main page content
+        document.body.style.overflow = '';
+        document.querySelector('header').style.display = '';
+        const mainContent = document.getElementById('mainHomepageContent');
+        if (mainContent) mainContent.style.display = '';
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = '';
+    }
+}
+
+// Run the function on page load and window resize
+window.addEventListener('load', toggleLandscapeBlocker);
+window.addEventListener('resize', toggleLandscapeBlocker);
