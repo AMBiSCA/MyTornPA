@@ -5513,79 +5513,110 @@ async function displayQuickFFTargets(userApiKey, playerId) {
            document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
-    // --- NEW: This block reads the URL to see if a specific tab was requested ---
+    // This block reads the URL to see if a specific tab was requested
     const urlParams = new URLSearchParams(window.location.search);
-    const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
-    // --- END NEW ---
+    const requestedTabName = urlParams.get('view');
 
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
+
+    // NEW FUNCTION: Hides specific elements on the announcements tab for mobile screens
+    function applyMobileLayoutToAnnouncementsTab() {
+        const mobileMaxWidth = 360;
+        const announcementsTab = document.getElementById('announcements-tab');
+        
+        if (!announcementsTab) return;
+
+        const gamePlanSection = announcementsTab.querySelector('.announcement-section-item:nth-child(1)');
+        const announcementsSection = announcementsTab.querySelector('.announcement-section-item:nth-child(3)');
+
+        if (window.innerWidth <= mobileMaxWidth) {
+            if (gamePlanSection) {
+                gamePlanSection.style.display = 'none';
+            }
+            if (announcementsSection) {
+                announcementsSection.style.display = 'none';
+            }
+        } else {
+            // Show elements on larger screens by resetting the display property
+            if (gamePlanSection) {
+                gamePlanSection.style.display = '';
+            }
+            if (announcementsSection) {
+                announcementsSection.style.display = '';
+            }
+        }
+    }
+
+    // Call the function on initial load and resize to handle the main layout
+    window.addEventListener('resize', applyMobileLayoutToAnnouncementsTab);
+
 
     // Replace your old block with this NEW version
-tabButtons.forEach(button => {
-    button.addEventListener('click', async (event) => {
-        const targetTabDataset = event.currentTarget.dataset.tab;
-        const targetTabId = targetTabDataset + '-tab';
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
 
-        if (targetTabDataset === 'leader-config') {
-            const userIsAdmin = await checkIfUserIsAdmin();
-            if (!userIsAdmin) {
-                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
-                showCustomAlert(permissionMessage, "Access Denied");
-                return;
-            }
-        }
-
-        showTab(targetTabId);
-
-        // This is the part we are updating
-        if (targetTabDataset === 'friendly-status') {
-            
-            // --- NEW REFRESH LOGIC STARTS HERE ---
-            const tbody = document.getElementById('friendly-members-tbody');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
-            }
-            
-            try {
-                // We use the globalYourFactionID variable that is already set on this page
-                if (!globalYourFactionID) {
-                    throw new Error("You must be logged in to refresh faction data.");
+            if (targetTabDataset === 'leader-config') {
+                const userIsAdmin = await checkIfUserIsAdmin();
+                if (!userIsAdmin) {
+                    const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                    showCustomAlert(permissionMessage, "Access Denied");
+                    return;
                 }
+            }
 
-                // Call the SAME Netlify function to update the data in the database
-                const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
+            showTab(targetTabId);
+
+            // This is the part we are updating
+            if (targetTabDataset === 'friendly-status') {
                 
-                if (!response.ok) {
-                    const errorResult = await response.json();
-                    throw new Error(errorResult.message || 'The refresh process failed.');
-                }
-                console.log("Backend faction data refreshed successfully.");
-
-            } catch (error) {
-                console.error("Error refreshing faction data:", error);
+                // --- NEW REFRESH LOGIC STARTS HERE ---
+                const tbody = document.getElementById('friendly-members-tbody');
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
+                    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
                 }
-                return; // Stop if the refresh fails
-            }
-            // --- NEW REFRESH LOGIC ENDS HERE ---
+                
+                try {
+                    // We use the globalYourFactionID variable that is already set on this page
+                    if (!globalYourFactionID) {
+                        throw new Error("You must be logged in to refresh faction data.");
+                    }
+
+                    // Call the SAME Netlify function to update the data in the database
+                    const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
+                    
+                    if (!response.ok) {
+                        const errorResult = await response.json();
+                        throw new Error(errorResult.message || 'The refresh process failed.');
+                    }
+                    console.log("Backend faction data refreshed successfully.");
+
+                } catch (error) {
+                    console.error("Error refreshing faction data:", error);
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
+                    }
+                    return; // Stop if the refresh fails
+                }
+                // --- NEW REFRESH LOGIC ENDS HERE ---
 
 
-            // Now that the data is fresh, call the function to display the table
-            const user = firebase.auth().currentUser;
-            if (user && userApiKey) {
-                await updateFriendlyMembersTable(userApiKey, user.uid);
-            } else {
-                console.warn("User not logged in or API Key missing.");
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                // Now that the data is fresh, call the function to display the table
+                const user = firebase.auth().currentUser;
+                if (user && userApiKey) {
+                    await updateFriendlyMembersTable(userApiKey, user.uid);
+                } else {
+                    console.warn("User not logged in or API Key missing.");
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                    }
                 }
             }
-        }
+        });
     });
-});
 
 
     // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
@@ -5906,6 +5937,22 @@ tabButtons.forEach(button => {
             displayEnemyTargetsTable(null);
             populateFriendlyMemberCheckboxes({}, [], []);
             populateEnemyMemberCheckboxes({}, []);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+            if (chatInputArea) chatInputArea.style.display = 'none';
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+            if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+            if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
+            if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
+            if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
+            if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
+            if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
+
+            // Clear any active chat listeners
+            if (unsubscribeFromChat) {
+                unsubscribeFromChat();
+                unsubscribeFromChat = null;
+            }
         }
     } else {
         userApiKey = null;
@@ -5939,299 +5986,3 @@ tabButtons.forEach(button => {
         }
     }
 });
-
-    // Add Friend Button Listener
-    if (addFriendBtn) {
-        addFriendBtn.addEventListener('click', async () => {
-            const friendId = addFriendIdInput.value.trim();
-            if (!friendId) {
-                addFriendStatus.textContent = "Please enter a Torn Player ID.";
-                addFriendStatus.style.color = 'orange';
-                return;
-            }
-
-            if (!auth.currentUser) {
-                addFriendStatus.textContent = "You must be logged in to add friends.";
-                addFriendStatus.style.color = 'red';
-                return;
-            }
-
-            addFriendStatus.textContent = "Adding friend...";
-            addFriendStatus.style.color = 'white';
-            addFriendBtn.disabled = true;
-
-            try {
-                const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
-                const doc = await friendDocRef.get();
-                if (doc.exists) {
-                    addFriendStatus.textContent = "This player is already your friend.";
-                    addFriendStatus.style.color = 'orange';
-                    addFriendBtn.disabled = false;
-                    return;
-                }
-
-                await friendDocRef.set({
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                addFriendStatus.textContent = `Successfully added friend [${friendId}]!`;
-                addFriendStatus.style.color = 'lightgreen';
-                addFriendIdInput.value = '';
-                // Refresh the friends list in the Blocked People tab if it's open
-                const friendsListSectionEl = document.getElementById('friends-list-section'); // Assuming this is the parent of friendsScrollableList
-                const ignoresListSectionEl = document.getElementById('ignores-list-section'); // Assuming this is the parent of ignoresScrollableList
-                if (friendsListSectionEl && ignoresListSectionEl) {
-                    // Check if the 'Blocked People' tab is currently active before refreshing
-                    const blockedPeopleTabButton = document.querySelector('.chat-tab[data-chat-tab="blocked-people"]');
-                    if (blockedPeopleTabButton && blockedPeopleTabButton.classList.contains('active')) {
-                        populateBlockedPeopleTab(auth.currentUser.uid, friendsScrollableList, ignoresScrollableList);
-                    }
-                }
-
-            } catch (error) {
-                console.error("Error adding friend:", error);
-                addFriendStatus.textContent = `Error adding friend: ${error.message}`;
-                addFriendStatus.style.color = 'red';
-            } finally {
-                addFriendBtn.disabled = false;
-            }
-        });
-    }
-
-    // Admins Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const originalText = saveAdminsBtn.textContent;
-            saveAdminsBtn.disabled = true;
-            saveAdminsBtn.textContent = "Saving...";
-            try {
-                const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    tab4Admins: selectedAdminIds
-                }, {
-                    merge: true
-                });
-                saveAdminsBtn.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving admins:", error);
-                saveAdminsBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save admins. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveAdminsBtn.disabled = false;
-                    saveAdminsBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const originalText = saveEnergyTrackMembersBtn.textContent;
-            saveEnergyTrackMembersBtn.disabled = true;
-            saveEnergyTrackMembersBtn.textContent = "Saving...";
-            try {
-                const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    energyTrackingMembers: selectedEnergyMemberIds
-                }, {
-                    merge: true
-                });
-                saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-                saveEnergyTrackMembersBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save energy tracking members. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveEnergyTrackMembersBtn.disabled = false;
-                    saveEnergyTrackMembersBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    // Big Hitter Watchlist Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveSelectionsBtnBH) { // Assuming this is your save button for Big Hitters
-        saveSelectionsBtnBH.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const originalText = saveSelectionsBtnBH.textContent;
-            saveSelectionsBtnBH.disabled = true;
-            saveSelectionsBtnBH.textContent = "Saving...";
-            try {
-                const selectedBigHitterIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    bigHitterWatchlist: selectedBigHitterIds
-                }, {
-                    merge: true
-                });
-                saveSelectionsBtnBH.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-                saveSelectionsBtnBH.textContent = "Error! ❌";
-                showCustomAlert("Failed to save big hitter watchlist. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveSelectionsBtnBH.disabled = false;
-                    saveSelectionsBtnBH.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-
-
-    // --- RESTORED IMAGE UPLOAD LISTENERS ---
-    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
-    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
-    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
-        gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
-        });
-    }
-
-    const announcementUploadInput = document.getElementById('announcementImageUpload');
-    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
-    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
-    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
-        announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
-        });
-    }
-
-
-    // Clear Image Buttons
-    const clearGamePlanImageBtn = document.getElementById('clearGamePlanImageBtn');
-    if (clearGamePlanImageBtn) {
-        clearGamePlanImageBtn.addEventListener('click', async () => {
-            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Game Plan image?", "Confirm Removal");
-            if (!confirmed) return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({
-                    gamePlanImageUrl: null
-                }, {
-                    merge: true
-                });
-                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                alert('Game Plan image cleared!');
-            } catch (error) {
-                console.error("Error clearing game plan image:", error);
-                alert('Failed to clear image.');
-            }
-        });
-    }
-
-    const clearAnnouncementImageBtn = document.getElementById('clearAnnouncementImageBtn');
-    if (clearAnnouncementImageBtn) {
-        clearAnnouncementImageBtn.addEventListener('click', async () => {
-            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Announcement image?", "Confirm Removal");
-            if (!confirmed) return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({
-                    announcementsImageUrl: null
-                }, {
-                    merge: true
-                });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
-                alert('Announcement image cleared!');
-            } catch (error) {
-                console.error("Error clearing announcement image:", error);
-                alert('Failed to clear image.');
-            }
-        });
-    }
-
-
-    // Event listener for sending faction chat messages
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-    }
-    if (chatTextInput) {
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent new line in input
-                sendChatMessage();
-            }
-        });
-    }
-
-
-}); // --- END OF DOMCONTENTLOADED ---
-
-/**
- * ==================================================================
- * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
- * ==================================================================
- */
-
-// Helper function to parse a stat string into a number.
-function parseStatValue(statString) {
-    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
-        return 0;
-    }
-    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
-    let multiplier = 1;
-    if (sanitizedString.endsWith('k')) {
-        multiplier = 1000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('m')) {
-        multiplier = 1000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('b')) {
-        multiplier = 1000000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    }
-    const number = parseFloat(sanitizedString);
-    return isNaN(number) ? 0 : number * multiplier;
-}
-
-// Main function to apply background colors to the stat cells.
-function applyStatColorCoding() {
-    const table = document.getElementById('friendly-members-table');
-    if (!table) {
-        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
-        return;
-    }
-
-    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
-
-    statCells.forEach(cell => {
-        // First, remove any old stat tier classes to ensure a clean slate
-        for (let i = 1; i <= 9; i++) {
-            cell.classList.remove(`stat-tier-${i}`);
-        }
-        cell.classList.remove('stat-cell');
-
-        const value = parseStatValue(cell.textContent);
-        let tierClass = '';
-
-        if (value >= 500000000) {
-            tierClass = 'stat-tier-9';
-        } else if (value >= 200000000) {
-            tierClass = 'stat-tier-8';
-        } else if (value >= 100000000) {
-            tierClass = 'stat-tier-7';
-        } else if (value >= 10000000) {
-            tierClass = 'stat-tier-6';
-        } else if (value >= 5000000) {
-            tierClass = 'stat-tier-5';
-        } else if (value >= 1000000) {
-            tierClass = 'stat-tier-4';
-        } else if (value >= 100000) {
-            tierClass = 'stat-tier-3';
-        } else if (value >= 10000) {
-            tierClass = 'stat-tier-2';
-        } else if (value > 0) {
-            tierClass = 'stat-tier-1';
-        }
-
-        if (tierClass) {
-            cell.classList.add(tierClass);
-            cell.classList.add('stat-cell'); // General class for stat cells
-        }
-    });
-}
