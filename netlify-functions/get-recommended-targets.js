@@ -18,6 +18,25 @@ try {
 
 const db = admin.firestore();
 
+// --- NEW HELPER FUNCTION TO PARSE STAT STRINGS LIKE "1.22b" ---
+function parseStatString(statString) {
+    if (!statString || typeof statString !== 'string') {
+        // If it's already a number or invalid, return it as is or 0
+        return Number(statString) || 0;
+    }
+    const lowerCaseStat = statString.toLowerCase();
+    const num = parseFloat(lowerCaseStat);
+    if (isNaN(num)) return 0;
+
+    if (lowerCaseStat.endsWith('k')) return num * 1e3;
+    if (lowerCaseStat.endsWith('m')) return num * 1e6;
+    if (lowerCaseStat.endsWith('b')) return num * 1e9;
+    if (lowerCaseStat.endsWith('t')) return num * 1e12;
+    
+    return num; // Return the number if no suffix
+}
+
+
 // Helper function for Fair Fight calculation
 function calculateFairFight(attackerStats, defenderStats) {
     if (attackerStats === 0) return Infinity; // Avoid division by zero
@@ -44,7 +63,7 @@ exports.handler = async function(event, context) {
             throw new Error("API key and Player ID are required.");
         }
 
-        // --- NEW Step 1: Get the current user's (attacker's) total battle stats ---
+        // Step 1: Get the current user's (attacker's) total battle stats
         console.log(`Fetching stats for attacker ID: ${playerId}`);
         const userStatsUrl = `https://api.torn.com/user/${playerId}?selections=battlestats&key=${apiKey}`;
         const userStatsResponse = await fetch(userStatsUrl);
@@ -58,7 +77,7 @@ exports.handler = async function(event, context) {
         console.log(`Attacker [${playerId}] Total Stats: ${userTotalStats.toLocaleString()}`);
 
 
-        // --- NEW Step 2: Query Firestore for ALL potential targets ---
+        // Step 2: Query Firestore for ALL potential targets
         console.log("Querying database for ALL potential targets...");
         const allTargetsFromDB = [];
         const querySnapshot = await db.collection('factionTargets').get();
@@ -67,35 +86,40 @@ exports.handler = async function(event, context) {
             return { statusCode: 200, body: JSON.stringify({ message: "No targets found in the database." }) };
         }
         
+        // --- MODIFIED LOGIC ---
         querySnapshot.forEach(doc => {
-            // IMPORTANT: Ensure targets have battle stats stored, otherwise they can't be calculated
             const data = doc.data();
-            if (data.estimatedBattleStats > 0 && String(data.playerID) !== String(playerId)) { // Exclude self
-                 allTargetsFromDB.push(data);
+            // Use the new parser to get a real number from the stat string
+            const numericStats = parseStatString(data.estimatedBattleStats);
+            
+            if (numericStats > 0 && String(data.playerID) !== String(playerId)) {
+                 // Store the converted number for calculation
+                 allTargetsFromDB.push({ ...data, numericBattleStats: numericStats });
             }
         });
-        console.log(`Found ${allTargetsFromDB.length} potential targets in the database.`);
+        console.log(`Found and processed ${allTargetsFromDB.length} potential targets with valid stats.`);
 
 
-        // --- NEW Step 3: Calculate PERSONALIZED Fair Fight score for each target ---
+        // Step 3: Calculate PERSONALIZED Fair Fight score for each target
         const personalizedTargets = allTargetsFromDB.map(target => {
-            const ffScore = calculateFairFight(userTotalStats, target.estimatedBattleStats);
+            // Use the new numeric field for the calculation
+            const ffScore = calculateFairFight(userTotalStats, target.numericBattleStats);
             return {
                 ...target,
-                fairFightScore: ffScore, // Overwrite stored FF with the new personalized score
-                difficulty: getDifficultyText(ffScore) // Recalculate difficulty text
+                fairFightScore: ffScore,
+                difficulty: getDifficultyText(ffScore)
             };
         });
 
 
-        // --- NEW Step 4: Filter for targets within a reasonable Fair Fight range ---
+        // Step 4: Filter for targets within a reasonable Fair Fight range
         const fairTargets = personalizedTargets.filter(target => target.fairFightScore >= 1.0 && target.fairFightScore <= 3.0);
         console.log(`Found ${fairTargets.length} targets within the personalized Fair Fight range (1.0 - 3.0).`);
 
 
-        // --- NEW Step 5: Sort by the new personalized score (easiest first) and take the top 10 ---
+        // Step 5: Sort by the new personalized score (easiest first) and take the top 10
         fairTargets.sort((a, b) => a.fairFightScore - b.fairFightScore);
-        const selectedTargets = fairTargets.slice(0, 10); // Get the 10 easiest targets for the user
+        const selectedTargets = fairTargets.slice(0, 10);
 
 
         if (selectedTargets.length === 0) {
@@ -104,9 +128,8 @@ exports.handler = async function(event, context) {
         console.log(`Selected the top ${selectedTargets.length} easiest targets for the user.`);
 
 
-        // --- Step 6 (Original Step 4): Get real-time status for the selected targets ---
+        // Step 6: Get real-time status for the selected targets
         const targetIds = selectedTargets.map(t => t.playerID).join(',');
-        console.log(`Fetching real-time status for IDs: ${targetIds}`);
         const tornApiUrl = `https://api.torn.com/user/${targetIds}?selections=profile,basic&key=${apiKey}`;
         
         const tornResponse = await fetch(tornApiUrl);
@@ -116,10 +139,10 @@ exports.handler = async function(event, context) {
         if (realTimeData.error) throw new Error(`Torn API Error (Status Check): ${realTimeData.error.error}`);
 
 
-        // --- Step 7 (Original Step 5): Combine data and format the final response ---
+        // Step 7: Combine data and format the final response
         const finalTargets = selectedTargets.map(target => {
             const liveData = realTimeData[target.playerID];
-            let status = { text: 'Okay', color: 'lightgreen' }; // Default status
+            let status = { text: 'Okay', color: 'lightgreen' };
 
             if (liveData) {
                 if (liveData.states.hospital_timestamp > 0) status = { text: 'In Hospital', color: '#ff4d4d' };
@@ -133,6 +156,7 @@ exports.handler = async function(event, context) {
                 playerName: target.playerName,
                 fairFightScore: target.fairFightScore.toFixed(2),
                 difficulty: target.difficulty,
+                // Return the original string for display purposes
                 estimatedBattleStats: target.estimatedBattleStats,
                 status: status,
                 attackUrl: `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`
