@@ -608,7 +608,7 @@ ul li:last-child { border-bottom: none; }
     margin-top: -15px;
 }
 
-@media (max-width: 1200px) {
+@media (min-width: 769px) and (max-width: 1200px) {
     #activityPeeperContainer {
         padding: 15px;
     }
