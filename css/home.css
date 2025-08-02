@@ -457,71 +457,15 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     display: none !important;
   }
 }
-
-/* Styling for the dynamically created mobile tabs */
 @media (max-width: 768px) {
     /* Style the container for the buttons */
-    #mobile-tab-buttons-container {
+     #mobile-tab-buttons-container {
       display: flex;
       justify-content: center;
       gap: 10px; /* Space between buttons */
       margin-bottom: 20px; /* Space between buttons and content below */
       width: 100%;
     }
-  
-    /* Style the default (inactive) button */
-    .tab-button {
-      background-color: #2c2f33; /* Dark background */
-      color: #00a8ff; /* Blue text */
-      border: 1px solid #00a8ff; /* Blue border */
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-      flex-grow: 1;
-      max-width: 200px;
-    }
-  
-    /* Style the active button */
-    .tab-button.active-tab {
-      background-color: #00a8ff;
-      color: #1a1a1a; /* Dark text for contrast */
-    }
-  
-    .tab-button:hover:not(.active-tab) {
-      background-color: #00a8ff;
-      color: white;
-    }
-  }
-  
-  .welcome-block-area {
-    display: none !important;
-  }
-}
-  
-  #mobile-tab-buttons-container {
-    margin-bottom: 0 !important;
-  }
-
- 
-  /* Reset the top margin on the sections to ensure they are flush */
-  .stats-column, .tools-column {
-    margin-top: 0 !important;
-  }
-
-}
-
-@media (max-width: 768px) {
-    /* Style the container for the buttons */
-    #mobile-tab-buttons-container {
-        display: flex;
-        justify-content: center;
-        gap: 0; /* Changed from 10px to 0 to make them touch */
-        margin-bottom: 0; /* Changed from 20px to 0 to make them touch the container below */
-        width: 100%;
-    }
-  
     /* Style the default (inactive) button */
     .tab-button {
         background-color: #2c2f33; /* Dark background */
@@ -546,6 +490,23 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         background-color: #00a8ff;
         color: white;
     }
+}
+
+  .welcome-block-area {
+    display: none !important;
+  }
+}
+  
+  #mobile-tab-buttons-container {
+    margin-bottom: 0 !important;
+  }
+
+ 
+  /* Reset the top margin on the sections to ensure they are flush */
+  .stats-column, .tools-column {
+    margin-top: 0 !important;
+  }
+
 }
 
 
