@@ -702,6 +702,10 @@ html, body {
         font-size: 1rem;
         line-height: 1.6;
     }
+	
+	.hidden {
+    display: none !important;
+}
 
     /* This hides the main page content, header, footer, and chat box on mobile */
     #global-header-placeholder,

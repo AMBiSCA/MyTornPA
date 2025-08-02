@@ -511,39 +511,167 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 
 }
+
 /* Styling for the landscape rotator - HIDE by default */
 #landscape-rotator {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #222;
-  color: #eee;
-  text-align: center;
-  padding: 20px;
-  z-index: 9999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #222;
+    color: #eee;
+    text-align: center;
+    padding: 20px;
+    z-index: 9999;
 }
 
 #landscape-rotator h2 {
-  color: #00a8ff;
+    color: #00a8ff;
 }
 
 #landscape-rotator p {
-  font-size: 1.1rem;
-  line-height: 1.6;
+    font-size: 1.1rem;
+    line-height: 1.6;
 }
 
-/* This media query only hides the page content in landscape mode */
-@media (orientation: landscape) and (max-width: 1024px) {
-    /* Hide the main page content when the rotator is visible */
-    header,
-    .homepage-content-wrapper,
-    footer {
-        display: none !important;
-    }
+/* This is the new CSS that activates when the body has the 'landscape-active' class */
+.landscape-active {
+    overflow: hidden;
 }
+
+.landscape-active #landscape-rotator {
+    display: flex; /* Show the rotator when the class is active */
+}
+
+/* This rule hides the main content when the landscape-active class is present */
+.landscape-active header,
+.landscape-active .homepage-content-wrapper,
+.landscape-active footer,
+.landscape-active #chat-system-placeholder {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ */
+

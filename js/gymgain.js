@@ -863,6 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Run the function when the page loads
     hideMobileStats();
 });
+
+
     /**
      * Captures the content of the currently active tab in the right panel as an image
      * and triggers a download. Requires html2canvas library.
