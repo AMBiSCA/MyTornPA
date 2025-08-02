@@ -688,6 +688,13 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
     margin-top: -15px; /* <-- Add this line to move the panel up */
 }
 
+/* Force equal width on top two input boxes */
+#myFactionIDGroup input,
+#enemyFactionIDGroup input {
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
 /* Placement rules for each item */
 #myFactionIDGroup { grid-area: 1 / 1 / 2 / 2; }
 #enemyFactionIDGroup { grid-area: 1 / 2 / 2 / 3; }
