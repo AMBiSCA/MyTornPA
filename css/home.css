@@ -510,6 +510,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
 }
 
+.membership-options-grid {
+    grid-template-columns: 1fr;
+  }
+
 @media (max-width: 480px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
