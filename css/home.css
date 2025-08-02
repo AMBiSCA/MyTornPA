@@ -423,8 +423,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     #mobile-tab-buttons-container {
         display: flex;
         justify-content: center;
-        gap: 10px;
-        margin-bottom: -10px !important; /* Adds space between tabs and content */
+        gap: 0px;
+        margin-bottom: -14px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 
