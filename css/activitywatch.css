@@ -691,7 +691,7 @@ ul li:last-child { border-bottom: none; }
     gap: 10px; /* Simplified gap */
     align-items: center;
     padding: 10px;
-    margin-top: 0; /* Removes the space pushing it down */
+
 }
 
     /* --- Corrected Items & Buttons --- */
