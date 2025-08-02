@@ -1,58 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("home.js: DOMContentLoaded event fired. All systems go (hopefully)!");
 
-// --- New: Dynamic Mobile Tab Logic ---
-function setupMobileTabs() {
-    const statsColumn = document.getElementById('quickStatsSection');
-    const toolsColumn = document.getElementById('exploreToolsSection');
-    const flexContainer = document.querySelector('.stats-tools-flex-container');
-
-    if (!statsColumn || !toolsColumn || !flexContainer) return;
-
-    // Hide the tools section by default on mobile
-    toolsColumn.classList.add('mobile-hidden');
-
-    // Create the buttons
-    const tabButtonsContainer = document.createElement('div');
-    tabButtonsContainer.id = 'mobile-tab-buttons-container';
-
-    const statsButton = document.createElement('button');
-    statsButton.className = 'tab-button active-tab';
-    statsButton.textContent = 'Stats';
-
-    const toolsButton = document.createElement('button');
-    toolsButton.className = 'tab-button';
-    toolsButton.textContent = 'Tools';
-
-    tabButtonsContainer.appendChild(statsButton);
-    tabButtonsContainer.appendChild(toolsButton);
-
-    // Insert buttons at the top of the flex container
-    flexContainer.prepend(tabButtonsContainer);
-
-    // Add click handlers
-    statsButton.addEventListener('click', () => {
-        toolsColumn.classList.add('mobile-hidden');
-        statsColumn.classList.remove('mobile-hidden');
-        statsButton.classList.add('active-tab');
-        toolsButton.classList.remove('active-tab');
-    });
-
-    toolsButton.addEventListener('click', () => {
-        statsColumn.classList.add('mobile-hidden');
-        toolsColumn.classList.remove('mobile-hidden');
-        toolsButton.classList.add('active-tab');
-        statsButton.classList.remove('active-tab');
-    });
-}
-
 const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
 
-// Call this function only on mobile devices
+// Call the setup function immediately if on a mobile device
 if (mediaQueryMobile.matches) {
+    // This is a new function call that we need to add to the code.
     setupMobileTabs();
 }
-// --- End New: Dynamic Mobile Tab Logic ---
+
 
     // --- Firebase Configuration ---
     const firebaseConfig = {
@@ -301,7 +257,86 @@ async function updateToolLinksAccess(profile) {
         return;
     }
     
+    // --- New: Dynamic Mobile Tab Logic ---
+    function setupMobileTabs() {
+        const statsColumn = document.getElementById('quickStatsSection');
+        const toolsColumn = document.getElementById('exploreToolsSection');
+        const flexContainer = document.querySelector('.stats-tools-flex-container');
+        
+        if (!statsColumn || !toolsColumn || !flexContainer) return;
+        
+        // Hide the tools section by default on mobile
+        toolsColumn.classList.add('mobile-hidden');
+
+        // Create the buttons
+        const tabButtonsContainer = document.createElement('div');
+        tabButtonsContainer.id = 'mobile-tab-buttons-container';
+        
+        const statsButton = document.createElement('button');
+        statsButton.className = 'tab-button active-tab';
+        statsButton.textContent = 'Stats';
+        
+        const toolsButton = document.createElement('button');
+        toolsButton.className = 'tab-button';
+        toolsButton.textContent = 'Tools';
+        
+        tabButtonsContainer.appendChild(statsButton);
+        tabButtonsContainer.appendChild(toolsButton);
+        
+        // Insert buttons at the top of the flex container
+        flexContainer.prepend(tabButtonsContainer);
+        
+        // Add click handlers
+        statsButton.addEventListener('click', () => {
+            toolsColumn.classList.add('mobile-hidden');
+            statsColumn.classList.remove('mobile-hidden');
+            statsButton.classList.add('active-tab');
+            toolsButton.classList.remove('active-tab');
+        });
+        
+        toolsButton.addEventListener('click', () => {
+            statsColumn.classList.add('mobile-hidden');
+            toolsColumn.classList.remove('mobile-hidden');
+            toolsButton.classList.add('active-tab');
+            statsButton.classList.remove('active-tab');
+        });
+    }
+
+    const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
     
+    // Call this function only on mobile devices
+    if (mediaQueryMobile.matches) {
+        setupMobileTabs();
+    }
+    // --- End New: Dynamic Mobile Tab Logic ---
+
+    const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+    // --- THIS LINE IS CORRECTED ---
+    const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
+    const hasFactionComp = await isFactionComped(profile, db);
+
+    console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
+    console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
+    console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
+    
+    const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+    console.log('[DEBUG] Final isMember result:', isMember);
+
+    const hasAgreedToTerms = profile.termsAgreed === true;
+
+    toolLinks.forEach(link => {
+        const isRestrictedByTerms = !hasAgreedToTerms;
+        const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
+
+        if (isRestrictedByTerms || isRestrictedByMembership) {
+            link.classList.add('disabled-link');
+        } else {
+            link.classList.remove('disabled-link');
+        }
+    });
+    console.log('[DEBUG] Finished updateToolLinksAccess.');
+}
+
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
