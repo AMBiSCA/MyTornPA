@@ -728,18 +728,6 @@ ul li:last-child { border-bottom: none; }
     #chartsGridArea { display: flex; flex-direction: column; gap: 15px; }
 }
 
-/* Explicit placement for grid items */
-#myFactionIDGroup { grid-area: 1 / 1; }
-#enemyFactionIDGroup { grid-area: 1 / 2; }
-#activityIntervalGroup { grid-area: 2 / 1; }
-#stopTimerGroup { grid-area: 2 / 2; }
-#statusGroup { grid-area: 3 / 1; }
-#lastRefreshGroup { grid-area: 3 / 2; }
-#factionNameGroup { grid-area: 4 / 1; }
-#totalMembersGroup { grid-area: 4 / 2; }
-#actionButtonsGroup { grid-area: 5 / 1 / span 1 / span 2; }
-#compareIndividualsGroup { grid-area: 6 / 1 / span 1 / span 2; }
-
 /* Mobile charts area */
 #chartsGridArea, #chartsGridAreaIndividuals {
     display: flex;
