@@ -4577,26 +4577,7 @@ margin-right: auto !important;
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
 
- .tab-button[data-tab="Faction-Financials"] {
-        display: none !important;
-    }
 
-    .tab-button[data-tab="friendly-status"] {
-        display: none !important;
-    }
-    
-    #announcementScoreboardContainer {
-        display: none !important;
-    }
-}
-
-.announcements-grid-container .announcement-section-item:nth-child(1) {
-        display: none !important;
-    }
-    .announcements-grid-container .announcement-section-item:nth-child(3) {
-        display: none !important;
-    }
-}
 
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
