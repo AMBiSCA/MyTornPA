@@ -274,16 +274,16 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             allRowsHtml += `
                 <tr data-id="${memberId}">
                     <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                    <td>${lastAction}</td>
+                    <td class="hide-on-mobile">${lastAction}</td>
                     <td>${strength}</td>
                     <td>${dexterity}</td>
                     <td>${speed}</td>
                     <td>${defense}</td>
                     <td>${formatBattleStats(totalStats)}</td>
-                    <td class="${statusClass}">${formattedStatus}</td>
-                    <td class="nerve-text">${nerve}</td>
-                    <td class="energy-text">${energyValue}</td>
-                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
+                    <td class="nerve-text hide-on-mobile">${nerve}</td>
+                    <td class="energy-text hide-on-mobile">${energyValue}</td>
+                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
                 </tr>
             `;
         }
@@ -297,7 +297,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
-
 
 // --- Gain Tracking Core Logic ---
 
