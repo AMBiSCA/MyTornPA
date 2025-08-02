@@ -3659,42 +3659,7 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-// Add this function to your war_page_hub.js file
-function toggleMobileView() {
-    const mobileMaxWidth = 360; 
 
-    // Elements to hide on mobile
-    const warInfoTab = document.querySelector('.tab-button[data-tab="Faction-Financials"]');
-    const liveActivityTab = document.querySelector('.tab-button[data-tab="friendly-status"]');
-    const announcementScoreboard = document.getElementById('announcementScoreboardContainer');
-
-    if (window.innerWidth <= mobileMaxWidth) {
-        if (warInfoTab) {
-            warInfoTab.style.display = 'none';
-        }
-        if (liveActivityTab) {
-            liveActivityTab.style.display = 'none';
-        }
-        if (announcementScoreboard) {
-            announcementScoreboard.style.display = 'none';
-        }
-    } else {
-        // Show elements on larger screens
-        if (warInfoTab) {
-            warInfoTab.style.display = '';
-        }
-        if (liveActivityTab) {
-            liveActivityTab.style.display = '';
-        }
-        if (announcementScoreboard) {
-            announcementScoreboard.style.display = '';
-        }
-    }
-}
-
-// Call the function on page load and window resize
-window.addEventListener('load', toggleMobileView);
-window.addEventListener('resize', toggleMobileView);
 
 
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
@@ -5547,82 +5512,119 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-           document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
-    // --- NEW: This block reads the URL to see if a specific tab was requested ---
+    // This block reads the URL to see if a specific tab was requested
     const urlParams = new URLSearchParams(window.location.search);
-    const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
-    // --- END NEW ---
+    const requestedTabName = urlParams.get('view');
 
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
+
+    // Add this function inside the DOMContentLoaded block
+    function toggleMobileView() {
+        const mobileMaxWidth = 360; 
+
+        // Elements to hide on mobile
+        const warInfoTab = document.querySelector('.tab-button[data-tab="Faction-Financials"]');
+        const liveActivityTab = document.querySelector('.tab-button[data-tab="friendly-status"]');
+        const announcementScoreboard = document.getElementById('announcementScoreboardContainer');
+
+        if (window.innerWidth <= mobileMaxWidth) {
+            if (warInfoTab) {
+                warInfoTab.style.display = 'none';
+            }
+            if (liveActivityTab) {
+                liveActivityTab.style.display = 'none';
+            }
+            if (announcementScoreboard) {
+                announcementScoreboard.style.display = 'none';
+            }
+        } else {
+            // Show elements on larger screens
+            if (warInfoTab) {
+                warInfoTab.style.display = '';
+            }
+            if (liveActivityTab) {
+                liveActivityTab.style.display = '';
+            }
+            if (announcementScoreboard) {
+                announcementScoreboard.style.display = '';
+            }
+        }
+    }
+    
+    // Call the function initially and add event listeners
+    toggleMobileView();
+    window.addEventListener('resize', toggleMobileView);
+
 
     // Replace your old block with this NEW version
-tabButtons.forEach(button => {
-    button.addEventListener('click', async (event) => {
-        const targetTabDataset = event.currentTarget.dataset.tab;
-        const targetTabId = targetTabDataset + '-tab';
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
 
-        if (targetTabDataset === 'leader-config') {
-            const userIsAdmin = await checkIfUserIsAdmin();
-            if (!userIsAdmin) {
-                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
-                showCustomAlert(permissionMessage, "Access Denied");
-                return;
-            }
-        }
-
-        showTab(targetTabId);
-
-        // This is the part we are updating
-        if (targetTabDataset === 'friendly-status') {
-            
-            // --- NEW REFRESH LOGIC STARTS HERE ---
-            const tbody = document.getElementById('friendly-members-tbody');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
-            }
-            
-            try {
-                // We use the globalYourFactionID variable that is already set on this page
-                if (!globalYourFactionID) {
-                    throw new Error("You must be logged in to refresh faction data.");
+            if (targetTabDataset === 'leader-config') {
+                const userIsAdmin = await checkIfUserIsAdmin();
+                if (!userIsAdmin) {
+                    const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                    showCustomAlert(permissionMessage, "Access Denied");
+                    return;
                 }
+            }
 
-                // Call the SAME Netlify function to update the data in the database
-                const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
+            showTab(targetTabId);
+
+            // This is the part we are updating
+            if (targetTabDataset === 'friendly-status') {
                 
-                if (!response.ok) {
-                    const errorResult = await response.json();
-                    throw new Error(errorResult.message || 'The refresh process failed.');
-                }
-                console.log("Backend faction data refreshed successfully.");
-
-            } catch (error) {
-                console.error("Error refreshing faction data:", error);
+                // --- NEW REFRESH LOGIC STARTS HERE ---
+                const tbody = document.getElementById('friendly-members-tbody');
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
+                    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
                 }
-                return; // Stop if the refresh fails
-            }
-            // --- NEW REFRESH LOGIC ENDS HERE ---
+                
+                try {
+                    // We use the globalYourFactionID variable that is already set on this page
+                    if (!globalYourFactionID) {
+                        throw new Error("You must be logged in to refresh faction data.");
+                    }
+
+                    // Call the SAME Netlify function to update the data in the database
+                    const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
+                    
+                    if (!response.ok) {
+                        const errorResult = await response.json();
+                        throw new Error(errorResult.message || 'The refresh process failed.');
+                    }
+                    console.log("Backend faction data refreshed successfully.");
+
+                } catch (error) {
+                    console.error("Error refreshing faction data:", error);
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
+                    }
+                    return; // Stop if the refresh fails
+                }
+                // --- NEW REFRESH LOGIC ENDS HERE ---
 
 
-            // Now that the data is fresh, call the function to display the table
-            const user = firebase.auth().currentUser;
-            if (user && userApiKey) {
-                await updateFriendlyMembersTable(userApiKey, user.uid);
-            } else {
-                console.warn("User not logged in or API Key missing.");
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                // Now that the data is fresh, call the function to display the table
+                const user = firebase.auth().currentUser;
+                if (user && userApiKey) {
+                    await updateFriendlyMembersTable(userApiKey, user.uid);
+                } else {
+                    console.warn("User not logged in or API Key missing.");
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                    }
                 }
             }
-        }
+        });
     });
-});
 
 
     // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
@@ -5943,6 +5945,22 @@ tabButtons.forEach(button => {
             displayEnemyTargetsTable(null);
             populateFriendlyMemberCheckboxes({}, [], []);
             populateEnemyMemberCheckboxes({}, []);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+            if (chatInputArea) chatInputArea.style.display = 'none';
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+            if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+            if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
+            if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
+            if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
+            if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
+            if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
+
+            // Clear any active chat listeners
+            if (unsubscribeFromChat) {
+                unsubscribeFromChat();
+                unsubscribeFromChat = null;
+            }
         }
     } else {
         userApiKey = null;
