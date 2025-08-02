@@ -1193,12 +1193,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 
 
-/* Reset the top margin on the sections to ensure they are flush */
-.stats-column,
-.tools-column {
-    margin-top: -14.75px !important;
-}
-
 #lastLogonInfo {
     display: none !important;
 }
