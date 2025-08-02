@@ -116,7 +116,7 @@ main {
     display: flex;
     flex-direction: column;
     gap: 20px;
-	min-height: 100vh;
+	min-height: 75vh;
 }
 #topControlPanel {
     display: grid;
