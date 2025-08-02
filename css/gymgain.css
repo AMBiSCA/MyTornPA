@@ -595,3 +595,12 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
     /* No need for min-width on tables as they are removed for gains */
 }
+
+/* --- Hide the Stats Section on Mobile --- */
+/* This media query targets screens that are 768px or smaller */
+@media (max-width: 768px) {
+    #gymWelcomeMessage,
+    .current-stats {
+        display: none;
+    }
+}
