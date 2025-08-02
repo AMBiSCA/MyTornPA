@@ -3659,6 +3659,43 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
+// Add this function to your war_page_hub.js file
+function toggleMobileView() {
+    const mobileMaxWidth = 360; 
+
+    // Elements to hide on mobile
+    const warInfoTab = document.querySelector('.tab-button[data-tab="Faction-Financials"]');
+    const liveActivityTab = document.querySelector('.tab-button[data-tab="friendly-status"]');
+    const announcementScoreboard = document.getElementById('announcementScoreboardContainer');
+
+    if (window.innerWidth <= mobileMaxWidth) {
+        if (warInfoTab) {
+            warInfoTab.style.display = 'none';
+        }
+        if (liveActivityTab) {
+            liveActivityTab.style.display = 'none';
+        }
+        if (announcementScoreboard) {
+            announcementScoreboard.style.display = 'none';
+        }
+    } else {
+        // Show elements on larger screens
+        if (warInfoTab) {
+            warInfoTab.style.display = '';
+        }
+        if (liveActivityTab) {
+            liveActivityTab.style.display = '';
+        }
+        if (announcementScoreboard) {
+            announcementScoreboard.style.display = '';
+        }
+    }
+}
+
+// Call the function on page load and window resize
+window.addEventListener('load', toggleMobileView);
+window.addEventListener('resize', toggleMobileView);
+
 
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
