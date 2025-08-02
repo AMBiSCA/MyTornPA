@@ -596,10 +596,10 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     /* No need for min-width on tables as they are removed for gains */
 }
 
-/* New: Hide the stats section and its heading on mobile */
+/* New: Hide the stats section and its heading on mobile (highest specificity) */
 @media (max-width: 768px) {
-    .gym-section > #gymWelcomeMessage,
-    .gym-section > .current-stats {
+    .gym-section > h2#gymWelcomeMessage.underlined-heading,
+    .gym-section > div.current-stats {
         display: none !important;
     }
 }
