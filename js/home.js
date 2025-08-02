@@ -894,35 +894,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 	
-	function hidePopularToolsOnMobile() {
-  // Find the "Most Popular" tools section using its unique class
-  const popularToolsSection = document.querySelector('.essential-tool-category');
-
-  // If the element doesn't exist for any reason, stop the function
-  if (!popularToolsSection) {
-    return;
-  }
-
-  // Create a media query to check for mobile screen sizes (768px or less)
-  const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
-
-  // This function handles the logic of showing or hiding the section
-  const handleVisibility = (e) => {
-    if (e.matches) {
-      // If the screen is mobile, hide the section
-      popularToolsSection.style.display = 'none';
-    } else {
-      // If the screen is not mobile (desktop), make sure the section is visible
-      popularToolsAection.style.display = 'block';
-    }
-  };
-
-  // Run the function once on page load to set the initial state
-  handleVisibility(mediaQueryMobile);
-
-  // Add a listener that will re-run the function automatically if the screen size changes
-  mediaQueryMobile.addEventListener('change', handleVisibility);
-}
+	
     
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
@@ -1468,10 +1440,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+	
+	 function hidePopularToolsOnMobile() {
+      const popularToolsSection = document.querySelector('.essential-tool-category');
+      if (!popularToolsSection) { return; }
+      const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
+      const handleVisibility = (e) => {
+        if (e.matches) {
+          popularToolsSection.style.display = 'none';
+        } else {
+          popularToolsSection.style.display = 'block';
+        }
+      };
+      handleVisibility(mediaQueryMobile);
+      mediaQueryMobile.addEventListener('change', handleVisibility);
+    }
     
     
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
+	
+ hidePopularToolsOnMobile();
+ 
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
