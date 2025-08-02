@@ -676,7 +676,7 @@ html, body {
 }
 
 /* This runs on screens 768px or smaller */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     /* This shows your blocker message and makes it full-screen */
     #mobile-blocker {
         display: flex;
