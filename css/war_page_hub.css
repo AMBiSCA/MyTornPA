@@ -4613,23 +4613,32 @@ margin-right: auto !important;
   /* Centers the remaining content on the Announcements tab */
   .announcements-grid-container {
     display: flex;
-    flex-direction: column; /* This is what makes it stack */
-    align-items: center;    /* This is what centers the stacked items */
+    flex-direction: column;
+    align-items: center;
     margin-top: 20px;
-    width: 100%; /* Ensure it takes full width to center correctly */
+    width: 100%;
   }
 
   /* Corrected code to center the content in the War Availability tab */
   .war-availability-grid {
     display: flex;
     flex-direction: column;
-    align-items: center; /* This is the key line to center it */
+    align-items: center;
     width: 100%;
+  }
+
+  /*
+   * NEW: Adjust the main container's maximum width for a better mobile fit.
+   * This ensures all tabs are consistently sized.
+   */
+  #warPageHubContainer {
+    max-width: 500px;
+    width: 95%; /* Use a percentage for better responsiveness */
   }
 
   .war-availability-grid > .user-status-panel,
   .war-availability-grid > .team-roster-panel {
-    max-width: 450px; /* Use a reasonable max-width to prevent it from stretching too wide on larger phones */
+    max-width: 100%; /* Now that the parent container is limited, let the children fill it. */
     width: 100%;
   }
 }
