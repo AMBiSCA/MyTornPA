@@ -51,72 +51,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const SKIP_CONFIRM_KEY = 'skipClearConfirmation';
 
 
-    // --- NEW: Dynamic Content Reorganization for Mobile ---
-    function reorganizeContentForMobile() {
-        if (!activityPeeperContainer || !topControlPanel || !chartsGridArea) {
-            console.error("Missing core container elements for reorganization.");
-            return;
-        }
-
-        // 1. Create the mobile tabs container and buttons
-        const tabButtonsContainer = document.createElement('div');
-        tabButtonsContainer.id = 'mobileTabs';
-        tabButtonsContainer.className = 'mobile-tabs-container';
-        activityPeeperContainer.prepend(tabButtonsContainer);
-
-        const setupButton = createTabButton('Setup', 'setup-tab');
-        const overallButton = createTabButton('Overall', 'overall-tab');
-        const individualsButton = createTabButton('Individuals', 'individuals-tab');
-        tabButtonsContainer.appendChild(setupButton);
-        tabButtonsContainer.appendChild(overallButton);
-        tabButtonsContainer.appendChild(individualsButton);
-
-        // 2. Create the tab content containers
-        const setupContent = createTabContent('setup-tab');
-        const overallContent = createTabContent('overall-tab');
-        const individualsContent = createTabContent('individuals-tab');
-        activityPeeperContainer.appendChild(setupContent);
-        activityPeeperContainer.appendChild(overallContent);
-        activityPeeperContainer.appendChild(individualsContent);
-        
-        // 3. Move the existing content into the new containers
-        setupContent.appendChild(topControlPanel);
-        
-        const overallCharts = [
-            document.getElementById('rawActivityChart').parentNode,
-            document.getElementById('activityDifferenceChart').parentNode
-        ];
-        overallCharts.forEach(chartPanel => overallContent.appendChild(chartPanel));
-        
-        const individualCharts = [
-            document.getElementById('myFactionIndividualsChart').parentNode,
-            document.getElementById('enemyFactionIndividualsChart').parentNode
-        ];
-        individualCharts.forEach(chartPanel => individualsContent.appendChild(chartPanel));
-
-        // 4. Add click handlers to the new tabs
-        const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
-        const allContents = activityPeeperContainer.querySelectorAll('.tab-content');
-        
-        allButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTabId = button.dataset.tab;
-                
-                allButtons.forEach(btn => btn.classList.remove('active'));
-                allContents.forEach(content => content.classList.remove('active'));
-                
-                button.classList.add('active');
-                const targetContent = document.getElementById(targetTabId);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-            });
-        });
-
-        // Set the initial active tab
-        setupButton.classList.add('active');
-        setupContent.classList.add('active');
+  function reorganizeContentForMobile() {
+    if (!activityPeeperContainer || !topControlPanel || !chartsGridArea) {
+        console.error("Missing core container elements for reorganization.");
+        return;
     }
+
+    // 1. Create the mobile tabs container and buttons
+    const tabButtonsContainer = document.createElement('div');
+    tabButtonsContainer.id = 'mobileTabs';
+    tabButtonsContainer.className = 'mobile-tabs-container';
+    activityPeeperContainer.prepend(tabButtonsContainer);
+
+    const setupButton = createTabButton('Setup', 'setup-tab');
+    const overallButton = createTabButton('Overall', 'overall-tab');
+    const individualsButton = createTabButton('Individuals', 'individuals-tab');
+    tabButtonsContainer.appendChild(setupButton);
+    tabButtonsContainer.appendChild(overallButton);
+    tabButtonsContainer.appendChild(individualsButton);
+
+    // 2. Create the tab content containers
+    const setupContent = createTabContent('setup-tab');
+    const overallContent = createTabContent('overall-tab');
+    const individualsContent = createTabContent('individuals-tab');
+    activityPeeperContainer.appendChild(setupContent);
+    activityPeeperContainer.appendChild(overallContent);
+    activityPeeperContainer.appendChild(individualsContent);
+    
+    // 3. Move the existing content into the new containers
+    setupContent.appendChild(topControlPanel);
+    
+    // --- NEW LINES START HERE ---
+    const compareIndividualsGroup = document.getElementById('compareIndividualsGroup');
+    if (compareIndividualsGroup) {
+        individualsContent.appendChild(compareIndividualsGroup);
+    }
+    // --- NEW LINES END HERE ---
+
+    const overallCharts = [
+        document.getElementById('rawActivityChart').parentNode,
+        document.getElementById('activityDifferenceChart').parentNode
+    ];
+    overallCharts.forEach(chartPanel => overallContent.appendChild(chartPanel));
+    
+    const individualCharts = [
+        document.getElementById('myFactionIndividualsChart').parentNode,
+        document.getElementById('enemyFactionIndividualsChart').parentNode
+    ];
+    individualCharts.forEach(chartPanel => individualsContent.appendChild(chartPanel));
+
+    // 4. Add click handlers to the new tabs
+    const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
+    const allContents = activityPeeperContainer.querySelectorAll('.tab-content');
+    
+    allButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTabId = button.dataset.tab;
+            
+            allButtons.forEach(btn => btn.classList.remove('active'));
+            allContents.forEach(content => content.classList.remove('active'));
+            
+            button.classList.add('active');
+            const targetContent = document.getElementById(targetTabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
+
+    // Set the initial active tab
+    setupButton.classList.add('active');
+    setupContent.classList.add('active');
+}
 
     function createTabButton(text, targetId) {
         const button = document.createElement('button');
