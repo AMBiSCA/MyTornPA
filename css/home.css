@@ -415,7 +415,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
 	
 	
- .welcome-block-area {
+.welcome-block-area {
     display: none !important;
   }
 }
@@ -424,7 +424,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-bottom: 0px; /* Adds space between tabs and content */
+        margin-bottom: -7px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 
