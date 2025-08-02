@@ -278,7 +278,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 /* Profile Setup Modal Specifics */
 .modal-profile-setup { max-width: 750px; }
-.modal-profile-setup .form-row { display: flex; gap: 15px; margin-bottom: 10px; }
+.modal-profile-setup .form-row { align-items: flex-start; gap: 15px; margin-bottom: 10px; }
 .modal-profile-setup .form-row .form-group { flex: 1; margin-bottom: 0; }
 .modal-profile-setup h3 { color: #00a8ff; font-size: 1.4em; margin-bottom: 8px; margin-top: 0; text-align: center; }
 .modal-profile-setup .modal-subtitle { color: #bbb; font-size: 0.9em; font-weight: bold; margin-bottom: 15px; margin-top: 0; text-align: center; }
