@@ -424,7 +424,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: flex;
         justify-content: center;
         gap: 0px;
-        margin-bottom: -25px !important; /* Adds space between tabs and content */
+        margin-bottom: -65px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 	
@@ -440,7 +440,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         max-width: 200px;
         padding: 10px 20px;
         transition: background-color 0.2s ease, color 0.2s ease;
-		margin-top: -10px; /* <-- Add this line */
+		margin-top: -40px; /* <-- Add this line */
     }
 
     .tab-button.active-tab {
