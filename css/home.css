@@ -511,9 +511,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 
 }
-@media (orientation: landscape) and (max-width: 1024px) {
-   #landscape-rotator {
-  display: none; /* Hide by default */
+/* Styling for the landscape rotator - HIDE by default */
+#landscape-rotator {
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -538,6 +538,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   line-height: 1.6;
 }
 
+/* This media query only hides the page content in landscape mode */
+@media (orientation: landscape) and (max-width: 1024px) {
     /* Hide the main page content when the rotator is visible */
     header,
     .homepage-content-wrapper,
