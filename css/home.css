@@ -417,7 +417,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 	
 	@media (max-width: 768px) {
   label[for="togglePersonalStatsCheckbox"].dash-item {
-    justify-content: center;
+    justify-content: center !important;
   }
 }
 	
