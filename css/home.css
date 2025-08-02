@@ -1255,6 +1255,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     display: none !important;
 }
 
+.essential-tool-category {
+    display: none !important;
+}
 
 @media (orientation: landscape) and (max-width: 1024px) {
     /* Hide the main page content when the rotator is visible */
