@@ -1267,3 +1267,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: none !important;
     }
 }
+
+/* Desktop-specific styles to correct layout from mobile adjustments */
+@media (min-width: 769px) {
+    .homepage-content-wrapper {
+        margin-top: 20px !important;
+    }
+}
