@@ -651,37 +651,9 @@ ul li:last-child { border-bottom: none; }
     }
 }
 
-@media (max-width: 768px) {
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; }
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-
-    .main-content-wrapper {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        height: auto;
-        min-height: unset;
-    }
-}
 
 
-.script-title {
-    font-size: 2.2rem;
-    font-weight: bold;
-    position: relative;
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #00a8ff;
-    -webkit-text-stroke: 1px black;
-    text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
-}
+
 
 @media (max-width: 768px) {
     /* Main mobile styles to override desktop layout */
