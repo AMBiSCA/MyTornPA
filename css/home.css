@@ -424,15 +424,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: flex;
         justify-content: center;
         gap: 0px;
-        margin-bottom: -14px !important; /* Adds space between tabs and content */
+        margin-bottom: -25px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 	
-	 .homepage-content-wrapper {
-    margin-top: 0px;
-  }
-}
-
     /* Styles for the tab buttons themselves */
     .tab-button {
         background-color: #2c2f33;
