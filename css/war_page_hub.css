@@ -4617,7 +4617,16 @@ margin-right: auto !important;
     align-items: center;
 	margin-top: 30px;
   }
+  
 }
+
+@media (max-width: 768px) {
+  .war-availability-grid {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
