@@ -511,8 +511,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
   }
 
 }
-
-/* Show the landscape rotator only on mobile devices in landscape mode */
 @media (orientation: landscape) and (max-width: 1024px) {
     #landscape-rotator {
         display: flex;
@@ -532,10 +530,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     }
 
     /* Hide the main page content when the rotator is visible */
-    #global-header-placeholder,
-    .main-content-wrapper,
-    #globalfooterplaceholder,
-    #chat-system-placeholder {
+    header,
+    .homepage-content-wrapper,
+    footer {
         display: none !important;
     }
 }
