@@ -663,99 +663,70 @@ ul li:last-child { border-bottom: none; }
 
 /* === FULLY UPDATED MOBILE STYLES === */
 @media (max-width: 768px) {
-    body { padding-top: 0; padding-bottom: 0; }
-header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; }
-.header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-#headerMainLogo { max-height: 50px; margin-top: 0; }
-footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-.main-content-wrapper { padding-top: 10px; padding-bottom: 10px; height: auto; min-height: unset; }
+    /* --- General Mobile Resets --- */
+    body { padding: 0; }
+    header { position: static; height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
+    footer.footer { position: static; height: auto; min-height: 70px; padding: 10px; }
+    .main-content-wrapper { padding: 10px; height: auto; min-height: unset; }
 
-/* Mobile Tabs */
-#mobileTabs { display: flex; justify-content: space-around; gap: 5px; background-color: #1a1a1a; padding: 8px; border-bottom: 2px solid #00a8ff; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-.tab-button { flex-grow: 1; background-color: #222; color: #eee; border: 1px solid #00a8ff; border-radius: 5px; padding: 8px 5px; cursor: pointer; font-size: 0.9rem; text-align: center; white-space: nowrap; }
-.tab-button.active { background-color: #00a8ff; color: #222; font-weight: bold; }
-.tab-content { display: none; width: 100%; }
-.tab-content.active { display: flex; flex-direction: column; }
+    /* --- JS-Generated Mobile Tabs --- */
+    #mobileTabs { display: flex; justify-content: space-around; gap: 5px; background-color: #1a1a1a; padding: 8px; border-bottom: 2px solid #00a8ff; width: 100%; box-sizing: border-box; }
+    .tab-button { flex-grow: 1; background-color: #222; color: #eee; border: 1px solid #00a8ff; border-radius: 5px; padding: 8px 5px; cursor: pointer; font-size: 0.9rem; text-align: center; }
+    .tab-button.active { background-color: #00a8ff; color: #222; font-weight: bold; }
+    
+    /* --- Styles for NEW Structure --- */
+    #activityPeeperContainer {
+        gap: 10px !important; /* Reduces space between tabs and content */
+        padding: 10px !important;
+    }
+    .tab-content { display: none; width: 100%; }
+    .tab-content.active { display: flex; flex-direction: column; }
 
-/* Main control panel grid */
-#topControlPanel {
-    display: grid;
-    gap: 8px 10px;
-    padding: 10px;
-    border-bottom: 1px solid rgba(0, 168, 255, 0.4);
-    align-items: center;
-    margin-top: -15px; /* <-- Add this line to move the panel up */
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-}
+    /* --- Corrected Control Panel --- */
+    #topControlPanel {
+        width: 100%;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Forces equal columns */
+        gap: 8px 10px; /* Reduces vertical gap */
+        align-items: center;
+        border-bottom: none; /* The border is now on the tab container */
+        padding: 0;
+        margin-top: 10px;
+    }
 
-/* FINAL OVERRIDE FIXES */
+    /* --- Corrected Items & Buttons --- */
+    .control-grid-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    .control-grid-item label {
+        min-height: 2.5em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #actionButtonsGroup {
+        grid-column: 1 / span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /* Three equal buttons */
+        gap: 10px;
+        margin: 5px auto 0 auto;
+        max-width: 280px;
+    }
+    .action-btn {
+        width: 100%;
+        font-size: 1.2rem;
+        padding: 8px 0;
+    }
+    .action-btn .icon { display: inline; }
+    .action-btn .text { display: none; }
 
-/* This removes the space ABOVE the panel to move it up */
-#activityPeeperContainer {
-    padding-top: 5px !important;
-}
-
-/* This FORCES the two inputs to fill their columns equally */
-#myFactionIDGroup input,
-#enemyFactionIDGroup input {
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Placement rules for each item */
-#myFactionIDGroup { grid-area: 1 / 1 / 2 / 2; }
-#enemyFactionIDGroup { grid-area: 1 / 2 / 2 / 3; }
-#activityIntervalGroup { grid-area: 2 / 1 / 3 / 2; }
-#stopTimerGroup { grid-area: 2 / 2 / 3 / 3; }
-#statusGroup { grid-area: 3 / 1 / 4 / 2; }
-#lastRefreshGroup { grid-area: 3 / 2 / 4 / 3; }
-#factionNameGroup { grid-area: 4 / 1 / 5 / 2; }
-#totalMembersGroup { grid-area: 4 / 2 / 5 / 3; }
-#actionButtonsGroup { grid-area: 5 / 1 / 6 / 3; } /* Spans both columns */
-#compareIndividualsGroup { grid-area: 6 / 1 / 7 / 3; } /* Spans both columns */
-
-/* General styling for items in the control panel */
-.control-grid-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    font-size: 0.85rem;
-    text-align: center;
-}
-
-.control-grid-item label {
-    min-height: 2.5em; /* Gives enough space for two lines of text */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.control-grid-item input[type="text"], 
-.control-grid-item select {
-    width: 100%;
-    text-align: center;
-}
-
-/* FINAL 2-COLUMN BUTTON LAYOUT */
-#actionButtonsGroup {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 10px;
-    max-width: 280px; /* Controls the size of the buttons */
-    margin: 5px auto 0 auto; /* Centers the button block */
-}
-.action-btn {
-    width: 100%;
-    font-size: 1.2rem;
-    padding: 8px 0;
-}
-
-/* Rules to show EMOJIS on mobile */
-.action-btn .icon {
-    display: inline;
-}
-.action-btn .text {
-    display: none;
+    /* --- Corrected Chart Area --- */
+    #chartsGridArea { display: flex; flex-direction: column; gap: 15px; }
 }
 
 /* Mobile charts area */
