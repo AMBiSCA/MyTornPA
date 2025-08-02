@@ -676,7 +676,7 @@ ul li:last-child { border-bottom: none; }
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
+        align-items: center !important;
         position: fixed;
         top: 0;
         left: 0;
@@ -690,10 +690,13 @@ ul li:last-child { border-bottom: none; }
     }
     #mobile-blocker h2 {
         color: #00a8ff;
+		text-align: center !important;
     }
     #mobile-blocker p {
         font-size: 1.1rem;
         line-height: 1.6;
+		max-width: 400px;
+        text-align: center !important;
     }
 
     /* This hides the main page content on mobile */
