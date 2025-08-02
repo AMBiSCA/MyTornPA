@@ -251,6 +251,27 @@ async function updateToolLinksAccess(profile) {
         return;
     }
 	
+	function correctDesktopSpacing() {
+    const contentWrapper = document.querySelector('.homepage-content-wrapper');
+
+    // Check if the screen is desktop-sized
+    const isDesktop = window.innerWidth > 768;
+
+    if (contentWrapper) {
+        if (isDesktop) {
+            // Apply a positive margin to move the content down
+            contentWrapper.style.marginTop = '20px';
+        } else {
+            // Clear the margin on mobile screens
+            contentWrapper.style.marginTop = '';
+        }
+    }
+}
+
+// Run the function on page load and window resize
+window.addEventListener('load', correctDesktopSpacing);
+window.addEventListener('resize', correctDesktopSpacing);
+	
 	// --- New: Dynamic Mobile Tab Logic ---
     function setupMobileTabs() {
         const statsColumn = document.getElementById('quickStatsSection');
