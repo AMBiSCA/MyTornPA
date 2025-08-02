@@ -683,16 +683,17 @@ ul li:last-child { border-bottom: none; }
     .tab-content.active { display: flex; flex-direction: column; }
 
     /* --- Corrected Control Panel --- */
-   #topControlPanel {
-    width: 100%;
-    box-sizing: border-box;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 10px; /* Simplified gap */
-    align-items: center;
-    padding: 10px;
-
-}
+    #topControlPanel {
+        width: 100%;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Forces equal columns */
+        gap: 8px 10px; /* Reduces vertical gap */
+        align-items: center;
+        border-bottom: none; /* The border is now on the tab container */
+        padding: 0;
+        margin-top: 10px;
+    }
 
     /* --- Corrected Items & Buttons --- */
     .control-grid-item {
