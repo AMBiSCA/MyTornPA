@@ -572,3 +572,14 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
     */
 }
+@media (max-width: 768px) {
+  .modal-actions {
+    flex-direction: column !important;
+    align-items: center;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+    max-width: 350px;
+  }
+}
