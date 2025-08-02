@@ -179,7 +179,8 @@ label[for="togglePersonalStatsCheckbox"].dash-item {
     display: flex;
     font-size: inherit;
     font-weight: bold;
-    justify-content: flex-start;
+    justify-content: center; 
+    color: inherit;
     color: inherit;
     width: 100%;
 }
@@ -424,7 +425,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: flex;
         justify-content: center;
         gap: 0px;
-        margin-bottom: -35px !important; /* Adds space between tabs and content */
+        margin-bottom: -25px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 	
