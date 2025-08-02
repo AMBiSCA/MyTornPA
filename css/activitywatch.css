@@ -664,9 +664,11 @@ ul li:last-child { border-bottom: none; }
     text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
 }
 
-/* Ensure html and body take up full viewport height for proper centering */
+/* Ensure the body and html take up the full screen height */
 html, body {
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 #mobile-blocker {
@@ -677,18 +679,22 @@ html, body {
 @media (max-width: 768px) {
     /* This shows your blocker message and makes it full-screen */
     #mobile-blocker {
-        display: block; /* We'll use JS to position it, so no flexbox */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         position: fixed;
-        top: 50%; /* Start the element at the center */
-        left: 50%;
-        transform: translate(-50%, -50%); /* This is a common and reliable CSS trick for centering */
+        top: 0;
+        left: 0;
         width: 100%;
+        height: 100%;
         background: #222;
         color: #eee;
         text-align: center;
         padding: 20px;
         z-index: 9999;
     }
+
     #mobile-blocker h2 {
         color: #00a8ff;
     }
@@ -697,10 +703,11 @@ html, body {
         line-height: 1.6;
     }
 
-    /* This hides the main page content on mobile */
+    /* This hides the main page content, header, footer, and chat box on mobile */
     #global-header-placeholder,
     .main-content-wrapper,
-    #globalfooterplaceholder {
+    #globalfooterplaceholder,
+    #chat-system-placeholder {
         display: none !important;
     }
 }
