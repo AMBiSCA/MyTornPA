@@ -582,5 +582,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     width: 100%;
     max-width: 350px;
 	justify-content: center !important; /* <-- Added !important */
+	margin-top: -15px !important; /* Add this line */
   }
 }
