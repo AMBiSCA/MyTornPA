@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const firebaseConfig = {
     apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw",
-    authDomain: "mytorn-d03ae.firebaseapp.com",
+    authDomain: "mytornpa.com",
     projectId: "mytorn-d03ae",
     storageBucket: "mytorn-d03ae.appspot.com",
     messagingSenderId: "205970466308",
