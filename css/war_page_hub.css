@@ -4592,6 +4592,15 @@ margin-right: auto !important;
     }
 }
 
+@media (max-width: 768px) {
+  .tab-navigation button[data-tab="friendly-status"],
+  .tab-navigation button[data-tab="Faction-Financials"],
+  #friendly-status-tab,
+  #Faction-Financials-tab {
+    display: none;
+  }
+}
+
 
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
