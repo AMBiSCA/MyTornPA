@@ -893,6 +893,36 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) { console.error("Error updating faction share preference:", error); }
         });
     }
+	
+	function hidePopularToolsOnMobile() {
+  // Find the "Most Popular" tools section using its unique class
+  const popularToolsSection = document.querySelector('.essential-tool-category');
+
+  // If the element doesn't exist for any reason, stop the function
+  if (!popularToolsSection) {
+    return;
+  }
+
+  // Create a media query to check for mobile screen sizes (768px or less)
+  const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
+
+  // This function handles the logic of showing or hiding the section
+  const handleVisibility = (e) => {
+    if (e.matches) {
+      // If the screen is mobile, hide the section
+      popularToolsSection.style.display = 'none';
+    } else {
+      // If the screen is not mobile (desktop), make sure the section is visible
+      popularToolsAection.style.display = 'block';
+    }
+  };
+
+  // Run the function once on page load to set the initial state
+  handleVisibility(mediaQueryMobile);
+
+  // Add a listener that will re-run the function automatically if the screen size changes
+  mediaQueryMobile.addEventListener('change', handleVisibility);
+}
     
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
