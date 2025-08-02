@@ -838,6 +838,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 }
 
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to check if the device is a mobile device
+    function isMobileDevice() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
+    // Function to hide the stats box on mobile
+    function hideMobileStats() {
+        if (isMobileDevice()) {
+            const statsHeading = document.getElementById('gymWelcomeMessage');
+            const statsBox = document.querySelector('.current-stats');
+            
+            if (statsHeading) {
+                statsHeading.classList.add('hidden');
+            }
+            if (statsBox) {
+                statsBox.classList.add('hidden');
+            }
+        }
+    }
+
+    // Run the function when the page loads
+    hideMobileStats();
+});
     /**
      * Captures the content of the currently active tab in the right panel as an image
      * and triggers a download. Requires html2canvas library.
