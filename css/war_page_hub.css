@@ -4610,20 +4610,27 @@ margin-right: auto !important;
     display: none;
   }
   
-  /* Adds new code to center the remaining content on mobile */
+  /* Centers the remaining content on the Announcements tab */
   .announcements-grid-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-	margin-top: 30px;
+    flex-direction: column; /* This is what makes it stack */
+    align-items: center;    /* This is what centers the stacked items */
+    margin-top: 20px;
+    width: 100%; /* Ensure it takes full width to center correctly */
   }
-  
-}
 
-@media (max-width: 768px) {
+  /* Corrected code to center the content in the War Availability tab */
   .war-availability-grid {
-    margin-left: auto;
-    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This is the key line to center it */
+    width: 100%;
+  }
+
+  .war-availability-grid > .user-status-panel,
+  .war-availability-grid > .team-roster-panel {
+    max-width: 450px; /* Use a reasonable max-width to prevent it from stretching too wide on larger phones */
+    width: 100%;
   }
 }
 
