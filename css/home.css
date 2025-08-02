@@ -424,7 +424,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-bottom: -7px !important; /* Adds space between tabs and content */
+        margin-bottom: -10px !important; /* Adds space between tabs and content */
         width: 100%;
     }
 
