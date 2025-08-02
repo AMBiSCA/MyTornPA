@@ -681,10 +681,11 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
 #topControlPanel {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 12px 10px;
+    gap: 8px 10px;
     padding: 10px;
     border-bottom: 1px solid rgba(0, 168, 255, 0.4);
     align-items: center;
+    margin-top: -15px; /* <-- Add this line to move the panel up */
 }
 
 /* Placement rules for each item */
