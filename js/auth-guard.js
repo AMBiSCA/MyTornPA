@@ -4,7 +4,8 @@
     // 1. Firebase Configuration (same as your other files)
     const firebaseConfig = {
         apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw",
-        authDomain: "mytorn-d03ae.firebaseapp.com",
+        // --- THIS LINE IS UPDATED ---
+        authDomain: "mytornpa.com",
         projectId: "mytorn-d03ae",
         storageBucket: "mytorn-d03ae.appspot.com",
         messagingSenderId: "205970466308",
