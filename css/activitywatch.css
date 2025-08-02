@@ -729,6 +729,31 @@ ul li:last-child { border-bottom: none; }
     #chartsGridArea { display: flex; flex-direction: column; gap: 15px; }
 }
 
+/* FINAL LAYOUT OVERRIDE */
+
+/* This targets the new "Setup" tab container and moves it up */
+#setup-tab {
+    margin-top: -10px !important;
+}
+
+/* This forces the panel into a single, centered column */
+#topControlPanel {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 18px !important;
+}
+
+/* This forces each control group to be full-width in that column */
+#topControlPanel > .control-grid-item {
+    width: 100% !important;
+    max-width: 350px !important; 
+    margin-left: auto !important;
+    margin-right: auto !important;
+    /* This resets any leftover grid placement rules */
+    grid-area: auto !important;
+}
+
 /* Mobile charts area */
 #chartsGridArea, #chartsGridAreaIndividuals {
     display: flex;
