@@ -4596,11 +4596,12 @@ margin-right: auto !important;
   /* Hides the tab buttons for "Live Faction Activity" and "War Information" */
   .tab-navigation button[data-tab="friendly-status"],
   .tab-navigation button[data-tab="Faction-Financials"],
-  /* Hides the corresponding content panels for those tabs */
+  /* Hides the content panels for those tabs */
   #friendly-status-tab,
   #Faction-Financials-tab,
-  /* Hides all three announcement sections on the Announcements tab */
-  .announcement-section-item {
+  /* Hides the "Game Plan" and "Faction Announcements" sections specifically */
+  #gamePlanDisplay,
+  #factionAnnouncementsDisplay {
     display: none;
   }
 }
