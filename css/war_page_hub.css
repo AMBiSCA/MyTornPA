@@ -4571,7 +4571,7 @@ margin-right: auto !important;
 
 
 .game-plan-display img {
-    width: 100%;          /* Make the image span the full width of the container */
+    width: 100%;          /* Make the image spawidth of the container */
     height: 100%;         /* Make the image span the full height of the container */
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
