@@ -4596,16 +4596,20 @@ margin-right: auto !important;
   /* Hides the tab buttons for "Live Faction Activity" and "War Information" */
   .tab-navigation button[data-tab="friendly-status"],
   .tab-navigation button[data-tab="Faction-Financials"],
+
   /* Hides the content panels for those tabs */
   #friendly-status-tab,
   #Faction-Financials-tab,
-  /* Hides the "Game Plan" and "Faction Announcements" sections specifically */
-  #gamePlanDisplay,
-  #factionAnnouncementsDisplay {
+
+  /* Hides the "Game Plan" and "Faction Announcements" headers and content */
+  .announcements-grid-container > div:first-child,
+  .announcements-grid-container > div:last-child,
+
+  /* Hides the second scoreboard that is also on the announcements tab */
+  .announcement-section-item > .war-announcement-section > #announcementScoreboardContainer {
     display: none;
   }
 }
-
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
