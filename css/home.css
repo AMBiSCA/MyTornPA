@@ -1124,6 +1124,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
     @media (max-width: 768px) {
         .homepage-content-wrapper {
+			min-height: calc(100vh - 150px);
             -ms-overflow-style: none;
             /* IE and Edge */
             scrollbar-width: none;
