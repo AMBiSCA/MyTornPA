@@ -1,15 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("home.js: DOMContentLoaded event fired. All systems go (hopefully)!");
 
-const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
-
-// Call the setup function immediately if on a mobile device
-if (mediaQueryMobile.matches) {
-    // This is a new function call that we need to add to the code.
-    setupMobileTabs();
-}
-
-
     // --- Firebase Configuration ---
     const firebaseConfig = {
         apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw",
