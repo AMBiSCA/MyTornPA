@@ -415,12 +415,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: none !important;
     }
 	
-	@media (max-width: 768px) {
-  label[for="togglePersonalStatsCheckbox"].dash-item {
-    justify-content: center !important;
+	div.dash-item:has(#personalStatsLabel) {
+    justify-content: center;
   }
 }
-	
 	
 .welcome-block-area {
     display: none !important;
