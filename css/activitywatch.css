@@ -680,7 +680,6 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
 /* Main control panel grid */
 #topControlPanel {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px 10px;
     padding: 10px;
     border-bottom: 1px solid rgba(0, 168, 255, 0.4);
@@ -688,11 +687,23 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
     margin-top: -15px; /* <-- Add this line to move the panel up */
 }
 
-/* Force equal width on top two input boxes */
+/* FINAL OVERRIDE FIXES */
+
+/* This removes the space ABOVE the panel to move it up */
+#activityPeeperContainer {
+    padding-top: 5px !important;
+}
+
+/* This FORCES the two columns to be truly equal */
+#topControlPanel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+/* This FORCES the two inputs to fill their columns equally */
 #myFactionIDGroup input,
 #enemyFactionIDGroup input {
-    box-sizing: border-box !important;
     width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Placement rules for each item */
