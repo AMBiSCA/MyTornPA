@@ -1046,12 +1046,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         /* Forces essential tools to remain visible */
     }
 
-    @media (max-width: 768px) {
-        /* Adjust the top margin of the main content wrapper on the homepage only */
-        .homepage-content-wrapper {
-            margin-top: -25px !important;
-            /* Move content UP by 10px to reduce the gap */
-        }
 
         /* You can also adjust the welcome-block-area's internal padding if needed for minor fine-tuning */
         .welcome-block-area {
