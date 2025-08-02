@@ -410,13 +410,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 */
 @media (max-width: 768px) {
 	
-	div.dash-item:has(#personalStatsLabel) {
-    grid-column: 1 / -1;
-    justify-content: center;
-  }
-}
-	
-    
+
     /* This rule hides the inactive content section when tabbing */
     .mobile-hidden {
         display: none !important;
