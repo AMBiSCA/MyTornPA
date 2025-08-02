@@ -81,10 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. Move the existing content into the new containers
     setupContent.appendChild(topControlPanel);
     
-    // --- NEW LINES START HERE ---
     const compareIndividualsGroup = document.getElementById('compareIndividualsGroup');
     if (compareIndividualsGroup) {
         individualsContent.appendChild(compareIndividualsGroup);
+    }
+
+    // --- NEW LINES START HERE ---
+    const factionNameGroup = document.getElementById('factionNameGroup');
+    if (factionNameGroup) {
+        overallContent.appendChild(factionNameGroup);
+    }
+    const totalMembersGroup = document.getElementById('totalMembersGroup');
+    if (totalMembersGroup) {
+        overallContent.appendChild(totalMembersGroup);
     }
     // --- NEW LINES END HERE ---
 
