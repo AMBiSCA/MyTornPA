@@ -685,6 +685,7 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
     border-bottom: 1px solid rgba(0, 168, 255, 0.4);
     align-items: center;
     margin-top: -15px; /* <-- Add this line to move the panel up */
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
 }
 
 /* FINAL OVERRIDE FIXES */
@@ -692,11 +693,6 @@ footer.footer { position: static; height: auto; min-height: 70px; padding-top: 1
 /* This removes the space ABOVE the panel to move it up */
 #activityPeeperContainer {
     padding-top: 5px !important;
-}
-
-/* This FORCES the two columns to be truly equal */
-#topControlPanel {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
 }
 
 /* This FORCES the two inputs to fill their columns equally */
