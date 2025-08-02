@@ -413,13 +413,18 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     .mobile-hidden {
         display: none !important;
     }
-
+	
+	
+ .welcome-block-area {
+    display: none !important;
+  }
+}
     /* Container for the tab buttons */
     #mobile-tab-buttons-container {
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-bottom: 15px; /* Adds space between tabs and content */
+        margin-bottom: 0px; /* Adds space between tabs and content */
         width: 100%;
     }
 
