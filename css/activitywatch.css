@@ -395,6 +395,7 @@ ul li:last-child { border-bottom: none; }
     color: #ff9900 !important;
 }
 
+
 #activityPeeperContainer {
     background-color: #222;
     border-radius: 8px;
@@ -649,7 +650,7 @@ ul li:last-child { border-bottom: none; }
     }
 }
 
-@media (max-width: 768px) {
+   @media (max-width: 768px) {
     body { padding-top: 0; padding-bottom: 0; }
     header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
@@ -668,6 +669,14 @@ ul li:last-child { border-bottom: none; }
         min-height: unset;
     }
 }
+
+@media (max-width: 480px) {
+    .main-content-wrapper {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+
 
 
 .script-title {
