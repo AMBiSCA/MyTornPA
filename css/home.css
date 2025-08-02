@@ -415,11 +415,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: none !important;
     }
 	
-	 div.dash-item:has(#personalStatsLabel) {
-    justify-content: center;
-  }
-}
-	
 	
 .welcome-block-area {
     display: none !important;
