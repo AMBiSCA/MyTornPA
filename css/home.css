@@ -1142,6 +1142,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         }
     }
 }
+
+.essential-tool-category {
+    display: none !important;
+}
+
+
 /* New rule for dynamically hidden elements on mobile */
 
     .mobile-hidden {
@@ -1255,9 +1261,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     display: none !important;
 }
 
-.essential-tool-category {
-    display: none !important;
-}
 
 @media (orientation: landscape) and (max-width: 1024px) {
     /* Hide the main page content when the rotator is visible */
