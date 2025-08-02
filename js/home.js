@@ -3,23 +3,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Firebase Configuration ---
     const firebaseConfig = {
-        apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Replace with your actual config
+        apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw",
         authDomain: "mytorn-d03ae.firebaseapp.com",
         projectId: "mytorn-d03ae",
         storageBucket: "mytorn-d03ae.appspot.com",
         messagingSenderId: "205970466308",
         appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
     };
-	
-	window.addEventListener('pageshow', function(event) {
-    // The 'persisted' property is true if the page was restored from the back-forward cache.
-    if (event.persisted) {
-        console.log('Page was loaded from the back-forward cache. Forcing a reload to ensure correct user state.');
-        window.location.reload();
-    }
-});
-
- 
+    
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            console.log('Page was loaded from the back-forward cache. Forcing a reload to ensure correct user state.');
+            window.location.reload();
+        }
+    });
 
     let db = null;
     let auth = null;
@@ -83,8 +80,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
     const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
     if (profileSetupProfileIdInput) {
-    profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
- }
+        profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
+    }
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const nameErrorEl = document.getElementById('nameError');
     const profileSetupErrorEl = document.getElementById('profileSetupError');
@@ -116,91 +113,91 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
     const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
     const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
-	const subscribePromptModal = document.getElementById('subscribePromptModal');
-const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
-const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
-const goToProfileBtn = document.getElementById('goToProfileBtn');
-const termsCheckbox = document.getElementById('termsAgreementProfileModal');
+    const subscribePromptModal = document.getElementById('subscribePromptModal');
+    const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
+    const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
+    const goToProfileBtn = document.getElementById('goToProfileBtn');
+    const termsCheckbox = document.getElementById('termsAgreementProfileModal');
 
-const hideSubscribePrompt = () => {
-    if (subscribePromptModal) {
-        subscribePromptModal.style.display = 'none';
-    }
-};
+    const hideSubscribePrompt = () => {
+        if (subscribePromptModal) {
+            subscribePromptModal.style.display = 'none';
+        }
+    };
 
- if(closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
- if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
+    if (closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
+    if (closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
 
-// Make the 'View Memberships' button open the profile modal
-if(goToProfileBtn) {
-    goToProfileBtn.addEventListener('click', () => {
-        hideSubscribePrompt();
-        membershipOptionsModal.style.display = 'flex';
-    });
-}
-
-// --- Logic for the new Terms Prompt Modal ---
-const termsPromptModal = document.getElementById('termsPromptModal');
-const closeTermsPromptBtn = document.getElementById('closeTermsPromptBtn');
-const closeTermsModalBtn = document.getElementById('closeTermsModalBtn');
-const goToProfileFromTermsPromptBtn = document.getElementById('goToProfileFromTermsPromptBtn');
-
-// Function to close the new modal
-const hideTermsPrompt = () => {
-    if (termsPromptModal) {
-        termsPromptModal.style.display = 'none';
-    }
-};
-
-// Attach listeners to the new modal's buttons
-if(closeTermsPromptBtn) closeTermsPromptBtn.addEventListener('click', hideTermsPrompt);
-if(closeTermsModalBtn) closeTermsModalBtn.addEventListener('click', hideTermsPrompt);
-if(goToProfileFromTermsPromptBtn) {
-    goToProfileFromTermsPromptBtn.addEventListener('click', () => {
-        hideTermsPrompt();
-        showProfileSetupModal(); // This opens the main profile settings
-    });
-}
-
-// --- Dropdown Menu Logic ---
-// This handles both 'Useful Links' and 'Contact' dropdowns
-
-const allDropdowns = [
-    { button: usefulLinksBtn, content: usefulLinksDropdown },
-    { button: headerContactUsBtn, content: headerContactUsDropdown }
-];
-
-allDropdowns.forEach(dropdown => {
-    if (dropdown.button && dropdown.content) {
-        // When a dropdown button is clicked...
-        dropdown.button.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevents the window click listener from firing immediately
-
-            const isAlreadyOpen = dropdown.content.style.display === 'block';
-
-            // First, close all other dropdowns to avoid overlap
-            allDropdowns.forEach(otherDropdown => {
-                if (otherDropdown.content !== dropdown.content) {
-                    otherDropdown.content.style.display = 'none';
-                }
-            });
-
-            // Then, toggle the visibility of the one that was clicked
-            dropdown.content.style.display = isAlreadyOpen ? 'none' : 'block';
+    // Make the 'View Memberships' button open the profile modal
+    if (goToProfileBtn) {
+        goToProfileBtn.addEventListener('click', () => {
+            hideSubscribePrompt();
+            membershipOptionsModal.style.display = 'flex';
         });
     }
-});
 
-// Add a single listener to the window to close any open dropdown when clicking elsewhere
-window.addEventListener('click', (event) => {
+    // --- Logic for the new Terms Prompt Modal ---
+    const termsPromptModal = document.getElementById('termsPromptModal');
+    const closeTermsPromptBtn = document.getElementById('closeTermsPromptBtn');
+    const closeTermsModalBtn = document.getElementById('closeTermsModalBtn');
+    const goToProfileFromTermsPromptBtn = document.getElementById('goToProfileFromTermsPromptBtn');
+
+    // Function to close the new modal
+    const hideTermsPrompt = () => {
+        if (termsPromptModal) {
+            termsPromptModal.style.display = 'none';
+        }
+    };
+
+    // Attach listeners to the new modal's buttons
+    if (closeTermsPromptBtn) closeTermsPromptBtn.addEventListener('click', hideTermsPrompt);
+    if (closeTermsModalBtn) closeTermsModalBtn.addEventListener('click', hideTermsPrompt);
+    if (goToProfileFromTermsPromptBtn) {
+        goToProfileFromTermsPromptBtn.addEventListener('click', () => {
+            hideTermsPrompt();
+            showProfileSetupModal(); // This opens the main profile settings
+        });
+    }
+
+    // --- Dropdown Menu Logic ---
+    // This handles both 'Useful Links' and 'Contact' dropdowns
+
+    const allDropdowns = [
+        { button: usefulLinksBtn, content: usefulLinksDropdown },
+        { button: headerContactUsBtn, content: headerContactUsDropdown }
+    ];
+
     allDropdowns.forEach(dropdown => {
-        // If a dropdown is open AND the click was not on its button...
-        if (dropdown.content && dropdown.content.style.display === 'block' && !dropdown.button.contains(event.target)) {
-            // ...hide it.
-            dropdown.content.style.display = 'none';
+        if (dropdown.button && dropdown.content) {
+            // When a dropdown button is clicked...
+            dropdown.button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevents the window click listener from firing immediately
+
+                const isAlreadyOpen = dropdown.content.style.display === 'block';
+
+                // First, close all other dropdowns to avoid overlap
+                allDropdowns.forEach(otherDropdown => {
+                    if (otherDropdown.content !== dropdown.content) {
+                        otherDropdown.content.style.display = 'none';
+                    }
+                });
+
+                // Then, toggle the visibility of the one that was clicked
+                dropdown.content.style.display = isAlreadyOpen ? 'none' : 'block';
+            });
         }
     });
-});
+
+    // Add a single listener to the window to close any open dropdown when clicking elsewhere
+    window.addEventListener('click', (event) => {
+        allDropdowns.forEach(dropdown => {
+            // If a dropdown is open AND the click was not on its button...
+            if (dropdown.content && dropdown.content.style.display === 'block' && !dropdown.button.contains(event.target)) {
+                // ...hide it.
+                dropdown.content.style.display = 'none';
+            }
+        });
+    });
 
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
@@ -220,8 +217,8 @@ window.addEventListener('click', (event) => {
     let membershipCountdownInterval = null;
     let currentUserProfile = null;
 
-	
-	function formatTimeRemaining(secs) {
+    
+    function formatTimeRemaining(secs) {
         if (secs <= 0) return "OK 😊";
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
@@ -250,8 +247,8 @@ async function updateToolLinksAccess(profile) {
         });
         return;
     }
-	
-	// --- New: Dynamic Mobile Tab Logic ---
+    
+    // --- New: Dynamic Mobile Tab Logic ---
     function setupMobileTabs() {
         const statsColumn = document.getElementById('quickStatsSection');
         const toolsColumn = document.getElementById('exploreToolsSection');
@@ -331,7 +328,7 @@ async function updateToolLinksAccess(profile) {
     console.log('[DEBUG] Finished updateToolLinksAccess.');
 }
 
-  function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
+    function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
         if (activeCooldownIntervals[elementId]) clearInterval(activeCooldownIntervals[elementId]);
@@ -417,14 +414,14 @@ async function updateToolLinksAccess(profile) {
             }
         }
     }
-	
-	function validateTornProfileIdInput(event) {
+    
+    function validateTornProfileIdInput(event) {
     const input = event.target;
     // Remove any character that is NOT a digit (0-9)
     input.value = input.value.replace(/\D/g, '');
 }
-	
-	async function isFactionComped(profile, db) {
+    
+    async function isFactionComped(profile, db) {
     if (!profile || !profile.faction_id) {
         return false;
     }
@@ -453,15 +450,15 @@ async function updateToolLinksAccess(profile) {
         return false;
     }
 }
-	
-	
-	function startMembershipCountdown(membershipInfo) {
+    
+    
+    function startMembershipCountdown(membershipInfo) {
     if (membershipCountdownInterval) {
         clearInterval(membershipCountdownInterval);
     }
 
     // Changed to target the factionHuddleMessage element
-    const targetMessageEl = document.getElementById('factionHuddleMessage'); 
+    const targetMessageEl = document.getElementById('factionHuddleMessage');    
     const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
 
     if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
@@ -472,8 +469,7 @@ async function updateToolLinksAccess(profile) {
         }
         return;
     }
-	
-
+    
 
 
     // Function to update the timer text, runs every second
@@ -528,7 +524,7 @@ async function updateToolLinksAccess(profile) {
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-  async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+    async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
     const personalStatsModal = document.getElementById('personalStatsModal');
@@ -596,7 +592,7 @@ async function updateToolLinksAccess(profile) {
 
         // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
         let htmlContent = '<h4>User Information</h4>';
-		htmlContent += `
+        htmlContent += `
             <div class="member-detail-header">
                 <div class="member-header-top-row center-content-flex">
                     ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
@@ -799,7 +795,7 @@ async function updateToolLinksAccess(profile) {
             const factionData = data?.profile?.faction || data?.faction || null;
             
             if (factionData) {
-   const updatePayload = {
+    const updatePayload = {
     uid: user.uid, // User's Firebase UID
     faction_id: factionData.faction_id ?? null,
     faction_name: factionData.faction_name ?? null,
@@ -808,17 +804,17 @@ async function updateToolLinksAccess(profile) {
     profile_image: data.profile_image || null,
     name: data.name || null,
     // THIS LINE IS NOW FIXED
-    tornProfileId: String(data.player_id || '') 
+    tornProfileId: String(data.player_id || '')    
     // --- END NEW ---
 };
     console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
     try {
         const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatePayload),
-        });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatePayload),
+            });
 
         if (!factionUpdateResponse.ok) {
             const errorData = await factionUpdateResponse.json().catch(() => ({}));
@@ -836,12 +832,12 @@ async function updateToolLinksAccess(profile) {
     // Optionally, if you have a specific UI error display for this, update it here.
 }
 
-        } catch (error) {
-            console.error("Error in fetchAllRequiredData:", error);
-            clearQuickStats();
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error loading data: ${error.message}. Check API key or Torn API status.`;
+            } catch (error) {
+                console.error("Error in fetchAllRequiredData:", error);
+                clearQuickStats();
+                if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error loading data: ${error.message}. Check API key or Torn API status.`;
+            }
         }
-    }
 
 
     if (togglePersonalStatsCheckbox && personalStatsLabel) {
@@ -864,13 +860,13 @@ async function updateToolLinksAccess(profile) {
                         this.checked = false;
                     });
                 }
-           } else {
+            } else {
                 if (personalStatsModal) personalStatsModal.classList.remove('visible');
             }
         });
     }
 
-   closePersonalStatsModalBtn.addEventListener('click', function() {
+    closePersonalStatsModalBtn.addEventListener('click', function() {
             console.log("Personal Stats Modal close button clicked.");
             personalStatsModal.classList.remove('visible');
             if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
@@ -886,71 +882,70 @@ async function updateToolLinksAccess(profile) {
             } catch (error) { console.error("Error updating faction share preference:", error); }
         });
     }
-	
-	
+    
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
- // Locate this block in your home.js and replace it completely.
+    // Locate this block in your home.js and replace it completely.
 if (headerEditProfileBtn && auth && db) {
-    headerEditProfileBtn.addEventListener('click', async function(event) {
-        event.preventDefault();
-        const user = auth.currentUser;
-        if (!user || !db) return;
+    headerEditProfileBtn.addEventListener('click', async function(event) {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user || !db) return;
 
-        // --- Prepare input fields ---
-        if(preferredNameInput) preferredNameInput.value = '';
-        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-        if(termsCheckbox) termsCheckbox.checked = false;
-        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+        // --- Prepare input fields ---
+        if(preferredNameInput) preferredNameInput.value = '';
+        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
+        if(termsCheckbox) termsCheckbox.checked = false;
+        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
 
-        // --- MODIFIED: We no longer make the Profile ID field read-only ---
-        if (profileSetupProfileIdInput) {
-            profileSetupProfileIdInput.value = ''; // Clear the value
-            profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
-            profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
-        }
-        // --- END MODIFICATION ---
+        // --- MODIFIED: We no longer make the Profile ID field read-only ---
+        if (profileSetupProfileIdInput) {
+            profileSetupProfileIdInput.value = ''; // Clear the value
+            profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
+            profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
+        }
+        // --- END MODIFICATION ---
 
-        try {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get(); // Fetch the current user profile
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get(); // Fetch the current user profile
 
-            if (doc.exists) {
-                const data = doc.data();
-                
-                // Populate fields with data from Firebase
-                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
-                
-                // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
-                if(profileSetupProfileIdInput) {
-                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Populate fields with data from Firebase
+                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                
+                // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
+                if(profileSetupProfileIdInput) {
+                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
                     // The line that set it to readonly here has been removed.
-                }
-                // --- END MODIFICATION ---
+                }
+                // --- END MODIFICATION ---
 
-                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
-                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
 
-            } else {
-                // If no profile exists, set preferredName from Firebase displayName (if available)
-                if(preferredNameInput && user.displayName) {
-                    preferredNameInput.value = user.displayName.substring(0,10);
-                }
+            } else {
+                // If no profile exists, set preferredName from Firebase displayName (if available)
+                if(preferredNameInput && user.displayName) {
+                    preferredNameInput.value = user.displayName.substring(0,10);
+                }
                 // We don't need to do anything to the profile ID input here, it's already cleared and writable.
-            }
-        } catch (err) {
-            console.error("Error fetching profile for edit:", err);
-            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-        }
-        showProfileSetupModal(); // Show the modal after attempting to populate it
-    });
+            }
+        } catch (err) {
+            console.error("Error fetching profile for edit:", err);
+            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
+        }
+        showProfileSetupModal(); // Show the modal after attempting to populate it
+    });
 }
 
-  if (saveProfileBtn && auth && db) {
+    if (saveProfileBtn && auth && db) {
     saveProfileBtn.addEventListener('click', async () => {
         const profileSetupErrorEl = document.getElementById('profileSetupError');
         if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
@@ -986,8 +981,8 @@ if (headerEditProfileBtn && auth && db) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
             return;
         }
-		
-		const tornApiKeyPattern = /^[a-zA-Z0-9]{16}$/; 
+        
+        const tornApiKeyPattern = /^[a-zA-Z0-9]{16}$/;    
         if (!tornApiKeyPattern.test(apiKeyVal)) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key format is invalid. It should be 16 alphanumeric characters.';
             return;
@@ -1089,7 +1084,7 @@ if (toolsSection) {
 }
     // ... (rest of your home.js file before onAuthStateChanged) ...
 
-   if (auth) {
+    if (auth) {
     auth.onAuthStateChanged(async function(user) {
         console.log('Auth State Changed. User:', user ? user.uid : 'No user');
         const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
@@ -1129,7 +1124,7 @@ if (toolsSection) {
                         };
 
                         if (factionHuddleMessageEl) {
-                           factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
+                            factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
                         }
                         startMembershipCountdown(membershipInfo); // This function sets the trial countdown text
 
@@ -1344,9 +1339,9 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
 
             // Start the countdown timer with the new info
             startMembershipCountdown(membershipInfo);
-			
-			// >>> ADD THIS LINE TO REFRESH THE PAGE <<<
-            location.reload(); 
+            
+            // >>> ADD THIS LINE TO REFRESH THE PAGE <<<
+            location.reload();    
 
         } catch (error) {
             console.error("Error saving trial info to Firebase:", error);
@@ -1396,10 +1391,10 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
             // For now, it just alerts.
         });
     }
-	
-	
-	
-	
+    
+    
+    
+    
 // --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
     document.addEventListener('click', function(event) {
 
@@ -1432,9 +1427,8 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
             }
         }
     });
-	
-	
-  
+    
+    
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded
@@ -1499,24 +1493,3 @@ function toggleLandscapeBlocker() {
 // Run the function on page load and window resize
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
-
-function correctDesktopSpacing() {
-    const contentWrapper = document.querySelector('.homepage-content-wrapper');
-
-    // Check if the screen is desktop-sized
-    const isDesktop = window.innerWidth > 768;
-
-    if (contentWrapper) {
-        if (isDesktop) {
-            // Apply a positive margin to move the content down
-            contentWrapper.style.marginTop = '20px';
-        } else {
-            // Clear the margin on mobile screens
-            contentWrapper.style.marginTop = '';
-        }
-    }
-}
-
-// Run the function on page load and window resize
-window.addEventListener('load', correctDesktopSpacing);
-window.addEventListener('resize', correctDesktopSpacing);

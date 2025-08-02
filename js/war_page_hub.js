@@ -5511,49 +5511,46 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
            document.addEventListener('DOMContentLoaded', () => {
-    // --- START OF DOMCONTENTLOADED ---
 
-    // This block reads the URL to see if a specific tab was requested
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTabName = urlParams.get('view');
 
-    // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
-    // NEW FUNCTION: Hides specific elements on the announcements tab for mobile screens
-    function applyMobileLayoutToAnnouncementsTab() {
+    // NEW HIDE FUNCTION: Adds the CSS class to the elements that should be hidden
+    function toggleMobileView() {
         const mobileMaxWidth = 360;
-        const announcementsTab = document.getElementById('announcements-tab');
-        
-        if (!announcementsTab) return;
+        const warInfoTab = document.querySelector('.tab-button[data-tab="Faction-Financials"]');
+        const liveActivityTab = document.querySelector('.tab-button[data-tab="friendly-status"]');
+        const gamePlanSection = document.querySelector('.announcements-grid-container .announcement-section-item:nth-child(1)');
+        const announcementsSection = document.querySelector('.announcements-grid-container .announcement-section-item:nth-child(3)');
+        const announcementScoreboard = document.getElementById('announcementScoreboardContainer');
 
-        const gamePlanSection = announcementsTab.querySelector('.announcement-section-item:nth-child(1)');
-        const announcementsSection = announcementsTab.querySelector('.announcement-section-item:nth-child(3)');
+        const elementsToHide = [
+            warInfoTab,
+            liveActivityTab,
+            gamePlanSection,
+            announcementsSection,
+            announcementScoreboard
+        ];
 
         if (window.innerWidth <= mobileMaxWidth) {
-            if (gamePlanSection) {
-                gamePlanSection.style.display = 'none';
-            }
-            if (announcementsSection) {
-                announcementsSection.style.display = 'none';
-            }
+            elementsToHide.forEach(el => {
+                if (el) el.classList.add('hide-on-mobile');
+            });
         } else {
-            // Show elements on larger screens by resetting the display property
-            if (gamePlanSection) {
-                gamePlanSection.style.display = '';
-            }
-            if (announcementsSection) {
-                announcementsSection.style.display = '';
-            }
+            elementsToHide.forEach(el => {
+                if (el) el.classList.remove('hide-on-mobile');
+            });
         }
     }
 
-    // Call the function on initial load and resize to handle the main layout
-    window.addEventListener('resize', applyMobileLayoutToAnnouncementsTab);
+    // Call the new function initially and on resize events
+    toggleMobileView();
+    window.addEventListener('resize', toggleMobileView);
+    
 
-
-    // Replace your old block with this NEW version
     tabButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
             const targetTabDataset = event.currentTarget.dataset.tab;
@@ -5570,22 +5567,16 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
             showTab(targetTabId);
 
-            // This is the part we are updating
             if (targetTabDataset === 'friendly-status') {
-                
-                // --- NEW REFRESH LOGIC STARTS HERE ---
                 const tbody = document.getElementById('friendly-members-tbody');
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
                 }
                 
                 try {
-                    // We use the globalYourFactionID variable that is already set on this page
                     if (!globalYourFactionID) {
                         throw new Error("You must be logged in to refresh faction data.");
                     }
-
-                    // Call the SAME Netlify function to update the data in the database
                     const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
                     
                     if (!response.ok) {
@@ -5599,12 +5590,9 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     if (tbody) {
                         tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
                     }
-                    return; // Stop if the refresh fails
+                    return;
                 }
-                // --- NEW REFRESH LOGIC ENDS HERE ---
 
-
-                // Now that the data is fresh, call the function to display the table
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
                     await updateFriendlyMembersTable(userApiKey, user.uid);
@@ -5619,16 +5607,14 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     });
 
 
-    // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
     const availabilityTab = document.getElementById('war-availability-tab');
     if (availabilityTab) {
         availabilityTab.addEventListener('click', async (event) => {
             const button = event.target.closest('.action-btn');
             if (!button) {
-                return; // Exit if the click wasn't on an action button
+                return;
             }
 
-            // Handle the "Update Day X" buttons inside the form
             if (button.textContent.includes('Update Day')) {
                 event.preventDefault();
                 const dayForm = button.closest('.availability-day-form');
@@ -5666,7 +5652,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     }, {
                         merge: true
                     });
-                    await displayWarRoster(); // Refresh the roster and summary
+                    await displayWarRoster();
                     button.textContent = "Saved! ✅";
                 } catch (error) {
                     console.error("Error saving availability:", error);
@@ -5680,7 +5666,6 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }
             }
 
-            // Handle the "Edit Day X" buttons in the summary view
             if (button.classList.contains('edit-day-btn')) {
                 const dayToEdit = button.dataset.dayToEdit;
                 if (dayToEdit) {
@@ -5688,13 +5673,12 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }
             }
 
-            // Handle the "Send Reminders" button
             if (button.id === 'notify-members-btn') {
                 const originalText = button.textContent;
                 button.disabled = true;
                 button.textContent = "Sending...";
                 try {
-                    await sendReminderNotifications(); // This function already shows alerts on success/failure
+                    await sendReminderNotifications();
                     button.textContent = "Sent! ✅";
                 } catch (error) {
                     console.error("Error sending reminders:", error);
@@ -5708,41 +5692,33 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }
             }
 
-            // Handle the "Reset All" button
             if (button.id === 'reset-availability-btn') {
                 const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
                 if (confirmed) {
-                    // NOTE: You will need to write the function `resetAllAvailability()` that
-                    // goes through the database and deletes all documents in the subcollection.
-                    // This is a placeholder for that future function.
                     alert("Reset functionality is not fully implemented yet.");
                 }
             }
         });
     }
-    // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
-    // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
     if (requestedTabName) {
-        // This will take the value from the URL (e.g., 'live-faction-activity')
-        // and turn it into the tab ID (e.g., 'live-faction-activity-tab') to show it.
         showTab(requestedTabName + '-tab');
     } else {
-        // This is the original default behavior if no specific tab is requested.
         showTab('announcements-tab');
     }
-    // --- END MODIFIED ---
+    
+    // Call the mobile view function immediately after the initial tab is shown
+    applyMobileLayoutToAnnouncementsTab();
+
 
     let listenersInitialized = false;
 
-    // References to chat elements (ensure these are correctly defined based on your HTML)
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox'); // This element is not always the main chat display.
-    const chatDisplayArea = document.getElementById('chat-display-area'); // This IS your main chat content display area.
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-    // This handles all the data loading after a user logs in
     auth.onAuthStateChanged(async (user) => {
     if (user) {
         const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -5753,21 +5729,19 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         const playerId = userData.tornProfileId || null;
         currentTornUserName = userData.preferredName || 'Unknown';
 
-        // Clear All War Data Button Listener (moved here to ensure 'db' is available)
         if (clearAllWarDataBtn) {
             clearAllWarDataBtn.addEventListener('click', async () => {
                 const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
                 const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
                 if (!userConfirmed) {
-                    return; // Stop if the user clicks 'No' or outside the box
+                    return;
                 }
 
                 const originalText = clearAllWarDataBtn.textContent;
                 clearAllWarDataBtn.disabled = true;
                 clearAllWarDataBtn.textContent = "Clearing...";
 
-                // This object defines all the default/empty values
                 const clearedData = {
                     toggleEnlisted: false,
                     toggleTermedWar: false,
@@ -5782,17 +5756,15 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     quickAnnouncement: "",
                     gamePlanImageUrl: null,
                     announcementsImageUrl: null,
-                    tab4Admins: [], // Also clear these
-                    energyTrackingMembers: [] // And these
+                    tab4Admins: [],
+                    energyTrackingMembers: []
                 };
 
                 try {
-                    // Update the database with the cleared data
                     await db.collection('factionWars').doc('currentWar').set(clearedData, {
                         merge: true
                     });
 
-                    // Update all the input fields on the screen
                     if (toggleEnlisted) toggleEnlisted.checked = false;
                     if (toggleTermedWar) toggleTermedWar.checked = false;
                     if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
@@ -5809,15 +5781,13 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
                     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
 
-                    // Update the read-only display on the announcements tab
                     populateWarStatusDisplay(clearedData);
 
-                    // Also clear the populated member checkboxes and enemy targets
                     if (factionApiFullData && factionApiFullData.members) {
                         populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
                     }
-                    populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-                    displayEnemyTargetsTable(null); // Clear the enemy targets table
+                    populateEnemyMemberCheckboxes({}, []);
+                    displayEnemyTargetsTable(null);
 
                     clearAllWarDataBtn.textContent = "Cleared! ✅";
 
@@ -5835,9 +5805,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
 
         if (apiKey && playerId) {
-            userApiKey = apiKey; // Set global API key
+            userApiKey = apiKey;
 
-            await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+            await initializeAndLoadData(apiKey, userData.faction_id);
+            // After all data is loaded and displayed, apply the mobile layout
+            applyMobileLayoutToAnnouncementsTab(); 
 
             setupProgressText();
 
@@ -5846,10 +5818,9 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
             }
 
-            // Initial calls to update UI
-            displayWarRoster(); // This now expects data from Firebase
-            setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
-            setupWarClaimsListener(); // Listens for claims
+            displayWarRoster();
+            setupFactionHitsListener(db, userData.faction_id);
+            setupWarClaimsListener();
 
             userEnergyDisplay = document.getElementById('userEnergyDisplay');
             onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
@@ -5857,79 +5828,61 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
             updateUserEnergyDisplay();
             updateOnlineMemberCounts();
-            fetchAndDisplayChainData(); // Now fetches its own chain data
+            fetchAndDisplayChainData();
             displayQuickFFTargets(userApiKey, playerId);
-            setupChatRealtimeListener(); // Sets up faction chat listener
+            setupChatRealtimeListener();
 
-            // Attach event listeners only once
             if (!listenersInitialized) {
-                setupEventListeners(apiKey); // Contains generic save buttons with new robust code
-                setupMemberClickEvents(); // For the friendly members table
+                setupEventListeners(apiKey);
+                setupMemberClickEvents();
 
-                // Attach chat tab click listeners
                 chatTabs.forEach(tab => {
                     tab.addEventListener('click', handleChatTabClick);
                 });
 
-                // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
                 if (factionApiFullData && factionApiFullData.members) {
                     setupTeamLeadAutocomplete(factionApiFullData.members);
                 }
 
-                listenersInitialized = true; // Flag to prevent re-initialization
+                listenersInitialized = true;
 
-                // Set up interval updates
-                setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
+                setInterval(updateAllTimers, 1000);
                 setInterval(() => {
                     if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        // Also re-apply mobile layout here as the DOM might change
+                        if (document.getElementById('announcements-tab').classList.contains('active')) {
+                           applyMobileLayoutToAnnouncementsTab();
+                        }
                     }
-                }, 15000); // Fetch enemy data every 15 seconds
+                }, 15000);
                 setInterval(() => {
                     if (userApiKey && globalYourFactionID) {
-                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
-                        fetchAndDisplayChainData(); // Re-fetches primary chain data
+                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
+                        fetchAndDisplayChainData();
                     }
-                }, 5000); // Fetch chain data every 5 seconds
+                }, 5000);
                 setInterval(() => {
                     if (userApiKey && globalYourFactionID) {
-                        // This ensures the main data, including war score and members, is refreshed.
-                        // The populateUiComponents will also be called within this, which refreshes all sections.
                         initializeAndLoadData(userApiKey, globalYourFactionID);
                     }
-                }, 300000); // Refresh all data every 5 minutes (300,000 ms)
+                }, 300000);
                 setInterval(() => {
                     if (userApiKey) {
-                        updateUserEnergyDisplay(); // Refreshes user's energy display
-                        updateOnlineMemberCounts(); // Refreshes online member counts
+                        updateUserEnergyDisplay();
+                        updateOnlineMemberCounts();
                     }
-                }, 60000); // Update energy and online counts every 1 minute
+                }, 60000);
                 setInterval(() => {
                     if (userApiKey && playerId) {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                }, 10000); // Refresh quick FF targets every 10 seconds
-
-
-                // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
-                // After all setup is complete, we check the URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const requestedView = urlParams.get('view');
-
-                if (requestedView === 'friendly-status') {
-                    // Find the button for the requested tab and "click" it
-                    const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
-                    if (targetButton) {
-                        targetButton.click();
-                    }
-                }
-                // --- END: NEW CODE ---
+                }, 10000);
             }
         } else {
             console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            // Reset/clear relevant UI elements if API key is missing
             populateWarStatusDisplay({});
             loadWarStatusForEdit({});
             if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
@@ -5948,7 +5901,6 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
             if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
 
-            // Clear any active chat listeners
             if (unsubscribeFromChat) {
                 unsubscribeFromChat();
                 unsubscribeFromChat = null;
@@ -5956,11 +5908,10 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     } else {
         userApiKey = null;
-        listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
+        listenersInitialized = false;
         console.log("User not logged in.");
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-        // Clear UI elements when logged out
         populateWarStatusDisplay({});
         loadWarStatusForEdit({});
         if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
@@ -5979,7 +5930,6 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
         if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
 
-        // Clear any active chat listeners
         if (unsubscribeFromChat) {
             unsubscribeFromChat();
             unsubscribeFromChat = null;

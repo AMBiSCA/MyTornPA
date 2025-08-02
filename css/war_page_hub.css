@@ -4576,29 +4576,14 @@ margin-right: auto !important;
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
-
-@media (max-width: 360px) {
-    /* ... your other rules ... */
-
-    /* REPLACE the old rules with these new, more aggressive ones */
-    #announcements-tab .announcements-grid-container .announcement-section-item:nth-child(1) {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-    }
-    #announcements-tab .announcements-grid-container .announcement-section-item:nth-child(3) {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-    }
+.hide-on-mobile {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
