@@ -664,50 +664,11 @@ ul li:last-child { border-bottom: none; }
     text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
 }
 
-/* This hides the blocker message on desktop and tablet */
+/* This hides the mobile blocker on desktop and tablet by default */
 #mobile-blocker {
     display: none;
 }
-
-/* This runs on screens 768px or smaller */
-@media (max-width: 768px) {
-    /* This shows your blocker message and makes it full-screen */
-    #mobile-blocker {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center !important;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-    }
-    #mobile-blocker h2 {
-        color: #00a8ff;
-		text-align: center !important;
-    }
-    #mobile-blocker p {
-        font-size: 1.1rem;
-        line-height: 1.6;
-		max-width: 400px;
-        text-align: center !important;
-    }
-
-    /* This hides the main page content on mobile */
-    #global-header-placeholder,
-    .main-content-wrapper,
-    #globalfooterplaceholder {
-        display: none !important;
-    }
-}
-
-/* Style for the new homepage button on the blocker page */
+/* Style for the homepage button (used in the blocker) */
 .mobile-blocker-btn {
     display: inline-block;
     margin-top: 25px;
@@ -719,7 +680,40 @@ ul li:last-child { border-bottom: none; }
     border-radius: 5px;
     transition: background-color 0.2s ease;
 }
-
 .mobile-blocker-btn:hover {
-    background-color: #4dc4ff; /* A slightly lighter blue for hover */
+    background-color: #4dc4ff;
+}
+
+
+//* --- Mobile Styles --- */
+@media (max-width: 768px) {
+    /* This shows your blocker message and makes it full-screen */
+    #mobile-blocker {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        inset: 0;
+        background: #222;
+        color: #eee;
+        text-align: center;
+        padding: 20px;
+        z-index: 9999;
+    }
+    #mobile-blocker h2 {
+        color: #00a8ff;
+    }
+    #mobile-blocker p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        max-width: 400px;
+    }
+
+    /* This hides the main page content on mobile */
+    #global-header-placeholder,
+    .main-content-wrapper,
+    #globalfooterplaceholder {
+        display: none !important;
+    }
 }
