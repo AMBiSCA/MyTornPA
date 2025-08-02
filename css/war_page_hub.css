@@ -4578,26 +4578,28 @@ margin-right: auto !important;
 }
 
 @media (max-width: 360px) {
-    /* Your existing rules will be here */
-    .tab-button[data-tab="Faction-Financials"] {
-        display: none !important;
-    }
-    .tab-button[data-tab="friendly-status"] {
-        display: none !important;
-    }
-    #announcementScoreboardContainer {
-        display: none !important;
-    }
+    /* ... your other rules ... */
 
-    /* Add these two new rules below */
-    .announcements-grid-container .announcement-section-item:nth-child(1) {
+    /* REPLACE the old rules with these new, more aggressive ones */
+    #announcements-tab .announcements-grid-container .announcement-section-item:nth-child(1) {
         display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
-    .announcements-grid-container .announcement-section-item:nth-child(3) {
+    #announcements-tab .announcements-grid-container .announcement-section-item:nth-child(3) {
         display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
 }
-
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
