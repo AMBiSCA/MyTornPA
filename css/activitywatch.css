@@ -672,11 +672,9 @@ ul li:last-child { border-bottom: none; }
 /* This runs on screens 768px or smaller */
 @media (max-width: 768px) {
     /* This shows your blocker message and makes it full-screen */
-    #mobile-blocker {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+     #mobile-blocker {
+        display: grid;
+        place-items: center;
         position: fixed;
         top: 0;
         left: 0;
