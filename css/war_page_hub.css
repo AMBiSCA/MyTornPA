@@ -4609,6 +4609,13 @@ margin-right: auto !important;
   #announcementScoreboardContainer {
     display: none;
   }
+  
+  /* Adds new code to center the remaining content on mobile */
+  .announcements-grid-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 /* ==================================================================
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
