@@ -728,3 +728,36 @@ html, body {
 .mobile-blocker-btn:hover {
     background-color: #4dc4ff; /* A slightly lighter blue for hover */
 }
+
+/* Hide the landscape rotator by default */
+#landscape-rotator {
+    display: none;
+}
+
+/* Show the landscape rotator only on mobile devices in landscape mode */
+@media (orientation: landscape) and (max-width: 1024px) {
+    #landscape-rotator {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #222;
+        color: #eee;
+        text-align: center;
+        padding: 20px;
+        z-index: 9999;
+    }
+
+    /* Hide the main page content when the rotator is visible */
+    #global-header-placeholder,
+    .main-content-wrapper,
+    #globalfooterplaceholder,
+    #chat-system-placeholder {
+        display: none !important;
+    }
+}
