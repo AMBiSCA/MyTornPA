@@ -683,17 +683,16 @@ ul li:last-child { border-bottom: none; }
     .tab-content.active { display: flex; flex-direction: column; }
 
     /* --- Corrected Control Panel --- */
-    #topControlPanel {
-        width: 100%;
-        box-sizing: border-box;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* Forces equal columns */
-        gap: 8px 10px; /* Reduces vertical gap */
-        align-items: center;
-        border-bottom: none; /* The border is now on the tab container */
-        padding: 0;
-        margin-top: 10px;
-    }
+   #topControlPanel {
+    width: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    gap: 10px; /* Simplified gap */
+    align-items: center;
+    padding: 10px;
+    margin-top: 0; /* Removes the space pushing it down */
+}
 
     /* --- Corrected Items & Buttons --- */
     .control-grid-item {
@@ -728,6 +727,18 @@ ul li:last-child { border-bottom: none; }
     /* --- Corrected Chart Area --- */
     #chartsGridArea { display: flex; flex-direction: column; gap: 15px; }
 }
+
+/* Explicit placement for grid items */
+#myFactionIDGroup { grid-area: 1 / 1; }
+#enemyFactionIDGroup { grid-area: 1 / 2; }
+#activityIntervalGroup { grid-area: 2 / 1; }
+#stopTimerGroup { grid-area: 2 / 2; }
+#statusGroup { grid-area: 3 / 1; }
+#lastRefreshGroup { grid-area: 3 / 2; }
+#factionNameGroup { grid-area: 4 / 1; }
+#totalMembersGroup { grid-area: 4 / 2; }
+#actionButtonsGroup { grid-area: 5 / 1 / span 1 / span 2; }
+#compareIndividualsGroup { grid-area: 6 / 1 / span 1 / span 2; }
 
 /* Mobile charts area */
 #chartsGridArea, #chartsGridAreaIndividuals {
