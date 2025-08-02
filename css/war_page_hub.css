@@ -4601,12 +4601,12 @@ margin-right: auto !important;
   #friendly-status-tab,
   #Faction-Financials-tab,
 
-  /* Hides the "Game Plan" and "Faction Announcements" headers and content */
+  /* Hides the "Game Plan" and "Faction Announcements" sections headers and content */
   .announcements-grid-container > div:first-child,
   .announcements-grid-container > div:last-child,
 
-  /* Hides the second scoreboard that is also on the announcements tab */
-  .announcement-section-item > .war-announcement-section > #announcementScoreboardContainer {
+  /* Hides both scoreboards on the announcements tab */
+  #announcementScoreboardContainer {
     display: none;
   }
 }
