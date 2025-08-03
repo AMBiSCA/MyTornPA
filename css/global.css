@@ -1986,14 +1986,14 @@ input:checked + .slider:before {
     .tagline {
         font-size: 0.7rem !important;
     }
-    .header-text-link, .btn.header-btn, .btn-header { /* Consolidated header button styling */
-        padding: 5px 8px !important;
-        font-size: 0.85rem !important;
-        height: 30px !important; /* Consistent small height for header buttons */
-        margin: 2px !important; /* Small margin around each button */
-        flex-shrink: 1 !important; /* Allow buttons to shrink if needed */
-        flex-basis: auto !important; /* Let content define initial width */
-    }
+    .home-header .btn,
+.other-pages-header .btn,
+.btn-header {
+    /* Sets a smaller size and padding for mobile view, without using !important */
+    height: 30px;
+    font-size: 0.85rem;
+    padding: 0 8px;
+}
 
     /* Ensure all header buttons are visible and compact */
     #usefulLinksBtn,
