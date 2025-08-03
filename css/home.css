@@ -829,7 +829,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* =========== RESPONSIVE STYLES =========== */
 .stats-tools-flex-container {
     align-items: center;
-    flex-direction: column;
     gap: 0px;
     width: 90%;
     max-width: 800px; /* You can adjust this value */
