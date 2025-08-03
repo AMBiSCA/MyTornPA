@@ -2227,7 +2227,7 @@ footer.footer {
     header .btn-text {
         display: none !important;
     }
- 
+    
     /* Styles for buttons that should be circular and icon-only */
     .home-header .header-buttons #homeButtonHeader,
     .home-header .header-buttons #headerEditProfileBtn,
