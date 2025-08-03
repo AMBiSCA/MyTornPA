@@ -827,13 +827,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     width: 100%;
 }
 /* =========== RESPONSIVE STYLES =========== */
-.stats-tools-flex-container {
-    align-items: center;
-    gap: 0px;
-    width: 90%;
-    max-width: 800px; /* You can adjust this value */
-	margin-left: 80px;
-}
+@media (max-width: 960px) {
+    .stats-tools-flex-container {
+        align-items: center;
+        flex-direction: column;
+        gap: 15px;
+    }
     .stats-column,
     .tools-column {
         flex-basis: auto;
@@ -1046,10 +1045,4 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: none !important;
     }
     */
-}
-
-@media (min-width: 769px) {
-  #mobile-tab-buttons-container {
-    display: none !important;
-  }
 }
