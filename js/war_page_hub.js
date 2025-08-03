@@ -6304,6 +6304,10 @@ function applyStatColorCoding() {
     });
 }
 
+/**
+ * Sets up a fixed header and a scrolling body for the friendly members table.
+ * This function must be called after the table is populated.
+ */
 function initializeTableScrolling() {
     const tableContainer = document.getElementById('friendlyMembersListContainer');
     const tableHeader = document.querySelector('#friendly-members-table thead');
@@ -6326,7 +6330,11 @@ function initializeTableScrolling() {
     tableBody.style.display = 'block'; // Ensure the tbody can take height
     tableBody.style.maxHeight = `${scrollableBodyHeight}px`;
     tableBody.style.overflowY = 'auto';
-
+    
+    // --- NEW: Add this line to make the header's layout consistent ---
+    tableHeader.parentElement.style.tableLayout = 'fixed';
+    // --- END NEW ---
+    
     // Make the header visible and aligned
     tableHeader.style.display = 'block';
     
