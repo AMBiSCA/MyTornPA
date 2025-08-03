@@ -1048,35 +1048,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     */
 }
 
-/* ===================================== */
-/* === Tablet Side-by-Side Layout === */
-/* ===================================== */
-@media (min-width: 769px) and (max-width: 960px) {
-
-  /* Put the columns back to a side-by-side layout */
-  .stats-tools-flex-container {
-    flex-direction: row;
-    align-items: flex-start; /* Align to the top */
-  }
-
-  /* Hide the mobile 'Stats'/'Tools' tabs in this view */
-  #mobile-tab-buttons-container {
-      display: none !important;
-  }
-
-  /* Make sure both columns are always visible */
-  .stats-column.mobile-hidden,
-  .tools-column.mobile-hidden {
-      display: flex !important;
-  }
-
-  /* Adjust column sizes to fit nicely */
+@media (max-width: 960px) {
   .stats-column {
-      flex: 1 1 45%; /* Give it 45% of the space */
-      align-self: stretch; /* Make columns equal height */
-  }
-  .tools-column {
-      flex: 1 1 55%; /* Give it 55% of the space */
-      align-self: stretch; /* Make columns equal height */
+    margin-left: 100px; /* Adjust this value to move it more or less */
   }
 }
