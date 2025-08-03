@@ -10,6 +10,9 @@ html, body {
     color: #eee; /* Default text color for the whole site */
 }
 
+
+
+
 body {
     display: flex;
     flex-direction: column;
@@ -42,24 +45,30 @@ body::before {
     z-index: -1;
 }
 
-/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) - Desktop */
-/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY ON DESKTOP */
-::-webkit-scrollbar {
-    width: 10px; height: 10px;
-}
-::-webkit-scrollbar-track {
-    background: #2b2b2b; border-radius: 5px;
-}
-::-webkit-scrollbar-thumb {
-    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
-}
-::-webkit-scrollbar-thumb:hover {
-    background-color: #00a8ff;
-}
-::-webkit-scrollbar-corner {
-    background: #222;
+/::-webkit-scrollbar {
+    width: 10px; 
+    height: 10px;
 }
 
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    /* Also remove any border it might have had */
+    border: none;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* For Firefox */
+/* This hides the scrollbar */
+html {
+  scrollbar-width: none;
+}
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
