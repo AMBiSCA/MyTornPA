@@ -2296,22 +2296,7 @@ input:checked + .slider:before {
     display: none;
   }
 
-  /* General style for ALL tablet header buttons */
-  header .header-btn {
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%; /* Default to a circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* --- UPDATED BLUE STYLE --- */
-    background-color: rgba(0, 168, 255, 0.1);
-    border: 1px solid #00a8ff;
-    transition: background-color 0.2s ease;
-  }
-  
+ 
   /* Add a hover effect for interactivity */
   header .header-btn:hover {
       background-color: rgba(0, 168, 255, 0.25);
@@ -2383,4 +2368,36 @@ footer.footer {
   body {
     padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
   }
+}
+
+/* CONSOLIDATED MOBILE & TABLET STYLES FOR HEADER BUTTONS */
+@media (max-width: 1024px) {
+    /* Hide the text part of all header buttons definitively */
+    header .btn-text {
+        display: none !important;
+    }
+    
+    /* Apply consistent styles to all header buttons on small screens */
+    .home-header .btn,
+    .other-pages-header .btn,
+    .btn-header {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+    }
+
+    /* Make sure icons are sized and centered correctly */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon,
+    .btn-header .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
+        margin: 0;
+    }
 }
