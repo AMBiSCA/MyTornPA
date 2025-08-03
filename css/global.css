@@ -2272,56 +2272,6 @@ input:checked + .slider:before {
     }
 }
 
-/* =================================== */
-/* === Tablet Header Customization === */
-/* =================================== */
-@media (min-width: 769px) and (max-width: 1024px) {
-
-  /* Hide the large center logo and the tagline text */
-  header .header-center,
-  header .tagline {
-    display: none !important;
-  }
-
-  /* Make the main header a flexible container */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-  }
-
-  /* Hide the text inside the header buttons */
-  header .header-btn .btn-text {
-    display: none;
-  }
-
- 
-  /* Add a hover effect for interactivity */
-  header .header-btn:hover {
-      background-color: rgba(0, 168, 255, 0.25);
-  }
-  
-  /* Make sure the icons inside are centered */
-  header .header-btn .btn-icon {
-    margin: 0;
-    font-size: 1.3em;
-  }
-  
-  /* Adjust the spacing for the dropdowns and buttons */
-  header .header-buttons {
-    gap: 12px;
-  }
-
-  /* --- NEW RULE for the wider middle buttons --- */
-  #usefulLinksBtn,
-  #headerContactUsBtn {
-    width: auto; /* Let the button grow */
-    padding: 0 12px; /* Add horizontal padding */
-    border-radius: 22px; /* Make it a "pill" shape */
-  }
-}
-
 /* Force Footer to be Visible in Landscape Mode */
 .landscape-active footer {
     display: block !important;
@@ -2335,14 +2285,6 @@ footer.footer {
 
 @media (min-width: 769px) and (max-width: 1024px) {
 	
-	.home-header .btn,
-.other-pages-header .btn,
-.btn-header {
-    /* Sets a smaller size and padding for mobile view, without using !important */
-    height: 30px;
-    font-size: 0.85rem;
-    padding: 0 8px;
-}
 
   /* Make the main chat container full-width at the bottom */
   #tornpa-chat-system {
@@ -2370,43 +2312,47 @@ footer.footer {
   }
 }
 
-/* CONSOLIDATED MOBILE & TABLET STYLES FOR HEADER BUTTONS */
-/*
- * CONSOLIDATED MOBILE & TABLET HEADER BUTTON STYLES
- * This block contains two separate rules to ensure correct styling for each button type.
- */
-.home-header .header-buttons #headerEditProfileBtn,
-.home-header .header-buttons #logoutButtonHeader,
-.other-pages-header .header-buttons .btn:not(.dropdown-toggle) {
-    /* Rule for circular, icon-only buttons */
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 168, 255, 0.1);
-    border: 1px solid #00a8ff;
-}
+@media (max-width: 1024px) {
 
-.home-header .header-buttons .dropdown-toggle,
-.other-pages-header .header-buttons .dropdown-toggle {
-    /* Rule for pill-shaped dropdown buttons */
-    width: auto;
-    padding: 0 12px;
-    border-radius: 22px;
-    height: 40px;
-    background-color: rgba(0, 168, 255, 0.1);
-    border: 1px solid #00a8ff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
+    /* Hides the text of all header buttons on small screens */
+    header .btn-text {
+        display: none !important;
+    }
+    
+    /* Styles for the circular, icon-only buttons */
+    .home-header .btn:not(.dropdown-toggle),
+    .other-pages-header .btn:not(.dropdown-toggle) {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+    }
 
-.home-header .btn .btn-icon,
-.other-pages-header .btn .btn-icon {
-    font-size: 1.6em;
-    line-height: 1;
-    margin: 0;
+    /* Styles for the pill-shaped dropdown buttons */
+    .home-header .dropdown-toggle,
+    .other-pages-header .dropdown-toggle {
+        width: auto;
+        padding: 0 12px;
+        border-radius: 22px;
+        height: 40px;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Standard icon sizing and centering for all header buttons */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon,
+    .btn-header .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
+        margin: 0;
+    }
 }
