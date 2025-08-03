@@ -1046,3 +1046,50 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
     */
 }
+/* =================================== */
+/* === Tablet Header Customization === */
+/* =================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* Hide the large center logo and the tagline text */
+  header .header-center,
+  header .tagline {
+    display: none !important;
+  }
+
+  /* Make the main header a flexible container */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+  }
+
+  /* Hide the text inside the header buttons */
+  header .header-btn .btn-text {
+    display: none;
+  }
+
+  /* Style the buttons to be circular icons */
+  header .header-btn {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%; /* This makes them circular */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Make sure the icons inside are centered */
+  header .header-btn .btn-icon {
+    margin: 0;
+    font-size: 1.3em; /* Adjust icon size if needed */
+  }
+  
+  /* Adjust the spacing for the dropdowns and buttons */
+  header .header-buttons {
+    gap: 8px;
+  }
+}
