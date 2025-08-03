@@ -45,25 +45,17 @@ body::before {
     z-index: -1;
 }
 
-/::-webkit-scrollbar {
-    width: 10px; 
-    height: 10px;
+
+/* Hides scrollbar for Firefox and IE/Edge on ALL elements */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+/* Hides scrollbar for Webkit browsers on ALL elements */
+*::-webkit-scrollbar {
+  display: none;
 }
-
-::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    /* Also remove any border it might have had */
-    border: none;
-}
-
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
 /* For Firefox */
 /* This hides the scrollbar */
 html {
@@ -208,7 +200,7 @@ header {
     overflow-y: auto; max-height: 300px; padding: 0;
 }
 .header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #00a8ff; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: white; border-radius: 0 8px 8px 0; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
 .dropdown-content.show { display: block; } /* This is what your JS toggles */
