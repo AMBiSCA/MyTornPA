@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // MOVED THE FUNCTION CALL HERE
-    const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
+const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
     
     // Call this function immediately if the screen is mobile-sized
     if (mediaQueryMobile.matches) {
