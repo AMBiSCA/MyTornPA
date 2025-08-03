@@ -1513,14 +1513,15 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        document.querySelector('header').style.display = '';
+        document.querySelector('header').style.display = ''; // Reverts to stylesheet's display
         const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = '';
+        if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
+        
+        // --- THIS IS THE CORRECTED PART ---
         const footer = document.querySelector('footer');
-        if (footer) footer.style.display = '';
+        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
     }
 }
-
 // Run the function on page load and window resize
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
