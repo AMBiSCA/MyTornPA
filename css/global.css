@@ -2255,3 +2255,27 @@ input:checked + .slider:before {
 footer.footer {
     display: block !important;
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* Make the main chat container full-width at the bottom */
+  #tornpa-chat-system {
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Make the collapsed bar itself full-width */
+  #chat-bar-collapsed {
+    position: static !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    padding: 8px 10px !important;
+  }
+
+  /* Add space to the bottom of the page so the bar doesn't hide content */
+  body {
+    padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
+  }
+}
