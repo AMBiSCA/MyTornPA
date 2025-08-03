@@ -1942,7 +1942,7 @@ input:checked + .slider:before {
         flex-basis: auto !important;
         width: 100% !important; /* Forces each of these to take full width and stack */
         justify-content: center !important;
-        margin-bottom: 0 !important; /* Remove default margins that create space between these elements */
+        margin-bottom: 10px !important; /* Remove default margins that create space between these elements */
     }
     
     #chat-window.keyboard-visible {
