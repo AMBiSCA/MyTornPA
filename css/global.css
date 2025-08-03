@@ -2360,3 +2360,26 @@ footer.footer {
 .debug * {
     outline: 1px solid red;
 }
+
+#debug-toggle-btn {
+    position: fixed;
+    bottom: 80px; /* Above the chat system */
+    right: 15px;
+    z-index: 9999;
+    width: 44px;
+    height: 44px;
+    background-color: #222;
+    border: 1px solid #00a8ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    font-size: 1.5rem;
+    transition: background-color 0.2s ease;
+}
+
+#debug-toggle-btn:hover {
+    background-color: #444;
+}
