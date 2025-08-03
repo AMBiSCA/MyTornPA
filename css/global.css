@@ -2227,13 +2227,7 @@ footer.footer {
     header .btn-text {
         display: none !important;
     }
-	
-	header .header-right-controls {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    
+ 
     /* Styles for buttons that should be circular and icon-only */
     .home-header .header-buttons #homeButtonHeader,
     .home-header .header-buttons #headerEditProfileBtn,
