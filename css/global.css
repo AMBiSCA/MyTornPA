@@ -2407,5 +2407,15 @@ footer.footer {
     width: auto;
     padding: 0 12px;
     border-radius: 22px;
+	 font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    background-color: #131314;
+    border: 1px solid #00a8ff;
+    color: #e3e3e3;
+    height: 40px;
+    /* END OF NEW PROPERTIES */
+  }
+}
   }
 }
