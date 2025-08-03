@@ -2356,3 +2356,7 @@ footer.footer {
         margin: 0;
     }
 }
+/* --- DEBUGGING STYLES (TEMPORARY) --- */
+.debug * {
+    outline: 1px solid red;
+}

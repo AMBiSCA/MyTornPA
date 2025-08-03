@@ -363,6 +363,12 @@ function initializeGlobals() {
                         populateIgnoreListTab(friendsPanelContent);
                     });
                 }
+				
+				// Function to toggle debug mode
+function toggleDebugMode() {
+    document.body.classList.toggle('debug');
+}
+				
 
 
                 // --- Send Message Logic ---
