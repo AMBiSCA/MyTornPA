@@ -2276,7 +2276,7 @@ footer.footer {
     /* --- ADDED LINES --- */
     display: flex; /* Make sure it's a flex container */
     justify-content: center !important; /* This centers the icons */
-    gap: 15px !important; /* This adds space between them */
+    gap: 20px !important; /* This adds space between them */
   }
   /* Add space to the bottom of the page so the bar doesn't hide content */
   body {
