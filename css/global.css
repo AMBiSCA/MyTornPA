@@ -1793,6 +1793,21 @@ input:checked + .slider:before {
     display: none;
 }
 
+@media only screen and (max-width: 991px) {
+    #globalfooterplaceholder {
+        display: none !important;
+    }
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+        display: none !important;
+    }
+}
+/* ... */
+@media only screen and (max-width: 991px) {
+    body:not(.page-index) .footer {
+        display: none !important;
+    }
+}
+
 /* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
 @media only screen and (max-width: 991px) {
     #globalfooterplaceholder {
