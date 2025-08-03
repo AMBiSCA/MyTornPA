@@ -1884,7 +1884,6 @@ input:checked + .slider:before {
 #settings-panel .radio-group input[type="radio"] {
     display: none;
 }
-/* CONSOLIDATED MOBILE MEDIA QUERIES - GLOBAL.CSS */
 @media (max-width: 768px) {
     /* Base HTML & Body adjustments for fixed header and proper scrolling */
     html, body {
@@ -1906,32 +1905,39 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    /* Set body padding-top equal to the header's height to prevent content from going under it */
-    /* Adjust '115px' (increased from 110px) as needed after testing for top cutoff */
+    /* FIX: Set body padding-top based on header height using a CSS variable */
     body {
-        padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
+        padding-top: var(--header-height, 120px) !important; /* NEW: Use CSS variable for dynamic height */
         padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
+        min-height: 100vh !important; /* Ensure body takes full viewport height */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
+        /* NEW: Define a CSS variable for the header's height */
+        --header-height: 120px; /* NEW: Set a default height, we will adjust this later */
+
         position: fixed !important; /* Forces header to stay fixed at the top */
-        top: 0 !important;           /* Aligns it to the top edge */
-        left: 0 !important;          /* Aligns it to the left edge */
-        width: 100% !important;      /* Ensures it spans full width */
-        z-index: 102 !important;     /* Keeps it on top of other content */
+        top: 0 !important;            /* Aligns it to the top edge */
+        left: 0 !important;           /* Aligns it to the left edge */
+        width: 100% !important;       /* Ensures it spans full width */
+        z-index: 102 !important;      /* Keeps it on top of other content */
         
-        height: auto !important;     /* Allow height to adjust based on content */
-        min-height: unset !important; /* Remove fixed min-height if present globally */
-        padding-top: 8px !important; /* Top padding within the fixed header itself (adjust to move contents down) */
+        height: auto !important;      /* Allow height to adjust based on content */
+        padding-top: 8px !important; /* Top padding within the fixed header itself */
         padding-bottom: 5px !important; /* Bottom padding within the fixed header itself */
         
         flex-wrap: wrap !important; /* Ensure items wrap */
         justify-content: center !important; /* Center the wrapped items */
         border-bottom: 3px solid #00a8ff !important;
         box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow for fixed header */
+
+        /* NEW: Add a class to dynamically adjust the header height variable */
+        &.header-two-rows {
+          --header-height: 140px; /* Adjusted height for two rows */
+        }
     }
-    
+
     .header-left, .header-center, .header-right-controls {
         flex-basis: auto !important;
         width: 100% !important; /* Forces each of these to take full width and stack */
@@ -2037,7 +2043,7 @@ input:checked + .slider:before {
     border-right: 2px solid black;
 }
 
-   #chat-window {
+    #chat-window {
     bottom: 50px !important;
     left: 0 !important;
     right: 0 !important;
@@ -2163,7 +2169,7 @@ input:checked + .slider:before {
     .pcw-messages::-webkit-scrollbar {
         display: none !important;
     }
-
+}
 @media (max-width: 480px) {
     .dashboard-grid { grid-template-columns: 1fr !important; }
     .homepage-content-wrapper { padding: 5px !important; }
@@ -2187,7 +2193,7 @@ input:checked + .slider:before {
 /* Force Footer to be Visible in Landscape Mode */
 .landscape-active footer {
     display: block !important;
-	
+    
 }
 
 /* Force Footer to be Visible in All Views */
@@ -2196,7 +2202,7 @@ footer.footer {
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-	
+    
 
   /* Make the main chat container full-width at the bottom */
   #tornpa-chat-system {
@@ -2207,7 +2213,7 @@ footer.footer {
   }
 
   /* Make the collapsed bar itself full-width */
-   #chat-bar-collapsed {
+    #chat-bar-collapsed {
     position: static !important;
     width: 100% !important;
     border-radius: 0 !important;
@@ -2226,12 +2232,12 @@ footer.footer {
     /* Hide the text part of all header buttons definitively on small screens */
     header .btn-text {
         display: none !important;
-     }
-	  body {
+       }
+    body {
         padding-top: 115px; /* Adjust this value if needed */
     }
-	
-	
+    
+    
 
     /* Style the circular, icon-only buttons for small screens */
     .home-header .header-buttons .btn,
