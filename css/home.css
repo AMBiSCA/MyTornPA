@@ -1050,6 +1050,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 @media (min-width: 769px) and (max-width: 960px) {
   .stats-column {
-    margin-left: 80px; /* Adjust this value as needed */
+    margin-left: 85px; /* Adjust this value as needed */
   }
 }
