@@ -2267,13 +2267,17 @@ footer.footer {
   }
 
   /* Make the collapsed bar itself full-width */
-  #chat-bar-collapsed {
+   #chat-bar-collapsed {
     position: static !important;
     width: 100% !important;
     border-radius: 0 !important;
     padding: 8px 10px !important;
+    
+    /* --- ADDED LINES --- */
+    display: flex; /* Make sure it's a flex container */
+    justify-content: center !important; /* This centers the icons */
+    gap: 15px !important; /* This adds space between them */
   }
-
   /* Add space to the bottom of the page so the bar doesn't hide content */
   body {
     padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
