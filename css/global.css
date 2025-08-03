@@ -1884,33 +1884,6 @@ input:checked + .slider:before {
 #settings-panel .radio-group input[type="radio"] {
     display: none;
 }
-
-@media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
-        display: none !important;
-    }
-    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
-        display: none !important;
-    }
-}
-/* ... */
-@media only screen and (max-width: 991px) {
-    body:not(.page-index) .footer {
-        display: none !important;
-    }
-}
-
-/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
-@media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
-        display: none !important;
-    }
-    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
-        display: none !important;
-    }
-}
-
-
 /* CONSOLIDATED MOBILE MEDIA QUERIES - GLOBAL.CSS */
 @media (max-width: 768px) {
     /* Base HTML & Body adjustments for fixed header and proper scrolling */
@@ -1986,63 +1959,7 @@ input:checked + .slider:before {
     .tagline {
         font-size: 0.7rem !important;
     }
-    .home-header .btn,
-.other-pages-header .btn,
-.btn-header {
-    /* Sets a smaller size and padding for mobile view, without using !important */
-    height: 30px;
-    font-size: 0.85rem;
-    padding: 0 8px;
-}
-
-    /* Ensure all header buttons are visible and compact */
-    #usefulLinksBtn,
-    #headerContactUsBtn,
-    #headerEditProfileBtn,
-    #logoutButtonHeader {
-        display: inline-flex !important;
-        padding: 5px 8px !important;
-        min-width: unset !important;
-        width: auto !important;
-        justify-content: center !important;
-        overflow: hidden !important;
-    }
-
-    /* Hide the text part of all header buttons definitively */
-    header .btn-text {
-        display: none !important;
-    }
-
-    /* Style for Profile and Logout icons (single emoji buttons) */
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important;
-        line-height: 1 !important;
-        display: block !important;
-        margin: auto !important;
-        content: none !important;
-    }
-
-    /* Style for Useful Links & Contact buttons - display original icon + original dropdown arrow */
-    #usefulLinksBtn .btn-icon,
-    #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: relative !important;
-        margin: auto !important;
-        line-height: 1 !important;
-        vertical-align: middle !important;
-        text-indent: 0 !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        outline: none !important;
-        text-shadow: none !important;
-        overflow: visible !important;
-    }
-
+    
     /* Hide the global footer placeholder that might push content down */
     #globalfooterplaceholder {
         display: none !important;
@@ -2247,11 +2164,6 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
-}
-    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
-}
-/* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
 @media (max-width: 480px) {
     .dashboard-grid { grid-template-columns: 1fr !important; }
     .homepage-content-wrapper { padding: 5px !important; }
@@ -2300,42 +2212,58 @@ footer.footer {
     width: 100% !important;
     border-radius: 0 !important;
     padding: 8px 10px !important;
-    
-    /* --- ADDED LINES --- */
     display: flex; /* Make sure it's a flex container */
     justify-content: center !important; /* This centers the icons */
     gap: 20px !important; /* This adds space between them */
   }
-  /* Add space to the bottom of the page so the bar doesn't hide content */
+ 
   body {
     padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
   }
 }
 
 @media (max-width: 1024px) {
-  /* This ensures the pill shape buttons are correctly styled */
-  .other-pages-header #usefulLinksBtn,
-  .other-pages-header #headerContactUsBtn {
-    height: 40px;
-    border-radius: 22px;
-    padding: 0px 12px;
-    font-size: 14px;
-    width: auto;
-    /* Add any other specific styles here to match your desired "good" button style */
-  }
+    /* Hide the text part of all header buttons definitively on small screens */
+    header .btn-text {
+        display: none !important;
+    }
 
-  /* This ensures the circular buttons are also correctly styled for mobile */
-  .other-pages-header #homeButtonHeader,
-  .other-pages-header #logoutButtonHeader,
-  .home-header .btn:not(.dropdown-toggle) {
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%;
-  }
+    /* Style the circular, icon-only buttons for small screens */
+    .home-header .header-buttons .btn,
+    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+    }
 
-  /* Your existing rule to hide button text can stay */
-  header .btn-text {
-      display: none !important;
-  }
+    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
+    .home-header .header-buttons #usefulLinksBtn,
+    .home-header .header-buttons #headerContactUsBtn,
+    .other-pages-header .header-buttons #usefulLinksBtn,
+    .other-pages-header .header-buttons #contactUsBtn {
+        width: auto;
+        padding: 0 12px;
+        border-radius: 22px;
+        height: 40px;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Ensure the icons inside the buttons are correctly sized and positioned */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
+        margin: 0;
+    }
 }
+
