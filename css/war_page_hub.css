@@ -4325,7 +4325,7 @@ autocomplete-items {
     background-color: #38383e;
 }
 
-/* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
+/* Define consistent column widths for BOTH header (<thead>) and body tbody>) tables */
 /* These percentages sum to 100% and should match the 'th' and 'td' structure */
 #friendly-members-table th:nth-child(1), #friendly-members-table-body td:nth-child(1) { width: 11% !important; } /* Name */
 #friendly-members-table th:nth-child(2), #friendly-members-table-body td:nth-child(2) { width: 8% !important; } /* Last Action */
