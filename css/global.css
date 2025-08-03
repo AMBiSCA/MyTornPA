@@ -2223,14 +2223,16 @@ footer.footer {
 }
 
 @media (max-width: 1024px) {
-    /* Hide the text part of all header buttons definitively on small screens */
+    /* Rule to hide the text of all header buttons on small screens */
     header .btn-text {
         display: none !important;
     }
-
-    /* Style the circular, icon-only buttons for small screens */
-    .home-header .header-buttons .btn,
-    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
+    
+    /* Styles for buttons that should be circular and icon-only */
+    .home-header .header-buttons #homeButtonHeader,
+    .home-header .header-buttons #headerEditProfileBtn,
+    .home-header .header-buttons #logoutButtonHeader,
+    .other-pages-header .header-buttons .btn:not(.dropdown-toggle) {
         min-width: 44px;
         height: 44px;
         padding: 0;
@@ -2238,11 +2240,11 @@ footer.footer {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(0, 168, 255, 0.1);
+        background-color: #131314;
         border: 1px solid #00a8ff;
     }
-
-    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
+    
+    /* Styles for the buttons that should be pill-shaped with dropdown arrows */
     .home-header .header-buttons #usefulLinksBtn,
     .home-header .header-buttons #headerContactUsBtn,
     .other-pages-header .header-buttons #usefulLinksBtn,
@@ -2251,19 +2253,23 @@ footer.footer {
         padding: 0 12px;
         border-radius: 22px;
         height: 40px;
-        background-color: rgba(0, 168, 255, 0.1);
+        background-color: #131314;
         border: 1px solid #00a8ff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
     
-    /* Ensure the icons inside the buttons are correctly sized and positioned */
-    .home-header .btn .btn-icon,
-    .other-pages-header .btn .btn-icon {
-        font-size: 1.6em;
-        line-height: 1;
+    /* A small fix to make sure the icons within the pill-shaped buttons are centered */
+    .home-header .dropdown-toggle .btn-icon,
+    .other-pages-header .dropdown-toggle .btn-icon {
         margin: 0;
     }
 }
 
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end; /* This will consistently align the buttons to the right */
+}
