@@ -2226,7 +2226,12 @@ footer.footer {
     /* Hide the text part of all header buttons definitively on small screens */
     header .btn-text {
         display: none !important;
+     }
+	  body {
+        padding-top: 115px; /* Adjust this value if needed */
     }
+	
+	
 
     /* Style the circular, icon-only buttons for small screens */
     .home-header .header-buttons .btn,
