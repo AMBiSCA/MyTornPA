@@ -1046,3 +1046,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
     */
 }
+
+@media (min-width: 769px) {
+  #mobile-tab-buttons-container {
+    display: none !important;
+  }
+}
