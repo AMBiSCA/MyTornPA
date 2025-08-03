@@ -1907,9 +1907,9 @@ input:checked + .slider:before {
 
     /* FIX: Set body padding-top based on header height using a CSS variable */
     body {
-        padding-top: 80px !important; /* NEW: Use CSS variable for dynamic height */
+        padding-top: var(--header-height, 120px) !important; /* NEW: Use CSS variable for dynamic height */
         padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
-       
+        min-height: 100vh !important; /* Ensure body takes full viewport height */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
@@ -1942,7 +1942,7 @@ input:checked + .slider:before {
         flex-basis: auto !important;
         width: 100% !important; /* Forces each of these to take full width and stack */
         justify-content: center !important;
-        margin-bottom: 0px !important; /* Remove default margins that create space between these elements */
+        margin-bottom: -20px !important; /* Remove default margins that create space between these elements */
     }
     
     #chat-window.keyboard-visible {
