@@ -2228,3 +2228,8 @@ input:checked + .slider:before {
     border-radius: 22px; /* Make it a "pill" shape */
   }
 }
+
+/* Force Footer to be Visible in Landscape Mode */
+.landscape-active footer {
+    display: block !important;
+}
