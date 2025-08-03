@@ -498,6 +498,95 @@ ul li:last-child { border-bottom: none; }
     overflow: hidden;
 }
 
+/* Specific styling for Faction, Alliance, War, and Global chat panels */
+#faction-chat-panel,
+#alliance-chat-panel,
+#war-chat-panel,
+#global-chat-panel { /* NEW: Global Chat panel */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#chat-display-area,
+#alliance-chat-display-area,
+#war-chat-display-area,
+#global-chat-display-area { /* NEW: Global chat display area */
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+/* Styles for the chat display area scrollbar */
+#chat-display-area::-webkit-scrollbar,
+#alliance-chat-display-area::-webkit-scrollbar,
+#war-chat-display-area::-webkit-scrollbar,
+#global-chat-display-area::-webkit-scrollbar, /* NEW: Global chat scrollbar */
+.overview-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-display-area::-webkit-scrollbar-track,
+#alliance-chat-display-area::-webkit-scrollbar-track,
+#war-chat-display-area::-webkit-scrollbar-track,
+#global-chat-display-area::-webkit-scrollbar-track, /* NEW: Global chat scrollbar track */
+.overview-list-container::-webkit-scrollbar-track {
+    background: #1b263b;
+    border-radius: 10px;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb,
+#alliance-chat-display-area::-webkit-scrollbar-thumb,
+#war-chat-display-area::-webkit-scrollbar-thumb,
+#global-chat-display-area::-webkit-scrollbar-thumb, /* NEW: Global chat scrollbar thumb */
+.overview-list-container::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb:hover,
+#alliance-chat-display-area::-webkit-scrollbar-thumb:hover,
+#war-chat-display-area::-webkit-scrollbar-thumb:hover,
+#global-chat-display-area::-webkit-scrollbar-thumb:hover, /* NEW: Global chat hover thumb */
+.overview-list-container::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0;
+}
+
+.chat-text-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.chat-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.chat-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
 /* A utility class to hide elements */
 .hidden {
     display: none !important; /* Use !important to ensure it overrides other display properties */
