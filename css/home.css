@@ -1071,27 +1071,25 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     display: none;
   }
 
-  /* Style the buttons to be circular icons */
+  /* General style for ALL tablet header buttons */
   header .header-btn {
     min-width: 44px;
-    width: 44px;
     height: 44px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 50%; /* Default to a circle */
     display: flex;
     align-items: center;
     justify-content: center;
     
-    /* --- NEW STYLES FOR A BETTER LOOK --- */
-    background-color: #2c2f33;
-    border: 1px solid #444950;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    /* --- UPDATED BLUE STYLE --- */
+    background-color: rgba(0, 168, 255, 0.1);
+    border: 1px solid #00a8ff;
     transition: background-color 0.2s ease;
   }
   
   /* Add a hover effect for interactivity */
   header .header-btn:hover {
-      background-color: #3e444a;
+      background-color: rgba(0, 168, 255, 0.25);
   }
   
   /* Make sure the icons inside are centered */
@@ -1102,6 +1100,14 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
   
   /* Adjust the spacing for the dropdowns and buttons */
   header .header-buttons {
-    gap: 12px; /* Increased the gap for better spacing */
+    gap: 12px;
+  }
+
+  /* --- NEW RULE for the wider middle buttons --- */
+  #usefulLinksBtn,
+  #headerContactUsBtn {
+    width: auto; /* Let the button grow */
+    padding: 0 12px; /* Add horizontal padding */
+    border-radius: 22px; /* Make it a "pill" shape */
   }
 }
