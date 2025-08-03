@@ -2349,6 +2349,15 @@ footer.footer {
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+	
+	.home-header .btn,
+.other-pages-header .btn,
+.btn-header {
+    /* Sets a smaller size and padding for mobile view, without using !important */
+    height: 30px;
+    font-size: 0.85rem;
+    padding: 0 8px;
+}
 
   /* Make the main chat container full-width at the bottom */
   #tornpa-chat-system {
