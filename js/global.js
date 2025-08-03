@@ -37,20 +37,6 @@ function initializeGlobals() {
     // ---- Torn API Base URL ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
 
-    // ---- Load the Footer ----
-    fetch('globalfooter.html')
-        .then(response => response.text())
-        .then(data => {
-            const footerContainer = document.getElementById('footer-container');
-            if (footerContainer) {
-                footerContainer.innerHTML = data;
-                console.log("global.js: Global footer HTML loaded successfully.");
-            } else {
-                console.error("global.js: Error: #footer-container element not found for loading footer HTML.");
-            }
-        })
-        .catch(error => console.error('global.js: Error loading global footer:', error));
-
     // ---- Load the Chat System ----
     fetch('globalchat.html')
         .then(response => response.text())
