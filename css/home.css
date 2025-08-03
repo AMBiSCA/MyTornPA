@@ -826,14 +826,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     text-align: center;
     width: 100%;
 }
-
 /* =========== RESPONSIVE STYLES =========== */
-
-@media (max-width: 1280px) {
+@media (max-width: 960px) {
     .stats-tools-flex-container {
         align-items: center;
         flex-direction: column;
-        gap: 0px;
+        gap: 15px;
     }
     .stats-column,
     .tools-column {
@@ -845,6 +843,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     .welcome-block-area {
         width: 90%;
     }
+}
+/* * CORRECTED AND CONSOLIDATED MOBILE STYLES
+* All rules for screens 768px and smaller now live inside this single block.
+*/
+@media (max-width: 768px) {
     /* This rule hides the inactive content section when tabbing */
     .mobile-hidden {
         display: none !important;
@@ -856,8 +859,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     #mobile-tab-buttons-container {
         display: flex;
         justify-content: center;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 0px;
+        margin-bottom: -15px !important;
+        /* Adds space between tabs and content */
         width: 100%;
     }
     /* Styles for the tab buttons themselves */
@@ -872,7 +876,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         max-width: 200px;
         padding: 10px 20px;
         transition: background-color 0.2s ease, color 0.2s ease;
-        margin-top: 10px;
+        margin-top: -40px;
+        /* <-- Add this line */
     }
     .tab-button.active-tab {
         background-color: #00a8ff;
@@ -908,14 +913,16 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
         display: block !important;
     }
-
+    .welcome-block-area {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
     /* Hide scrollbar on mobile */
     .homepage-content-wrapper {
         -ms-overflow-style: none;
         /* IE and Edge */
         scrollbar-width: none;
         /* Firefox */
-        margin-top: 0px;
     }
     .homepage-content-wrapper::-webkit-scrollbar {
         display: none;
@@ -929,12 +936,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         max-width: 350px;
         justify-content: center !important;
         /* <-- Added !important */
-    }
-    #quickStatsSection {
-        padding-top: 0px;
+        margin-top: -15px !important;
+        /* Add this line */
     }
 }
-@media (min-width: 1281px) {
+@media (min-width: 769px) {
     /* This rule ensures the mobile-only tab buttons are hidden on desktop */
     #mobile-tab-buttons-container {
         display: none;
@@ -951,6 +957,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     }
     .membership-modal {
         padding: 20px;
+    }
+    .membership-options-grid {
+        grid-template-columns: 1fr;
     }
 }
 @media (max-width: 480px) {
