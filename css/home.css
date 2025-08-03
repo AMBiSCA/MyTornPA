@@ -832,7 +832,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     gap: 0px;
     width: 90%;
     max-width: 800px; /* You can adjust this value */
-	margin-left: 96px;
+	margin-left: 80px;
 }
     .stats-column,
     .tools-column {
