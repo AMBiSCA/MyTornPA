@@ -2227,6 +2227,12 @@ footer.footer {
     header .btn-text {
         display: none !important;
     }
+	
+	header .header-right-controls {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
     
     /* Styles for buttons that should be circular and icon-only */
     .home-header .header-buttons #homeButtonHeader,
@@ -2267,9 +2273,3 @@ footer.footer {
     }
 }
 
-.header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: flex-end; /* This will consistently align the buttons to the right */
-}
