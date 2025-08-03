@@ -2401,3 +2401,10 @@ footer.footer {
         margin: 0;
     }
 }
+
+.other-pages-header #headerContactUsBtn {
+    width: auto;
+    padding: 0 12px;
+    border-radius: 22px;
+  }
+}
