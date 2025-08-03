@@ -2313,73 +2313,29 @@ footer.footer {
 }
 
 @media (max-width: 1024px) {
+  /* This ensures the pill shape buttons are correctly styled */
+  .other-pages-header #usefulLinksBtn,
+  .other-pages-header #headerContactUsBtn {
+    height: 40px;
+    border-radius: 22px;
+    padding: 0px 12px;
+    font-size: 14px;
+    width: auto;
+    /* Add any other specific styles here to match your desired "good" button style */
+  }
 
-    /* Hides the text of all header buttons on small screens */
-    header .btn-text {
-        display: none !important;
-    }
-    
-    /* Styles for the circular, icon-only buttons */
-    .home-header .btn:not(.dropdown-toggle),
-    .other-pages-header .btn:not(.dropdown-toggle) {
-        min-width: 44px;
-        height: 44px;
-        padding: 0;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 168, 255, 0.1);
-        border: 1px solid #00a8ff;
-    }
-
-    /* Styles for the pill-shaped dropdown buttons */
-    .home-header .dropdown-toggle,
-    .other-pages-header .dropdown-toggle {
-        width: auto;
-        padding: 0 12px;
-        border-radius: 22px;
-        height: 40px;
-        background-color: rgba(0, 168, 255, 0.1);
-        border: 1px solid #00a8ff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Standard icon sizing and centering for all header buttons */
-    .home-header .btn .btn-icon,
-    .other-pages-header .btn .btn-icon,
-    .btn-header .btn-icon {
-        font-size: 1.6em;
-        line-height: 1;
-        margin: 0;
-    }
-}
-/* --- DEBUGGING STYLES (TEMPORARY) --- */
-.debug * {
-    outline: 1px solid red;
-}
-
-#debug-toggle-btn {
-    position: fixed;
-    bottom: 80px; /* Above the chat system */
-    right: 15px;
-    z-index: 9999;
-    width: 44px;
+  /* This ensures the circular buttons are also correctly styled for mobile */
+  .other-pages-header #homeButtonHeader,
+  .other-pages-header #logoutButtonHeader,
+  .home-header .btn:not(.dropdown-toggle) {
+    min-width: 44px;
     height: 44px;
-    background-color: #222;
-    border: 1px solid #00a8ff;
+    padding: 0;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    font-size: 1.5rem;
-    transition: background-color 0.2s ease;
-}
+  }
 
-#debug-toggle-btn:hover {
-    background-color: #444;
+  /* Your existing rule to hide button text can stay */
+  header .btn-text {
+      display: none !important;
+  }
 }
