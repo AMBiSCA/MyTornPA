@@ -2402,7 +2402,8 @@ footer.footer {
     }
 }
 
-.other-pages-header #headerContactUsBtn {
+@media (max-width: 1024px) {
+  .other-pages-header .header-buttons #contactUsBtn {
     width: auto;
     padding: 0 12px;
     border-radius: 22px;
