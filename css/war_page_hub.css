@@ -2192,15 +2192,15 @@ autocomplete-items {
 
 /* Styles for actual table data cells in the body (the <td> elements) */
 #friendly-members-table-body tbody td {
-    padding: 5px 10px; /* Compact padding for rows */
-    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center; /* Center cell content as per screenshot */
+padding: 5px 10px; /* Compact padding for rows */
+border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
+vertical-align: middle;
+font-size: 0.85em;
+color: #f0f0f0;
+ white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+text-align: center; /* Center cell content as per screenshot */
 }
 
 /* Remove bottom border from the very last row in the scrollable body */
