@@ -58,6 +58,8 @@ function initializeGlobals() {
                 const openNotificationsIcon = document.getElementById('open-notifications-icon');
                 const openSettingsIcon = document.getElementById('open-settings-icon');
 
+                // NEW: Global Chat icon reference
+                const openGlobalChatIcon = document.getElementById('open-global-chat-icon');
                 // NEW: Alliance Chat icon reference
                 const openAllianceChatIcon = document.getElementById('open-alliance-chat-icon');
 
@@ -67,6 +69,8 @@ function initializeGlobals() {
                 const notificationsPanel = document.getElementById('notifications-panel');
                 const settingsPanel = document.getElementById('settings-panel');
 
+                // NEW: Global Chat panel reference
+                const globalChatPanel = document.getElementById('global-chat-panel');
                 // NEW: Alliance Chat panel reference
                 const allianceChatPanel = document.getElementById('alliance-chat-panel');
 
@@ -80,6 +84,10 @@ function initializeGlobals() {
 
                 const warChatTextInput = warChatPanel.querySelector('.chat-text-input');
                 const warChatSendBtn = warChatPanel.querySelector('.chat-send-btn');
+
+                // NEW: Global Chat input and send button references
+                const globalChatTextInput = globalChatPanel.querySelector('.chat-text-input');
+                const globalChatSendBtn = globalChatPanel.querySelector('.chat-send-btn');
 
                 // NEW: Alliance Chat input and send button references
                 const allianceChatTextInput = allianceChatPanel.querySelector('.chat-text-input');
@@ -117,6 +125,15 @@ function initializeGlobals() {
                         openChatPanel(factionChatPanel);
                         if (factionChatTextInput) factionChatTextInput.focus();
                         setupChatRealtimeListener('faction');
+                    });
+                }
+
+                // NEW: Global Chat collapsed icon listener
+                if (openGlobalChatIcon) {
+                    openGlobalChatIcon.addEventListener('click', () => {
+                        openChatPanel(globalChatPanel);
+                        if (globalChatTextInput) globalChatTextInput.focus();
+                        setupChatRealtimeListener('global');
                     });
                 }
 
@@ -164,8 +181,7 @@ function initializeGlobals() {
                         updateAllianceInfoIconTitle(); // Update tooltip to show all saved IDs
                     });
                 }
-				
-				if (openGraphIcon) {
+                if (openGraphIcon) {
                     openGraphIcon.addEventListener('click', () => {
                         openChatPanel(factionOverviewPanel);
                         populateFactionOverview(); // This calls the function to load the data
@@ -253,6 +269,13 @@ function initializeGlobals() {
                                 if (allianceChatTextInput) allianceChatTextInput.focus();
                                 break;
 
+                            // NEW: Case for Global Chat
+                            case 'global-chat-panel':
+                                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
+                                setupChatRealtimeListener('global');
+                                if (globalChatTextInput) globalChatTextInput.focus();
+                                break;
+
                             case 'faction-chat-panel':
                                 if (factionChatTextInput) factionChatTextInput.focus();
                                 setupChatRealtimeListener('faction');
@@ -278,13 +301,13 @@ function initializeGlobals() {
                 // These handle direct clicks on the sub-tab buttons within the Friends panel.
 
                 if (recentChatsSubTab) {
-    recentChatsSubTab.addEventListener('click', () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        recentChatsSubTab.classList.add('active');
-        // Call the new function to load the chats
-        loadRecentPrivateChats(friendsPanelContent);
-    });
-}
+                    recentChatsSubTab.addEventListener('click', () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        recentChatsSubTab.classList.add('active');
+                        // Call the new function to load the chats
+                        loadRecentPrivateChats(friendsPanelContent);
+                    });
+                }
 
                 if (recentlyMetSubTab) {
                     recentlyMetSubTab.addEventListener('click', () => {
@@ -361,6 +384,8 @@ function initializeGlobals() {
 
                 setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
                 setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
+                // NEW: Setup message sending for global chat
+                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
                 // NEW: Setup message sending for alliance chat
                 setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
 
@@ -419,118 +444,119 @@ function initializeGlobals() {
 
             const chatDisplayAreaFaction = document.getElementById('chat-display-area');
             const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
+            const chatDisplayAreaGlobal = document.getElementById('global-chat-display-area'); // NEW: Global Chat display area
             const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area'); // NEW: Alliance Chat display area
 
             if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
             if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
+            if (chatDisplayAreaGlobal) chatDisplayAreaGlobal.innerHTML = '<p>Please log in to use global chat.</p>'; // NEW: Global Chat message
             if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Alliance Chat message
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
-	
-	async function populateFactionOverview() {
-    const overviewContent = document.getElementById('faction-overview-content');
-    if (!overviewContent) {
-        console.error("Faction Overview panel content area not found!");
-        return;
-    }
-
-    overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
-
-    try {
-        const factionId = window.currentUserFactionId;
-        const apiKey = window.userTornApiKey;
-
-        if (!factionId || !apiKey) {
-            overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+    async function populateFactionOverview() {
+        const overviewContent = document.getElementById('faction-overview-content');
+        if (!overviewContent) {
+            console.error("Faction Overview panel content area not found!");
             return;
         }
 
-        const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
-        const apiResponse = await fetch(factionApiUrl);
-        const tornData = await apiResponse.json();
-        
-        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
-        
-        const memberIds = Object.keys(tornData.members || {});
-        
-        if (memberIds.length === 0) {
-            overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
-            return;
-        }
+        overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
 
-        const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
-        membersToSort.sort((a, b) => a.name.localeCompare(b.name));
-        
-        const memberHtmlPromises = membersToSort.map(async (apiMember) => {
-            const memberId = apiMember.id;
-            
-            // --- THIS IS THE CORRECTED LINE ---
-            // Explicitly ensures the memberId is a string before calling the database.
-            const userDoc = await db.collection('users').doc(String(memberId)).get();
-            const firestoreMember = userDoc.exists ? userDoc.data() : {};
+        try {
+            const factionId = window.currentUserFactionId;
+            const apiKey = window.userTornApiKey;
 
-            const name = apiMember.name;
-            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
-            const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
-            const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
-            const status = apiMember.status.description;
-
-            let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
-            if (drugCooldown > 0) {
-                const hours = Math.floor(drugCooldown / 3600);
-                const minutes = Math.floor((drugCooldown % 3600) / 60);
-                let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
-                const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
-                drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
+            if (!factionId || !apiKey) {
+                overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+                return;
             }
 
-            let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
-            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
+            const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
+            const apiResponse = await fetch(factionApiUrl);
+            const tornData = await apiResponse.json();
 
-            let statusClass = 'status-okay';
-            if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
-            if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+            if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
 
-            return `
-                <tr>
-                    <td class="overview-name">${name}</td>
-                    <td class="overview-energy energy-text">${energy}</td>
-                    <td class="overview-drugcd">${drugCdHtml}</td>
-                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
-                    <td class="overview-refill">${energyRefillUsed}</td>
-                    <td class="overview-status ${statusClass}">${status}</td>
-                </tr>
-            `;
-        });
+            const memberIds = Object.keys(tornData.members || {});
 
-        const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
+            if (memberIds.length === 0) {
+                overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
+                return;
+            }
 
-        overviewContent.innerHTML = `
-            <table class="overview-table">
-                <thead>
+            const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
+            membersToSort.sort((a, b) => a.name.localeCompare(b.name));
+
+            const memberHtmlPromises = membersToSort.map(async (apiMember) => {
+                const memberId = apiMember.id;
+
+                // --- THIS IS THE CORRECTED LINE ---
+                // Explicitly ensures the memberId is a string before calling the database.
+                const userDoc = await db.collection('users').doc(String(memberId)).get();
+                const firestoreMember = userDoc.exists ? userDoc.data() : {};
+
+                const name = apiMember.name;
+                const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
+                const drugCooldown = firestoreMember.cooldowns?.drug || 0;
+                const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
+                const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
+                const status = apiMember.status.description;
+
+                let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
+                if (drugCooldown > 0) {
+                    const hours = Math.floor(drugCooldown / 3600);
+                    const minutes = Math.floor((drugCooldown % 3600) / 60);
+                    let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
+                    const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
+                    drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
+                }
+
+                let reviveCircleClass = 'rev-circle-red';
+                if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
+                else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
+
+                let statusClass = 'status-okay';
+                if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
+                if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+
+                return `
                     <tr>
-                        <th>Name</th>
-                        <th>Energy</th>
-                        <th>Drug C/D</th>
-                        <th>Rev</th>
-                        <th>Refill</th>
-                        <th>Status</th>
+                        <td class="overview-name">${name}</td>
+                        <td class="overview-energy energy-text">${energy}</td>
+                        <td class="overview-drugcd">${drugCdHtml}</td>
+                        <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
+                        <td class="overview-refill">${energyRefillUsed}</td>
+                        <td class="overview-status ${statusClass}">${status}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    ${memberRowsHtml}
-                </tbody>
-            </table>
-        `;
+                `;
+            });
 
-    } catch (error) {
-        console.error("Error populating Faction Overview:", error);
-        overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+            const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
+
+            overviewContent.innerHTML = `
+                <table class="overview-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Energy</th>
+                            <th>Drug C/D</th>
+                            <th>Rev</th>
+                            <th>Refill</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${memberRowsHtml}
+                    </tbody>
+                </table>
+            `;
+
+        } catch (error) {
+            console.error("Error populating Faction Overview:", error);
+            overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+        }
     }
-}
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
     async function addOrUpdateUserAllianceId(newAllianceId) {
         const user = auth.currentUser;
@@ -719,300 +745,300 @@ function initializeGlobals() {
         }
     }
 
-   // This helper function creates the HTML for a single message bubble
-function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message');
-    
-    // Add a special class if the message is from the current user
-    if (isMyMessage) {
-        messageElement.classList.add('my-message');
+    // This helper function creates the HTML for a single message bubble
+    function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+
+        // Add a special class if the message is from the current user
+        if (isMyMessage) {
+            messageElement.classList.add('my-message');
+        }
+
+        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+
+        // Use "You" if it's your message, otherwise use the sender's name
+        const senderName = isMyMessage ? 'You' : (messageObj.sender || 'Unknown');
+        const messageText = messageObj.text || '';
+
+        messageElement.innerHTML = `
+            <span class="chat-timestamp">[${timestamp}]</span>
+            <span class="chat-sender">${senderName}:</span>
+            <span class="chat-text">${messageText}</span>
+        `;
+        displayElement.appendChild(messageElement);
     }
+    // This function loads messages and handles sending for a private chat window
+    async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
+        const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+        const inputField = chatWindowElement.querySelector('.pcw-input');
+        const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
 
-    const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
-    
-    // Use "You" if it's your message, otherwise use the sender's name
-    const senderName = isMyMessage ? 'You' : (messageObj.sender || 'Unknown');
-    const messageText = messageObj.text || '';
-
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderName}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
-    displayElement.appendChild(messageElement);
-}
-// This function loads messages and handles sending for a private chat window
-async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
-    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
-    const inputField = chatWindowElement.querySelector('.pcw-input');
-    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
-        return;
-    }
-
-    let friendFirebaseUid = null;
-    try {
-        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
-        if (profileQuery.empty) {
-            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
-            inputField.disabled = true;
-            sendButton.disabled = true;
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
             return;
         }
-        friendFirebaseUid = profileQuery.docs[0].id;
-    } catch (error) {
-        console.error("Error fetching friend's Firebase UID:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
-        return;
-    }
 
-    const participants = [currentUser.uid, friendFirebaseUid].sort();
-    const chatDocId = `private_${participants[0]}_${participants[1]}`;
-    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
-
-    try {
-        await db.collection('privateChats').doc(chatDocId).set({
-            participants: participants,
-            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-    } catch (error) {
-        console.error("Error ensuring parent chat document exists:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
-        return;
-    }
-
-    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-        messagesContainer.innerHTML = '';
-        if (snapshot.empty) {
-            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
-        } else {
-            snapshot.forEach(doc => {
-                const messageData = doc.data();
-                // --- THIS IS THE KEY CHANGE ---
-                const isMyMessage = messageData.senderId === currentUser.uid;
-                displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
-            });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        let friendFirebaseUid = null;
+        try {
+            const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+            if (profileQuery.empty) {
+                messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+                inputField.disabled = true;
+                sendButton.disabled = true;
+                return;
+            }
+            friendFirebaseUid = profileQuery.docs[0].id;
+        } catch (error) {
+            console.error("Error fetching friend's Firebase UID:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+            return;
         }
-    }, error => {
-        console.error("Error loading private messages:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
-    });
 
-    const sendMessage = async () => {
-        const messageText = inputField.value.trim();
-        if (messageText === '') return;
-
-        const messageObj = {
-            senderId: currentUser.uid,
-            sender: currentTornUserName,
-            text: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
+        const participants = [currentUser.uid, friendFirebaseUid].sort();
+        const chatDocId = `private_${participants[0]}_${participants[1]}`;
+        const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
 
         try {
-            await db.collection('privateChats').doc(chatDocId).update({
+            await db.collection('privateChats').doc(chatDocId).set({
+                participants: participants,
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            await messagesCollectionRef.add(messageObj);
-            inputField.value = '';
-            inputField.focus();
+            }, { merge: true });
         } catch (error) {
-            console.error("Error sending private message:", error);
-            alert("Failed to send message.");
-        }
-    };
-
-    sendButton.addEventListener('click', sendMessage);
-    inputField.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
-
-    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
-    const newCloseButtonListener = () => {
-        unsubscribe();
-        closeButton.removeEventListener('click', newCloseButtonListener);
-    };
-    closeButton.addEventListener('click', newCloseButtonListener);
-}
-
-// A custom confirmation box that returns a promise with the user's choice
-function showCustomConfirmWithOptions(message, title = "Confirm") {
-    return new Promise(resolve => {
-        const overlay = document.createElement('div');
-        overlay.className = 'custom-confirm-overlay';
-
-        overlay.innerHTML = `
-            <div class="custom-confirm-box">
-                <h4>${title}</h4>
-                <p>${message}</p>
-                <div class="custom-confirm-checkbox">
-                    <input type="checkbox" id="confirm-dont-ask-again">
-                    <label for="confirm-dont-ask-again">Don't ask me again</label>
-                </div>
-                <div class="custom-confirm-actions">
-                    <button class="action-button danger">Yes</button>
-                    <button class="action-button">No</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        const yesBtn = overlay.querySelector('.danger');
-        const noBtn = overlay.querySelector('.action-button:not(.danger)');
-        const checkbox = overlay.querySelector('#confirm-dont-ask-again');
-
-        const closeConfirm = (confirmed) => {
-            const dontAskAgain = checkbox.checked;
-            document.body.removeChild(overlay);
-            resolve({ confirmed, dontAskAgain });
-        };
-
-        yesBtn.onclick = () => closeConfirm(true);
-        noBtn.onclick = () => closeConfirm(false);
-    });
-}
-
-async function deletePrivateChat(chatDocId) {
-    try {
-        const messagesRef = db.collection('privateChats').doc(chatDocId).collection('messages');
-        const messagesSnapshot = await messagesRef.get();
-
-        const batch = db.batch();
-        messagesSnapshot.docs.forEach(doc => {
-            batch.delete(doc.ref);
-        });
-        await batch.commit();
-        
-        await db.collection('privateChats').doc(chatDocId).delete();
-        console.log(`Successfully deleted chat and all messages for doc: ${chatDocId}`);
-        return true;
-    } catch (error) {
-        console.error("Error deleting private chat:", error);
-        alert("Failed to delete chat.");
-        return false;
-    }
-}
-
-async function loadRecentPrivateChats(targetDisplayElement) {
-    if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for Recent Chats tab.");
-        return;
-    }
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
-        return;
-    }
-
-    try {
-        const chatsSnapshot = await db.collection('privateChats')
-            .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastMessageAt', 'desc')
-            .limit(20)
-            .get();
-
-        if (chatsSnapshot.empty) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+            console.error("Error ensuring parent chat document exists:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
             return;
         }
 
-        const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
-            const chatData = doc.data();
-            const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+        const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+            messagesContainer.innerHTML = '';
+            if (snapshot.empty) {
+                messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+            } else {
+                snapshot.forEach(doc => {
+                    const messageData = doc.data();
+                    // --- THIS IS THE KEY CHANGE ---
+                    const isMyMessage = messageData.senderId === currentUser.uid;
+                    displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
+                });
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }, error => {
+            console.error("Error loading private messages:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+        });
 
-            if (!otherParticipantUid) return null;
-            
-            const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
-            if (!userProfileDoc.exists) return null;
-            
-            const profileData = userProfileDoc.data();
-            const friendTornId = profileData.tornProfileId;
-            const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+        const sendMessage = async () => {
+            const messageText = inputField.value.trim();
+            if (messageText === '') return;
 
-            const userDoc = await db.collection('users').doc(friendTornId).get();
-            const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
-
-            const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
-            const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
-
-            return {
-                chatId: doc.id, // We need the chat document ID for deletion
-                tornId: friendTornId,
-                name: friendName,
-                image: friendImage,
-                lastMessage: lastMessage.text
+            const messageObj = {
+                senderId: currentUser.uid,
+                sender: currentTornUserName,
+                text: messageText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-        });
 
-        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
+            try {
+                await db.collection('privateChats').doc(chatDocId).update({
+                    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await messagesCollectionRef.add(messageObj);
+                inputField.value = '';
+                inputField.focus();
+            } catch (error) {
+                console.error("Error sending private message:", error);
+                alert("Failed to send message.");
+            }
+        };
 
-        let listHtml = '';
-        chatDetails.forEach(chat => {
-            listHtml += `
-                <div class="recent-chat-item" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
-                    <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
-                    <div class="rc-details" title="Open chat with ${chat.name}">
-                        <span class="rc-name">${chat.name}</span>
-                        <span class="rc-last-message">${chat.lastMessage}</span>
-                    </div>
-                    <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
-                </div>
-            `;
-        });
-        
-        targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
-
-        targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
-            const chatItem = event.target.closest('.recent-chat-item');
-            const deleteButton = event.target.closest('.rc-delete-btn');
-
-            if (deleteButton) {
-                event.stopPropagation(); // Stop the click from opening the chat window
-                const chatId = deleteButton.dataset.chatId;
-                const friendName = deleteButton.dataset.friendName;
-                
-                const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
-
-                if (confirmDelete) {
-                    const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
-                    
-                    if (result.dontAskAgain) {
-                        localStorage.setItem('confirmDeleteChat', 'false');
-                    }
-                    if (!result.confirmed) {
-                        return; // User clicked "No"
-                    }
-                }
-                
-                // If confirmed or if we are skipping confirmation, proceed to delete
-                const success = await deletePrivateChat(chatId);
-                if (success) {
-                    loadRecentPrivateChats(targetDisplayElement); // Refresh the list
-                }
-
-            } else if (chatItem) {
-                const friendId = chatItem.dataset.friendId;
-                const friendName = chatItem.dataset.friendName;
-                openPrivateChatWindow(friendId, friendName);
+        sendButton.addEventListener('click', sendMessage);
+        inputField.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
             }
         });
 
-    } catch (error) {
-        console.error("Error populating Recent Chats tab:", error);
-        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+        const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+        const newCloseButtonListener = () => {
+            unsubscribe();
+            closeButton.removeEventListener('click', newCloseButtonListener);
+        };
+        closeButton.addEventListener('click', newCloseButtonListener);
     }
-}
+
+    // A custom confirmation box that returns a promise with the user's choice
+    function showCustomConfirmWithOptions(message, title = "Confirm") {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-confirm-overlay';
+
+            overlay.innerHTML = `
+                <div class="custom-confirm-box">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                    <div class="custom-confirm-checkbox">
+                        <input type="checkbox" id="confirm-dont-ask-again">
+                        <label for="confirm-dont-ask-again">Don't ask me again</label>
+                    </div>
+                    <div class="custom-confirm-actions">
+                        <button class="action-button danger">Yes</button>
+                        <button class="action-button">No</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const yesBtn = overlay.querySelector('.danger');
+            const noBtn = overlay.querySelector('.action-button:not(.danger)');
+            const checkbox = overlay.querySelector('#confirm-dont-ask-again');
+
+            const closeConfirm = (confirmed) => {
+                const dontAskAgain = checkbox.checked;
+                document.body.removeChild(overlay);
+                resolve({ confirmed, dontAskAgain });
+            };
+
+            yesBtn.onclick = () => closeConfirm(true);
+            noBtn.onclick = () => closeConfirm(false);
+        });
+    }
+
+    async function deletePrivateChat(chatDocId) {
+        try {
+            const messagesRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+            const messagesSnapshot = await messagesRef.get();
+
+            const batch = db.batch();
+            messagesSnapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            await db.collection('privateChats').doc(chatDocId).delete();
+            console.log(`Successfully deleted chat and all messages for doc: ${chatDocId}`);
+            return true;
+        } catch (error) {
+            console.error("Error deleting private chat:", error);
+            alert("Failed to delete chat.");
+            return false;
+        }
+    }
+
+    async function loadRecentPrivateChats(targetDisplayElement) {
+        if (!targetDisplayElement) {
+            console.error("HTML Error: Target display element not provided for Recent Chats tab.");
+            return;
+        }
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
+
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
+            return;
+        }
+
+        try {
+            const chatsSnapshot = await db.collection('privateChats')
+                .where('participants', 'array-contains', currentUser.uid)
+                .orderBy('lastMessageAt', 'desc')
+                .limit(20)
+                .get();
+
+            if (chatsSnapshot.empty) {
+                targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+                return;
+            }
+
+            const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
+                const chatData = doc.data();
+                const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+
+                if (!otherParticipantUid) return null;
+
+                const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+                if (!userProfileDoc.exists) return null;
+
+                const profileData = userProfileDoc.data();
+                const friendTornId = profileData.tornProfileId;
+                const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+
+                const userDoc = await db.collection('users').doc(friendTornId).get();
+                const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+
+                const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
+                const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
+
+                return {
+                    chatId: doc.id, // We need the chat document ID for deletion
+                    tornId: friendTornId,
+                    name: friendName,
+                    image: friendImage,
+                    lastMessage: lastMessage.text
+                };
+            });
+
+            const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
+
+            let listHtml = '';
+            chatDetails.forEach(chat => {
+                listHtml += `
+                    <div class="recent-chat-item" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
+                        <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
+                        <div class="rc-details" title="Open chat with ${chat.name}">
+                            <span class="rc-name">${chat.name}</span>
+                            <span class="rc-last-message">${chat.lastMessage}</span>
+                        </div>
+                        <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
+                    </div>
+                `;
+            });
+
+            targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
+
+            targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
+                const chatItem = event.target.closest('.recent-chat-item');
+                const deleteButton = event.target.closest('.rc-delete-btn');
+
+                if (deleteButton) {
+                    event.stopPropagation(); // Stop the click from opening the chat window
+                    const chatId = deleteButton.dataset.chatId;
+                    const friendName = deleteButton.dataset.friendName;
+
+                    const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
+
+                    if (confirmDelete) {
+                        const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
+
+                        if (result.dontAskAgain) {
+                            localStorage.setItem('confirmDeleteChat', 'false');
+                        }
+                        if (!result.confirmed) {
+                            return; // User clicked "No"
+                        }
+                    }
+
+                    // If confirmed or if we are skipping confirmation, proceed to delete
+                    const success = await deletePrivateChat(chatId);
+                    if (success) {
+                        loadRecentPrivateChats(targetDisplayElement); // Refresh the list
+                    }
+
+                } else if (chatItem) {
+                    const friendId = chatItem.dataset.friendId;
+                    const friendName = chatItem.dataset.friendName;
+                    openPrivateChatWindow(friendId, friendName);
+                }
+            });
+
+        } catch (error) {
+            console.error("Error populating Recent Chats tab:", error);
+            targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+        }
+    }
 
     async function populateIgnoreListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
@@ -1125,6 +1151,9 @@ async function loadRecentPrivateChats(targetDisplayElement) {
         } else if (collectionType === 'war') {
             targetCollection = db.collection('warChats').doc('currentWar').collection('messages');
             consoleLogPath = `warChats/currentWar/messages`;
+        } else if (collectionType === 'global') { // NEW: Global chat collection
+            targetCollection = db.collection('globalChats').doc('allUsers').collection('messages');
+            consoleLogPath = `globalChats/allUsers/messages`;
         } else if (collectionType === 'alliance') { // NEW: Alliance chat collection
             // Use the first saved alliance ID for chatting
             if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
@@ -1152,10 +1181,10 @@ async function loadRecentPrivateChats(targetDisplayElement) {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
         try {
-            // Ensure the parent document exists for faction/alliance chats if it's the first message
-            if (collectionType === 'faction' || collectionType === 'alliance') {
-                const docId = collectionType === 'faction' ? currentUserFactionId : currentUserAllianceIds[0]; // Use first alliance ID
-                const parentCollection = collectionType === 'faction' ? 'factionChats' : 'allianceChats';
+            // Ensure the parent document exists for faction/alliance/global chats if it's the first message
+            if (collectionType === 'faction' || collectionType === 'alliance' || collectionType === 'global') {
+                const parentCollection = collectionType === 'faction' ? 'factionChats' : (collectionType === 'alliance' ? 'allianceChats' : 'globalChats');
+                const docId = collectionType === 'faction' ? currentUserFactionId : (collectionType === 'alliance' ? currentUserAllianceIds[0] : 'allUsers');
                 await db.collection(parentCollection).doc(docId).set({
                     // You might add initial metadata here, e.g., 'createdAt: serverTimestamp()'
                     // For now, an empty object is fine to ensure existence
@@ -1197,6 +1226,10 @@ async function loadRecentPrivateChats(targetDisplayElement) {
             collectionRef = db.collection('warChats').doc('currentWar').collection('messages');
             displayAreaId = 'war-chat-display-area';
             consoleLogPath = `warChats/currentWar/messages`;
+        } else if (type === 'global' && auth.currentUser) { // NEW: Global chat listener
+            collectionRef = db.collection('globalChats').doc('allUsers').collection('messages');
+            displayAreaId = 'global-chat-display-area';
+            consoleLogPath = `globalChats/allUsers/messages`;
         } else if (type === 'alliance' && auth.currentUser) { // NEW: Alliance chat listener
             // Use the first saved alliance ID for displaying messages
             if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
@@ -1210,11 +1243,11 @@ async function loadRecentPrivateChats(targetDisplayElement) {
                 console.warn("User has no alliance ID to set up alliance chat listener.");
                 return; // Exit if no alliance ID
             }
-        }
-        else if (!auth.currentUser) { // If user is not logged in for any chat type
+        } else if (!auth.currentUser) { // If user is not logged in for any chat type
             const displayAreas = {
                 'faction': 'chat-display-area',
                 'war': 'war-chat-display-area',
+                'global': 'global-chat-display-area', // NEW: Global chat display area ID
                 'alliance': 'alliance-chat-display-area'
             };
             chatDisplayArea = document.getElementById(displayAreas[type]);
