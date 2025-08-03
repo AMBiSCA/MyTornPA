@@ -3863,6 +3863,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
+		initializeTableScrolling();
         applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
@@ -5943,6 +5944,8 @@ tabButtons.forEach(button => {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
                 }, 10000); // Refresh quick FF targets every 10 seconds
+				
+				window.addEventListener('resize', initializeTableScrolling);
 
 
                 // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
@@ -6299,4 +6302,33 @@ function applyStatColorCoding() {
             cell.classList.add('stat-cell'); // General class for stat cells
         }
     });
+}
+
+function initializeTableScrolling() {
+    const tableContainer = document.getElementById('friendlyMembersListContainer');
+    const tableHeader = document.querySelector('#friendly-members-table thead');
+    const tableBody = document.getElementById('friendly-members-tbody');
+
+    if (!tableContainer || !tableHeader || !tableBody) {
+        console.error("Scrolling initialization failed: One or more table elements not found.");
+        return;
+    }
+
+    // Measure the total height available for the content (the container's height)
+    const containerHeight = tableContainer.clientHeight;
+    // Measure the height of the fixed header
+    const headerHeight = tableHeader.clientHeight;
+
+    // The scrollable body height is the container's height minus the header's height
+    const scrollableBodyHeight = containerHeight - headerHeight;
+    
+    // Apply the fixed height and a scrollbar to the table body's container
+    tableBody.style.display = 'block'; // Ensure the tbody can take height
+    tableBody.style.maxHeight = `${scrollableBodyHeight}px`;
+    tableBody.style.overflowY = 'auto';
+
+    // Make the header visible and aligned
+    tableHeader.style.display = 'block';
+    
+    console.log("Table scrolling initialized with body height:", scrollableBodyHeight);
 }
