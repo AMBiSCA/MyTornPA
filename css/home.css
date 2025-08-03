@@ -847,7 +847,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* * CORRECTED AND CONSOLIDATED MOBILE STYLES
 * All rules for screens 768px and smaller now live inside this single block.
 */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
     /* This rule hides the inactive content section when tabbing */
     .mobile-hidden {
         display: none !important;
@@ -940,7 +940,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         /* Add this line */
     }
 }
-@media (min-width: 769px) {
+@media (min-width: 961px) {
     /* This rule ensures the mobile-only tab buttons are hidden on desktop */
     #mobile-tab-buttons-container {
         display: none;
