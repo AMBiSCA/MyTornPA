@@ -832,6 +832,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         align-items: center;
         flex-direction: column;
         gap: 15px;
+	    align-self: auto;
     }
     .stats-column,
     .tools-column {
@@ -847,7 +848,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* * CORRECTED AND CONSOLIDATED MOBILE STYLES
 * All rules for screens 768px and smaller now live inside this single block.
 */
-@media (max-width: 960px) {
+@media (max-width: 768px) {
     /* This rule hides the inactive content section when tabbing */
     .mobile-hidden {
         display: none !important;
@@ -940,7 +941,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         /* Add this line */
     }
 }
-@media (min-width: 961px) {
+@media (min-width: 769px) {
     /* This rule ensures the mobile-only tab buttons are hidden on desktop */
     #mobile-tab-buttons-container {
         display: none;
@@ -1045,69 +1046,4 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         display: none !important;
     }
     */
-}
-
-/* =================================== */
-/* === Tablet Header Customization === */
-/* =================================== */
-@media (min-width: 769px) and (max-width: 1024px) {
-
-  /* Hide the large center logo and the tagline text */
-  header .header-center,
-  header .tagline {
-    display: none !important;
-  }
-
-  /* Make the main header a flexible container */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-  }
-
-  /* Hide the text inside the header buttons */
-  header .header-btn .btn-text {
-    display: none;
-  }
-
-  /* General style for ALL tablet header buttons */
-  header .header-btn {
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%; /* Default to a circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* --- UPDATED BLUE STYLE --- */
-    background-color: rgba(0, 168, 255, 0.1);
-    border: 1px solid #00a8ff;
-    transition: background-color 0.2s ease;
-  }
-  
-  /* Add a hover effect for interactivity */
-  header .header-btn:hover {
-      background-color: rgba(0, 168, 255, 0.25);
-  }
-  
-  /* Make sure the icons inside are centered */
-  header .header-btn .btn-icon {
-    margin: 0;
-    font-size: 1.3em;
-  }
-  
-  /* Adjust the spacing for the dropdowns and buttons */
-  header .header-buttons {
-    gap: 12px;
-  }
-
-  /* --- NEW RULE for the wider middle buttons --- */
-  #usefulLinksBtn,
-  #headerContactUsBtn {
-    width: auto; /* Let the button grow */
-    padding: 0 12px; /* Add horizontal padding */
-    border-radius: 22px; /* Make it a "pill" shape */
-  }
 }
