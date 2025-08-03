@@ -2223,16 +2223,14 @@ footer.footer {
 }
 
 @media (max-width: 1024px) {
-    /* Rule to hide the text of all header buttons on small screens */
+    /* Hide the text part of all header buttons definitively on small screens */
     header .btn-text {
         display: none !important;
     }
-    
-    /* Styles for buttons that should be circular and icon-only */
-    .home-header .header-buttons #homeButtonHeader,
-    .home-header .header-buttons #headerEditProfileBtn,
-    .home-header .header-buttons #logoutButtonHeader,
-    .other-pages-header .header-buttons .btn:not(.dropdown-toggle) {
+
+    /* Style the circular, icon-only buttons for small screens */
+    .home-header .header-buttons .btn,
+    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
         min-width: 44px;
         height: 44px;
         padding: 0;
@@ -2240,11 +2238,11 @@ footer.footer {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #131314;
+        background-color: rgba(0, 168, 255, 0.1);
         border: 1px solid #00a8ff;
     }
-    
-    /* Styles for the buttons that should be pill-shaped with dropdown arrows */
+
+    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
     .home-header .header-buttons #usefulLinksBtn,
     .home-header .header-buttons #headerContactUsBtn,
     .other-pages-header .header-buttons #usefulLinksBtn,
@@ -2253,16 +2251,18 @@ footer.footer {
         padding: 0 12px;
         border-radius: 22px;
         height: 40px;
-        background-color: #131314;
+        background-color: rgba(0, 168, 255, 0.1);
         border: 1px solid #00a8ff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
     
-    /* A small fix to make sure the icons within the pill-shaped buttons are centered */
-    .home-header .dropdown-toggle .btn-icon,
-    .other-pages-header .dropdown-toggle .btn-icon {
+    /* Ensure the icons inside the buttons are correctly sized and positioned */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
         margin: 0;
     }
 }
