@@ -517,56 +517,66 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     color: #00c0ff;
 }
 
-@media (max-width: 768px) {
+/* Responsive Media Queries */
+@media (max-width: 920px) {
+  /* This rule will now be for a cleaner layout on smaller desktops/laptops */
+  .dropdown-row .dropdown-category {
+    flex-basis: calc(50% - 8px); /* Two categories per row */
+  }
+}
+@media (max-width: 768px) { /* Tablet Portrait and Smaller */
+  header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  .main-content-wrapper {
     /* Main Faction Tool Container */
     .faction-peeper-tool-container {
-        padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
-        width: 95%; /* Ensures the container fits well on most phones */
-		margin-left: -3px !important;
+      padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
+      width: 95%; /* Ensures the container fits well on most phones */
+      margin-left: -3px !important;
     }
+  }
 
-    /* Modal Styles */
-    .modal-content {
-        width: 95% !important; /* Makes the modal itself narrower */
-        max-width: 100% !important; /* Ensures it never goes off screen */
-        padding: 15px !important; /* Reduces padding inside the modal */
-    }
-    .modal-title {
-        font-size: 1.5rem; /* Smaller title font size for mobile */
-    }
-    .modal-summary {
-        font-size: 0.9rem; /* Smaller summary text */
-    }
-	
-	 .modal-content {
-        width: 95% !important; /* Makes the modal itself narrower */
-        max-width: 100% !important; /* Ensures it never goes off screen */
-        padding: 15px !important; /* Reduces padding inside the modal */
-        
-        /* NEW: This will make the modal shorter to fit the screen */
-        max-height: calc(100vh - 100px) !important;
-        margin-top: 93px !important;
-    }
-
-    /* Table Styles */
-    .modal-table-container {
-        /* This rule adds a scrollbar *just* to the table if it's too wide,
-           without breaking the rest of the page. */
-        overflow-x: auto !important;
-    }
-    .modal-table thead th, 
-    .modal-table tbody td {
-        padding: 5px 8px !important; /* Reduced padding on table cells */
-        font-size: 0.75rem !important; /* Smaller text inside the table */
-        white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
-    }
+  .image-glow,
+  .image-glow-flipped {
+    display: none !important;
+  }
+  
+  /* Modal Styles */
+  .modal-content {
+    width: 95% !important; /* Makes the modal itself narrower */
+    max-width: 100% !important; /* Ensures it never goes off screen */
+    padding: 15px !important; /* Reduces padding inside the modal */
+    max-height: calc(100vh - 100px) !important;
+    margin-top: 93px !important;
+  }
+  .modal-title {
+    font-size: 1.5rem; /* Smaller title font size for mobile */
+  }
+  .modal-summary {
+    font-size: 0.9rem; /* Smaller summary text */
+  }
+  .modal-table-container { /* This is for a scrollbar for a long table */
+    overflow-x: auto !important;
+  }
+  .modal-table thead th, 
+  .modal-table tbody td {
+    padding: 5px 8px !important; /* Reduced padding on table cells */
+    font-size: 0.75rem !important; /* Smaller text inside the table */
+    white-space: nowrap; /* Prevents text from wrapping */
+  }
 }
 
-.image-glow,
-    .image-glow-flipped {
-        display: none !important;
-    }
-
+/* New, more targeted rule for Tablet Landscape and bigger */
+@media (min-width: 769px) {
+  .dropdown-row .dropdown-category {
+    flex-basis: calc(33.333% - 10px); /* 3 items per row on tablets */
+    min-width: 200px;
+  }
+  .dropdown-row.single-dropdown .dropdown-category {
+    flex-basis: 100%;
+    max-width: 300px;
+  }
+}
 /* For even smaller screens, let's make things even more compact */
 @media (max-width: 480px) {
     .faction-peeper-tool-container {
@@ -588,9 +598,3 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
-  .dropdown-row .dropdown-category {
-    flex-basis: calc(33.333% - 10px); /* Adjust to 3 items per row with gaps */
-    max-width: none; /* Remove max-width constraint to allow items to fill space */
-  }
-}
