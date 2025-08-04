@@ -1307,10 +1307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-					
-					if (currentUserIsAdmin) {
-                      setupDiscordAdminSettings(); // <--- ADD THIS LINE HERE
-}
+
                     
                     if (userFactionIdFromProfile) {
                         // Setup listener only if faction ID exists
