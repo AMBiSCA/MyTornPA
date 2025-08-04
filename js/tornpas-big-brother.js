@@ -901,7 +901,8 @@ function downloadCurrentTabAsImage() {
     });
 }
 function managePortraitBlocker() {
-    const isMobilePortrait = window.matchMedia("(max-width: 850px) and (orientation: portrait)").matches;
+    // This condition is now more specific to target phones and exclude tablets
+    const isMobilePortrait = window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
     let blocker = document.getElementById('portrait-blocker');
     const mainContentArea = document.querySelector('.page-specific-content-area');
     const header = document.querySelector('header');
@@ -935,9 +936,23 @@ function managePortraitBlocker() {
             `;
             document.body.appendChild(blocker);
 
-            document.getElementById('return-home-button').addEventListener('click', () => {
-                window.location.href = '/'; 
-            });
+            const returnHomeButton = document.getElementById('return-home-button');
+            if (returnHomeButton) {
+                Object.assign(returnHomeButton.style, {
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    padding: '8px 15px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    marginTop: '20px',
+                    textDecoration: 'none'
+                });
+                returnHomeButton.addEventListener('click', () => {
+                    window.location.href = 'home.html'; 
+                });
+            }
         }
         
         if (header) header.style.display = 'none';
