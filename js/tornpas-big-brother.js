@@ -342,16 +342,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 }
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 async function setupDiscordAdminSettings() {
-    // Check for required elements before continuing
     const leaderControlsContainer = document.getElementById('availability-admin-controls');
     if (!leaderControlsContainer) {
         console.warn("Could not find leader controls container. Skipping Discord settings setup.");
         return;
     }
 
-    // Create the HTML structure for the button and modal
     const settingsHtml = `
-        <div id="discordAdminSettingsContainer" class="leader-controls-row">
+        <div id="discordAdminSettingsContainer">
             <button id="showDiscordSettingsBtn" class="action-btn">
                 <span class="icon">⚙️</span>
                 <span>Discord Settings</span>
@@ -382,10 +380,8 @@ async function setupDiscordAdminSettings() {
         </div>
     `;
 
-    // Append the new UI to the leader controls
     leaderControlsContainer.insertAdjacentHTML('beforeend', settingsHtml);
 
-    // Get references to the newly created elements
     const showSettingsBtn = document.getElementById('showDiscordSettingsBtn');
     const modalOverlay = document.getElementById('discordSettingsModalOverlay');
     const closeBtn = document.getElementById('closeDiscordSettingsBtn');
@@ -394,7 +390,6 @@ async function setupDiscordAdminSettings() {
     const guildIdInput = document.getElementById('discordGuildIdInput');
     const channelIdInput = document.getElementById('discordChannelIdInput');
 
-    // Load existing settings from Firestore
     const loadSettings = async () => {
         try {
             const doc = await db.collection('factionSettings').doc('discord').get();
@@ -465,7 +460,6 @@ async function setupDiscordAdminSettings() {
         }
     });
 }
-
 
 /**
  * Sends a nudge message via a backend service to the specified member's Discord.
