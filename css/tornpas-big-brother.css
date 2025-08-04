@@ -588,7 +588,7 @@ h2 {
     }
 }
 @media (orientation: landscape) and (max-width: 850px) {
-    .spacer {
-        height: 20px;
+    .page-specific-content-area {
+        padding-top: 20px !important;
     }
 }
