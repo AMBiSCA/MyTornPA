@@ -1909,7 +1909,7 @@ input:checked + .slider:before {
     /* This is the rule inside the @media (max-width: 768px) block */
 body {
     padding-top: 140px !important; /* CHANGED: Set the value directly */
-    padding-bottom: 80px !important; 
+    padding-bottom: 60px !important; 
     min-height: 100vh !important; 
 }
 
