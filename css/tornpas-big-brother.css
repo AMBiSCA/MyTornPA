@@ -569,3 +569,16 @@ h2 {
         padding: 1px 1px; /* Even less padding */
     }
 }
+
+@media (max-width: 850px) and (max-height: 450px) {
+  body {
+    transform: rotate(90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    overflow-x: hidden;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
