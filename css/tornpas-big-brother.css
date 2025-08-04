@@ -519,6 +519,20 @@ h2 {
     color: #8ab4f8;
 }
 
+.tab-navigation-bb {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px; /* Adds some space between the buttons */
+}
+
+/* This is the new style for the cog button container */
+.admin-controls-placeholder {
+    position: absolute;
+    top: 90px; /* Adjust this value to get the exact position you want */
+    left: 20px; /* Adjust this value to get the exact position you want */
+}
+
 #showDiscordSettingsBtn {
     background-color: #4CAF50; /* A standard green color */
     color: #000; /* Black text */
