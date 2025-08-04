@@ -250,7 +250,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
             
-            // --- MODIFIED CODE START ---
             const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
             const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
             const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
@@ -262,18 +261,33 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldown, drugCooldownClass = '';
+            let drugCooldownHtml;
+            
+            // --- START MODIFIED LOGIC FOR NUDGE BUTTON ---
             if (drugCooldownValue > 0) {
                 const hours = Math.floor(drugCooldownValue / 3600);
                 const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-                else drugCooldownClass = 'status-okay';
+                const drugCooldownText = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                const drugCooldownClass = drugCooldownValue > 18000 ? 'status-hospital' : (drugCooldownValue > 7200 ? 'status-other' : 'status-okay');
+                drugCooldownHtml = `<span class="${drugCooldownClass}">${drugCooldownText}</span>`;
             } else {
-                drugCooldown = 'None 🍁';
-                drugCooldownClass = 'status-okay';
+                if (currentUserIsAdmin) {
+                    const lastNudgeTime = localStorage.getItem(`nudgeTimestamp_${memberId}`);
+                    const now = new Date().getTime();
+                    const oneHour = 60 * 60 * 1000;
+                    const timeLeft = Math.max(0, oneHour - (now - lastNudgeTime));
+                    const cooldownMinutes = Math.ceil(timeLeft / 60000);
+
+                    if (lastNudgeTime && timeLeft > 0) {
+                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn disabled" disabled>Nudged (${cooldownMinutes}m left)</button>`;
+                    } else {
+                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn" onclick="sendNudgeMessage('${memberId}', '${name}')">Nudge</button>`;
+                    }
+                } else {
+                    drugCooldownHtml = '<span class="status-okay">None 🍁</span>';
+                }
             }
+            // --- END MODIFIED LOGIC ---
 
             const statusState = tornData.status?.state || '';
             const originalDescription = tornData.status?.description || 'N/A';
@@ -297,7 +311,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
                     <td class="nerve-text hide-on-mobile">${nerve}</td>
                     <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+                    <td class="hide-on-mobile">${drugCooldownHtml}</td>
                 </tr>
             `;
         }
@@ -309,6 +323,68 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         hideLoadingMessage();
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+    }
+}
+
+/**
+ * Sends a nudge message via a backend service to the specified member's Discord.
+ * @param {string} memberId - The Torn ID of the member to nudge.
+ * @param {string} memberName - The Torn name of the member to nudge.
+ */
+async function sendNudgeMessage(memberId, memberName) {
+    if (!currentUserIsAdmin) {
+        showCustomAlert("Permission denied. Only leaders/co-leaders can send nudges.", "Permission Denied");
+        return;
+    }
+
+    const lastNudgeTime = localStorage.getItem(`nudgeTimestamp_${memberId}`);
+    const now = new Date().getTime();
+    const oneHour = 60 * 60 * 1000;
+
+    if (lastNudgeTime && (now - lastNudgeTime) < oneHour) {
+        showCustomAlert(`You can only nudge ${memberName} once per hour. Please wait.`, "Nudge Cooldown Active");
+        return;
+    }
+
+    const nudgeButton = document.getElementById(`nudge-btn-${memberId}`);
+    if (nudgeButton) {
+        nudgeButton.textContent = 'Sending...';
+        nudgeButton.disabled = true;
+    }
+
+    try {
+        // Here's the key part: This calls a Netlify function on your server.
+        // You will need to set up this function to handle the Discord API part.
+        const backendUrl = `/.netlify/functions/send-nudge-message`;
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                memberId: memberId,
+                memberName: memberName,
+                leaderName: currentTornUserName, // The name of the leader who clicked it
+            })
+        });
+
+        if (!response.ok) {
+            const errorResult = await response.json();
+            throw new Error(errorResult.message || `Backend service responded with an error: ${response.status}`);
+        }
+
+        localStorage.setItem(`nudgeTimestamp_${memberId}`, now);
+        updateFriendlyMembersTable(userApiKey, currentFirebaseUserUid); // Refresh the table to show the cooldown status
+        
+        showCustomAlert(`Nudge message successfully sent to ${memberName}!`, "Nudge Sent");
+        
+    } catch (error) {
+        console.error("Error sending nudge message:", error);
+        if (nudgeButton) {
+            nudgeButton.textContent = 'Error';
+            nudgeButton.disabled = false;
+        }
+        showCustomAlert(`Failed to send nudge: ${error.message}. Please check the console.`, "Send Failed");
     }
 }
 

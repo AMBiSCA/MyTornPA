@@ -336,6 +336,31 @@ h2 {
     color: #dc3545;
 }
 
+/* Styling for the new Nudge button in the drug cooldown column */
+.nudge-btn {
+    background-color: #f39c12; /* A vibrant orange */
+    color: #000;
+    font-weight: bold;
+    border: 1px solid #c87600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s, opacity 0.2s;
+    white-space: nowrap;
+}
+
+.nudge-btn:hover {
+    background-color: #e67e22; /* Slightly darker on hover */
+}
+
+.nudge-btn.disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    border: 1px solid #444;
+}
+
 
 /* ==========================================================================
    Gains Tracking Tab Styles
