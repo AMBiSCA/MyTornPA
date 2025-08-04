@@ -1106,6 +1106,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+	// --- START: Tablet Landscape Enforcement ---
+// This new section will handle showing an overlay on tablets in portrait mode.
+
+let orientationOverlay = null;
+
+/**
+ * Creates and adds a hidden overlay to the page.
+ * This overlay will be used to ask the user to rotate their tablet.
+ */
+function createOrientationOverlay() {
+    orientationOverlay = document.createElement('div');
+    orientationOverlay.id = 'orientation-overlay';
+
+    // Style the overlay to cover the screen
+    Object.assign(orientationOverlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        color: 'white',
+        zIndex: '10000',
+        display: 'none', // Initially hidden, will be changed to 'flex'
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '20px',
+        boxSizing: 'border-box',
+        fontSize: '24px',
+        fontFamily: 'Arial, sans-serif'
+    });
+
+    orientationOverlay.innerHTML = '<div>🔄<br><br>For the best experience, please rotate your tablet to landscape mode.</div>';
+    document.body.appendChild(orientationOverlay);
+}
+
+/**
+ * Checks the screen size and orientation to decide if the overlay should be shown.
+ */
+function checkAndEnforceLandscape() {
+    if (!orientationOverlay) return; // Safety check
+
+    // Realistic sizing: We assume a tablet has a width between 768px and 1280px.
+    // This covers most common devices like iPads and Galaxy Tabs.
+    const TABLET_MIN_WIDTH = 768;
+    const TABLET_MAX_WIDTH = 1280;
+
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // A device is likely a tablet if its width falls in our defined range.
+    const isPossiblyTablet = screenWidth >= TABLET_MIN_WIDTH && screenWidth <= TABLET_MAX_WIDTH;
+    // A device is in portrait mode if its height is greater than its width.
+    const isPortrait = screenHeight > screenWidth;
+
+    if (isPossiblyTablet && isPortrait) {
+        orientationOverlay.style.display = 'flex'; // Show the overlay
+    } else {
+        orientationOverlay.style.display = 'none'; // Hide the overlay
+    }
+}
+
+// 1. Create the overlay element once the page structure is ready.
+createOrientationOverlay();
+
+// 2. Add listeners to run our check whenever the screen might change.
+window.addEventListener('resize', checkAndEnforceLandscape);
+window.addEventListener('orientationchange', checkAndEnforceLandscape);
+
+// 3. Run an initial check when the page first loads.
+checkAndEnforceLandscape();
+
+// --- END: Tablet Landscape Enforcement ---
+	
     // Run Initial Setup
     init();
 
