@@ -529,8 +529,8 @@ h2 {
 /* This is the new style for the cog button container */
 .admin-controls-placeholder {
     position: absolute;
-    top: 90px; /* Adjust this value to get the exact position you want */
-    left: 20px; /* Adjust this value to get the exact position you want */
+    top: 10px; /* Adjust this value to get the exact position you want */
+    left: 10px; /* Adjust this value to get the exact position you want */
 }
 
 #showDiscordSettingsBtn {
