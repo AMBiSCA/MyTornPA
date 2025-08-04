@@ -1079,3 +1079,21 @@ document.addEventListener('DOMContentLoaded', () => {
         stopTrackingGains();
     });
 });
+
+function handleOrientationChange() {
+    const isMobile = window.matchMedia("(max-width: 850px) and (max-height: 450px)").matches;
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+
+    if (isMobile && isPortrait) {
+        document.body.classList.add('force-landscape-view');
+    } else {
+        document.body.classList.remove('force-landscape-view');
+    }
+}
+
+// Initial check when the page loads
+handleOrientationChange();
+
+// Listen for changes in screen size and orientation
+window.addEventListener('resize', handleOrientationChange);
+window.addEventListener('orientationchange', handleOrientationChange);
