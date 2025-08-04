@@ -1100,14 +1100,14 @@ function managePortraitBlocker() {
                     cursor: 'pointer',
                     fontWeight: 'bold',
                     marginTop: '20px',
-                    textDecoration: 'none'
+                    text-decoration: 'none'
                 });
                 returnHomeButton.addEventListener('click', () => {
                     window.location.href = 'home.html';
                 });
             }
         }
-
+        
         if (header) header.style.display = 'none';
         if (mainContentArea) mainContentArea.style.display = 'none';
         if (footer) footer.style.display = 'none';
