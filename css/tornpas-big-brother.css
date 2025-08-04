@@ -233,138 +233,6 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
-/* --- NEW MODAL STYLES --- */
-
-/* 1. Backdrop Overlay: Made darker and more opaque as requested. */
-#discordSettingsModalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Using a dark, near-opaque color for the background */
-    background-color: rgba(10, 15, 20, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-#discordSettingsModalOverlay:not(.hidden) {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* 2. The Modal Box: Overhauled with new colors, border, and shadow. */
-#discordSettingsModal {
-    position: relative; /* Needed to position the close button */
-    background-color: #1e1e1e; /* Darker background */
-    color: #f0f0f0;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    /* Added a blue border and glow to match your site */
-    border: 1px solid #00bfff;
-    box-shadow: 0 4px 30px rgba(0, 191, 255, 0.2);
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-}
-
-#discordSettingsModalOverlay:not(.hidden) #discordSettingsModal {
-    transform: translateY(0);
-}
-
-/* 3. Modal Sections: Better spacing and dividers */
-.modal-header {
-    padding: 15px 25px;
-    border-bottom: 1px solid #00bfff;
-}
-.modal-header h4 {
-    color: #00bfff; /* Blue title text */
-    margin: 0;
-    font-size: 1.2em;
-}
-.modal-body {
-    padding: 20px 25px;
-}
-.modal-footer {
-    padding: 15px 25px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid #333;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    display: flex;
-    justify-content: flex-end; /* Aligns buttons to the right */
-    gap: 10px; /* Adds space between buttons */
-}
-
-/* 4. Close 'X' Button: Repositioned and styled to be a blue 'X'. */
-#closeDiscordSettingsBtn {
-    position: absolute;
-    top: 5px;
-    right: 15px;
-    color: #00bfff; /* THE BLUE 'X' */
-    font-size: 2.5em; /* Bigger */
-    font-weight: bold;
-    line-height: 1;
-    cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-#closeDiscordSettingsBtn:hover {
-    color: #ffffff;
-    transform: scale(1.1);
-}
-
-/* 5. Form Styling: Cleaned up the input fields. */
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ccc;
-    font-size: 0.9em;
-}
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    background-color: #333;
-    border: 1px solid #555;
-    border-radius: 4px;
-    color: #fff;
-    box-sizing: border-box; /* Important for width calculation */
-}
-.form-group input:focus {
-    outline: none;
-    border-color: #00bfff;
-}
-
-/* 6. Action Buttons: Completely restyled. */
-.modal-footer .action-btn {
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: 1px solid transparent;
-    font-weight: bold;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-/* Save Button (Primary) */
-#saveDiscordSettingsBtn {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-}
-#saveDiscordSettingsBtn:hover {
-    background-color: #009fff;
-    border-color: #009fff;
-    transform: translateY(-2px);
-}
-/* Cancel Button (Secondary) */
-#cancelDiscordSettingsBtn
 
 /* ==========================================================================
    Download Button Styles
@@ -517,6 +385,49 @@ h2 {
     border: 1px solid #444;
 }
 
+/* ==========================================================================
+   Action Buttons (Top of the page)
+   ========================================================================== */
+
+/* This positions the Discord Settings button at the top-left */
+#showDiscordSettingsBtn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    padding: 8px 15px;
+    background-color: #5865F2; /* Discord's brand color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+#showDiscordSettingsBtn:hover {
+    background-color: #4f5bce;
+}
+
+/* This positions the Download button at the top-right and restores its style */
+#downloadTableDataBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    padding: 8px 15px;
+    background-color: #4CAF50; /* Restored green color */
+    color: white; /* White text looks better */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+#downloadTableDataBtn:hover {
+    background-color: #45a049;
+}
 
 /* ==========================================================================
    Gains Tracking Tab Styles
@@ -675,12 +586,6 @@ h2 {
     color: #8ab4f8;
 }
 
-.tab-navigation-bb {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 10px; /* Adds some space between the buttons */
-}
 
 
 /* ==========================================================================
