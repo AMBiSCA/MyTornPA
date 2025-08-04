@@ -1293,87 +1293,92 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-// --- Authentication and Initial Data Load ---
-auth.onAuthStateChanged(async (user) => {
-    currentFirebaseUserUid = user ? user.uid : null;
+    // --- Authentication and Initial Data Load ---
+    auth.onAuthStateChanged(async (user) => {
+        currentFirebaseUserUid = user ? user.uid : null;
 
-    if (user) {
-        try {
-            const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-            if (userProfileDoc.exists) {
-                const userData = userProfileDoc.data();
-                userApiKey = userData.tornApiKey || null;
-                userTornProfileId = userData.tornProfileId || null;
-                userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
+        if (user) {
+            try {
+                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                if (userProfileDoc.exists) {
+                    const userData = userProfileDoc.data();
+                    userApiKey = userData.tornApiKey || null;
+                    userTornProfileId = userData.tornProfileId || null;
+                    userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
-                currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-
-                // This is the new line of code you needed!
-                if (currentUserIsAdmin) {
-                    setupDiscordAdminSettings();
-                }
-                
-                if (userFactionIdFromProfile) {
-                    // Setup listener only if faction ID exists
-                    setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-                } else {
-                    // If no faction ID, ensure UI is updated correctly
-                    updateGainTrackingUI();
-                    console.warn("User has no faction ID. Gains tracking features might be limited.");
-                }
-
-                if (userApiKey && userTornProfileId) {
-                    console.log("Logged in and API key/Profile ID found.");
+                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
                     
-                    // Only load current stats table if its tab is active on initial load
-                    if (document.getElementById('current-stats-tab').classList.contains('active')) {
-                        await updateFriendlyMembersTable(userApiKey, user.uid);
+                    if (userFactionIdFromProfile) {
+                        // Setup listener only if faction ID exists
+                        setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+                    } else {
+                        // If no faction ID, ensure UI is updated correctly
+                        updateGainTrackingUI(); 
+                        console.warn("User has no faction ID. Gains tracking features might be limited.");
                     }
 
+                    if (userApiKey && userTornProfileId) {
+                        console.log("Logged in and API key/Profile ID found.");
+                        
+                        // Only load current stats table if its tab is active on initial load
+                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
+                            await updateFriendlyMembersTable(userApiKey, user.uid);
+                        }
+
+                    } else {
+                        console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
+                        hideLoadingMessage();
+                        const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+                        if (friendlyMembersTbody) {
+                            friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
+                        }
+                        updateGainTrackingUI(); // Update gains UI for no API key scenario
+                    }
                 } else {
-                    console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
+                    console.warn("User profile document not found in Firestore.");
                     hideLoadingMessage();
                     const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
                     if (friendlyMembersTbody) {
-                        friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
+                        friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
                     }
-                    updateGainTrackingUI(); // Update gains UI for no API key scenario
+                    updateGainTrackingUI(); // Update gains UI for no profile scenario
                 }
-            } else {
-                console.warn("User profile document not found in Firestore.");
+            } catch (error) {
+                console.error("Error fetching user profile for TornPAs Big Brother page:", error);
                 hideLoadingMessage();
                 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
                 if (friendlyMembersTbody) {
-                    friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
+                    friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
                 }
-                updateGainTrackingUI(); // Update gains UI for no profile scenario
+                updateGainTrackingUI(); // Update gains UI on error
             }
-        } catch (error) {
-            console.error("Error fetching user profile for TornPAs Big Brother page:", error);
+        } else {
+            console.log("User not logged in. Displaying login message.");
             hideLoadingMessage();
             const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
             if (friendlyMembersTbody) {
-                friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+                friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
             }
-            updateGainTrackingUI(); // Update gains UI on error
+            startTrackingBtn.classList.add('hidden');
+            stopTrackingBtn.classList.add('hidden');
+            trackingStatusDisplay.textContent = 'Please log in.';
+            if (unsubscribeFromTrackingStatus) {
+                unsubscribeFromTrackingStatus();
+                unsubscribeFromTrackingStatus = null;
+            }
+            if (unsubscribeFromGainsData) {
+                unsubscribeFromGainsData();
+                unsubscribeFromGainsData = null;
+            }
         }
-    } else {
-        console.log("User not logged in. Displaying login message.");
-        hideLoadingMessage();
-        const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-        if (friendlyMembersTbody) {
-            friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
-        }
-        startTrackingBtn.classList.add('hidden');
-        stopTrackingBtn.classList.add('hidden');
-        trackingStatusDisplay.textContent = 'Please log in.';
-        if (unsubscribeFromTrackingStatus) {
-            unsubscribeFromTrackingStatus();
-            unsubscribeFromTrackingStatus = null;
-        }
-        if (unsubscribeFromGainsData) {
-            unsubscribeFromGainsData();
-            unsubscribeFromGainsData = null;
-        }
-    }
+    });
+
+    // --- Event Listeners for Gain Tracking Buttons ---
+    startTrackingBtn.addEventListener('click', () => {
+        startTrackingGains();
+    });
+
+    stopTrackingBtn.addEventListener('click', () => {
+        stopTrackingGains();
+    });
 });
