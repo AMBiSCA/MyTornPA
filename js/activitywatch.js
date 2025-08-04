@@ -1111,30 +1111,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let orientationOverlay = null;
 
+// --- START: Combined Utility Functions ---
+
+/**
+ * Displays a full-screen overlay to indicate a feature is unavailable on mobile.
+ */
 function showFeatureUnavailableOnMobile() {
-    // 1. Create the main overlay element
     const unavailableBlocker = document.createElement('div');
     unavailableBlocker.id = 'feature-unavailable-blocker';
-
-    // 2. Apply consistent styling
     Object.assign(unavailableBlocker.style, {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#222',
-        color: '#eee',
-        textAlign: 'center',
-        padding: '20px',
-        zIndex: '99999'
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        alignItems: 'center', position: 'fixed', top: '0', left: '0',
+        width: '100%', height: '100%', backgroundColor: '#222',
+        color: '#eee', textAlign: 'center', padding: '20px', zIndex: '99999'
     });
-
-    // 3. Set the content with the corrected text and button style
     unavailableBlocker.innerHTML = `
         <div>
             <h2 style="font-size: 28px; margin-bottom: 15px;">Feature Unavailable on Mobile</h2>
@@ -1146,10 +1136,62 @@ function showFeatureUnavailableOnMobile() {
             </a>
         </div>
     `;
-
-    // 4. Add the overlay to the page
     document.body.appendChild(unavailableBlocker);
 }
+
+
+/**
+ * The next two functions handle the "Please Rotate" overlay for tablets.
+ */
+let orientationOverlay = null; // This variable is needed by both functions below
+
+function createOrientationOverlay() {
+    orientationOverlay = document.createElement('div');
+    orientationOverlay.id = 'orientation-overlay';
+    Object.assign(orientationOverlay.style, {
+        display: 'none', flexDirection: 'column', justifyContent: 'center',
+        alignItems: 'center', position: 'fixed', top: '0', left: '0',
+        width: '100%', height: '100%', backgroundColor: '#222',
+        color: '#eee', textAlign: 'center', padding: '20px', zIndex: '99999'
+    });
+    orientationOverlay.innerHTML = `
+        <div>
+            <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
+            <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
+            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Go to Homepage
+            </a>
+        </div>
+    `;
+    document.body.appendChild(orientationOverlay);
+}
+
+function checkAndEnforceLandscape() {
+    if (!orientationOverlay) return;
+    const TABLET_MIN_WIDTH = 768;
+    const TABLET_MAX_WIDTH = 1280;
+    const isPossiblyTablet = window.innerWidth >= TABLET_MIN_WIDTH && window.innerWidth <= TABLET_MAX_WIDTH;
+    const isPortrait = window.innerHeight > window.innerWidth;
+
+    if (isPossiblyTablet && isPortrait) {
+        orientationOverlay.style.display = 'flex';
+    } else {
+        orientationOverlay.style.display = 'none';
+    }
+}
+
+// --- This part now only runs if it's on the Activity Watcher page ---
+const activityWatcherPageIdentifier = document.getElementById('activityPeeperContainer');
+
+if (activityWatcherPageIdentifier) {
+    // This code will now ONLY run on the correct page
+    createOrientationOverlay();
+    window.addEventListener('resize', checkAndEnforceLandscape);
+    window.addEventListener('orientationchange', checkAndEnforceLandscape);
+    checkAndEnforceLandscape(); // Initial check
+}
+
+// --- END: Combined Utility Functions ---
 
 /**
  * Creates and adds a hidden overlay to the page.
