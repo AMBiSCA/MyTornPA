@@ -587,3 +587,10 @@ h2 {
         display: none;
     }
 }
+
+/* Add vertical space between the header and main content on smaller screens */
+@media (max-width: 1200px) {
+    .page-specific-content-area {
+        margin-top: 20px;
+    }
+}
