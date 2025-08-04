@@ -296,8 +296,11 @@
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .peeper-tool-container {
-    max-width: 650px;
+    max-width: 650px !important;
     padding: 10px 20px;
+    margin-top: 40px !important;
+    margin-left: auto !important; /* Explicitly re-center */
+    margin-right: auto !important; /* Explicitly re-center */
   }
   
   .image-glow,
