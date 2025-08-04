@@ -697,6 +697,7 @@ html, body {
     /* === NEW RULE TO ENSURE TEXT WRAPPING === */
     #mobile-blocker p {
         word-wrap: break-word;
+		 min-width: 0;
         white-space: normal;
         max-width: 90%; /* You can adjust this value to control the width of the text block */
     }
