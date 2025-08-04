@@ -4683,3 +4683,85 @@ margin-right: auto !important;
 
 /* Tier 9: > 500M */
 .stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
+
+/* ==================================================================
+   Friendly Members Table Styles (Fixed Header Version)
+   ================================================================== */
+
+/* Parent container for the two tables to keep them aligned */
+#friendlyMembersListContainer {
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 475px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Base table styles for both header and body tables */
+#friendly-members-table,
+#friendly-members-table-body {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    table-layout: fixed;
+}
+
+/* Styles for the header table (the one containing <thead>) */
+#friendly-members-table thead th {
+    background-color: #00a8ff;
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 10px;
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Scrollable container for the table body */
+.table-scroll-container {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Styles for actual table data cells in the body (the <td> elements) */
+#friendly-members-table-body tbody td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #3a3a40;
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Remove bottom border from the very last row in the scrollable body */
+#friendly-members-table-body tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Add a hover effect for better user experience on body rows */
+#friendly-members-table-body tbody tr:hover {
+    background-color: #38383e;
+}
+
+/* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
+#friendly-members-table th:nth-child(1), #friendly-members-table-body td:nth-child(1) { width: 11% !important; }
+#friendly-members-table th:nth-child(2), #friendly-members-table-body td:nth-child(2) { width: 8% !important; }
+#friendly-members-table th:nth-child(3), #friendly-members-table-body td:nth-child(3) { width: 8% !important; }
+#friendly-members-table th:nth-child(4), #friendly-members-table-body td:nth-child(4) { width: 8% !important; }
+#friendly-members-table th:nth-child(5), #friendly-members-table-body td:nth-child(5) { width: 8% !important; }
+#friendly-members-table th:nth-child(6), #friendly-members-table-body td:nth-child(6) { width: 8% !important; }
+#friendly-members-table th:nth-child(7), #friendly-members-table-body td:nth-child(7) { width: 7% !important; }
+#friendly-members-table th:nth-child(8), #friendly-members-table-body td:nth-child(8) { width: 13% !important; }
+#friendly-members-table th:nth-child(9), #friendly-members-table-body td:nth-child(9) { width: 7% !important; }
+#friendly-members-table th:nth-child(10),#friendly-members-table-body td:nth-child(10){ width: 7% !important; }
+#friendly-members-table th:nth-child(11),#friendly-members-table-body td:nth-child(11){ width: 7% !important; }
+#friendly-members-table th:nth-child(12),#friendly-members-table-body td:nth-child(12){ width: 8% !important; }
