@@ -342,6 +342,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 }
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 async function setupDiscordAdminSettings() {
+    console.log("Setting up Discord Admin Settings...");
+
     const leaderControlsContainer = document.getElementById('availability-admin-controls');
     if (!leaderControlsContainer) {
         console.warn("Could not find leader controls container. Skipping Discord settings setup.");
@@ -381,6 +383,7 @@ async function setupDiscordAdminSettings() {
     `;
 
     leaderControlsContainer.insertAdjacentHTML('beforeend', settingsHtml);
+    console.log("Discord settings HTML injected.");
 
     const showSettingsBtn = document.getElementById('showDiscordSettingsBtn');
     const modalOverlay = document.getElementById('discordSettingsModalOverlay');
@@ -390,6 +393,11 @@ async function setupDiscordAdminSettings() {
     const guildIdInput = document.getElementById('discordGuildIdInput');
     const channelIdInput = document.getElementById('discordChannelIdInput');
 
+    console.log("Button element found:", showSettingsBtn);
+    console.log("Modal overlay found:", modalOverlay);
+
+
+    // Load existing settings from Firestore
     const loadSettings = async () => {
         try {
             const doc = await db.collection('factionSettings').doc('discord').get();
@@ -397,6 +405,7 @@ async function setupDiscordAdminSettings() {
                 const data = doc.data();
                 guildIdInput.value = data.discordGuildId || '';
                 channelIdInput.value = data.discordNudgeChannelId || '';
+                console.log("Settings loaded from Firestore.");
             }
         } catch (error) {
             console.error("Error loading Discord settings:", error);
@@ -406,19 +415,23 @@ async function setupDiscordAdminSettings() {
 
     // Event listeners for the UI
     showSettingsBtn.addEventListener('click', () => {
+        console.log("Cog button clicked. Showing modal.");
         modalOverlay.classList.remove('hidden');
     });
 
     closeBtn.addEventListener('click', () => {
+        console.log("Close button clicked. Hiding modal.");
         modalOverlay.classList.add('hidden');
     });
 
     cancelBtn.addEventListener('click', () => {
+        console.log("Cancel button clicked. Hiding modal.");
         modalOverlay.classList.add('hidden');
     });
 
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) {
+            console.log("Overlay clicked. Hiding modal.");
             modalOverlay.classList.add('hidden');
         }
     });
@@ -427,6 +440,7 @@ async function setupDiscordAdminSettings() {
         const originalText = saveBtn.textContent;
         saveBtn.textContent = 'Saving...';
         saveBtn.disabled = true;
+        console.log("Save button clicked. Starting save process.");
 
         const guildId = guildIdInput.value.trim();
         const channelId = channelIdInput.value.trim();
@@ -448,6 +462,7 @@ async function setupDiscordAdminSettings() {
 
             saveBtn.textContent = 'Saved! ✅';
             modalOverlay.classList.add('hidden');
+            console.log("Settings saved to Firestore successfully.");
         } catch (error) {
             console.error('Error saving Discord settings:', error);
             showCustomAlert('Failed to save settings. Please check the console for details.', 'Save Failed');
