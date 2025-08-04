@@ -1938,21 +1938,22 @@ input:checked + .slider:before {
         }
     }
 
-    .header-left, .header-center, .header-right-controls {
+   .header-left, .header-center, .header-right-controls {
         flex-basis: auto !important;
-        width: 100% !important; /* Forces each of these to take full width and stack */
+        width: 100% !important; 
         justify-content: center !important;
-        margin-bottom: -20px !important; /* Remove default margins that create space between these elements */
+        margin-bottom: 0 !important; /* CHANGED: Set to 0 to remove the negative margin */
     }
     
+    /* Specific spacing for MyTornPA and buttons within the header */
+    .header-left {
+        margin-bottom: 8px !important; /* CHANGED: Creates a small, clean space below the title */
+    }
+   
     #chat-window.keyboard-visible {
         height: 45vh !important; /* Shrinks the height when keyboard is visible */
     }
 
-    /* Specific spacing for MyTornPA and buttons within the header */
-    .header-left {
-        margin-bottom: 10px !important; /* Creates space between "MyTornPA" and the buttons below it */
-    }
     
     #headerMainLogo {
         max-height: 50px !important;
