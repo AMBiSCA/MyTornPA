@@ -1939,15 +1939,6 @@ body {
         margin-bottom: 0 !important; /* CHANGED: Set to 0 to remove the negative margin */
     }
 	
-	footer.footer {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 70px; /* Ensures it has the correct height */
-        z-index: 102; /* Ensures it stays on top of content */
-    }
-    
     /* Specific spacing for MyTornPA and buttons within the header */
     .header-left {
         margin-bottom: 8px !important; /* CHANGED: Creates a small, clean space below the title */
