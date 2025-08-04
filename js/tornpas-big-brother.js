@@ -250,6 +250,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
             
+            // --- MODIFIED CODE START ---
             const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
             const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
             const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
@@ -261,33 +262,18 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldownHtml;
-            
-            // --- START MODIFIED LOGIC FOR NUDGE BUTTON ---
+            let drugCooldown, drugCooldownClass = '';
             if (drugCooldownValue > 0) {
                 const hours = Math.floor(drugCooldownValue / 3600);
                 const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                const drugCooldownText = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                const drugCooldownClass = drugCooldownValue > 18000 ? 'status-hospital' : (drugCooldownValue > 7200 ? 'status-other' : 'status-okay');
-                drugCooldownHtml = `<span class="${drugCooldownClass}">${drugCooldownText}</span>`;
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
+                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
+                else drugCooldownClass = 'status-okay';
             } else {
-                if (currentUserIsAdmin) {
-                    const lastNudgeTime = localStorage.getItem(`nudgeTimestamp_${memberId}`);
-                    const now = new Date().getTime();
-                    const oneHour = 60 * 60 * 1000;
-                    const timeLeft = Math.max(0, oneHour - (now - lastNudgeTime));
-                    const cooldownMinutes = Math.ceil(timeLeft / 60000);
-
-                    if (lastNudgeTime && timeLeft > 0) {
-                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn disabled" disabled>Nudged (${cooldownMinutes}m left)</button>`;
-                    } else {
-                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn" onclick="sendNudgeMessage('${memberId}', '${name}')">Nudge</button>`;
-                    }
-                } else {
-                    drugCooldownHtml = '<span class="status-okay">None 🍁</span>';
-                }
+                drugCooldown = 'None 🍁';
+                drugCooldownClass = 'status-okay';
             }
-            // --- END MODIFIED LOGIC ---
 
             const statusState = tornData.status?.state || '';
             const originalDescription = tornData.status?.description || 'N/A';
@@ -311,7 +297,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
                     <td class="nerve-text hide-on-mobile">${nerve}</td>
                     <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="hide-on-mobile">${drugCooldownHtml}</td>
+                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
                 </tr>
             `;
         }
@@ -325,8 +311,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
-
-
 
 // --- Gain Tracking Core Logic ---
 
