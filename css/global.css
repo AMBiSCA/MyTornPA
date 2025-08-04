@@ -2363,15 +2363,70 @@ footer.footer {
     position: static !important;
     width: 100% !important;
     border-radius: 0 !important;
-    padding: 8px 10px !important;
-    
-    /* --- ADDED LINES --- */
+    padding: 8px 10px !important;   
     display: flex; /* Make sure it's a flex container */
     justify-content: center !important; /* This centers the icons */
     gap: 20px !important; /* This adds space between them */
+	border-top: 2px solid black;
+	border-Bottom: 3px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+	
   }
   /* Add space to the bottom of the page so the bar doesn't hide content */
   body {
     padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
+	padding-top: 50px !important;
   }
 }
+
+@media (max-width: 1024px) {
+    /* Hide the text part of all header buttons definitively on small screens */
+    header .btn-text {
+        display: none !important;
+       }
+    body {
+        padding-top: 115px; /* Adjust this value if needed */
+    }
+    
+    
+
+    /* Style the circular, icon-only buttons for small screens */
+    .home-header .header-buttons .btn,
+    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+    }
+
+    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
+    .home-header .header-buttons #usefulLinksBtn,
+    .home-header .header-buttons #headerContactUsBtn,
+    .other-pages-header .header-buttons #usefulLinksBtn,
+    .other-pages-header .header-buttons #contactUsBtn {
+        width: auto;
+        padding: 0 12px;
+        border-radius: 22px;
+        height: 40px;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Ensure the icons inside the buttons are correctly sized and positioned */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
+        margin: 0;
+    }
+}
+
