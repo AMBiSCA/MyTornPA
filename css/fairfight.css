@@ -208,22 +208,12 @@
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     /* Main Peeper Tool Container - Overall Box */
-       .peeper-tool-container {
-        width: 95%;
-        padding: 20px;
-        margin-top: 75px !important; 
-        margin-left: -8px !important; /* Set a specific left margin */
-        margin-right: auto !important; /* Pushes the container to the left */
-    }
+       
 	
 	 /* NEW: Rule to prevent the whole page from scrolling on mobile only */
     html, body {
         overflow-y: hidden !important;
-    
-    
-    /* Page Title (e.g., "Personal Target Finder") */
-    .script-title {
-        font-size: 1.8rem;
+   
         margin-top: 0;
     }
     
