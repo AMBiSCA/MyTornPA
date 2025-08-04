@@ -432,14 +432,14 @@ ul li:last-child { border-bottom: none; }
     /* This makes it stick to the bottom right of the screen */
     position: fixed; /* Keep it fixed relative to the viewport */
     bottom: 18px;    /* 18px from the bottom */
-    right: 0px;      /* 0px from the right */
+    right: -4px;      /* 0px from the right */
     z-index: 1000;   /* Ensures it sits on top of other content */
     font-family: Arial, sans-serif;
     
     /* Ensure flexbox behavior for stacking the collapsed bar above the window */
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
+    align-items: center; /* Aligns its children (collapsed bar, chat window) to the right */
 }
 
 #chat-bar-collapsed {
