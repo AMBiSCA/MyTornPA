@@ -6304,39 +6304,3 @@ function applyStatColorCoding() {
     });
 }
 
-/**
- * Sets up a fixed header and a scrolling body for the friendly members table.
- * This function must be called after the table is populated.
- */
-function initializeTableScrolling() {
-    const tableContainer = document.getElementById('friendlyMembersListContainer');
-    const tableHeader = document.querySelector('#friendly-members-table thead');
-    const tableBody = document.getElementById('friendly-members-tbody');
-
-    if (!tableContainer || !tableHeader || !tableBody) {
-        console.error("Scrolling initialization failed: One or more table elements not found.");
-        return;
-    }
-
-    // Measure the total height available for the content (the container's height)
-    const containerHeight = tableContainer.clientHeight;
-    // Measure the height of the fixed header
-    const headerHeight = tableHeader.clientHeight;
-
-    // The scrollable body height is the container's height minus the header's height
-    const scrollableBodyHeight = containerHeight - headerHeight;
-    
-    // Apply the fixed height and a scrollbar to the table body's container
-    tableBody.style.display = 'block'; // Ensure the tbody can take height
-    tableBody.style.maxHeight = `${scrollableBodyHeight}px`;
-    tableBody.style.overflowY = 'auto';
-    
-    // --- NEW: Add this line to make the header's layout consistent ---
-    tableHeader.parentElement.style.tableLayout = 'fixed';
-    // --- END NEW ---
-    
-    // Make the header visible and aligned
-    tableHeader.style.display = 'block';
-    
-    console.log("Table scrolling initialized with body height:", scrollableBodyHeight);
-}
