@@ -212,7 +212,7 @@ h2 {
 
 .admin-controls-placeholder {
     position: absolute;
-    top: -53px;
+    top: -55px;
     left: 0px;
     z-index: 10;
 }
@@ -233,48 +233,7 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
 
-/* Positioning for the Discord button's container */
-.admin-controls-placeholder {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-}
-
-/* This is what hides the modal on page load */
-.modal-overlay.hidden {
-    display: none !important;
-}
-
-/* This shows the modal when the 'hidden' class is removed by JavaScript */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
 
 /* ==========================================================================
    Download Button Styles
