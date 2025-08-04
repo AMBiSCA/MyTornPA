@@ -2374,7 +2374,7 @@ footer.footer {
   /* Add space to the bottom of the page so the bar doesn't hide content */
   body {
     padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
-	padding-top: 120px !important;
+	padding-top: 50px !important;
   }
 }
 
