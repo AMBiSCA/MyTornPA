@@ -1299,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
                     userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
-
+                    currentTornUserName = userData.name || null;
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
 					
 					if (currentUserIsAdmin) {
