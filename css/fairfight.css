@@ -293,3 +293,15 @@
     max-height: calc(90vh - 200px); 
     overflow-x: auto; 
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .peeper-tool-container {
+    max-width: 650px;
+    padding: 10px 20px;
+  }
+  
+  .image-glow,
+  .image-glow-flipped {
+    display: none;
+  }
+}
