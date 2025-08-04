@@ -3574,9 +3574,9 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
-// Function to handle the landscape blocker logic
 function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+    // This condition now checks for landscape up to 1368px wide
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1368;
     let blocker = document.getElementById('landscape-blocker');
 
     if (isMobileLandscape) {
@@ -3610,8 +3610,7 @@ function toggleLandscapeBlocker() {
 
         // Hide main page content
         document.body.style.overflow = 'hidden';
-        const header = document.querySelector('header');
-        if (header) header.style.display = 'none';
+        document.querySelector('header').style.display = 'none';
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = 'none';
         const footer = document.querySelector('footer');
@@ -3625,12 +3624,12 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        const header = document.querySelector('header');
-        if (header) header.style.display = '';
+        document.querySelector('header').style.display = ''; // Reverts to stylesheet's display
         const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = '';
+        if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
+        
         const footer = document.querySelector('footer');
-        if (footer) footer.style.display = '';
+        if (footer) footer.style.display = ''; // This lets the CSS file control the footer
     }
 }
 
@@ -3759,40 +3758,34 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         const membersArray = Object.values(factionData.members || {});
         if (membersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No members found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No members to display.</td></tr>';
             return;
         }
 
-        // --- START OF MODIFIED LOGIC ---
         const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
-        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
+        const CHUNK_SIZE = 10;
         const firestoreFetchPromises = [];
-        const allMemberFirebaseData = {}; // To store all fetched Firebase data indexed by Torn ID
+        const allMemberFirebaseData = {};
 
-        // Divide member IDs into chunks and create a fetch promise for each chunk
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
             const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
             firestoreFetchPromises.push(query.get());
         }
 
-        // Wait for all Firestore queries to complete
         const snapshots = await Promise.all(firestoreFetchPromises);
 
-        // Process all snapshots and populate allMemberFirebaseData
         snapshots.forEach(snapshot => {
             snapshot.forEach(doc => {
                 allMemberFirebaseData[doc.id] = doc.data();
             });
         });
-        // --- END OF MODIFIED LOGIC ---
 
-        // Step 1: Process all members to get their data and calculated stats
         const processedMembers = membersArray.map((memberTornData) => {
-            const memberId = String(memberTornData.user_id || memberTornData.id); // Ensure memberId is string for lookup
+            const memberId = String(memberTornData.user_id || memberTornData.id);
             if (!memberId) return null;
 
-            const memberFirebaseData = allMemberFirebaseData[memberId] || {}; // Get data from our new combined object
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
             
             const strengthNum = parseFloat(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
             const speedNum = parseFloat(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
@@ -3801,12 +3794,10 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
 
             return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        }).filter(m => m !== null); // Filter out any null entries if IDs were missing
+        }).filter(m => m !== null);
 
-        // Step 2: Sort the processed members by totalStats in descending order
         processedMembers.sort((a, b) => b.totalStats - a.totalStats);
 
-        // Step 3: Build the HTML from the sorted data
         let allRowsHtml = '';
         for (const member of processedMembers) {
             const { tornData, firebaseData, totalStats } = member;
@@ -3863,13 +3854,17 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-		initializeTableScrolling();
         applyStatColorCoding();
+        
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
+
+// Remove the `window.addEventListener('resize', initializeTableScrolling)` line as well.
+
+With the new HTML and CSS I provided in the previous response, your table should now be working correctly.
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");
