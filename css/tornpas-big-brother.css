@@ -361,11 +361,19 @@ h2 {
     border: 1px solid #444;
 }
 
-/* This centers the button with the tabs and places them at opposite ends */
+/* Removes the Flexbox layout from the tabs container */
 .tab-navigation-bb {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 10px; /* Adds some space between the buttons */
+}
+
+/* This is the new style for the cog button container */
+.admin-controls-placeholder {
+    position: absolute;
+    top: 90px; /* Adjust this value to get the exact position you want */
+    left: 20px; /* Adjust this value to get the exact position you want */
 }
 
 /* Styles for the modal overlay and the hidden class */
