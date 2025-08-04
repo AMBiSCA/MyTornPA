@@ -1293,7 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-   // --- Authentication and Initial Data Load ---
+// --- Authentication and Initial Data Load ---
 auth.onAuthStateChanged(async (user) => {
     currentFirebaseUserUid = user ? user.uid : null;
 
