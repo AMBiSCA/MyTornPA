@@ -265,16 +265,15 @@ h2 {
     font-weight: bold;
 }
 
-.stat-tier-1 { background-color: #F5F5F5; }
-.stat-tier-2 { background-color: #E3F2FD; }
-.stat-tier-3 { background-color: #BBDEFB; }
-.stat-tier-4 { background-color: #FFCDD2; }
-.stat-tier-5 { background-color: #EF9A9A; }
-.stat-tier-6 { background-color: #E57373; }
-.stat-tier-7 { background-color: #F44336; }
-.stat-tier-8 { background-color: #D32F2F; }
-.stat-tier-9 { background-color: #B71C1C; }
-
+.stat-tier-1 { background-color: #cbf0ff; }
+.stat-tier-2 { background-color: #c8efff; }
+.stat-tier-3 { background-color: #b5e4ff; }
+.stat-tier-4 { background-color: #93c4f5; }
+.stat-tier-5 { background-color: #8dc1f4; }
+.stat-tier-6 { background-color: #aea6c8; }
+.stat-tier-7 { background-color: #bc8ea9; }
+.stat-tier-8 { background-color: #766a88; }
+.stat-tier-9 { background-color: #761500; }
 .friendly-members-table tbody td.status-okay {
     color: #28a745 !important;
 }
