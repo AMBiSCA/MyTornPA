@@ -1107,39 +1107,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 	// --- START: Tablet Landscape Enforcement ---
-// This new section will handle showing an overlay on tablets in portrait mode.
+// This section will handle showing an overlay on tablets in portrait mode.
 
 let orientationOverlay = null;
 
 /**
  * Creates and adds a hidden overlay to the page.
  * This overlay will be used to ask the user to rotate their tablet.
+ * NEW: Styles are updated to match the landscape blocker's theme.
  */
 function createOrientationOverlay() {
     orientationOverlay = document.createElement('div');
     orientationOverlay.id = 'orientation-overlay';
 
-    // Style the overlay to cover the screen
+    // Apply the styles directly from your example
     Object.assign(orientationOverlay.style, {
+        display: 'none', // Will be toggled to 'flex' to show
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         position: 'fixed',
         top: '0',
         left: '0',
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        color: 'white',
-        zIndex: '10000',
-        display: 'none', // Initially hidden, will be changed to 'flex'
-        justifyContent: 'center',
-        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#222',
+        color: '#eee',
         textAlign: 'center',
         padding: '20px',
-        boxSizing: 'border-box',
-        fontSize: '24px',
-        fontFamily: 'Arial, sans-serif'
+        zIndex: '99999'
     });
 
-    orientationOverlay.innerHTML = '<div>🔄<br><br>For the best experience, please rotate your tablet to landscape mode.</div>';
+    // Use the same HTML structure for the message
+    // Note: The text is adjusted to ask for LANDSCAPE mode
+    orientationOverlay.innerHTML = `
+        <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
+        <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
+    `;
     document.body.appendChild(orientationOverlay);
 }
 
@@ -1149,17 +1153,14 @@ function createOrientationOverlay() {
 function checkAndEnforceLandscape() {
     if (!orientationOverlay) return; // Safety check
 
-    // Realistic sizing: We assume a tablet has a width between 768px and 1280px.
-    // This covers most common devices like iPads and Galaxy Tabs.
+    // Realistic sizing for tablets
     const TABLET_MIN_WIDTH = 768;
     const TABLET_MAX_WIDTH = 1280;
 
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
 
-    // A device is likely a tablet if its width falls in our defined range.
     const isPossiblyTablet = screenWidth >= TABLET_MIN_WIDTH && screenWidth <= TABLET_MAX_WIDTH;
-    // A device is in portrait mode if its height is greater than its width.
     const isPortrait = screenHeight > screenWidth;
 
     if (isPossiblyTablet && isPortrait) {
