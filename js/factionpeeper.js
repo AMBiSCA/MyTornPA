@@ -1054,15 +1054,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 }); // End of DOMContentLoaded
-function toggleLandscapeBlocker() {
-    // This condition is now more robust, checking for landscape orientation on most mobile devices including tablets
-    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    let blocker = document.getElementById('landscape-blocker');
 
-    // This block is for pages other than the one you are on now
-    const mainContent = document.getElementById('mainHomepageContent');
-    const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
+function toggleLandscapeBlocker() {
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+    let blocker = document.getElementById('landscape-blocker');
 
     if (isMobileLandscape) {
         // Only create the blocker if it doesn't already exist
@@ -1095,8 +1090,10 @@ function toggleLandscapeBlocker() {
 
         // Hide main page content
         document.body.style.overflow = 'hidden';
-        if (header) header.style.display = 'none';
+        document.querySelector('header').style.display = 'none';
+        const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = 'none';
+        const footer = document.querySelector('footer');
         if (footer) footer.style.display = 'none';
 
     } else {
@@ -1107,9 +1104,11 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        if (header) header.style.display = ''; // Reverts to stylesheet's display
+        document.querySelector('header').style.display = ''; // Reverts to stylesheet's display
+        const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
         
+        // --- THIS IS THE CORRECTED PART ---
         const footer = document.querySelector('footer');
         if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
     }
