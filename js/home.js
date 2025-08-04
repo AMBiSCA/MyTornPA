@@ -1441,20 +1441,24 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
         }
     });
 	
-	 function hidePopularToolsOnMobile() {
-      const popularToolsSection = document.querySelector('.essential-tool-category');
-      if (!popularToolsSection) { return; }
-      const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
-      const handleVisibility = (e) => {
+	function hidePopularToolsOnMobile() {
+    const popularToolsSection = document.querySelector('.essential-tool-category');
+    if (!popularToolsSection) { return; }
+
+    // This value is now updated to include the tablet in landscape mode
+    const mediaQueryMobileAndTablet = window.matchMedia('(max-width: 1368px)');
+
+    const handleVisibility = (e) => {
         if (e.matches) {
-          popularToolsSection.style.display = 'none';
+            popularToolsSection.style.display = 'none';
         } else {
-          popularToolsSection.style.display = 'block';
+            popularToolsSection.style.display = 'block';
         }
-      };
-      handleVisibility(mediaQueryMobile);
-      mediaQueryMobile.addEventListener('change', handleVisibility);
-    }
+    };
+
+    handleVisibility(mediaQueryMobileAndTablet);
+    mediaQueryMobileAndTablet.addEventListener('change', handleVisibility);
+}
     
     
 
