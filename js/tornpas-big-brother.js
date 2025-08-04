@@ -10,6 +10,7 @@ const db = firebase.firestore();
 let userApiKey = null;
 let userTornProfileId = null;
 let currentFirebaseUserUid = null; // Store current user's UID
+let currentTornUserName = null; //
 let currentUserIsAdmin = false; // Store admin status
 let userFactionIdFromProfile = null; // Store user's faction ID, retrieved from profile
 
