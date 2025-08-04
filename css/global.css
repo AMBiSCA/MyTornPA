@@ -2430,3 +2430,57 @@ footer.footer {
     }
 }
 
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+    /* Header adjustments for landscape tablets */
+    header {
+        height: 70px;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+
+    .header-left, .header-center, .header-right-controls {
+        width: auto;
+        flex-basis: auto;
+        flex-grow: 1;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .header-right-controls {
+        justify-content: flex-end;
+    }
+
+    .header-center {
+        flex-grow: 0;
+        justify-content: center;
+    }
+
+    header .tagline {
+        display: inline-block !important;
+    }
+
+    #headerMainLogo {
+        display: block !important;
+        max-height: 60px !important;
+    }
+
+    /* Keep the text of these buttons visible in landscape mode */
+    header .btn-text {
+        display: block !important;
+    }
+
+    /* Reduce font size for all header buttons to fit better */
+    .btn.header-btn, .btn-header {
+        font-size: 0.85rem !important;
+        padding: 0 8px !important;
+        height: 35px !important;
+    }
+
+    /* Align the dropdowns to the right side of the screen */
+    .dropdown.align-right .dropdown-content,
+    #usefulLinksDropdown,
+    #headerContactUsDropdown {
+        left: auto !important;
+        right: 0 !important;
+    }
+}
