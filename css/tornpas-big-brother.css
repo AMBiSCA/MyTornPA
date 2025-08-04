@@ -311,6 +311,7 @@ h2 {
 }
 
 
+
 /* ==========================================================================
    Gains Tracking Tab Styles
    ========================================================================== */
@@ -469,103 +470,83 @@ h2 {
 }
 
 /* ==========================================================================
-   Responsive Adjustments
-   ========================================================================== */
+   Responsive Adjustments
+   ========================================================================== */
 
 @media (max-width: 992px) {
-    .page-specific-content-area {
-        padding: 15px;
-        margin: 15px auto;
-    }
-    .tab-button-bb {
-        padding: 8px 10px;
-        min-width: 120px;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.8em;
-        padding: 6px 4px;
-    }
-
-    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
-    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
-    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
-    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
-    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
-    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
-    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
-    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; }
-    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
-    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
-    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
-
-    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
-    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
-    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; }
-    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; }
-    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; }
-    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; }
+    .page-specific-content-area {
+        padding: 15px;
+        margin: 15px auto;
+    }
+    .tab-button-bb {
+        padding: 8px 10px;
+        min-width: 120px;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.8em;
+        padding: 6px 4px;
+    }
 }
 
 @media (max-width: 768px) {
-    .tab-navigation-bb {
-        flex-direction: column;
-    }
-    .tab-button-bb {
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
-    .table-container {
-        overflow-x: auto;
-    }
-    .friendly-members-table,
-    .gains-overview-table {
-        min-width: 700px;
-        table-layout: auto;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.75em;
-        padding: 5px 3px;
-    }
+    .tab-navigation-bb {
+        flex-direction: column;
+    }
+    .tab-button-bb {
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+    .table-container {
+        overflow-x: auto;
+    }
+    .friendly-members-table,
+    .gains-overview-table {
+        table-layout: auto;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.75em;
+        padding: 5px 3px;
+    }
 }
 
 @media (max-width: 480px) {
-    h2 {
-        font-size: 1.5em;
-        margin-bottom: 15px;
-    }
-    .friendly-members-table,
-    .gains-overview-table {
-        min-width: 600px;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.7em;
-        padding: 4px 2px;
-    }
-    .action-btn-bb {
-        padding: 6px 10px;
-        font-size: 0.8em;
-    }
+    h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .friendly-members-table,
+    .gains-overview-table {
+        table-layout: auto;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.7em;
+        padding: 4px 2px;
+    }
+    .action-btn-bb {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
 }
 
 @media screen and (max-width: 768px) {
-  .friendly-members-table .hide-on-mobile {
-    display: none !important;
-  }
+    .friendly-members-table .hide-on-mobile {
+        display: none !important;
+    }
 }
 
 @media (max-width: 380px) {
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td {
-        font-size: 0.6em; /* Even smaller font size */
-        padding: 1px 1px; /* Even less padding */
-    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td {
+        font-size: 0.6em; /* Even smaller font size */
+        padding: 1px 1px; /* Even less padding */
+    }
 }
