@@ -1441,7 +1441,7 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
         }
     });
 	
-	function hidePopularToolsOnMobile() {
+function hidePopularToolsOnMobile() {
     const popularToolsSection = document.querySelector('.essential-tool-category');
     if (!popularToolsSection) { return; }
 
@@ -1466,33 +1466,10 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
 	
  hidePopularToolsOnMobile();
  
- function initializeNoScroll() {
-    const mediaQuery = window.matchMedia('(max-width: 1368px)');
-
-    const handleScrollLock = (e) => {
-        if (e.matches) {
-            // Screen is 1368px or less, so disable scrolling
-            document.body.style.overflow = 'hidden';
-        } else {
-            // Screen is wider than 1368px, so allow scrolling
-            document.body.style.overflow = '';
-        }
-    };
-
-    // Run the check once when the page loads
-    handleScrollLock(mediaQuery);
-
-    // Also run the check if the window is resized
-    mediaQuery.addEventListener('change', handleScrollLock);
-}
- 
- initializeNoScroll();
- 
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
-    // This condition now checks for landscape up to 1368px wide
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1368;
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
     let blocker = document.getElementById('landscape-blocker');
 
     if (isMobileLandscape) {
@@ -1503,7 +1480,6 @@ function toggleLandscapeBlocker() {
             blocker.innerHTML = `
                 <h2>Please Rotate Your Device</h2>
                 <p>For the best experience, please use this page in portrait mode.</p>
-                <button id="return-home-button">Return to Home</button>
             `;
             // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
@@ -1523,33 +1499,11 @@ function toggleLandscapeBlocker() {
                 zIndex: '99999'
             });
             document.body.appendChild(blocker);
-
-            // Add the specified styles to the button and set its click event
-            const returnHomeButton = document.getElementById('return-home-button');
-            if (returnHomeButton) {
-                Object.assign(returnHomeButton.style, {
-                    backgroundColor: '#007bff', // The color from your `action-btn-bb` class
-                    color: 'white',
-                    padding: '8px 15px',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    marginTop: '20px',
-                    textDecoration: 'none',
-                    transition: 'background-color 0.2s ease'
-                });
-
-                returnHomeButton.addEventListener('click', () => {
-                    window.location.href = 'home.html';
-                });
-            }
         }
 
         // Hide main page content
         document.body.style.overflow = 'hidden';
-        const header = document.querySelector('header');
-        if (header) header.style.display = 'none';
+        document.querySelector('header').style.display = 'none';
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = 'none';
         const footer = document.querySelector('footer');
@@ -1563,67 +1517,15 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        const header = document.querySelector('header');
-        if (header) header.style.display = ''; // Reverts to stylesheet's display
+        document.querySelector('header').style.display = ''; // Reverts to stylesheet's display
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
+        
+        // --- THIS IS THE CORRECTED PART ---
         const footer = document.querySelector('footer');
-        if (footer) footer.style.display = ''; // This lets the CSS file control the footer
+        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
     }
 }
-
 // Run the function on page load and window resize
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
-
-function manageDeviceLayout() {
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const isTabletOrSmaller = window.innerWidth <= 1920; // Using your tablet's confirmed width
-    let blocker = document.getElementById('landscape-blocker');
-
-    if (isLandscape && isTabletOrSmaller) {
-        if (!blocker) {
-            blocker = document.createElement('div');
-            blocker.id = 'landscape-blocker';
-            blocker.innerHTML = `
-                <h2>Please Rotate Your Device</h2>
-                <p>For the best experience, please use this page in portrait mode.</p>
-            `;
-            Object.assign(blocker.style, {
-                display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                alignItems: 'center', position: 'fixed', top: '0', left: '0',
-                width: '100%', height: '100%', backgroundColor: '#222',
-                color: '#eee', textAlign: 'center', padding: '20px', zIndex: '99999'
-            });
-            document.body.appendChild(blocker);
-        }
-        
-        document.querySelector('header').style.display = 'none';
-        const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = 'none';
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = 'none';
-
-    } else {
-        if (blocker) {
-            blocker.remove();
-        }
-
-        document.querySelector('header').style.display = '';
-        const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = '';
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = ''; 
-    }
-
-    // --- THIS IS THE UPDATED PART ---
-    // It now locks and unlocks scrolling on both HTML and BODY
-    if (isTabletOrSmaller) {
-        document.documentElement.style.overflow = 'hidden'; // For the <html> tag
-        document.body.style.overflow = 'hidden'; // For the <body> tag
-    } else {
-        document.documentElement.style.overflow = ''; // Allow scroll on desktop
-        document.body.style.overflow = ''; // Allow scroll on desktop
-    }
-}
-
