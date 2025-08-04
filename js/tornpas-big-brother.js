@@ -82,37 +82,26 @@ function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
     if (!table) return;
 
-    // This adds the 'table-striped' class to your table so the CSS rules will work.
-    table.classList.add('table-striped');
-
     const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
 
     statCells.forEach(cell => {
-        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
-        for (let i = 1; i <= 14; i++) {
+        for (let i = 1; i <= 9; i++) {
             cell.classList.remove(`stat-tier-${i}`);
         }
         cell.classList.remove('stat-cell');
 
-        // Now, determine and add the correct new class
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
-        // New 14-tier logic
-        if (value >= 10000000000) { tierClass = 'stat-tier-14'; } // 10b+
-        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
-        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
-        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
-        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
-        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
-        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
-        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
-        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
-        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
-        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
-        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
-        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
-        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+        if (value >= 500000000) { tierClass = 'stat-tier-9'; }
+        else if (value >= 200000000) { tierClass = 'stat-tier-8'; }
+        else if (value >= 100000000) { tierClass = 'stat-tier-7'; }
+        else if (value >= 10000000) { tierClass = 'stat-tier-6'; }
+        else if (value >= 5000000) { tierClass = 'stat-tier-5'; }
+        else if (value >= 1000000) { tierClass = 'stat-tier-4'; }
+        else if (value >= 100000) { tierClass = 'stat-tier-3'; }
+        else if (value >= 10000) { tierClass = 'stat-tier-2'; }
+        else if (value > 0) { tierClass = 'stat-tier-1'; }
 
         if (tierClass) {
             cell.classList.add(tierClass);
@@ -120,6 +109,7 @@ function applyStatColorCoding() {
         }
     });
 }
+
 /**
  * Formats a Unix timestamp (in seconds) into a relative time string.
  * @param {number} timestampInSeconds Unix timestamp in seconds.
@@ -910,82 +900,6 @@ function downloadCurrentTabAsImage() {
         console.log("Cleaned up temporary render container.");
     });
 }
-function managePortraitBlocker() {
-    // This condition is now more specific to target phones and exclude tablets
-    const isMobilePortrait = window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
-    let blocker = document.getElementById('portrait-blocker');
-    const mainContentArea = document.querySelector('.page-specific-content-area');
-    const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
-
-    if (isMobilePortrait) {
-        if (!blocker) {
-            blocker = document.createElement('div');
-            blocker.id = 'portrait-blocker';
-            blocker.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: #1e1e1e;
-                color: #f0f0f0;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-                font-family: sans-serif;
-                font-size: 1.5em;
-                z-index: 99999;
-            `;
-            blocker.innerHTML = `
-                <h2>Please Rotate Your Device</h2>
-                <p>For the best viewing experience, please use landscape mode.</p>
-                <button id="return-home-button">Return to Home</button>
-            `;
-            document.body.appendChild(blocker);
-
-            const returnHomeButton = document.getElementById('return-home-button');
-            if (returnHomeButton) {
-                Object.assign(returnHomeButton.style, {
-                    backgroundColor: '#007bff',
-                    color: 'black',
-                    padding: '8px 15px',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    marginTop: '20px',
-                    textDecoration: 'none'
-                });
-                returnHomeButton.addEventListener('click', () => {
-                    window.location.href = 'home.html'; 
-                });
-            }
-        }
-        
-        if (header) header.style.display = 'none';
-        if (mainContentArea) mainContentArea.style.display = 'none';
-        if (footer) footer.style.display = 'none';
-        document.body.style.overflow = 'hidden';
-
-    } else {
-        if (blocker) {
-            blocker.remove();
-        }
-
-        if (header) header.style.display = '';
-        if (mainContentArea) mainContentArea.style.display = '';
-        if (footer) footer.style.display = '';
-        document.body.style.overflow = '';
-    }
-}
-
-// Attach the listener to the window resize and orientationchange events
-window.addEventListener('resize', managePortraitBlocker);
-window.addEventListener('orientationchange', managePortraitBlocker);
-window.addEventListener('DOMContentLoaded', managePortraitBlocker);
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
