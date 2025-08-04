@@ -900,72 +900,67 @@ function downloadCurrentTabAsImage() {
         console.log("Cleaned up temporary render container.");
     });
 }
+function managePortraitBlocker() {
+    const isMobilePortrait = window.matchMedia("(max-width: 850px) and (orientation: portrait)").matches;
+    let blocker = document.getElementById('portrait-blocker');
+    const mainContentArea = document.querySelector('.page-specific-content-area');
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
 
-function handleOrientationBlocker() {
-  const isMobile = window.matchMedia("(max-width: 850px) and (max-height: 450px)").matches;
-  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-  let blocker = document.getElementById('portrait-blocker');
+    if (isMobilePortrait) {
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'portrait-blocker';
+            blocker.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #1e1e1e;
+                color: #f0f0f0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                font-family: sans-serif;
+                font-size: 1.5em;
+                z-index: 99999;
+            `;
+            blocker.innerHTML = `
+                <h2>Please Rotate Your Device</h2>
+                <p>For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-button">Return to Home</button>
+            `;
+            document.body.appendChild(blocker);
 
-  // Check if we are on a mobile device and in portrait mode
-  if (isMobile && isPortrait) {
-    // If the blocker doesn't exist, create and append it
-    if (!blocker) {
-      blocker = document.createElement('div');
-      blocker.id = 'portrait-blocker';
-      blocker.innerHTML = `
-        <h2>Please Rotate Your Device</h2>
-        <p>For the best viewing experience, please use landscape mode.</p>
-        <button id="return-home-button">Return to Home</button>
-      `;
-      
-      // Apply styles to the blocker
-      Object.assign(blocker.style, {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#1e1e1e',
-        color: '#f0f0f0',
-        textAlign: 'center',
-        padding: '20px',
-        zIndex: '99999'
-      });
-      document.body.appendChild(blocker);
+            document.getElementById('return-home-button').addEventListener('click', () => {
+                window.location.href = '/'; 
+            });
+        }
+        
+        if (header) header.style.display = 'none';
+        if (mainContentArea) mainContentArea.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        document.body.style.overflow = 'hidden';
 
-      // Add click event for the "Return to Home" button
-      document.getElementById('return-home-button').addEventListener('click', () => {
-        window.location.href = '/'; // Change to your homepage URL if different
-      });
+    } else {
+        if (blocker) {
+            blocker.remove();
+        }
+
+        if (header) header.style.display = '';
+        if (mainContentArea) mainContentArea.style.display = '';
+        if (footer) footer.style.display = '';
+        document.body.style.overflow = '';
     }
-
-    // Hide all main content
-    document.body.style.overflow = 'hidden';
-    document.querySelector('header').style.display = 'none';
-    document.querySelector('.page-specific-content-area').style.display = 'none';
-    document.querySelector('footer').style.display = 'none';
-
-  } else {
-    // If the blocker exists, remove it
-    if (blocker) {
-      blocker.remove();
-    }
-
-    // Restore the visibility of all main content
-    document.body.style.overflow = '';
-    document.querySelector('header').style.display = '';
-    document.querySelector('.page-specific-content-area').style.display = '';
-    document.querySelector('footer').style.display = '';
-  }
 }
 
-// Run the function on page load and window resize
-window.addEventListener('load', handleOrientationBlocker);
-window.addEventListener('resize', handleOrientationBlocker);
+// Attach the listener to the window resize and orientationchange events
+window.addEventListener('resize', managePortraitBlocker);
+window.addEventListener('orientationchange', managePortraitBlocker);
+window.addEventListener('DOMContentLoaded', managePortraitBlocker);
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
