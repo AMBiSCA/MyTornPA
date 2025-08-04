@@ -265,15 +265,41 @@ h2 {
     font-weight: bold;
 }
 
-.stat-tier-1 { background-color: #cbf0ff; }
-.stat-tier-2 { background-color: #c8efff; }
-.stat-tier-3 { background-color: #b5e4ff; }
-.stat-tier-4 { background-color: #93c4f5; }
-.stat-tier-5 { background-color: #8dc1f4; }
-.stat-tier-6 { background-color: #aea6c8; }
-.stat-tier-7 { background-color: #bc8ea9; }
-.stat-tier-8 { background-color: #766a88; }
-.stat-tier-9 { background-color: #761500; }
+/* --- STYLES FOR THE TOTAL COLUMN --- 
+*/
+
+/* Default State for Total Column Cells */
+.table-striped > tbody > tr > td.total-color-01 { background: #c8efff; color: #000000; }
+.table-striped > tbody > tr > td.total-color-02 { background: #b5e4ff; color: #000000; }
+.table-striped > tbody > tr > td.total-color-03 { background: #a3d9ff; color: #000000; }
+.table-striped > tbody > tr > td.total-color-04 { background: #90ceff; color: #000000; }
+.table-striped > tbody > tr > td.total-color-05 { background: #8dc1f4; color: #000000; }
+.table-striped > tbody > tr > td.total-color-06 { background: #9bb2de; color: #000000; }
+.table-striped > tbody > tr > td.total-color-07 { background: #aaa1c5; color: #000000; }
+.table-striped > tbody > tr > td.total-color-08 { background: #bc8ea9; color: #000000; }
+.table-striped > tbody > tr > td.total-color-09 { background: #d57482; color: #000000; }
+.table-striped > tbody > tr > td.total-color-10 { background: #e4575a; color: #000000; }
+.table-striped > tbody > tr > td.total-color-11 { background: #db484c; color: #000000; }
+.table-striped > tbody > tr > td.total-color-12 { background: #d2393d; color: #FFFFFF; }
+.table-striped > tbody > tr > td.total-color-13 { background: #c7292c; color: #FFFFFF; }
+.table-striped > tbody > tr > td.total-color-14 { background: #bc161a; color: #FFFFFF; }
+
+/* Hover State for Total Column Cells */
+.table-striped tbody tr:hover td.total-color-01 { background: #a0bfcc; color: #000000; }
+.table-striped tbody tr:hover td.total-color-02 { background: #90b6cc; color: #000000; }
+.table-striped tbody tr:hover td.total-color-03 { background: #82adcc; color: #000000; }
+.table-striped tbody tr:hover td.total-color-04 { background: #73a4cc; color: #000000; }
+.table-striped tbody tr:hover td.total-color-05 { background: #709ac3; color: #000000; }
+.table-striped tbody tr:hover td.total-color-06 { background: #7c8eb1; color: #000000; }
+.table-striped tbody tr:hover td.total-color-07 { background: #88809d; color: #000000; }
+.table-striped tbody tr:hover td.total-color-08 { background: #967187; color: #000000; }
+.table-striped tbody tr:hover td.total-color-09 { background: #aa5c68; color: #000000; }
+.table-striped tbody tr:hover td.total-color-10 { background: #b64548; color: #000000; }
+.table-striped tbody tr:hover td.total-color-11 { background: #af393c; color: #000000; }
+.table-striped tbody tr:hover td.total-color-12 { background: #a82d30; color: #FFFFFF; }
+.table-striped tbody tr:hover td.total-color-13 { background: #9f2023; color: #FFFFFF; }
+.table-striped tbody tr:hover td.total-color-14 { background: #961114; color: #FFFFFF; }
+
 .friendly-members-table tbody td.status-okay {
     color: #28a745 !important;
 }
