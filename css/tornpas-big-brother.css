@@ -587,7 +587,7 @@ h2 {
         display: none;
     }
 }
-@media (max-width: 768px) {
+@media (orientation: landscape) and (max-width: 850px) {
     .spacer {
         height: 20px;
     }
