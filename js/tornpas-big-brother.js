@@ -940,7 +940,7 @@ function managePortraitBlocker() {
             if (returnHomeButton) {
                 Object.assign(returnHomeButton.style, {
                     backgroundColor: '#007bff',
-                    color: 'white',
+                    color: 'black',
                     padding: '8px 15px',
                     border: 'none',
                     borderRadius: '5px',

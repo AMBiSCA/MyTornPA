@@ -579,3 +579,10 @@ h2 {
   top: 100%;
   left: 0;
 }
+
+@media (orientation: landscape) and (max-width: 850px) {
+    /* Hide the chat box button when in landscape on a small screen */
+    .chat-box-button {
+        display: none;
+    }
+}
