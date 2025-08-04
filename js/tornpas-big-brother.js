@@ -160,9 +160,24 @@ async function checkIfUserIsAdmin(userUid) {
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(userUid).get();
         if (!userProfileDoc.exists) return false;
+
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
-        return userPosition === 'leader' || userPosition === 'co-leader';
+        const userTornId = userProfile.tornProfileId;
+
+        // Check if user is a leader or co-leader
+        if (userPosition === 'leader' || userPosition === 'co-leader') {
+            return true;
+        }
+
+        // Check if user is in the list of designated admins
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        if (warDoc.exists) {
+            const tab4Admins = warDoc.data().tab4Admins || [];
+            return tab4Admins.includes(String(userTornId));
+        }
+
+        return false;
     } catch (error) {
         console.error("Error during admin check in TornPAs Big Brother:", error);
         return false;
@@ -325,6 +340,132 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+async function setupDiscordAdminSettings() {
+    // Check for required elements before continuing
+    const leaderControlsContainer = document.getElementById('availability-admin-controls');
+    if (!leaderControlsContainer) {
+        console.warn("Could not find leader controls container. Skipping Discord settings setup.");
+        return;
+    }
+
+    // Create the HTML structure for the button and modal
+    const settingsHtml = `
+        <div id="discordAdminSettingsContainer" class="leader-controls-row">
+            <button id="showDiscordSettingsBtn" class="action-btn">
+                <span class="icon">⚙️</span>
+                <span>Discord Settings</span>
+            </button>
+        </div>
+        <div id="discordSettingsModalOverlay" class="modal-overlay hidden">
+            <div id="discordSettingsModal" class="modal-content">
+                <div class="modal-header">
+                    <h4>Discord Integration Settings</h4>
+                    <span id="closeDiscordSettingsBtn" class="close-btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Enter the IDs for your faction's Discord server and the channel for nudges.</p>
+                    <div class="form-group">
+                        <label for="discordGuildIdInput">Discord Server ID (Guild ID):</label>
+                        <input type="text" id="discordGuildIdInput" placeholder="Paste your server ID here">
+                    </div>
+                    <div class="form-group">
+                        <label for="discordChannelIdInput">Nudge Channel ID:</label>
+                        <input type="text" id="discordChannelIdInput" placeholder="Paste your channel ID here">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveDiscordSettingsBtn" class="action-btn">Save Settings</button>
+                    <button id="cancelDiscordSettingsBtn" class="action-btn secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Append the new UI to the leader controls
+    leaderControlsContainer.insertAdjacentHTML('beforeend', settingsHtml);
+
+    // Get references to the newly created elements
+    const showSettingsBtn = document.getElementById('showDiscordSettingsBtn');
+    const modalOverlay = document.getElementById('discordSettingsModalOverlay');
+    const closeBtn = document.getElementById('closeDiscordSettingsBtn');
+    const cancelBtn = document.getElementById('cancelDiscordSettingsBtn');
+    const saveBtn = document.getElementById('saveDiscordSettingsBtn');
+    const guildIdInput = document.getElementById('discordGuildIdInput');
+    const channelIdInput = document.getElementById('discordChannelIdInput');
+
+    // Load existing settings from Firestore
+    const loadSettings = async () => {
+        try {
+            const doc = await db.collection('factionSettings').doc('discord').get();
+            if (doc.exists) {
+                const data = doc.data();
+                guildIdInput.value = data.discordGuildId || '';
+                channelIdInput.value = data.discordNudgeChannelId || '';
+            }
+        } catch (error) {
+            console.error("Error loading Discord settings:", error);
+        }
+    };
+    loadSettings();
+
+    // Event listeners for the UI
+    showSettingsBtn.addEventListener('click', () => {
+        modalOverlay.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('hidden');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('hidden');
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.add('hidden');
+        }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+
+        const guildId = guildIdInput.value.trim();
+        const channelId = channelIdInput.value.trim();
+
+        if (!guildId || !channelId) {
+            showCustomAlert('Please enter both a Server ID and a Channel ID.', 'Missing Information');
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+            return;
+        }
+        
+        try {
+            await db.collection('factionSettings').doc('discord').set({
+                discordGuildId: guildId,
+                discordNudgeChannelId: channelId,
+                lastUpdatedBy: auth.currentUser.uid,
+                lastUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            saveBtn.textContent = 'Saved! ✅';
+            modalOverlay.classList.add('hidden');
+        } catch (error) {
+            console.error('Error saving Discord settings:', error);
+            showCustomAlert('Failed to save settings. Please check the console for details.', 'Save Failed');
+            saveBtn.textContent = 'Error! ❌';
+        } finally {
+            setTimeout(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }, 2000);
+        }
+    });
+}
+
 
 /**
  * Sends a nudge message via a backend service to the specified member's Discord.
@@ -1152,92 +1293,87 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Authentication and Initial Data Load ---
-    auth.onAuthStateChanged(async (user) => {
-        currentFirebaseUserUid = user ? user.uid : null;
+   // --- Authentication and Initial Data Load ---
+auth.onAuthStateChanged(async (user) => {
+    currentFirebaseUserUid = user ? user.uid : null;
 
-        if (user) {
-            try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (userProfileDoc.exists) {
-                    const userData = userProfileDoc.data();
-                    userApiKey = userData.tornApiKey || null;
-                    userTornProfileId = userData.tornProfileId || null;
-                    userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
+    if (user) {
+        try {
+            const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+            if (userProfileDoc.exists) {
+                const userData = userProfileDoc.data();
+                userApiKey = userData.tornApiKey || null;
+                userTornProfileId = userData.tornProfileId || null;
+                userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
-                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-                    
-                    if (userFactionIdFromProfile) {
-                        // Setup listener only if faction ID exists
-                        setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-                    } else {
-                        // If no faction ID, ensure UI is updated correctly
-                        updateGainTrackingUI(); 
-                        console.warn("User has no faction ID. Gains tracking features might be limited.");
-                    }
+                currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
 
-                    if (userApiKey && userTornProfileId) {
-                        console.log("Logged in and API key/Profile ID found.");
-                        
-                        // Only load current stats table if its tab is active on initial load
-                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
-                            await updateFriendlyMembersTable(userApiKey, user.uid);
-                        }
-
-                    } else {
-                        console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
-                        hideLoadingMessage();
-                        const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-                        if (friendlyMembersTbody) {
-                            friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
-                        }
-                        updateGainTrackingUI(); // Update gains UI for no API key scenario
-                    }
+                // This is the new line of code you needed!
+                if (currentUserIsAdmin) {
+                    setupDiscordAdminSettings();
+                }
+                
+                if (userFactionIdFromProfile) {
+                    // Setup listener only if faction ID exists
+                    setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                 } else {
-                    console.warn("User profile document not found in Firestore.");
+                    // If no faction ID, ensure UI is updated correctly
+                    updateGainTrackingUI();
+                    console.warn("User has no faction ID. Gains tracking features might be limited.");
+                }
+
+                if (userApiKey && userTornProfileId) {
+                    console.log("Logged in and API key/Profile ID found.");
+                    
+                    // Only load current stats table if its tab is active on initial load
+                    if (document.getElementById('current-stats-tab').classList.contains('active')) {
+                        await updateFriendlyMembersTable(userApiKey, user.uid);
+                    }
+
+                } else {
+                    console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
                     hideLoadingMessage();
                     const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
                     if (friendlyMembersTbody) {
-                        friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
+                        friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
                     }
-                    updateGainTrackingUI(); // Update gains UI for no profile scenario
+                    updateGainTrackingUI(); // Update gains UI for no API key scenario
                 }
-            } catch (error) {
-                console.error("Error fetching user profile for TornPAs Big Brother page:", error);
+            } else {
+                console.warn("User profile document not found in Firestore.");
                 hideLoadingMessage();
                 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
                 if (friendlyMembersTbody) {
-                    friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+                    friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
                 }
-                updateGainTrackingUI(); // Update gains UI on error
+                updateGainTrackingUI(); // Update gains UI for no profile scenario
             }
-        } else {
-            console.log("User not logged in. Displaying login message.");
+        } catch (error) {
+            console.error("Error fetching user profile for TornPAs Big Brother page:", error);
             hideLoadingMessage();
             const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
             if (friendlyMembersTbody) {
-                friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
+                friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
             }
-            startTrackingBtn.classList.add('hidden');
-            stopTrackingBtn.classList.add('hidden');
-            trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromTrackingStatus) {
-                unsubscribeFromTrackingStatus();
-                unsubscribeFromTrackingStatus = null;
-            }
-            if (unsubscribeFromGainsData) {
-                unsubscribeFromGainsData();
-                unsubscribeFromGainsData = null;
-            }
+            updateGainTrackingUI(); // Update gains UI on error
         }
-    });
-
-    // --- Event Listeners for Gain Tracking Buttons ---
-    startTrackingBtn.addEventListener('click', () => {
-        startTrackingGains();
-    });
-
-    stopTrackingBtn.addEventListener('click', () => {
-        stopTrackingGains();
-    });
+    } else {
+        console.log("User not logged in. Displaying login message.");
+        hideLoadingMessage();
+        const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+        if (friendlyMembersTbody) {
+            friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
+        }
+        startTrackingBtn.classList.add('hidden');
+        stopTrackingBtn.classList.add('hidden');
+        trackingStatusDisplay.textContent = 'Please log in.';
+        if (unsubscribeFromTrackingStatus) {
+            unsubscribeFromTrackingStatus();
+            unsubscribeFromTrackingStatus = null;
+        }
+        if (unsubscribeFromGainsData) {
+            unsubscribeFromGainsData();
+            unsubscribeFromGainsData = null;
+        }
+    }
 });
