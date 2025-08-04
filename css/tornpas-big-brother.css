@@ -591,6 +591,6 @@ h2 {
 /* Add padding to the top of the main content area on smaller screens */
 @media (max-width: 1200px) {
     .page-specific-content-area {
-        padding-top: 20px;
+        padding-top: 200px;
     }
 }
