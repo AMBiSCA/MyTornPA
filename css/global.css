@@ -1906,11 +1906,12 @@ input:checked + .slider:before {
     }
 
     /* FIX: Set body padding-top based on header height using a CSS variable */
-    body {
-        padding-top: var(--header-height, 120px) !important; /* NEW: Use CSS variable for dynamic height */
-        padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
-        min-height: 100vh !important; /* Ensure body takes full viewport height */
-    }
+    /* This is the rule inside the @media (max-width: 768px) block */
+body {
+    padding-top: 140px !important; /* CHANGED: Set the value directly */
+    padding-bottom: 80px !important; 
+    min-height: 100vh !important; 
+}
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
@@ -1932,11 +1933,7 @@ input:checked + .slider:before {
         border-bottom: 3px solid #00a8ff !important;
         box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow for fixed header */
 
-        /* NEW: Add a class to dynamically adjust the header height variable */
-        &.header-two-rows {
-          --header-height: 140px; /* Adjusted height for two rows */
-        }
-    }
+       
 
    .header-left, .header-center, .header-right-controls {
         flex-basis: auto !important;
