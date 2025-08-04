@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					
 					if (currentUserIsAdmin) {
                       setupDiscordAdminSettings(); // <--- ADD THIS LINE HERE
-                      }
+}
                     
                     if (userFactionIdFromProfile) {
                         // Setup listener only if faction ID exists
