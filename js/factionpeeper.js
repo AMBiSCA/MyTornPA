@@ -1053,6 +1053,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+}); // End of DOMContentLoaded
+
 function toggleLandscapeBlocker() {
     const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
     let blocker = document.getElementById('landscape-blocker');
