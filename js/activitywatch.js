@@ -1111,6 +1111,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let orientationOverlay = null;
 
+function showFeatureUnavailableOnMobile() {
+    // 1. Create the main overlay element
+    const unavailableBlocker = document.createElement('div');
+    unavailableBlocker.id = 'feature-unavailable-blocker';
+
+    // 2. Apply consistent styling
+    Object.assign(unavailableBlocker.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#222',
+        color: '#eee',
+        textAlign: 'center',
+        padding: '20px',
+        zIndex: '99999'
+    });
+
+    // 3. Set the content with the corrected text and button style
+    unavailableBlocker.innerHTML = `
+        <div>
+            <h2 style="font-size: 28px; margin-bottom: 15px;">Feature Unavailable on Mobile</h2>
+            <p style="font-size: 18px; margin: 0; max-width: 500px;">
+                For the best experience, this tool is designed for tablets and desktop computers. Please switch to a larger device.
+            </p>
+            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Go to Homepage
+            </a>
+        </div>
+    `;
+
+    // 4. Add the overlay to the page
+    document.body.appendChild(unavailableBlocker);
+}
+
 /**
  * Creates and adds a hidden overlay to the page.
  * This overlay will be used to ask the user to rotate their tablet.
@@ -1143,7 +1183,7 @@ function createOrientationOverlay() {
         <div>
             <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
             <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
-            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
                 Go to Homepage
             </a>
         </div>
