@@ -714,6 +714,12 @@ html, body {
     #chat-system-placeholder {
         display: none !important;
     }
+
+    /* This is the new rule to fix centering on elements inside the mobile blocker */
+    #mobile-blocker > * {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
 }
 
 /* Style for the new homepage button on the blocker page */
