@@ -161,141 +161,145 @@ async function checkIfUserIsAdmin(userUid) {
 
 // --- Main Data Fetching and Display Function for the Current Stats Table ---
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
-    const tbody = document.getElementById('friendly-members-tbody');
-    if (!tbody) {
-        hideLoadingMessage(); // Failsafe in case tbody is missing
-        return;
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) return;
+
+    showLoadingMessage();
+
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
+        const userProfileDoc = await userProfileDocRef.get();
+        const userFactionId = userProfileDoc.data()?.faction_id;
+        if (!userFactionId) {
+            hideLoadingMessage();
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: Faction ID not found.</td></tr>';
+            return;
+        }
+
+        console.log("Triggering backend refresh for faction data...");
+        // This Netlify function is assumed to be authorized and update 'users' collection
+        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
+        if (!refreshResponse.ok) {
+            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
+            console.error("Backend refresh failed:", errorResult.message);
+        } else {
+            console.log("Backend refresh triggered successfully.");
+        }
+
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+        if (!factionResponse.ok || factionData.error) {
+            hideLoadingMessage();
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
+            return;
+        }
+
+        const membersArray = Object.values(factionData.members || {});
+        if (membersArray.length === 0) {
+            hideLoadingMessage();
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
+            return;
+        }
+
+        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
+        const CHUNK_SIZE = 10;
+        const firestoreFetchPromises = [];
+        const allMemberFirebaseData = {};
+
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
+        }
+
+        const snapshots = await Promise.all(firestoreFetchPromises);
+        snapshots.forEach(snapshot => snapshot.forEach(doc => allMemberFirebaseData[doc.id] = doc.data()));
+
+        const processedMembers = membersArray.map((memberTornData) => {
+            const memberId = String(memberTornData.user_id || memberTornData.id);
+            if (!memberId) return null;
+
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
+            
+            const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
+            const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
+            const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
+            const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
+            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+
+            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
+        }).filter(m => m !== null);
+
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
+
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
+            
+            // --- MODIFIED CODE START ---
+            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
+            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
+            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
+            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
+            // --- MODIFIED CODE END ---
+
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+            
+            const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
+                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
+                else drugCooldownClass = 'status-okay';
+            } else {
+                drugCooldown = 'None 🍁';
+                drugCooldownClass = 'status-okay';
+            }
+
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                    <td class="hide-on-mobile">${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
+                    <td class="nerve-text hide-on-mobile">${nerve}</td>
+                    <td class="energy-text hide-on-mobile">${energyValue}</td>
+                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+                </tr>
+            `;
+        }
+        
+        hideLoadingMessage();
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
+        applyStatColorCoding();
+    } catch (error) {
+        console.error("Fatal error in updateFriendlyMembersTable:", error);
+        hideLoadingMessage();
+        tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
-
-    showLoadingMessage();
-
-    try {
-        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
-        const userProfileDoc = await userProfileDocRef.get();
-        const userFactionId = userProfileDoc.data()?.faction_id;
-        if (!userFactionId) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: Faction ID not found.</td></tr>';
-            return;
-        }
-
-        console.log("Triggering backend refresh for faction data...");
-        // This Netlify function is assumed to be authorized and update 'users' collection
-        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
-        if (!refreshResponse.ok) {
-            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
-            console.error("Backend refresh failed:", errorResult.message);
-        } else {
-            console.log("Backend refresh triggered successfully.");
-        }
-
-        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
-        const factionResponse = await fetch(factionMembersApiUrl);
-        const factionData = await factionResponse.json();
-        if (!factionResponse.ok || factionData.error) {
-            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
-            return;
-        }
-
-        const membersArray = Object.values(factionData.members || {});
-        if (membersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
-            return;
-        }
-
-        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
-        const CHUNK_SIZE = 10;
-        const firestoreFetchPromises = [];
-        const allMemberFirebaseData = {};
-
-        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
-            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
-            firestoreFetchPromises.push(query.get());
-        }
-
-        const snapshots = await Promise.all(firestoreFetchPromises);
-        snapshots.forEach(snapshot => snapshot.forEach(doc => allMemberFirebaseData[doc.id] = doc.data()));
-
-        const processedMembers = membersArray.map((memberTornData) => {
-            const memberId = String(memberTornData.user_id || memberTornData.id);
-            if (!memberId) return null;
-
-            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
-           
-            const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
-            const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
-            const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
-            const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
-            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
-
-            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        }).filter(m => m !== null);
-
-        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
-
-        let allRowsHtml = '';
-        for (const member of processedMembers) {
-            const { tornData, firebaseData, totalStats } = member;
-            const memberId = tornData.user_id || tornData.id;
-            const name = tornData.name || 'Unknown';
-            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-           
-            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
-            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
-            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
-            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
-            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-            const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
-
-            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldown, drugCooldownClass = '';
-            if (drugCooldownValue > 0) {
-                const hours = Math.floor(drugCooldownValue / 3600);
-                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-                else drugCooldownClass = 'status-okay';
-            } else {
-                drugCooldown = 'None 🍁';
-                drugCooldownClass = 'status-okay';
-            }
-
-            const statusState = tornData.status?.state || '';
-            const originalDescription = tornData.status?.description || 'N/A';
-            let formattedStatus = originalDescription;
-            let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
-            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
-            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
-
-            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-
-            allRowsHtml += `
-                <tr data-id="${memberId}">
-                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                    <td class="hide-on-mobile">${lastAction}</td>
-                    <td>${strength}</td>
-                    <td>${dexterity}</td>
-                    <td>${speed}</td>
-                    <td>${defense}</td>
-                    <td>${formatBattleStats(totalStats)}</td>
-                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
-                    <td class="nerve-text hide-on-mobile">${nerve}</td>
-                    <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
-                </tr>
-            `;
-        }
-       
-        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
-        applyStatColorCoding();
-    } catch (error) {
-        console.error("Fatal error in updateFriendlyMembersTable:", error);
-        tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
-    } finally {
-        hideLoadingMessage();
-    }
 }
 
 // --- Gain Tracking Core Logic ---
@@ -896,214 +900,6 @@ function downloadCurrentTabAsImage() {
         console.log("Cleaned up temporary render container.");
     });
 }
-
-/**
- * Dynamically applies a min-width to the tables on smaller screens to ensure readability.
- * This is a JS alternative to CSS media queries if they are not behaving as expected.
- */
-function handleTableResponsiveLayout() {
-    const tables = document.querySelectorAll('.friendly-members-table, .gains-overview-table');
-    if (window.innerWidth <= 768) {
-        tables.forEach(table => {
-            table.style.minWidth = '500px';
-            table.style.tableLayout = 'auto';
-        });
-    } else {
-        tables.forEach(table => {
-            // Reset to original state for larger screens
-            table.style.minWidth = '';
-            table.style.tableLayout = 'fixed';
-        });
-    }
-}
-
-
-// --- Main execution block and event listeners ---
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Initialize Loading Message Element on page load ---
-    const currentStatsTabContainer = document.querySelector('#current-stats-tab .table-container');
-    if (currentStatsTabContainer) {
-        loadingMessageElement = document.createElement('p');
-        loadingMessageElement.id = 'loading-message-container';
-        loadingMessageElement.style.textAlign = 'center';
-        loadingMessageElement.style.padding = '20px';
-        loadingMessageElement.style.color = '#bbb';
-        loadingMessageElement.textContent = 'Loading faction member data...';
-        currentStatsTabContainer.prepend(loadingMessageElement);
-    }
-
-    // --- DOM Elements for Tabs and Controls ---
-    const tabButtons = document.querySelectorAll('.tab-button-bb');
-    const tabPanes = document.querySelectorAll('.tab-pane-bb');
-    const startTrackingBtn = document.getElementById('startTrackingBtn');
-    const stopTrackingBtn = document.getElementById('stopTrackingBtn');
-    const trackingStatusDisplay = document.getElementById('trackingStatus');
-    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt');
-
-    // Get the download button and attach listener
-    const downloadButton = document.getElementById('downloadTableDataBtn');
-    if (downloadButton) {
-        downloadButton.addEventListener('click', downloadCurrentTabAsImage);
-    }
-
-    // --- NEW CODE START ---
-    // Attach the responsive function to the load and resize events
-    window.addEventListener('load', handleTableResponsiveLayout);
-    window.addEventListener('resize', handleTableResponsiveLayout);
-    // --- NEW CODE END ---
-
-
-    // --- Tab Switching Logic ---
-    function showTab(tabId) {
-        tabPanes.forEach(pane => {
-            if (pane.id === tabId) {
-                pane.classList.add('active');
-            } else {
-                pane.classList.remove('active');
-            }
-        });
-
-        tabButtons.forEach(button => {
-            if (button.dataset.tab + '-tab' === tabId) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-
-        // Unsubscribe from any active Firestore listeners when switching tabs
-        if (unsubscribeFromTrackingStatus) {
-            unsubscribeFromTrackingStatus();
-            unsubscribeFromTrackingStatus = null;
-            console.log("Unsubscribed from tracking status listener (on tab switch).");
-        }
-        if (unsubscribeFromGainsData) {
-            unsubscribeFromGainsData();
-            unsubscribeFromGainsData = null;
-            console.log("Unsubscribed from gains data listener (on tab switch).");
-        }
-
-
-        // Trigger data load/refresh when switching to a tab that needs it
-        if (tabId === 'current-stats-tab') {
-             if (userApiKey && auth.currentUser && auth.currentUser.uid) {
-                updateFriendlyMembersTable(userApiKey, auth.currentUser.uid);
-            }
-            if (loadingMessageElement) loadingMessageElement.style.display = 'block';
-        } else if (tabId === 'gains-tracking-tab') {
-            console.log("Switched to Gains Tracking tab.");
-            hideLoadingMessage();
-
-            if (auth.currentUser && userFactionIdFromProfile) {
-                setupRealtimeTrackingStatusListener(userFactionIdFromProfile); // Pass the faction ID
-            } else {
-                // If no user or faction, update UI to reflect that tracking cannot happen
-                updateGainTrackingUI(); 
-                displayGainsTable(); // Display "No active session" or similar based on state
-            }
-            // Always call displayGainsTable to update the content based on current session state
-            // (it will show 'No active session' if activeTrackingSessionId is null)
-            displayGainsTable(); 
-        }
-    }
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            showTab(button.dataset.tab + '-tab');
-        });
-    });
-
-    // --- Authentication and Initial Data Load ---
-    auth.onAuthStateChanged(async (user) => {
-        currentFirebaseUserUid = user ? user.uid : null;
-
-        if (user) {
-            try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (userProfileDoc.exists) {
-                    const userData = userProfileDoc.data();
-                    userApiKey = userData.tornApiKey || null;
-                    userTornProfileId = userData.tornProfileId || null;
-                    userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
-
-                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-                    
-                    if (userFactionIdFromProfile) {
-                        // Setup listener only if faction ID exists
-                        setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-                    } else {
-                        // If no faction ID, ensure UI is updated correctly
-                        updateGainTrackingUI(); 
-                        console.warn("User has no faction ID. Gains tracking features might be limited.");
-                    }
-
-                    if (userApiKey && userTornProfileId) {
-                        console.log("Logged in and API key/Profile ID found.");
-                        
-                        // Only load current stats table if its tab is active on initial load
-                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
-                            await updateFriendlyMembersTable(userApiKey, user.uid);
-                        }
-
-                    } else {
-                        console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
-                        hideLoadingMessage();
-                        const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-                        if (friendlyMembersTbody) {
-                            friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
-                        }
-                        updateGainTrackingUI(); // Update gains UI for no API key scenario
-                    }
-                } else {
-                    console.warn("User profile document not found in Firestore.");
-                    hideLoadingMessage();
-                    const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-                    if (friendlyMembersTbody) {
-                        friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
-                    }
-                    updateGainTrackingUI(); // Update gains UI for no profile scenario
-                }
-            } catch (error) {
-                console.error("Error fetching user profile for TornPAs Big Brother page:", error);
-                hideLoadingMessage();
-                const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-                if (friendlyMembersTbody) {
-                    friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
-                }
-                updateGainTrackingUI(); // Update gains UI on error
-            }
-        } else {
-            console.log("User not logged in. Displaying login message.");
-            hideLoadingMessage();
-            const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-            if (friendlyMembersTbody) {
-                friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
-            }
-            startTrackingBtn.classList.add('hidden');
-            stopTrackingBtn.classList.add('hidden');
-            trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromTrackingStatus) {
-                unsubscribeFromTrackingStatus();
-                unsubscribeFromTrackingStatus = null;
-            }
-            if (unsubscribeFromGainsData) {
-                unsubscribeFromGainsData();
-                unsubscribeFromGainsData = null;
-            }
-        }
-    });
-
-    // --- Event Listeners for Gain Tracking Buttons ---
-    startTrackingBtn.addEventListener('click', () => {
-        startTrackingGains();
-    });
-
-    stopTrackingBtn.addEventListener('click', () => {
-        stopTrackingGains();
-    });
-});
-
-
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
