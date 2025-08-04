@@ -15,18 +15,6 @@
     position: relative;
 }
 
-.download-table-preview {
-  table-layout: fixed;
-  width: 100%; /* Ensure it respects the container's width */
-}
-
-/* This targets the cells inside the download table specifically */
-.download-table-preview td,
-.download-table-preview th {
-  overflow-wrap: break-word; /* Allows long numbers to wrap if needed */
-  word-wrap: break-word; /* Fallback for older browsers */
-}
-
 h2 {
     color: #00a8ff;
     text-align: center;
@@ -84,7 +72,6 @@ h2 {
     cursor: default;
 }
 
-/* Tab Content Container */
 .tab-content-container-bb {
     background-color: #222;
     border: 1px solid black;
@@ -96,10 +83,9 @@ h2 {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-	margin-top: -16px;
+    margin-top: -16px;
 }
 
-/* Individual Tab Panes */
 .tab-pane-bb {
     display: none;
     height: 100%;
@@ -213,13 +199,14 @@ h2 {
 /* ==========================================================================
    Download Button Styles
    ========================================================================== */
+
 .download-button {
     position: absolute;
     top: 20px;
     right: 20px;
     padding: 8px 15px;
     background-color: #4CAF50;
-    color:black;
+    color: black;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -236,17 +223,17 @@ h2 {
    Specific Column Widths (for on-screen tables)
    ========================================================================== */
 
-.friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; }
-.friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
-.friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
-.friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
-.friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
-.friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
-.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
-.friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; }
-.friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
-.friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
-.friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
+.friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; } /* Name */
+.friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
+.friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
+.friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }  /* Dexterity */
+.friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }  /* Speed */
+.friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }  /* Defense */
+.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }  /* Total */
+.friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; } /* Status */
+.friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
+.friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10){ width: 8%; }  /* Energy */
+.friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11){ width: 8%; }  /* Drug CD */
 
 .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
 .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
@@ -257,68 +244,62 @@ h2 {
 
 
 /* ==========================================================================
-   Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
+   Dynamic Cell Styling (Status, Colors, etc.)
    ========================================================================== */
 
+/* This class is for the individual stat cells that get color-coded */
 .friendly-members-table td.stat-cell {
     color: black !important;
     font-weight: bold;
 }
 
-/* --- STYLES FOR THE TOTAL COLUMN --- 
-*/
+/* Text color for specific columns */
+.friendly-members-table td.nerve-text  { color: #d32f2f; }
+.friendly-members-table td.energy-text { color: #28a745; }
+
+/* Status Text Colors */
+.friendly-members-table tbody td.status-okay      { color: #28a745 !important; }
+.friendly-members-table tbody td.status-hospital  { color: #dc3545 !important; }
+.friendly-members-table tbody td.status-jail      { color: #ffc107 !important; }
+.friendly-members-table tbody td.status-traveling { color: #17a2b8 !important; }
+.friendly-members-table tbody td.status-abroad    { color: #17a2b8 !important; }
+.friendly-members-table tbody td.status-other     { color: #ffb86c !important; }
+
+
+/* --- STYLES FOR THE TOTAL COLUMN --- */
+/* These classes are applied by your backend code based on the total stat value */
 
 /* Default State for Total Column Cells */
-.table-striped > tbody > tr > td.total-color-01 { background: #c8efff; color: #000000; }
-.table-striped > tbody > tr > td.total-color-02 { background: #b5e4ff; color: #000000; }
-.table-striped > tbody > tr > td.total-color-03 { background: #a3d9ff; color: #000000; }
-.table-striped > tbody > tr > td.total-color-04 { background: #90ceff; color: #000000; }
-.table-striped > tbody > tr > td.total-color-05 { background: #8dc1f4; color: #000000; }
-.table-striped > tbody > tr > td.total-color-06 { background: #9bb2de; color: #000000; }
-.table-striped > tbody > tr > td.total-color-07 { background: #aaa1c5; color: #000000; }
-.table-striped > tbody > tr > td.total-color-08 { background: #bc8ea9; color: #000000; }
-.table-striped > tbody > tr > td.total-color-09 { background: #d57482; color: #000000; }
-.table-striped > tbody > tr > td.total-color-10 { background: #e4575a; color: #000000; }
-.table-striped > tbody > tr > td.total-color-11 { background: #db484c; color: #000000; }
-.table-striped > tbody > tr > td.total-color-12 { background: #d2393d; color: #FFFFFF; }
-.table-striped > tbody > tr > td.total-color-13 { background: #c7292c; color: #FFFFFF; }
-.table-striped > tbody > tr > td.total-color-14 { background: #bc161a; color: #FFFFFF; }
+.friendly-members-table td.total-color-01 { background: #c8efff; color: #000000; }
+.friendly-members-table td.total-color-02 { background: #b5e4ff; color: #000000; }
+.friendly-members-table td.total-color-03 { background: #a3d9ff; color: #000000; }
+.friendly-members-table td.total-color-04 { background: #90ceff; color: #000000; }
+.friendly-members-table td.total-color-05 { background: #8dc1f4; color: #000000; }
+.friendly-members-table td.total-color-06 { background: #9bb2de; color: #000000; }
+.friendly-members-table td.total-color-07 { background: #aaa1c5; color: #000000; }
+.friendly-members-table td.total-color-08 { background: #bc8ea9; color: #000000; }
+.friendly-members-table td.total-color-09 { background: #d57482; color: #000000; }
+.friendly-members-table td.total-color-10 { background: #e4575a; color: #000000; }
+.friendly-members-table td.total-color-11 { background: #db484c; color: #000000; }
+.friendly-members-table td.total-color-12 { background: #d2393d; color: #FFFFFF; }
+.friendly-members-table td.total-color-13 { background: #c7292c; color: #FFFFFF; }
+.friendly-members-table td.total-color-14 { background: #bc161a; color: #FFFFFF; }
 
-.friendly-members-table tbody td.status-okay {
-    color: #28a745 !important;
-}
-.friendly-members-table tbody td.status-hospital {
-    color: #dc3545 !important;
-}
-.friendly-members-table tbody td.status-jail {
-    color: #ffc107 !important;
-}
-.friendly-members-table tbody td.status-traveling {
-    color: #17a2b8 !important;
-}
-.friendly-members-table tbody td.status-abroad {
-    color: #17a2b8 !important;
-}
-.friendly-members-table tbody td.status-other {
-    color: #ffb86c !important;
-}
-
-.friendly-members-table td.nerve-text {
-    color: #d32f2f;
-}
-.friendly-members-table td.energy-text {
-    color: #28a745;
-}
-
-.friendly-members-table td.status-okay {
-    color: #28a745;
-}
-.friendly-members-table td.status-other {
-    color: #ffb86c;
-}
-.friendly-members-table td.status-hospital {
-    color: #dc3545;
-}
+/* Hover State for Total Column Cells */
+.friendly-members-table tr:hover td.total-color-01 { background: #a0bfcc; color: #000000; }
+.friendly-members-table tr:hover td.total-color-02 { background: #90b6cc; color: #000000; }
+.friendly-members-table tr:hover td.total-color-03 { background: #82adcc; color: #000000; }
+.friendly-members-table tr:hover td.total-color-04 { background: #73a4cc; color: #000000; }
+.friendly-members-table tr:hover td.total-color-05 { background: #709ac3; color: #000000; }
+.friendly-members-table tr:hover td.total-color-06 { background: #7c8eb1; color: #000000; }
+.friendly-members-table tr:hover td.total-color-07 { background: #88809d; color: #000000; }
+.friendly-members-table tr:hover td.total-color-08 { background: #967187; color: #000000; }
+.friendly-members-table tr:hover td.total-color-09 { background: #aa5c68; color: #000000; }
+.friendly-members-table tr:hover td.total-color-10 { background: #b64548; color: #000000; }
+.friendly-members-table tr:hover td.total-color-11 { background: #af393c; color: #000000; }
+.friendly-members-table tr:hover td.total-color-12 { background: #a82d30; color: #FFFFFF; }
+.friendly-members-table tr:hover td.total-color-13 { background: #9f2023; color: #FFFFFF; }
+.friendly-members-table tr:hover td.total-color-14 { background: #961114; color: #FFFFFF; }
 
 
 /* ==========================================================================
@@ -404,29 +385,32 @@ h2 {
 
 
 /* ==========================================================================
-   Styles for Temporary Download Table (to make rows tighter AND columns precise)
+   Styles for Temporary Download Table
    ========================================================================== */
 
 .download-table-preview {
-    width: 100%; /* Will take 100% of tempContainer's fixed width */
+    width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
     color: #ddd;
-    table-layout: fixed; /* Reverted to fixed for precise control */
+    table-layout: fixed;
 }
 
-/* Explicit pixel widths for the 6 columns for the downloaded image */
-/* Adjust these pixel values as needed until they look good together and sum to 800px */
+.download-table-preview td,
+.download-table-preview th {
+    overflow-wrap: break-word;
+}
+
 .download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 100px; } /* Name */
-.download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 130px; } /* Strength / Strength Gain */
-.download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 130px; } /* Dexterity / Dexterity Gain */
-.download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 130px; } /* Speed / Speed Gain */
-.download-table-preview th:nth-child(5), .download-table-preview td:nth-child(5) { width: 130px; } /* Defense / Defense Gain */
-.download-table-preview th:nth-child(6), .download-table-preview td:nth-child(6) { width: 130px; } /* Total / Total Gain */
+.download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 130px; } /* Strength */
+.download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 130px; } /* Dexterity */
+.download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 130px; } /* Speed */
+.download-table-preview th:nth-child(5), .download-table-preview td:nth-child(5) { width: 130px; } /* Defense */
+.download-table-preview th:nth-child(6), .download-table-preview td:nth-child(6) { width: 130px; } /* Total */
 
 
 .download-table-preview thead th {
-    padding: 6px 8px; /* Reduced vertical padding for headers */
+    padding: 6px 8px;
     background-color: #00a8ff;
     color: #1e1e1e;
     font-weight: bold;
@@ -444,7 +428,7 @@ h2 {
 }
 
 .download-table-preview tbody td {
-    padding: 4px 8px; /* Reduced vertical padding for data cells */
+    padding: 4px 8px;
     border-bottom: 1px solid #3a3a40;
     vertical-align: middle;
     font-size: 0.85em;
@@ -500,16 +484,7 @@ h2 {
     }
 
     .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
-    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
-    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
-    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
-    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
-    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
-    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
     .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; }
-    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
-    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
-    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
 
     .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
     .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
@@ -542,6 +517,9 @@ h2 {
         font-size: 0.75em;
         padding: 5px 3px;
     }
+    .friendly-members-table .hide-on-mobile {
+        display: none !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -566,28 +544,12 @@ h2 {
     }
 }
 
-@media screen and (max-width: 768px) {
-  .friendly-members-table .hide-on-mobile {
-    display: none !important;
-  }
-}
-
 @media (max-width: 380px) {
     .friendly-members-table thead th,
     .friendly-members-table tbody td {
-        font-size: 0.6em; /* Even smaller font size */
-        padding: 1px 1px; /* Even less padding */
+        font-size: 0.6em;
+        padding: 1px 1px;
     }
-}
-
-.force-landscape-view {
-  transform: rotate(90deg);
-  transform-origin: left top;
-  width: 100vh;
-  height: 100vw;
-  position: absolute;
-  top: 100%;
-  left: 0;
 }
 
 @media (orientation: landscape) and (max-width: 850px) {
@@ -595,8 +557,7 @@ h2 {
     .chat-box-button {
         display: none;
     }
-}
-@media (orientation: landscape) and (max-width: 850px) {
+    /* Add top padding to prevent content from being covered by a header/menu */
     .page-specific-content-area {
         padding-top: 20px !important;
     }
