@@ -1916,8 +1916,7 @@ body {
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
         /* NEW: Define a CSS variable for the header's height */
-        --header-height: 120px; /* NEW: Set a default height, we will adjust this later */
-
+     
         position: fixed !important; /* Forces header to stay fixed at the top */
         top: 0 !important;            /* Aligns it to the top edge */
         left: 0 !important;           /* Aligns it to the left edge */
@@ -1933,13 +1932,20 @@ body {
         border-bottom: 3px solid #00a8ff !important;
         box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important; /* Re-apply shadow for fixed header */
 
-       
-
    .header-left, .header-center, .header-right-controls {
-        flex-basis: auto !important;
+	   flex-basis: auto !important;
         width: 100% !important; 
         justify-content: center !important;
         margin-bottom: 0 !important; /* CHANGED: Set to 0 to remove the negative margin */
+    }
+	
+	footer.footer {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 70px; /* Ensures it has the correct height */
+        z-index: 102; /* Ensures it stays on top of content */
     }
     
     /* Specific spacing for MyTornPA and buttons within the header */
