@@ -504,6 +504,7 @@ h2 {
     }
     .friendly-members-table,
     .gains-overview-table {
+        min-width: 600px; /* Added min-width back, but smaller */
         table-layout: auto;
     }
     .friendly-members-table thead th,
@@ -522,6 +523,7 @@ h2 {
     }
     .friendly-members-table,
     .gains-overview-table {
+        min-width: 500px; /* Adjusted min-width for very small screens */
         table-layout: auto;
     }
     .friendly-members-table thead th,
