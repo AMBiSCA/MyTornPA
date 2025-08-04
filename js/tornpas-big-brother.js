@@ -161,145 +161,138 @@ async function checkIfUserIsAdmin(userUid) {
 
 // --- Main Data Fetching and Display Function for the Current Stats Table ---
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
-    const tbody = document.getElementById('friendly-members-tbody');
-    if (!tbody) return;
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) return;
 
-    showLoadingMessage();
+    showLoadingMessage();
 
-    try {
-        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
-        const userProfileDoc = await userProfileDocRef.get();
-        const userFactionId = userProfileDoc.data()?.faction_id;
-        if (!userFactionId) {
-            hideLoadingMessage();
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: Faction ID not found.</td></tr>';
-            return;
-        }
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
+        const userProfileDoc = await userProfileDocRef.get();
+        const userFactionId = userProfileDoc.data()?.faction_id;
+        if (!userFactionId) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: Faction ID not found.</td></tr>';
+            return;
+        }
 
-        console.log("Triggering backend refresh for faction data...");
-        // This Netlify function is assumed to be authorized and update 'users' collection
-        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
-        if (!refreshResponse.ok) {
-            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
-            console.error("Backend refresh failed:", errorResult.message);
-        } else {
-            console.log("Backend refresh triggered successfully.");
-        }
+        console.log("Triggering backend refresh for faction data...");
+        // This Netlify function is assumed to be authorized and update 'users' collection
+        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
+        if (!refreshResponse.ok) {
+            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
+            console.error("Backend refresh failed:", errorResult.message);
+        } else {
+            console.log("Backend refresh triggered successfully.");
+        }
 
-        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
-        const factionResponse = await fetch(factionMembersApiUrl);
-        const factionData = await factionResponse.json();
-        if (!factionResponse.ok || factionData.error) {
-            hideLoadingMessage();
-            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
-            return;
-        }
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+        if (!factionResponse.ok || factionData.error) {
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
+            return;
+        }
 
-        const membersArray = Object.values(factionData.members || {});
-        if (membersArray.length === 0) {
-            hideLoadingMessage();
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
-            return;
-        }
+        const membersArray = Object.values(factionData.members || {});
+        if (membersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
+            return;
+        }
 
-        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
-        const CHUNK_SIZE = 10;
-        const firestoreFetchPromises = [];
-        const allMemberFirebaseData = {};
+        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
+        const CHUNK_SIZE = 10;
+        const firestoreFetchPromises = [];
+        const allMemberFirebaseData = {};
 
-        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
-            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
-            firestoreFetchPromises.push(query.get());
-        }
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
+        }
 
-        const snapshots = await Promise.all(firestoreFetchPromises);
-        snapshots.forEach(snapshot => snapshot.forEach(doc => allMemberFirebaseData[doc.id] = doc.data()));
+        const snapshots = await Promise.all(firestoreFetchPromises);
+        snapshots.forEach(snapshot => snapshot.forEach(doc => allMemberFirebaseData[doc.id] = doc.data()));
 
-        const processedMembers = membersArray.map((memberTornData) => {
-            const memberId = String(memberTornData.user_id || memberTornData.id);
-            if (!memberId) return null;
+        const processedMembers = membersArray.map((memberTornData) => {
+            const memberId = String(memberTornData.user_id || memberTornData.id);
+            if (!memberId) return null;
 
-            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
-            
-            const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
-            const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
-            const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
-            const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
-            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
+           
+            const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
+            const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
+            const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
+            const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
+            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
 
-            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        }).filter(m => m !== null);
+            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
+        }).filter(m => m !== null);
 
-        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
 
-        let allRowsHtml = '';
-        for (const member of processedMembers) {
-            const { tornData, firebaseData, totalStats } = member;
-            const memberId = tornData.user_id || tornData.id;
-            const name = tornData.name || 'Unknown';
-            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-            
-            // --- MODIFIED CODE START ---
-            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
-            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
-            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
-            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
-            // --- MODIFIED CODE END ---
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
+           
+            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
+            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
+            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
+            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+            const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
 
-            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-            
-            const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
+                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
+                else drugCooldownClass = 'status-okay';
+            } else {
+                drugCooldown = 'None 🍁';
+                drugCooldownClass = 'status-okay';
+            }
 
-            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldown, drugCooldownClass = '';
-            if (drugCooldownValue > 0) {
-                const hours = Math.floor(drugCooldownValue / 3600);
-                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-                else drugCooldownClass = 'status-okay';
-            } else {
-                drugCooldown = 'None 🍁';
-                drugCooldownClass = 'status-okay';
-            }
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
 
-            const statusState = tornData.status?.state || '';
-            const originalDescription = tornData.status?.description || 'N/A';
-            let formattedStatus = originalDescription;
-            let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
-            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
-            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
 
-            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-
-            allRowsHtml += `
-                <tr data-id="${memberId}">
-                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                    <td class="hide-on-mobile">${lastAction}</td>
-                    <td>${strength}</td>
-                    <td>${dexterity}</td>
-                    <td>${speed}</td>
-                    <td>${defense}</td>
-                    <td>${formatBattleStats(totalStats)}</td>
-                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
-                    <td class="nerve-text hide-on-mobile">${nerve}</td>
-                    <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
-                </tr>
-            `;
-        }
-        
-        hideLoadingMessage();
-        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
-        applyStatColorCoding();
-    } catch (error) {
-        console.error("Fatal error in updateFriendlyMembersTable:", error);
-        hideLoadingMessage();
-        tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
-    }
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                    <td class="hide-on-mobile">${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
+                    <td class="nerve-text hide-on-mobile">${nerve}</td>
+                    <td class="energy-text hide-on-mobile">${energyValue}</td>
+                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+                </tr>
+            `;
+        }
+       
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
+        applyStatColorCoding();
+    } catch (error) {
+        console.error("Fatal error in updateFriendlyMembersTable:", error);
+        tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+    } finally {
+        hideLoadingMessage();
+    }
 }
 
 // --- Gain Tracking Core Logic ---
