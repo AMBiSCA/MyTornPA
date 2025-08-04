@@ -675,37 +675,37 @@ html, body {
     display: none;
 }
 
-/* This runs on screens 768px or smaller */
 @media (max-width: 1024px) {
     /* This shows your blocker message and makes it full-screen */
     #mobile-blocker {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #222 !important;
+        color: #eee !important;
+        text-align: center !important;
+        padding: 20px !important;
+        z-index: 9999 !important;
     }
 
     #mobile-blocker h2 {
-        color: #00a8ff;
+        color: #00a8ff !important;
+        margin-top: 0 !important; /* Ensure no top margin pushes content down */
     }
     #mobile-blocker p {
-        font-size: 1rem;
-        line-height: 1.6;
+        font-size: 1rem !important;
+        line-height: 1.6 !important;
     }
-	
-	.hidden {
-    display: none !important;
-}
+    
+    .hidden {
+        display: none !important;
+    }
 
     /* This hides the main page content, header, footer, and chat box on mobile */
     #global-header-placeholder,
