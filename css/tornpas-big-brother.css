@@ -210,6 +210,29 @@ h2 {
     color: #8ab4f8;
 }
 
+.admin-controls-placeholder {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+/* This is the style for the button itself, matching your download button */
+#showDiscordSettingsBtn {
+    padding: 8px 15px;
+    background-color: #5865F2; /* Discord's brand color */
+    color: white; /* White text for contrast on the dark blue */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+#showDiscordSettingsBtn:hover {
+    background-color: #4f5bce; /* A slightly darker blue on hover */
+}
+
 /* ==========================================================================
    Download Button Styles
    ========================================================================== */
@@ -526,35 +549,6 @@ h2 {
     gap: 10px; /* Adds some space between the buttons */
 }
 
-/* This is the new style for the cog button container */
-.admin-controls-placeholder {
-    position: absolute;
-    top: -100px; /* Adjust this value to get the exact position you want */
-    left: -20px; /* Adjust this value to get the exact position you want */
-}
-
-#showDiscordSettingsBtn {
-    background-color: #5865F2; /* Discord's brand color */
-    color: #fff; /* White text for better readability */
-    font-weight: bold;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-#showDiscordSettingsBtn:hover {
-    background-color: #4f5bce; /* A slightly darker blue on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.icon {
-    margin-right: 5px;
-}
 
 /* ==========================================================================
    Responsive Adjustments
