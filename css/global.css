@@ -2113,6 +2113,7 @@ input:checked + .slider:before {
     margin: 0 !important;
     background-color: #1b263b !important;
     border-top: 2px solid black;
+	border-Bottom: 2px solid black;
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
