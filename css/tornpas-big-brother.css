@@ -233,7 +233,48 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
+/* This is the modal's backdrop overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 
+    /* These rules hide the modal by default and set a smooth transition */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* This class is added by JS to show the modal */
+.modal-overlay:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Styles for the pop-up box itself */
+.modal-content {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    color: #fff;
+    transform: translateY(-20px); /* A small starting animation for the modal */
+    transition: transform 0.3s ease;
+}
+
+/* This animation is triggered when the modal becomes visible */
+.modal-overlay:not(.hidden) .modal-content {
+    transform: translateY(0);
+}
 
 /* ==========================================================================
    Download Button Styles
