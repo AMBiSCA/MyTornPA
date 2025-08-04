@@ -233,8 +233,7 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
-/* This is the modal's backdrop overlay */
-.modal-overlay {
+#discordSettingsModalOverlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -253,13 +252,13 @@ h2 {
 }
 
 /* This class is added by JS to show the modal */
-.modal-overlay:not(.hidden) {
+#discordSettingsModalOverlay:not(.hidden) {
     opacity: 1;
     visibility: visible;
 }
 
-/* Styles for the pop-up box itself */
-.modal-content {
+/* Styles for the pop-up box itself - NOW TARGETING THE SPECIFIC MODAL CONTENT */
+#discordSettingsModalOverlay .modal-content {
     background-color: #2a2a2a;
     border-radius: 8px;
     padding: 20px;
@@ -272,7 +271,7 @@ h2 {
 }
 
 /* This animation is triggered when the modal becomes visible */
-.modal-overlay:not(.hidden) .modal-content {
+#discordSettingsModalOverlay:not(.hidden) .modal-content {
     transform: translateY(0);
 }
 
