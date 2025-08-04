@@ -791,3 +791,10 @@ footer.footer .footer-links a:hover {
     margin-right: auto !important;
   }
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .faction-peeper-tool-container {
+    max-width: 650px;
+    padding: 10px 20px;
+  }
+}
