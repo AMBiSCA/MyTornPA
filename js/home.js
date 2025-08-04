@@ -1503,6 +1503,7 @@ function toggleLandscapeBlocker() {
             blocker.innerHTML = `
                 <h2>Please Rotate Your Device</h2>
                 <p>For the best experience, please use this page in portrait mode.</p>
+                <button id="return-home-button">Return to Home</button>
             `;
             // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
@@ -1522,11 +1523,33 @@ function toggleLandscapeBlocker() {
                 zIndex: '99999'
             });
             document.body.appendChild(blocker);
+
+            // Add the specified styles to the button and set its click event
+            const returnHomeButton = document.getElementById('return-home-button');
+            if (returnHomeButton) {
+                Object.assign(returnHomeButton.style, {
+                    backgroundColor: '#007bff', // The color from your `action-btn-bb` class
+                    color: 'white',
+                    padding: '8px 15px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    marginTop: '20px',
+                    textDecoration: 'none',
+                    transition: 'background-color 0.2s ease'
+                });
+
+                returnHomeButton.addEventListener('click', () => {
+                    window.location.href = 'home.html';
+                });
+            }
         }
 
         // Hide main page content
         document.body.style.overflow = 'hidden';
-        document.querySelector('header').style.display = 'none';
+        const header = document.querySelector('header');
+        if (header) header.style.display = 'none';
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = 'none';
         const footer = document.querySelector('footer');
@@ -1540,14 +1563,15 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        document.querySelector('header').style.display = ''; // Reverts to stylesheet's display
+        const header = document.querySelector('header');
+        if (header) header.style.display = ''; // Reverts to stylesheet's display
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
-        
         const footer = document.querySelector('footer');
         if (footer) footer.style.display = ''; // This lets the CSS file control the footer
     }
 }
+
 // Run the function on page load and window resize
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
