@@ -1554,11 +1554,9 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 function manageDeviceLayout() {
     const isLandscape = window.innerWidth > window.innerHeight;
-    // This now uses the correct width for your tablet
-    const isTabletOrSmaller = window.innerWidth <= 1920; 
+    const isTabletOrSmaller = window.innerWidth <= 1920; // Using your tablet's confirmed width
     let blocker = document.getElementById('landscape-blocker');
 
-    // Scenario 1: On a tablet/phone in landscape mode
     if (isLandscape && isTabletOrSmaller) {
         if (!blocker) {
             blocker = document.createElement('div');
@@ -1576,7 +1574,6 @@ function manageDeviceLayout() {
             document.body.appendChild(blocker);
         }
         
-        // Hide main page content when blocker is active
         document.querySelector('header').style.display = 'none';
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = 'none';
@@ -1584,14 +1581,10 @@ function manageDeviceLayout() {
         if (footer) footer.style.display = 'none';
 
     } else {
-        // Not in landscape on a small device
-
-        // Remove blocker if it exists
         if (blocker) {
             blocker.remove();
         }
 
-        // Re-show main page content
         document.querySelector('header').style.display = '';
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = '';
@@ -1599,17 +1592,14 @@ function manageDeviceLayout() {
         if (footer) footer.style.display = ''; 
     }
 
-    // This handles the scrolling lock based on the correct width
+    // --- THIS IS THE UPDATED PART ---
+    // It now locks and unlocks scrolling on both HTML and BODY
     if (isTabletOrSmaller) {
-        // Disable scrolling because content fits
-        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden'; // For the <html> tag
+        document.body.style.overflow = 'hidden'; // For the <body> tag
     } else {
-        // It's a large desktop screen, allow scrolling
-        document.body.style.overflow = '';
+        document.documentElement.style.overflow = ''; // Allow scroll on desktop
+        document.body.style.overflow = ''; // Allow scroll on desktop
     }
 }
-
-// Run the new function on page load and window resize
-window.addEventListener('load', manageDeviceLayout);
-window.addEventListener('resize', manageDeviceLayout);
 
