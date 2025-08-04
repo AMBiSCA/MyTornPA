@@ -3863,7 +3863,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-		initializeTableScrolling();
+
         applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
@@ -5945,7 +5945,6 @@ tabButtons.forEach(button => {
                     }
                 }, 10000); // Refresh quick FF targets every 10 seconds
 				
-				window.addEventListener('resize', initializeTableScrolling);
 
 
                 // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
