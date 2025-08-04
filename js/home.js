@@ -1486,6 +1486,8 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
     mediaQuery.addEventListener('change', handleScrollLock);
 }
  
+ initializeNoScroll();
+ 
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
