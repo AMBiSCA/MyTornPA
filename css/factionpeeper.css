@@ -587,3 +587,10 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         font-size: 0.7rem !important; /* Even smaller font */
     }
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dropdown-row .dropdown-category {
+    flex-basis: calc(33.333% - 10px); /* Adjust to 3 items per row with gaps */
+    max-width: none; /* Remove max-width constraint to allow items to fill space */
+  }
+}
