@@ -82,26 +82,37 @@ function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
     if (!table) return;
 
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+
     const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
 
     statCells.forEach(cell => {
-        for (let i = 1; i <= 9; i++) {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
             cell.classList.remove(`stat-tier-${i}`);
         }
         cell.classList.remove('stat-cell');
 
+        // Now, determine and add the correct new class
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
-        if (value >= 500000000) { tierClass = 'stat-tier-9'; }
-        else if (value >= 200000000) { tierClass = 'stat-tier-8'; }
-        else if (value >= 100000000) { tierClass = 'stat-tier-7'; }
-        else if (value >= 10000000) { tierClass = 'stat-tier-6'; }
-        else if (value >= 5000000) { tierClass = 'stat-tier-5'; }
-        else if (value >= 1000000) { tierClass = 'stat-tier-4'; }
-        else if (value >= 100000) { tierClass = 'stat-tier-3'; }
-        else if (value >= 10000) { tierClass = 'stat-tier-2'; }
-        else if (value > 0) { tierClass = 'stat-tier-1'; }
+        // New 14-tier logic
+        if (value >= 10000000000) { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
 
         if (tierClass) {
             cell.classList.add(tierClass);
@@ -109,7 +120,6 @@ function applyStatColorCoding() {
         }
     });
 }
-
 /**
  * Formats a Unix timestamp (in seconds) into a relative time string.
  * @param {number} timestampInSeconds Unix timestamp in seconds.
@@ -150,9 +160,24 @@ async function checkIfUserIsAdmin(userUid) {
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(userUid).get();
         if (!userProfileDoc.exists) return false;
+
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
-        return userPosition === 'leader' || userPosition === 'co-leader';
+        const userTornId = userProfile.tornProfileId;
+
+        // Check if user is a leader or co-leader
+        if (userPosition === 'leader' || userPosition === 'co-leader') {
+            return true;
+        }
+
+        // Check if user is in the list of designated admins
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        if (warDoc.exists) {
+            const tab4Admins = warDoc.data().tab4Admins || [];
+            return tab4Admins.includes(String(userTornId));
+        }
+
+        return false;
     } catch (error) {
         console.error("Error during admin check in TornPAs Big Brother:", error);
         return false;
@@ -240,7 +265,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
             
-            // --- MODIFIED CODE START ---
             const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
             const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
             const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
@@ -252,18 +276,33 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldown, drugCooldownClass = '';
+            let drugCooldownHtml;
+            
+            // --- START MODIFIED LOGIC FOR NUDGE BUTTON ---
             if (drugCooldownValue > 0) {
                 const hours = Math.floor(drugCooldownValue / 3600);
                 const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-                else drugCooldownClass = 'status-okay';
+                const drugCooldownText = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                const drugCooldownClass = drugCooldownValue > 18000 ? 'status-hospital' : (drugCooldownValue > 7200 ? 'status-other' : 'status-okay');
+                drugCooldownHtml = `<span class="${drugCooldownClass}">${drugCooldownText}</span>`;
             } else {
-                drugCooldown = 'None 🍁';
-                drugCooldownClass = 'status-okay';
+                if (currentUserIsAdmin) {
+                    const lastNudgeTime = localStorage.getItem(`nudgeTimestamp_${memberId}`);
+                    const now = new Date().getTime();
+                    const oneHour = 60 * 60 * 1000;
+                    const timeLeft = Math.max(0, oneHour - (now - lastNudgeTime));
+                    const cooldownMinutes = Math.ceil(timeLeft / 60000);
+
+                    if (lastNudgeTime && timeLeft > 0) {
+                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn disabled" disabled>Nudged (${cooldownMinutes}m left)</button>`;
+                    } else {
+                        drugCooldownHtml = `<button id="nudge-btn-${memberId}" class="nudge-btn" onclick="sendNudgeMessage('${memberId}', '${name}')">Nudge</button>`;
+                    }
+                } else {
+                    drugCooldownHtml = '<span class="status-okay">None 🍁</span>';
+                }
             }
+            // --- END MODIFIED LOGIC ---
 
             const statusState = tornData.status?.state || '';
             const originalDescription = tornData.status?.description || 'N/A';
@@ -287,7 +326,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
                     <td class="nerve-text hide-on-mobile">${nerve}</td>
                     <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+                    <td class="hide-on-mobile">${drugCooldownHtml}</td>
                 </tr>
             `;
         }
@@ -299,6 +338,194 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         hideLoadingMessage();
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+    }
+}
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+async function setupDiscordAdminSettings() {
+    // Check for required elements before continuing
+    const leaderControlsContainer = document.getElementById('availability-admin-controls');
+    if (!leaderControlsContainer) {
+        console.warn("Could not find leader controls container. Skipping Discord settings setup.");
+        return;
+    }
+
+    // Create the HTML structure for the button and modal
+    const settingsHtml = `
+        <div id="discordAdminSettingsContainer" class="leader-controls-row">
+            <button id="showDiscordSettingsBtn" class="action-btn">
+                <span class="icon">⚙️</span>
+                <span>Discord Settings</span>
+            </button>
+        </div>
+        <div id="discordSettingsModalOverlay" class="modal-overlay hidden">
+            <div id="discordSettingsModal" class="modal-content">
+                <div class="modal-header">
+                    <h4>Discord Integration Settings</h4>
+                    <span id="closeDiscordSettingsBtn" class="close-btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Enter the IDs for your faction's Discord server and the channel for nudges.</p>
+                    <div class="form-group">
+                        <label for="discordGuildIdInput">Discord Server ID (Guild ID):</label>
+                        <input type="text" id="discordGuildIdInput" placeholder="Paste your server ID here">
+                    </div>
+                    <div class="form-group">
+                        <label for="discordChannelIdInput">Nudge Channel ID:</label>
+                        <input type="text" id="discordChannelIdInput" placeholder="Paste your channel ID here">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveDiscordSettingsBtn" class="action-btn">Save Settings</button>
+                    <button id="cancelDiscordSettingsBtn" class="action-btn secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Append the new UI to the leader controls
+    leaderControlsContainer.insertAdjacentHTML('beforeend', settingsHtml);
+
+    // Get references to the newly created elements
+    const showSettingsBtn = document.getElementById('showDiscordSettingsBtn');
+    const modalOverlay = document.getElementById('discordSettingsModalOverlay');
+    const closeBtn = document.getElementById('closeDiscordSettingsBtn');
+    const cancelBtn = document.getElementById('cancelDiscordSettingsBtn');
+    const saveBtn = document.getElementById('saveDiscordSettingsBtn');
+    const guildIdInput = document.getElementById('discordGuildIdInput');
+    const channelIdInput = document.getElementById('discordChannelIdInput');
+
+    // Load existing settings from Firestore
+    const loadSettings = async () => {
+        try {
+            const doc = await db.collection('factionSettings').doc('discord').get();
+            if (doc.exists) {
+                const data = doc.data();
+                guildIdInput.value = data.discordGuildId || '';
+                channelIdInput.value = data.discordNudgeChannelId || '';
+            }
+        } catch (error) {
+            console.error("Error loading Discord settings:", error);
+        }
+    };
+    loadSettings();
+
+    // Event listeners for the UI
+    showSettingsBtn.addEventListener('click', () => {
+        modalOverlay.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('hidden');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('hidden');
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.add('hidden');
+        }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+
+        const guildId = guildIdInput.value.trim();
+        const channelId = channelIdInput.value.trim();
+
+        if (!guildId || !channelId) {
+            showCustomAlert('Please enter both a Server ID and a Channel ID.', 'Missing Information');
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+            return;
+        }
+        
+        try {
+            await db.collection('factionSettings').doc('discord').set({
+                discordGuildId: guildId,
+                discordNudgeChannelId: channelId,
+                lastUpdatedBy: auth.currentUser.uid,
+                lastUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            saveBtn.textContent = 'Saved! ✅';
+            modalOverlay.classList.add('hidden');
+        } catch (error) {
+            console.error('Error saving Discord settings:', error);
+            showCustomAlert('Failed to save settings. Please check the console for details.', 'Save Failed');
+            saveBtn.textContent = 'Error! ❌';
+        } finally {
+            setTimeout(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }, 2000);
+        }
+    });
+}
+
+
+/**
+ * Sends a nudge message via a backend service to the specified member's Discord.
+ * @param {string} memberId - The Torn ID of the member to nudge.
+ * @param {string} memberName - The Torn name of the member to nudge.
+ */
+async function sendNudgeMessage(memberId, memberName) {
+    if (!currentUserIsAdmin) {
+        showCustomAlert("Permission denied. Only leaders/co-leaders can send nudges.", "Permission Denied");
+        return;
+    }
+
+    const lastNudgeTime = localStorage.getItem(`nudgeTimestamp_${memberId}`);
+    const now = new Date().getTime();
+    const oneHour = 60 * 60 * 1000;
+
+    if (lastNudgeTime && (now - lastNudgeTime) < oneHour) {
+        showCustomAlert(`You can only nudge ${memberName} once per hour. Please wait.`, "Nudge Cooldown Active");
+        return;
+    }
+
+    const nudgeButton = document.getElementById(`nudge-btn-${memberId}`);
+    if (nudgeButton) {
+        nudgeButton.textContent = 'Sending...';
+        nudgeButton.disabled = true;
+    }
+
+    try {
+        // Here's the key part: This calls a Netlify function on your server.
+        // You will need to set up this function to handle the Discord API part.
+        const backendUrl = `/.netlify/functions/send-nudge-message`;
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                memberId: memberId,
+                memberName: memberName,
+                leaderName: currentTornUserName, // The name of the leader who clicked it
+            })
+        });
+
+        if (!response.ok) {
+            const errorResult = await response.json();
+            throw new Error(errorResult.message || `Backend service responded with an error: ${response.status}`);
+        }
+
+        localStorage.setItem(`nudgeTimestamp_${memberId}`, now);
+        updateFriendlyMembersTable(userApiKey, currentFirebaseUserUid); // Refresh the table to show the cooldown status
+        
+        showCustomAlert(`Nudge message successfully sent to ${memberName}!`, "Nudge Sent");
+        
+    } catch (error) {
+        console.error("Error sending nudge message:", error);
+        if (nudgeButton) {
+            nudgeButton.textContent = 'Error';
+            nudgeButton.disabled = false;
+        }
+        showCustomAlert(`Failed to send nudge: ${error.message}. Please check the console.`, "Send Failed");
     }
 }
 
@@ -900,6 +1127,82 @@ function downloadCurrentTabAsImage() {
         console.log("Cleaned up temporary render container.");
     });
 }
+function managePortraitBlocker() {
+    // This condition is now more specific to target phones and exclude tablets
+    const isMobilePortrait = window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
+    let blocker = document.getElementById('portrait-blocker');
+    const mainContentArea = document.querySelector('.page-specific-content-area');
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
+
+    if (isMobilePortrait) {
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'portrait-blocker';
+            blocker.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #1e1e1e;
+                color: #f0f0f0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                font-family: sans-serif;
+                font-size: 1.5em;
+                z-index: 99999;
+            `;
+            blocker.innerHTML = `
+                <h2>Please Rotate Your Device</h2>
+                <p>For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-button">Return to Home</button>
+            `;
+            document.body.appendChild(blocker);
+
+            const returnHomeButton = document.getElementById('return-home-button');
+            if (returnHomeButton) {
+                Object.assign(returnHomeButton.style, {
+                    backgroundColor: '#007bff',
+                    color: 'black',
+                    padding: '8px 15px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    marginTop: '20px',
+                    textDecoration: 'none'
+                });
+                returnHomeButton.addEventListener('click', () => {
+                    window.location.href = 'home.html'; 
+                });
+            }
+        }
+        
+        if (header) header.style.display = 'none';
+        if (mainContentArea) mainContentArea.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        document.body.style.overflow = 'hidden';
+
+    } else {
+        if (blocker) {
+            blocker.remove();
+        }
+
+        if (header) header.style.display = '';
+        if (mainContentArea) mainContentArea.style.display = '';
+        if (footer) footer.style.display = '';
+        document.body.style.overflow = '';
+    }
+}
+
+// Attach the listener to the window resize and orientationchange events
+window.addEventListener('resize', managePortraitBlocker);
+window.addEventListener('orientationchange', managePortraitBlocker);
+window.addEventListener('DOMContentLoaded', managePortraitBlocker);
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -1004,6 +1307,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
+					
+					if (currentUserIsAdmin) {
+                      setupDiscordAdminSettings(); // <--- ADD THIS LINE HERE
+                      }
                     
                     if (userFactionIdFromProfile) {
                         // Setup listener only if faction ID exists
