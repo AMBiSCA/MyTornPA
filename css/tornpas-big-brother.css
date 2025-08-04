@@ -265,30 +265,39 @@ h2 {
     font-weight: bold;
 }
 
-/* --- STYLES FOR INDIVIDUAL BATTLE STATS (using .stat-tier classes) --- */
+/* --- STYLES FOR INDIVIDUAL BATTLE STATS (14 Tiers) --- */
 
-/* Default State for Stat Cells */
-.table-striped > tbody > tr > td.stat-tier-1 { background: #c8efff; color: #000000; } /* Lightest Blue */
+/* Default State */
+.table-striped > tbody > tr > td.stat-tier-1 { background: #c8efff; color: #000000; }
 .table-striped > tbody > tr > td.stat-tier-2 { background: #b5e4ff; color: #000000; }
-.table-striped > tbody > tr > td.stat-tier-3 { background: #90ceff; color: #000000; }
-.table-striped > tbody > tr > td.stat-tier-4 { background: #9bb2de; color: #000000; }
-.table-striped > tbody > tr > td.stat-tier-5 { background: #aaa1c5; color: #000000; }
-.table-striped > tbody > tr > td.stat-tier-6 { background: #d57482; color: #000000; } /* First Reddish Tone */
-.table-striped > tbody > tr > td.stat-tier-7 { background: #db484c; color: #000000; }
-.table-striped > tbody > tr > td.stat-tier-8 { background: #c7292c; color: #FFFFFF; }
-.table-striped > tbody > tr > td.stat-tier-9 { background: #bc161a; color: #FFFFFF; } /* Darkest Red */
+.table-striped > tbody > tr > td.stat-tier-3 { background: #a3d9ff; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-4 { background: #90ceff; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-5 { background: #8dc1f4; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-6 { background: #9bb2de; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-7 { background: #aaa1c5; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-8 { background: #bc8ea9; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-9 { background: #d57482; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-10 { background: #e4575a; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-11 { background: #db484c; color: #000000; }
+.table-striped > tbody > tr > td.stat-tier-12 { background: #d2393d; color: #FFFFFF; }
+.table-striped > tbody > tr > td.stat-tier-13 { background: #c7292c; color: #FFFFFF; }
+.table-striped > tbody > tr > td.stat-tier-14 { background: #bc161a; color: #FFFFFF; }
 
-
-/* Hover State for Stat Cells */
+/* Hover State */
 .table-striped tbody tr:hover td.stat-tier-1 { background: #a0bfcc; color: #000000; }
 .table-striped tbody tr:hover td.stat-tier-2 { background: #90b6cc; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-3 { background: #73a4cc; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-4 { background: #7c8eb1; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-5 { background: #88809d; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-6 { background: #aa5c68; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-7 { background: #af393c; color: #000000; }
-.table-striped tbody tr:hover td.stat-tier-8 { background: #9f2023; color: #FFFFFF; }
-.table-striped tbody tr:hover td.stat-tier-9 { background: #961114; color: #FFFFFF; }
+.table-striped tbody tr:hover td.stat-tier-3 { background: #82adcc; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-4 { background: #73a4cc; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-5 { background: #709ac3; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-6 { background: #7c8eb1; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-7 { background: #88809d; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-8 { background: #967187; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-9 { background: #aa5c68; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-10 { background: #b64548; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-11 { background: #af393c; color: #000000; }
+.table-striped tbody tr:hover td.stat-tier-12 { background: #a82d30; color: #FFFFFF; }
+.table-striped tbody tr:hover td.stat-tier-13 { background: #9f2023; color: #FFFFFF; }
+.table-striped tbody tr:hover td.stat-tier-14 { background: #961114; color: #FFFFFF; }
 
 
 .friendly-members-table tbody td.status-okay {

@@ -82,16 +82,14 @@ function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
     if (!table) return;
 
-    // --- NEW LINE ADDED HERE ---
     // This adds the 'table-striped' class to your table so the CSS rules will work.
     table.classList.add('table-striped');
-    // --- END OF NEW LINE ---
 
     const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
 
     statCells.forEach(cell => {
-        // First, remove any existing tier classes to ensure a clean slate
-        for (let i = 1; i <= 9; i++) {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
             cell.classList.remove(`stat-tier-${i}`);
         }
         cell.classList.remove('stat-cell');
@@ -100,15 +98,21 @@ function applyStatColorCoding() {
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
-        if (value >= 500000000) { tierClass = 'stat-tier-9'; }
-        else if (value >= 200000000) { tierClass = 'stat-tier-8'; }
-        else if (value >= 100000000) { tierClass = 'stat-tier-7'; }
-        else if (value >= 10000000) { tierClass = 'stat-tier-6'; }
-        else if (value >= 5000000) { tierClass = 'stat-tier-5'; }
-        else if (value >= 1000000) { tierClass = 'stat-tier-4'; }
-        else if (value >= 100000) { tierClass = 'stat-tier-3'; }
-        else if (value >= 10000) { tierClass = 'stat-tier-2'; }
-        else if (value > 0) { tierClass = 'stat-tier-1'; }
+        // New 14-tier logic
+        if (value >= 10000000000) { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
 
         if (tierClass) {
             cell.classList.add(tierClass);
