@@ -1114,7 +1114,7 @@ let orientationOverlay = null;
 /**
  * Creates and adds a hidden overlay to the page.
  * This overlay will be used to ask the user to rotate their tablet.
- * NEW: Styles are updated to match the landscape blocker's theme.
+ * NEW: A "Go to Homepage" button has been added.
  */
 function createOrientationOverlay() {
     orientationOverlay = document.createElement('div');
@@ -1138,11 +1138,15 @@ function createOrientationOverlay() {
         zIndex: '99999'
     });
 
-    // Use the same HTML structure for the message
-    // Note: The text is adjusted to ask for LANDSCAPE mode
+    // Use the same HTML structure for the message, now with a button
     orientationOverlay.innerHTML = `
-        <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
-        <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
+        <div>
+            <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
+            <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
+            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Go to Homepage
+            </a>
+        </div>
     `;
     document.body.appendChild(orientationOverlay);
 }
