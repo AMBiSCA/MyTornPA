@@ -162,7 +162,10 @@ async function checkIfUserIsAdmin(userUid) {
 // --- Main Data Fetching and Display Function for the Current Stats Table ---
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
-    if (!tbody) return;
+    if (!tbody) {
+        hideLoadingMessage(); // Failsafe in case tbody is missing
+        return;
+    }
 
     showLoadingMessage();
 
