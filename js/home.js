@@ -1469,7 +1469,8 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
+    // This condition now checks for landscape up to 1368px wide
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1368;
     let blocker = document.getElementById('landscape-blocker');
 
     if (isMobileLandscape) {
@@ -1521,9 +1522,8 @@ function toggleLandscapeBlocker() {
         const mainContent = document.getElementById('mainHomepageContent');
         if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
         
-        // --- THIS IS THE CORRECTED PART ---
         const footer = document.querySelector('footer');
-        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
+        if (footer) footer.style.display = ''; // This lets the CSS file control the footer
     }
 }
 // Run the function on page load and window resize
