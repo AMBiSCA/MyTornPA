@@ -2019,16 +2019,16 @@ body {
     }
 
     /* --- BEGIN CHAT SYSTEM MOBILE ADJUSTMENTS --- */
-    #tornpa-chat-system {
-        bottom: 0px !important; /* Keep it fixed at the very bottom */
-        right: 0px !important;
-        left: 0px !important; /* Span full width at the bottom */
-        width: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-end !important; /* Aligns children to the right */
-        z-index: 1000 !important; /* Ensure it's above other page content */
-    }
+   #tornpa-chat-system {
+    bottom: 0px !important;
+    right: 0px !important;
+    left: 0px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* CHANGED: This centers the chat bar content */
+    z-index: 1000 !important;
+}
 
    #chat-bar-collapsed {
     -webkit-tap-highlight-color: transparent !important; /* This disables the tap flash */
