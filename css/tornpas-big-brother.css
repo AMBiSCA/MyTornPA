@@ -212,7 +212,7 @@ h2 {
 
 .admin-controls-placeholder {
     position: absolute;
-    top: -45px;
+    top: -50px;
     left: 0px;
     z-index: 10;
 }
@@ -233,6 +233,36 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
+
+/* This is the container for the modal pop-up */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* This is the modal's box */
+.modal-content {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    color: #fff;
+}
+
+/* This is the most important part that makes the modal appear */
+.hidden {
+    display: none !important;
+}
 /* ==========================================================================
    Download Button Styles
    ========================================================================== */
