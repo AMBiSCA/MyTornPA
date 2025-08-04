@@ -284,22 +284,6 @@ h2 {
 .table-striped > tbody > tr > td.total-color-13 { background: #c7292c; color: #FFFFFF; }
 .table-striped > tbody > tr > td.total-color-14 { background: #bc161a; color: #FFFFFF; }
 
-/* Hover State for Total Column Cells */
-.table-striped tbody tr:hover td.total-color-01 { background: #a0bfcc; color: #000000; }
-.table-striped tbody tr:hover td.total-color-02 { background: #90b6cc; color: #000000; }
-.table-striped tbody tr:hover td.total-color-03 { background: #82adcc; color: #000000; }
-.table-striped tbody tr:hover td.total-color-04 { background: #73a4cc; color: #000000; }
-.table-striped tbody tr:hover td.total-color-05 { background: #709ac3; color: #000000; }
-.table-striped tbody tr:hover td.total-color-06 { background: #7c8eb1; color: #000000; }
-.table-striped tbody tr:hover td.total-color-07 { background: #88809d; color: #000000; }
-.table-striped tbody tr:hover td.total-color-08 { background: #967187; color: #000000; }
-.table-striped tbody tr:hover td.total-color-09 { background: #aa5c68; color: #000000; }
-.table-striped tbody tr:hover td.total-color-10 { background: #b64548; color: #000000; }
-.table-striped tbody tr:hover td.total-color-11 { background: #af393c; color: #000000; }
-.table-striped tbody tr:hover td.total-color-12 { background: #a82d30; color: #FFFFFF; }
-.table-striped tbody tr:hover td.total-color-13 { background: #9f2023; color: #FFFFFF; }
-.table-striped tbody tr:hover td.total-color-14 { background: #961114; color: #FFFFFF; }
-
 .friendly-members-table tbody td.status-okay {
     color: #28a745 !important;
 }
