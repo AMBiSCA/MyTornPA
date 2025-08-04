@@ -100,19 +100,19 @@ function applyStatColorCoding() {
 
         // New 14-tier logic
         if (value >= 10000000000) { tierClass = 'stat-tier-14'; } // 10b+
-        else if (value >= 5000000000) { tierClass = 'stat-tier-13'; } // 5b
-        else if (value >= 2500000000) { tierClass = 'stat-tier-12'; } // 2.5b
-        else if (value >= 1000000000) { tierClass = 'stat-tier-11'; } // 1b
-        else if (value >= 500000000) { tierClass = 'stat-tier-10'; } // 500m
-        else if (value >= 250000000) { tierClass = 'stat-tier-9'; } // 250m
-        else if (value >= 100000000) { tierClass = 'stat-tier-8'; } // 100m
-        else if (value >= 50000000) { tierClass = 'stat-tier-7'; } // 50m
-        else if (value >= 10000000) { tierClass = 'stat-tier-6'; } // 10m
-        else if (value >= 5000000) { tierClass = 'stat-tier-5'; } // 5m
-        else if (value >= 1000000) { tierClass = 'stat-tier-4'; } // 1m
-        else if (value >= 100000) { tierClass = 'stat-tier-3'; } // 100k
-        else if (value >= 10000) { tierClass = 'stat-tier-2'; } // 10k
-        else if (value > 0) { tierClass = 'stat-tier-1'; }
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
 
         if (tierClass) {
             cell.classList.add(tierClass);
@@ -619,7 +619,7 @@ async function startTrackingGains() {
 
     try {
         // Use userFactionIdFromProfile directly as it's already fetched and validated.
-        const userFactionId = userFactionIdFromProfile;
+        const userFactionId = userFactionIdFromProfile; 
         
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}&comment=MyTornPA_BigBrother_Snapshot`;
         const factionResponse = await fetch(factionMembersApiUrl);
@@ -796,7 +796,7 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
         baselineStatsCache = {};
         updateGainTrackingUI();
         if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
-            displayGainsTable();
+             displayGainsTable();
         }
     });
     console.log(`Real-time tracking status listener set up for faction: ${userFactionId}`);
@@ -907,7 +907,7 @@ async function displayGainsTable() {
                     initialTotal: baseline.total
                 });
             } else if (current && !baseline) {
-                membersWithGains.push({
+                 membersWithGains.push({
                     name: memberTornData.name,
                     memberId: memberId,
                     strengthGain: current.strength, // If no baseline, treat current as "gain" for display
@@ -1083,7 +1083,7 @@ function downloadCurrentTabAsImage() {
                 else if (clonedCell.classList.contains('gain-neutral')) clonedCell.style.color = '#999999'; // Grey for neutral gains
                 else {
                     // Fallback for other text colors if not explicitly set by gain classes
-                    clonedCell.style.color = '#fff';
+                    clonedCell.style.color = '#fff'; 
                 }
                 
 
@@ -1177,7 +1177,7 @@ function managePortraitBlocker() {
                     textDecoration: 'none'
                 });
                 returnHomeButton.addEventListener('click', () => {
-                    window.location.href = 'home.html';
+                    window.location.href = 'home.html'; 
                 });
             }
         }
@@ -1278,12 +1278,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupRealtimeTrackingStatusListener(userFactionIdFromProfile); // Pass the faction ID
             } else {
                 // If no user or faction, update UI to reflect that tracking cannot happen
-                updateGainTrackingUI();
-                console.warn("User has no faction ID. Gains tracking features might be limited.");
+                updateGainTrackingUI(); 
+                displayGainsTable(); // Display "No active session" or similar based on state
             }
             // Always call displayGainsTable to update the content based on current session state
             // (it will show 'No active session' if activeTrackingSessionId is null)
-            displayGainsTable();
+            displayGainsTable(); 
         }
     }
 
@@ -1307,17 +1307,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     userFactionIdFromProfile = userData.faction_id || null; // Ensure this is set
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-                    
-                    if (currentUserIsAdmin) {
-                     setupDiscordAdminSettings(); // <--- ADD THIS LINE HERE
-                     }
-                    
-                    if (userFactionIdFromProfile) {
-                        // Setup listener only if faction ID exists
-                        setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-                    } else {
+					
+                      
+					  if (currentUserIsAdmin) {
+    if (document.getElementById('availability-admin-controls')) {
+        setupDiscordAdminSettings();
+    }
+}
+					  
                         // If no faction ID, ensure UI is updated correctly
-                        updateGainTrackingUI();
+                        updateGainTrackingUI(); 
                         console.warn("User has no faction ID. Gains tracking features might be limited.");
                     }
 
@@ -1376,6 +1375,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+	
+	
 
     // --- Event Listeners for Gain Tracking Buttons ---
     startTrackingBtn.addEventListener('click', () => {
