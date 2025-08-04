@@ -82,14 +82,21 @@ function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
     if (!table) return;
 
+    // --- NEW LINE ADDED HERE ---
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+    // --- END OF NEW LINE ---
+
     const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
 
     statCells.forEach(cell => {
+        // First, remove any existing tier classes to ensure a clean slate
         for (let i = 1; i <= 9; i++) {
             cell.classList.remove(`stat-tier-${i}`);
         }
         cell.classList.remove('stat-cell');
 
+        // Now, determine and add the correct new class
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
@@ -109,7 +116,6 @@ function applyStatColorCoding() {
         }
     });
 }
-
 /**
  * Formats a Unix timestamp (in seconds) into a relative time string.
  * @param {number} timestampInSeconds Unix timestamp in seconds.
