@@ -1308,13 +1308,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
 					
-                      
-					  if (currentUserIsAdmin) {
+					if (currentUserIsAdmin) {
     if (document.getElementById('availability-admin-controls')) {
         setupDiscordAdminSettings();
     }
 }
-					  
+                    
+                    if (userFactionIdFromProfile) {
+                        // Setup listener only if faction ID exists
+                        setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+                    } else {
                         // If no faction ID, ensure UI is updated correctly
                         updateGainTrackingUI(); 
                         console.warn("User has no faction ID. Gains tracking features might be limited.");
