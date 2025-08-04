@@ -372,8 +372,8 @@ h2 {
 /* This is the new style for the cog button container */
 .admin-controls-placeholder {
     position: absolute;
-    top: -80px; /* Adjust this value to get the exact position you want */
-    left: 40px; /* Adjust this value to get the exact position you want */
+    top: -60px; /* Adjust this value to get the exact position you want */
+    left: 80px; /* Adjust this value to get the exact position you want */
 }
 
 /* Styles for the modal overlay and the hidden class */
