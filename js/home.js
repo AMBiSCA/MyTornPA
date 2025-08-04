@@ -1468,11 +1468,6 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
  
 }); // End of DOMContentLoaded
 
-
-// Run the function on page load and window resize
-window.addEventListener('load', toggleLandscapeBlocker);
-window.addEventListener('resize', toggleLandscapeBlocker);
-
 function manageDeviceLayout() {
     const isLandscape = window.innerWidth > window.innerHeight;
     const isTabletOrSmaller = window.innerWidth <= 1368;
@@ -1495,27 +1490,38 @@ function manageDeviceLayout() {
             });
             document.body.appendChild(blocker);
         }
-        document.body.style.overflow = 'hidden'; // Hide scrollbar for blocker
-        return; // Stop the function here
+        
+        // Hide main page content when blocker is active
+        document.querySelector('header').style.display = 'none';
+        const mainContent = document.getElementById('mainHomepageContent');
+        if (mainContent) mainContent.style.display = 'none';
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = 'none';
+
+    } else {
+        // If we get here, it means we are NOT in landscape on a small device
+
+        // Remove blocker if it exists
+        if (blocker) {
+            blocker.remove();
+        }
+
+        // --- THIS IS THE MISSING PART ---
+        // Re-show main page content
+        document.querySelector('header').style.display = '';
+        const mainContent = document.getElementById('mainHomepageContent');
+        if (mainContent) mainContent.style.display = '';
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = ''; 
+        // --- END OF MISSING PART ---
     }
 
-    // If we get here, it means we are NOT in landscape on a small device
-
-    // Remove blocker if it exists
-    if (blocker) {
-        blocker.remove();
-    }
-
-    // Scenario 2: On a tablet/phone in portrait (or a wide desktop)
+    // This handles the scrolling lock separately
     if (isTabletOrSmaller) {
-        // Not landscape, so disable scrolling because content fits
+        // Not landscape (or blocker is gone), so disable scrolling because content fits
         document.body.style.overflow = 'hidden';
     } else {
         // It's a large desktop screen, allow scrolling
         document.body.style.overflow = '';
     }
 }
-
-// Run the new function on page load and window resize
-window.addEventListener('load', manageDeviceLayout);
-window.addEventListener('resize', manageDeviceLayout);
