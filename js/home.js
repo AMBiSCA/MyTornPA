@@ -1466,6 +1466,26 @@ const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
 	
  hidePopularToolsOnMobile();
  
+ function initializeNoScroll() {
+    const mediaQuery = window.matchMedia('(max-width: 1368px)');
+
+    const handleScrollLock = (e) => {
+        if (e.matches) {
+            // Screen is 1368px or less, so disable scrolling
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Screen is wider than 1368px, so allow scrolling
+            document.body.style.overflow = '';
+        }
+    };
+
+    // Run the check once when the page loads
+    handleScrollLock(mediaQuery);
+
+    // Also run the check if the window is resized
+    mediaQuery.addEventListener('change', handleScrollLock);
+}
+ 
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
@@ -1530,22 +1550,3 @@ function toggleLandscapeBlocker() {
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
 
-function initializeNoScroll() {
-    const mediaQuery = window.matchMedia('(max-width: 1368px)');
-
-    const handleScrollLock = (e) => {
-        if (e.matches) {
-            // Screen is 1368px or less, so disable scrolling
-            document.body.style.overflow = 'hidden';
-        } else {
-            // Screen is wider than 1368px, so allow scrolling
-            document.body.style.overflow = '';
-        }
-    };
-
-    // Run the check once when the page loads
-    handleScrollLock(mediaQuery);
-
-    // Also run the check if the window is resized
-    mediaQuery.addEventListener('change', handleScrollLock);
-}
