@@ -212,7 +212,7 @@ h2 {
 
 .admin-controls-placeholder {
     position: absolute;
-    top: 20px;
+    top: 80px;
     left: 20px;
     z-index: 10;
 }
