@@ -233,48 +233,6 @@ h2 {
     background-color: #4f5bce; /* A slightly darker blue on hover */
 }
 
-.download-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: black;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-    z-index: 10;
-}
-
-.download-button:hover {
-    background-color: #45a049;
-}
-
-/* Positioning for the Discord button's container */
-.admin-controls-placeholder {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-}
-
-/* This is the style for the button itself, matching your download button */
-#showDiscordSettingsBtn {
-    padding: 8px 15px;
-    background-color: #5865F2; /* Discord's brand color */
-    color: white; /* White text for contrast on the dark blue */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-}
-
-#showDiscordSettingsBtn:hover {
-    background-color: #4f5bce; /* A slightly darker blue on hover */
-}
 
 
 /* ==========================================================================
