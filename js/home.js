@@ -1469,7 +1469,7 @@ function hidePopularToolsOnMobile() {
 }); // End of DOMContentLoaded
 
 function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1920;
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
     let blocker = document.getElementById('landscape-blocker');
 
     if (isMobileLandscape) {
