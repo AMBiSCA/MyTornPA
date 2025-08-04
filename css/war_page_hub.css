@@ -4685,8 +4685,8 @@ margin-right: auto !important;
 .stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
 
 /* ==================================================================
-   Friendly Members Table Styles (Fixed Header Version)
-   ================================================================== */
+   Friendly Members Table Styles (Fixed Header Version)
+   ================================================================== */
 
 /* Parent container for the two tables to keep them aligned */
 #friendlyMembersListContainer {
@@ -4751,17 +4751,3 @@ margin-right: auto !important;
 #friendly-members-table-body tbody tr:hover {
     background-color: #38383e;
 }
-
-/* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
-#friendly-members-table th:nth-child(1), #friendly-members-table-body td:nth-child(1) { width: 11% !important; }
-#friendly-members-table th:nth-child(2), #friendly-members-table-body td:nth-child(2) { width: 8% !important; }
-#friendly-members-table th:nth-child(3), #friendly-members-table-body td:nth-child(3) { width: 8% !important; }
-#friendly-members-table th:nth-child(4), #friendly-members-table-body td:nth-child(4) { width: 8% !important; }
-#friendly-members-table th:nth-child(5), #friendly-members-table-body td:nth-child(5) { width: 8% !important; }
-#friendly-members-table th:nth-child(6), #friendly-members-table-body td:nth-child(6) { width: 8% !important; }
-#friendly-members-table th:nth-child(7), #friendly-members-table-body td:nth-child(7) { width: 7% !important; }
-#friendly-members-table th:nth-child(8), #friendly-members-table-body td:nth-child(8) { width: 13% !important; }
-#friendly-members-table th:nth-child(9), #friendly-members-table-body td:nth-child(9) { width: 7% !important; }
-#friendly-members-table th:nth-child(10),#friendly-members-table-body td:nth-child(10){ width: 7% !important; }
-#friendly-members-table th:nth-child(11),#friendly-members-table-body td:nth-child(11){ width: 7% !important; }
-#friendly-members-table th:nth-child(12),#friendly-members-table-body td:nth-child(12){ width: 8% !important; }

@@ -2113,7 +2113,7 @@ input:checked + .slider:before {
     margin: 0 !important;
     background-color: #1b263b !important;
     border-top: 2px solid black;
-	border-Bottom: 2px solid black;
+	border-Bottom: 3px solid black;
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
@@ -2361,12 +2361,15 @@ footer.footer {
     position: static !important;
     width: 100% !important;
     border-radius: 0 !important;
-    padding: 8px 10px !important;
-    
-    /* --- ADDED LINES --- */
+    padding: 8px 10px !important;   
     display: flex; /* Make sure it's a flex container */
     justify-content: center !important; /* This centers the icons */
     gap: 20px !important; /* This adds space between them */
+	border-top: 2px solid black;
+	border-Bottom: 3px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+	
   }
   /* Add space to the bottom of the page so the bar doesn't hide content */
   body {
