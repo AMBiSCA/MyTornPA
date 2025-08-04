@@ -4602,42 +4602,41 @@ margin-right: auto !important;
    BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
 
-/* This single rule makes the font black and bold on ALL tiers */
 #friendly-members-table td.stat-cell {
-    color: black !important;
     font-weight: bold;
 }
 
-/* Tier 1: < 10k */
-.stat-tier-1 { background-color: #F5F5F5; } /* Light Grey */
+/* --- Default State (14 Tiers) --- */
+#friendly-members-table td.stat-tier-1 { background-color: #c8efff; color: #000000; }
+#friendly-members-table td.stat-tier-2 { background-color: #b5e4ff; color: #000000; }
+#friendly-members-table td.stat-tier-3 { background-color: #a3d9ff; color: #000000; }
+#friendly-members-table td.stat-tier-4 { background-color: #90ceff; color: #000000; }
+#friendly-members-table td.stat-tier-5 { background-color: #8dc1f4; color: #000000; }
+#friendly-members-table td.stat-tier-6 { background-color: #9bb2de; color: #000000; }
+#friendly-members-table td.stat-tier-7 { background-color: #aaa1c5; color: #000000; }
+#friendly-members-table td.stat-tier-8 { background-color: #bc8ea9; color: #000000; }
+#friendly-members-table td.stat-tier-9 { background-color: #d57482; color: #000000; }
+#friendly-members-table td.stat-tier-10 { background-color: #e4575a; color: #000000; }
+#friendly-members-table td.stat-tier-11 { background-color: #db484c; color: #000000; }
+#friendly-members-table td.stat-tier-12 { background-color: #d2393d; color: #FFFFFF; }
+#friendly-members-table td.stat-tier-13 { background-color: #c7292c; color: #FFFFFF; }
+#friendly-members-table td.stat-tier-14 { background-color: #bc161a; color: #FFFFFF; }
 
-/* Tier 2: 10k to 100k */
-.stat-tier-2 { background-color: #E3F2FD; } /* Pale Blue */
-
-/* Tier 3: 100k to 1M */
-.stat-tier-3 { background-color: #BBDEFB; } /* Light Blue */
-
-/* Tier 4: 1M to 5M */
-.stat-tier-4 { background-color: #FFCDD2; } /* Light Salmon / Pinkish-Red */
-
-/* Tier 5: 5M to 10M */
-.stat-tier-5 { background-color: #EF9A9A; } /* Salmon / Light Red */
-
-/* Tier 6: 10M to 100M */
-.stat-tier-6 { background-color: #E57373; } /* Coral / Orangey-Red */
-
-/* Tier 7: 100M to 200M */
-.stat-tier-7 { background-color: #F44336; } /* Standard Red */
-
-/* Tier 8: 200M to 500M */
-.stat-tier-8 { background-color: #D32F2F; } /* Darker Red (Crimson) */
-
-/* Tier 9: > 500M */
-.stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
-
-/* ==================================================================
-   Friendly Members Table Styles (Fixed Header Version)
-   ================================================================== */
+/* --- Hover State (14 Tiers) --- */
+#friendly-members-table tr:hover td.stat-tier-1 { background-color: #a0bfcc; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-2 { background-color: #90b6cc; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-3 { background-color: #82adcc; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-4 { background-color: #73a4cc; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-5 { background-color: #709ac3; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-6 { background-color: #7c8eb1; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-7 { background-color: #88809d; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-8 { background-color: #967187; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-9 { background-color: #aa5c68; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-10 { background-color: #b64548; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-11 { background-color: #af393c; color: #000000; }
+#friendly-members-table tr:hover td.stat-tier-12 { background-color: #a82d30; color: #FFFFFF; }
+#friendly-members-table tr:hover td.stat-tier-13 { background-color: #9f2023; color: #FFFFFF; }
+#friendly-members-table tr:hover td.stat-tier-14 { background-color: #961114; color: #FFFFFF; }
 #friendly-members-panel {
     display: flex;
     flex-direction: column;
