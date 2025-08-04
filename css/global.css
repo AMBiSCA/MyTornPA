@@ -286,7 +286,7 @@ footer.footer > p {
 
 /* General Styles for common HTML elements inside main content sections */
 main { /* General main content area styling - might be used on home.html */
-    max-width: 1500px; margin: 20px auto; padding: 20px;
+    max-width: 1500px; margin: 5px auto; padding: 20px;
     background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
     width: 90%;
 }
