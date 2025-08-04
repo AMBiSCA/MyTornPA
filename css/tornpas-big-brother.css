@@ -490,6 +490,7 @@ h2 {
     }
 
     .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
+    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
     .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
     .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
     .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
