@@ -1554,7 +1554,8 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 function manageDeviceLayout() {
     const isLandscape = window.innerWidth > window.innerHeight;
-    const isTabletOrSmaller = window.innerWidth <= 1368;
+    // This now uses the correct width for your tablet
+    const isTabletOrSmaller = window.innerWidth <= 1920; 
     let blocker = document.getElementById('landscape-blocker');
 
     // Scenario 1: On a tablet/phone in landscape mode
@@ -1583,7 +1584,7 @@ function manageDeviceLayout() {
         if (footer) footer.style.display = 'none';
 
     } else {
-        // If we get here, it means we are NOT in landscape on a small device
+        // Not in landscape on a small device
 
         // Remove blocker if it exists
         if (blocker) {
@@ -1598,9 +1599,9 @@ function manageDeviceLayout() {
         if (footer) footer.style.display = ''; 
     }
 
-    // This handles the scrolling lock separately
+    // This handles the scrolling lock based on the correct width
     if (isTabletOrSmaller) {
-        // Not landscape (or blocker is gone), so disable scrolling because content fits
+        // Disable scrolling because content fits
         document.body.style.overflow = 'hidden';
     } else {
         // It's a large desktop screen, allow scrolling
