@@ -577,6 +577,9 @@ footer.footer > p {
         padding-top: 50px;    /* Reduces the top gap */
         padding-bottom: -40px; /* Reduces the bottom gap */
     }
+.page-specific-content-area {
+        justify-content: center; /* This will center the content vertically */
+    }
 }
 
 /* --- Responsive Button Text for Travel Page --- */
