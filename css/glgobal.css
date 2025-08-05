@@ -10,6 +10,9 @@ html, body {
     color: #eee; /* Default text color for the whole site */
 }
 
+
+
+
 body {
     display: flex;
     flex-direction: column;
@@ -42,24 +45,22 @@ body::before {
     z-index: -1;
 }
 
-/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) - Desktop */
-/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY ON DESKTOP */
-::-webkit-scrollbar {
-    width: 10px; height: 10px;
-}
-::-webkit-scrollbar-track {
-    background: #2b2b2b; border-radius: 5px;
-}
-::-webkit-scrollbar-thumb {
-    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
-}
-::-webkit-scrollbar-thumb:hover {
-    background-color: #00a8ff;
-}
-::-webkit-scrollbar-corner {
-    background: #222;
+
+/* Hides scrollbar for Firefox and IE/Edge on ALL elements */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
+/* Hides scrollbar for Webkit browsers on ALL elements */
+*::-webkit-scrollbar {
+  display: none;
+}
+/* For Firefox */
+/* This hides the scrollbar */
+html {
+  scrollbar-width: none;
+}
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
@@ -199,7 +200,7 @@ header {
     overflow-y: auto; max-height: 300px; padding: 0;
 }
 .header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #00a8ff; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: white; border-radius: 0 8px 8px 0; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
 .dropdown-content.show { display: block; } /* This is what your JS toggles */
@@ -470,18 +471,14 @@ ul li:last-child { border-bottom: none; }
     justify-content: center;
 }
 
+.chat-bar-icon:first-child {
+    margin-left: 27px !important;
+}
+
 .chat-bar-icon .chat-icon-text {
     font-size: 0.8em; /* Make text slightly smaller than icon */
     margin-left: 5px; /* Space between icon and text */
     display: none; /* Hide text by default in collapsed bar to save space */
-}
-
-#chat-bar-collapsed:hover {
-    background-color: #415a77; /* Hover for the entire bar */
-  
-}
-#chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
-    display: inline; /* Show text on hover of the entire collapsed bar */
 }
 
 
@@ -501,10 +498,102 @@ ul li:last-child { border-bottom: none; }
     overflow: hidden;
 }
 
+/* Specific styling for Faction, Alliance, War, and Global chat panels */
+#faction-chat-panel,
+#alliance-chat-panel,
+#war-chat-panel,
+#global-chat-panel { /* NEW: Global Chat panel */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#chat-display-area,
+#alliance-chat-display-area,
+#war-chat-display-area,
+#global-chat-display-area { /* NEW: Global chat display area */
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+/* Styles for the chat display area scrollbar */
+#chat-display-area::-webkit-scrollbar,
+#alliance-chat-display-area::-webkit-scrollbar,
+#war-chat-display-area::-webkit-scrollbar,
+#global-chat-display-area::-webkit-scrollbar, /* NEW: Global chat scrollbar */
+.overview-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-display-area::-webkit-scrollbar-track,
+#alliance-chat-display-area::-webkit-scrollbar-track,
+#war-chat-display-area::-webkit-scrollbar-track,
+#global-chat-display-area::-webkit-scrollbar-track, /* NEW: Global chat scrollbar track */
+.overview-list-container::-webkit-scrollbar-track {
+    background: #1b263b;
+    border-radius: 10px;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb,
+#alliance-chat-display-area::-webkit-scrollbar-thumb,
+#war-chat-display-area::-webkit-scrollbar-thumb,
+#global-chat-display-area::-webkit-scrollbar-thumb, /* NEW: Global chat scrollbar thumb */
+.overview-list-container::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb:hover,
+#alliance-chat-display-area::-webkit-scrollbar-thumb:hover,
+#war-chat-display-area::-webkit-scrollbar-thumb:hover,
+#global-chat-display-area::-webkit-scrollbar-thumb:hover, /* NEW: Global chat hover thumb */
+.overview-list-container::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0;
+}
+
+.chat-text-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.chat-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.chat-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
 /* A utility class to hide elements */
 .hidden {
     display: none !important; /* Use !important to ensure it overrides other display properties */
 }
+
+
+
 
 /* ======================================= */
 /* ====== NEW TAB SYSTEM STYLES ========== */
@@ -1796,6 +1885,21 @@ input:checked + .slider:before {
     display: none;
 }
 
+@media only screen and (max-width: 991px) {
+    #globalfooterplaceholder {
+        display: none !important;
+    }
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+        display: none !important;
+    }
+}
+/* ... */
+@media only screen and (max-width: 991px) {
+    body:not(.page-index) .footer {
+        display: none !important;
+    }
+}
+
 /* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
 @media only screen and (max-width: 991px) {
     #globalfooterplaceholder {
@@ -1820,7 +1924,7 @@ input:checked + .slider:before {
         
         /* Force hide scrollbars across browsers for html and body */
         -ms-overflow-style: none !important;  /* For Internet Explorer and Edge */
-        scrollbar-width: none !important;     /* For Firefox */
+        scrollbar-width: none !important;      /* For Firefox */
     }
 
     /* Force hide Webkit scrollbars for html and body */
@@ -1834,18 +1938,17 @@ input:checked + .slider:before {
     body {
         padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
         padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
-        display: block !important; /* Ensure body behaves as a block, not flex column, if it causes issues */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
         position: fixed !important; /* Forces header to stay fixed at the top */
-        top: 0 !important;          /* Aligns it to the top edge */
-        left: 0 !important;         /* Aligns it to the left edge */
-        width: 100% !important;     /* Ensures it spans full width */
-        z-index: 102 !important;    /* Keeps it on top of other content */
+        top: 0 !important;           /* Aligns it to the top edge */
+        left: 0 !important;          /* Aligns it to the left edge */
+        width: 100% !important;      /* Ensures it spans full width */
+        z-index: 102 !important;     /* Keeps it on top of other content */
         
-        height: auto !important;    /* Allow height to adjust based on content */
+        height: auto !important;     /* Allow height to adjust based on content */
         min-height: unset !important; /* Remove fixed min-height if present globally */
         padding-top: 8px !important; /* Top padding within the fixed header itself (adjust to move contents down) */
         padding-bottom: 5px !important; /* Bottom padding within the fixed header itself */
@@ -1861,6 +1964,10 @@ input:checked + .slider:before {
         width: 100% !important; /* Forces each of these to take full width and stack */
         justify-content: center !important;
         margin-bottom: 0 !important; /* Remove default margins that create space between these elements */
+    }
+    
+    #chat-window.keyboard-visible {
+        height: 45vh !important; /* Shrinks the height when keyboard is visible */
     }
 
     /* Specific spacing for MyTornPA and buttons within the header */
@@ -1936,11 +2043,6 @@ input:checked + .slider:before {
         overflow: visible !important;
     }
 
-
-    /* FOOTER Styles for Mobile (Hidden) */
-    footer.footer {
-        display: none !important; /* Hides the footer on mobile */
-    }
     /* Hide the global footer placeholder that might push content down */
     #globalfooterplaceholder {
         display: none !important;
@@ -2002,7 +2104,8 @@ input:checked + .slider:before {
     }
 
    #chat-bar-collapsed {
-    text-align: center !important; /* Use text-align for centering */
+    -webkit-tap-highlight-color: transparent !important; /* This disables the tap flash */
+    text-align: center !important;
     position: static !important;
     bottom: unset !important;
     right: unset !important;
@@ -2013,6 +2116,8 @@ input:checked + .slider:before {
     margin: 0 !important;
     background-color: #1b263b !important;
     border-top: 2px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
 }
 
    #chat-window {
@@ -2028,17 +2133,49 @@ input:checked + .slider:before {
     z-index: 1000 !important;
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
+    /* This is the crucial part that was wrong before. `flex` property needs to be on the immediate parent of the children you want to order. */
+    display: flex;
+    flex-direction: column;
 }
     #chat-window::-webkit-scrollbar {
         display: none !important;
     }
     
+    /* We will use this to place tabs directly above the input, regardless of how other content is structured. */
+    .chat-input-area {
+        position: relative; /* Set position for children to be absolute */
+        padding: 8px !important;
+        border-top: 1px solid #415a77;
+        flex-shrink: 0;
+        /* The main chat area will now grow to fill space above this. */
+        margin-top: auto;
+    }
+    
+    /* MODIFIED: The tabs container now floats absolutely inside the input area. */
     .chat-main-tabs-container {
-        display: flex !important;
+        /* This positions the tabs absolutely relative to the top of the .chat-input-area */
+        position: absolute;
+        bottom: 100%; /* Places it directly above the top of its parent (.chat-input-area) */
+        left: 0;
+        width: 100%;
+
+        display: none !important; /* Hide by default on mobile */
         flex-wrap: wrap !important;
         justify-content: center !important;
         padding: 5px !important;
         gap: 5px !important;
+        background-color: transparent !important; /* Make it transparent */
+        border-bottom: none !important;
+        
+        /* Adding transition for a smooth visual effect */
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* ADDED: Show the tab bar when the keyboard is visible */
+    #chat-window.keyboard-visible .chat-main-tabs-container {
+        display: flex !important; /* Make it visible */
+        transform: translateY(0); /* Slide it up into view */
     }
 
     #dynamic-tabs-container,
@@ -2073,11 +2210,13 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    .chat-input-area {
-        padding: 8px !important;
-    }
     .chat-text-input {
+        flex-grow: 1;
+        border: 1px solid #778da9;
+        background-color: #e0e1dd;
+        color: #0d1b2a;
         padding: 8px !important;
+        border-radius: 3px;
         font-size: 1em !important;
     }
     .chat-send-btn {
@@ -2110,7 +2249,8 @@ input:checked + .slider:before {
 
     /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
-
+    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
+}
 /* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
 @media (max-width: 480px) {
     .dashboard-grid { grid-template-columns: 1fr !important; }
@@ -2125,12 +2265,179 @@ input:checked + .slider:before {
     .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
 }
 
-/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
+
 @media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
+    body:not(.page-index) .footer {
         display: none !important;
     }
-    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+}
+
+/* =================================== */
+/* === Tablet Header Customization === */
+/* =================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* Hide the large center logo and the tagline text */
+  header .header-center,
+  header .tagline {
+    display: none !important;
+  }
+
+  /* Make the main header a flexible container */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+  }
+
+  /* Hide the text inside the header buttons */
+  header .header-btn .btn-text {
+    display: none;
+  }
+
+  /* General style for ALL tablet header buttons */
+  header .header-btn {
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%; /* Default to a circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* --- UPDATED BLUE STYLE --- */
+    background-color: rgba(0, 168, 255, 0.1);
+    border: 1px solid #00a8ff;
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Add a hover effect for interactivity */
+  header .header-btn:hover {
+      background-color: rgba(0, 168, 255, 0.25);
+  }
+  
+  /* Make sure the icons inside are centered */
+  header .header-btn .btn-icon {
+    margin: 0;
+    font-size: 1.3em;
+  }
+  
+  /* Adjust the spacing for the dropdowns and buttons */
+  header .header-buttons {
+    gap: 12px;
+  }
+
+  /* --- NEW RULE for the wider middle buttons --- */
+  #usefulLinksBtn,
+  #headerContactUsBtn {
+    width: auto; /* Let the button grow */
+    padding: 0 12px; /* Add horizontal padding */
+    border-radius: 22px; /* Make it a "pill" shape */
+  }
+}
+
+/* Force Footer to be Visible in Landscape Mode */
+.landscape-active footer {
+    display: block !important;
+	
+}
+
+/* Force Footer to be Visible in All Views */
+footer.footer {
+    display: block !important;
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* Make the main chat container full-width at the bottom */
+  #tornpa-chat-system {
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Make the collapsed bar itself full-width */
+   #chat-bar-collapsed {
+    position: static !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    padding: 8px 10px !important;   
+    display: flex; /* Make sure it's a flex container */
+    justify-content: center !important; /* This centers the icons */
+    gap: 20px !important; /* This adds space between them */
+	border-top: 2px solid black;
+	border-Bottom: 3px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+	
+  }
+  /* Add space to the bottom of the page so the bar doesn't hide content */
+  body {
+    padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
+	padding-top: 50px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+    /* Hide the text part of all header buttons definitively on small screens */
+    header .btn-text {
         display: none !important;
+       }
+    body {
+        padding-top: 115px; /* Adjust this value if needed */
+    }
+    
+    
+
+    /* Style the circular, icon-only buttons for small screens */
+    .home-header .header-buttons .btn,
+    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+    }
+
+    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
+    .home-header .header-buttons #usefulLinksBtn,
+    .home-header .header-buttons #headerContactUsBtn,
+    .other-pages-header .header-buttons #usefulLinksBtn,
+    .other-pages-header .header-buttons #contactUsBtn {
+        width: auto;
+        padding: 0 12px;
+        border-radius: 22px;
+        height: 40px;
+        background-color: rgba(0, 168, 255, 0.1);
+        border: 1px solid #00a8ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Ensure the icons inside the buttons are correctly sized and positioned */
+    .home-header .btn .btn-icon,
+    .other-pages-header .btn .btn-icon {
+        font-size: 1.6em;
+        line-height: 1;
+        margin: 0;
+    }
+}
+
+header {
+        top: 0 !important;
+        left: 0 !important;
+        position: fixed !important;
+        width: 100% !important;
+        z-index: 102 !important;
+        padding-top: 8px !important;
+        padding-bottom: 5px !important;
+        height: auto !important;
     }
 }
