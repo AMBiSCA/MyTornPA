@@ -646,14 +646,15 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 });
 
 function toggleLandscapeBlocker() {
-    // This condition is now more robust, checking for landscape orientation on most mobile devices including tablets
+    // This condition checks for landscape orientation on devices up to 1280px wide (covers most tablets)
     const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
     let blocker = document.getElementById('landscape-blocker');
 
-    // This block is for pages other than the one you are on now
-    const mainContent = document.getElementById('mainHomepageContent');
+    // Use a generic class that exists on all pages
+    const mainContent = document.querySelector('.main-content-wrapper');
     const header = document.querySelector('header');
     const footer = document.querySelector('footer');
+    const chatSystem = document.getElementById('tornpa-chat-system'); // Also target the chat system
 
     if (isMobileLandscape) {
         // Only create the blocker if it doesn't already exist
@@ -661,8 +662,9 @@ function toggleLandscapeBlocker() {
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
+                <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
-                <p>For the best experience, please use this page in portrait mode.</p>
+                <p>This page is best viewed in portrait mode.</p>
             `;
             // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
@@ -675,11 +677,12 @@ function toggleLandscapeBlocker() {
                 left: '0',
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#222',
+                backgroundColor: 'rgba(20, 20, 20, 0.97)',
                 color: '#eee',
                 textAlign: 'center',
                 padding: '20px',
-                zIndex: '99999'
+                zIndex: '99999',
+                boxSizing: 'border-box'
             });
             document.body.appendChild(blocker);
         }
@@ -689,6 +692,7 @@ function toggleLandscapeBlocker() {
         if (header) header.style.display = 'none';
         if (mainContent) mainContent.style.display = 'none';
         if (footer) footer.style.display = 'none';
+        if (chatSystem) chatSystem.style.display = 'none'; // Hide the chat system
 
     } else {
         // Remove the blocker if it exists
@@ -696,15 +700,15 @@ function toggleLandscapeBlocker() {
             blocker.remove();
         }
 
-        // Re-show main page content
+        // Re-show main page content by reverting their display style
         document.body.style.overflow = '';
-        if (header) header.style.display = ''; // Reverts to stylesheet's display
-        if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
-        
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
+        if (header) header.style.display = '';
+        if (mainContent) mainContent.style.display = '';
+        if (footer) footer.style.display = '';
+        if (chatSystem) chatSystem.style.display = ''; // Show the chat system again
     }
 }
-// Run the function on page load and window resize
+
+// Run the function on page load and whenever the window is resized or orientation changes
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
