@@ -590,24 +590,19 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
+/* --- FINAL TABLET OVERRIDE (to beat JavaScript) --- */
 @media (min-width: 769px) and (max-width: 1024px) {
+
+    /* Force the parent wrapper to be narrower */
+    .main-content-wrapper {
+        max-width: 75% !important;
+        margin: 0 auto !important; /* Center the new, narrower wrapper */
+    }
+
+    /* Make the tool container fill its new parent */
     .faction-peeper-tool-container {
-        width: 70% !important;         /* Makes the container narrower (was 90%) */
-        max-width: 750px !important;   /* Reduces the maximum possible width (was 950px) */
-        padding-left: 25px !important; /* Reduces side padding (was 40px) */
-        padding-right: 25px !important;/* Reduces side padding (was 40px) */
+        width: 100% !important;
+        max-width: 100% !important;
+        border: 10px solid limegreen !important; /* A new color to confirm this rule is working */
     }
-}
-
-/* --- FINAL TABLET TEST --- */
-@media (min-width: 769px) and (max-width: 1024px) {
-
-    /* This rule uses a very specific path to the container */
-    html body .main-content-wrapper .faction-peeper-tool-container {
-        width: 50% !important;
-        max-width: 600px !important;
-        border: 10px solid gold !important;     /* <-- ADDED FOR VISIBILITY */
-        background-color: purple !important;    /* <-- ADDED FOR VISIBILITY */
-    }
-
 }
