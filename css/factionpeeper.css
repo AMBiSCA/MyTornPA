@@ -1,4 +1,12 @@
 /* Styles specific to factionpeeper.html */
+
+/* ---- TEMPORARY DEBUG CODE ---- */
+@media (min-width: 769px) and (max-width: 1024px) {
+    body {
+        background: red !important;
+    }
+}
+
 html, body {
     height: 100vh;
     margin: 0;
