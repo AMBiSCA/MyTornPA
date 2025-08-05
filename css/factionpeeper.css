@@ -520,6 +520,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 @media (max-width: 2000px) {
     /* Main Faction Tool Container */
     .faction-peeper-tool-container {
+		 border: 5px solid red !important;
 		max-width: 650px; 
         padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
         width: 95%; /* Ensures the container fits well on most phones */
