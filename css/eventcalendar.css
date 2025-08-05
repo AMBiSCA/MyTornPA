@@ -2,7 +2,6 @@ main {
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
-  /* Removed the border as it wasn't visible and can be part of the wrapper */
 }
 
 /* Main calendar wrapper */
@@ -10,9 +9,9 @@ main {
   background-color: var(--background-color-dark-surface);
   border: 2px solid black;
   border-radius: 8px;
-  padding: 10px;
-  max-width: 650px;
-  margin: 10px auto; /* Significantly reduced the top/bottom margin */
+  padding: 8px; /* Slightly reduced */
+  max-width: 600px; /* Slightly reduced */
+  margin: 10px auto;
   color: var(--text-color-light);
 }
 
@@ -142,17 +141,17 @@ main {
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) { /* Tablet size and below */
+@media (max-width: 992px) {
     .calendar-wrapper {
         max-width: 85%;
-        margin: 15px auto; /* Adjusted margin for tablets */
+        margin: 15px auto;
     }
 }
 
-@media (max-width: 768px) { /* Normal phones, S7+ Samsung */
+@media (max-width: 768px) {
   .calendar-wrapper {
     max-width: 90%;
-    margin: 10px; /* Reduced margin for smaller screens */
+    margin: 10px;
     padding: 15px;
   }
 
@@ -172,7 +171,7 @@ main {
   }
 }
 
-@media (max-width: 480px) { /* Smaller phones */
+@media (max-width: 480px) {
   .calendar-weekdays,
   .calendar-days {
     gap: 5px;
@@ -207,7 +206,6 @@ main {
 
 /* Add these if not already in global.css to support the glow */
 :root {
-  /* ... (keep existing variables) ... */
   --event-indicator-color: #e74c3c;
   --event-indicator-color-rgb: 231, 76, 60;
 }
@@ -255,9 +253,8 @@ main {
 .modal-close-btn:hover {
   color: var(--text-color-light);
 }
-/* Styles for event bars directly on the calendar grid */
 
-/* This is the text (e.g., "World Tiger Day") */
+/* Styles for event bars directly on the calendar grid */
 .day-event-title {
   font-size: 0.8em;
   padding: 3px 5px;
@@ -273,25 +270,21 @@ main {
   text-align: left;
 }
 
-/* This is the colored bar background */
 .event-day-range {
   color: #fff;
   border: 1px solid transparent;
 }
 
-/* For the first day of an event */
 .event-range-start {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
 }
 
-/* For the last day of an event */
 .event-range-end {
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
 }
 
-/* For an event that is only a single day */
 .event-range-single {
   border-radius: 20px;
 }
@@ -306,20 +299,16 @@ main {
   margin-right: -2px;
 }
 
-/* Add a hover effect for non-event days */
 .calendar-day:not(.event-day-range):hover {
   border-color: var(--text-color-accent);
 }
 
 /* --- Tooltip Styles --- */
 #event-tooltip {
-  /* Positioning and Visibility */
   position: absolute;
   display: none;
   z-index: 1010;
   pointer-events: none;
-
-  /* Appearance */
   background-color: #2a2a2e;
   border: 1px solid var(--text-color-accent);
   border-radius: 6px;
@@ -327,8 +316,6 @@ main {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   max-width: 280px;
   font-size: 0.9em;
-
-  /* Smooth appearance */
   transition: opacity 0.1s ease-in-out;
   opacity: 0;
 }
