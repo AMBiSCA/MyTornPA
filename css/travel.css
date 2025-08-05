@@ -578,7 +578,8 @@ footer.footer > p {
         padding-bottom: -40px; /* Reduces the bottom gap */
     }
 .page-specific-content-area {
-        justify-content: center; /* This will center the content vertically */
+        justify-content: flex-start; /* Aligns content to the top... */
+        padding-top: 5vh;
     }
 }
 
