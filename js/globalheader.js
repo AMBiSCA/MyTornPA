@@ -94,15 +94,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // --- THIS IS THE FIX ---
-        // Override the native alert function safely.
+        // --- DIAGNOSTIC TOOL INJECTED HERE ---
+        // This version of the function will tell us what message is triggering the alert.
         window.alert = function(message) {
-            // Only show the custom alert if the message is a non-empty string.
-            // This prevents accidental triggers from things like `alert()` or `alert('')`.
+            //
+            // The line below will print any message sent to the alert system to the console.
+            console.log("--- ALERT TRIGGERED --- The message was:", message);
+            //
+            
+            // Original logic remains to see if it still shows the overlay
             if (typeof message === 'string' && message.trim() !== '') {
                 window.showCustomAlert(message);
             } else {
-                // If called without a valid message, do nothing or log it for debugging.
                 console.log("globalheader.js: Native 'alert' was called without a valid message. Ignoring.");
             }
         };
