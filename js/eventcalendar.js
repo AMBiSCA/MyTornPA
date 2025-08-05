@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("eventcalendar.js: Script loaded and restructured.");
 
     // --- 1. SELECTORS & STATE VARIABLES ---
-    // Get all necessary elements from the page once.
     const calendarWrapper = document.querySelector('.calendar-wrapper');
     const calendarHeader = document.querySelector('.calendar-header');
     const calendarWeekdays = document.querySelector('.calendar-weekdays');
@@ -10,25 +9,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const tooltip = document.getElementById('event-tooltip');
     const currentMonthYear = document.getElementById('currentMonthYear');
     const eventColors = ['#3b5998', '#6a4c93', '#1982c4', '#8ac926', '#ffca3a', '#ff595e', '#2d6a4f'];
-
-    // Define state variables that will be used by the functions.
     let currentDate = new Date();
-    let TORN_API_KEY = null; // This will be set after login.
+    let TORN_API_KEY = null;
 
     // --- 2. EVENT LISTENERS ---
-    // Attach event listeners once. They will be active for the entire life of the page.
     if (calendarWrapper) {
+        // *** THIS IS THE UPDATED SECTION ***
         calendarWrapper.addEventListener('click', (event) => {
-            // Do not allow clicks to do anything if the user isn't fully logged in.
             if (!TORN_API_KEY) return;
 
-            if (event.target.closest('#prevMonthBtn')) {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar();
-            }
-            if (event.target.closest('#nextMonthBtn')) {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar();
+            const prevBtnClicked = event.target.closest('#prevMonthBtn');
+            const nextBtnClicked = event.target.closest('#nextMonthBtn');
+
+            // If the click was on one of our calendar navigation buttons...
+            if (prevBtnClicked || nextBtnClicked) {
+                // ...stop the event from bubbling up to the window. This prevents
+                // the conflict with the global click listener in globalheader.js.
+                event.stopPropagation();
+
+                if (prevBtnClicked) {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderCalendar();
+                }
+                if (nextBtnClicked) {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderCalendar();
+                }
             }
         });
     }
@@ -57,9 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- 3. FUNCTION DEFINITIONS ---
-    // Define all functions in the main scope so they can be called from anywhere.
     function renderCalendar() {
-        if (!TORN_API_KEY) return; // Safety check
+        if (!TORN_API_KEY) return;
         updateNavButtonsState();
         calendarDays.innerHTML = '';
         const year = currentDate.getFullYear();
@@ -142,12 +147,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- 4. AUTHENTICATION & INITIALIZATION ---
-    // Set initial UI state
     if (calendarHeader) calendarHeader.style.display = 'none';
     if (calendarWeekdays) calendarWeekdays.style.display = 'none';
     if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message">Loading Calendar...</div>`;
 
-    // Now, check for authentication. This will only control VISIBILITY and the INITIAL render.
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             try {
@@ -155,13 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userDoc = await userDocRef.get();
 
                 if (userDoc.exists && userDoc.data().tornApiKey) {
-                    // SUCCESS: User is logged in and has a key.
                     TORN_API_KEY = userDoc.data().tornApiKey;
                     if (calendarHeader) calendarHeader.style.display = 'flex';
                     if (calendarWeekdays) calendarWeekdays.style.display = 'grid';
-                    renderCalendar(); // This is the first and only initial render call.
+                    renderCalendar();
                 } else {
-                    // FAIL: User logged in, but no API key.
                     TORN_API_KEY = null;
                     if (calendarHeader) calendarHeader.style.display = 'none';
                     if (calendarWeekdays) calendarWeekdays.style.display = 'none';
@@ -173,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data.</p></div>`;
             }
         } else {
-            // FAIL: User is not logged in.
             TORN_API_KEY = null;
             if (calendarHeader) calendarHeader.style.display = 'none';
             if (calendarWeekdays) calendarWeekdays.style.display = 'none';
