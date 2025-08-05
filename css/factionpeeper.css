@@ -114,17 +114,18 @@ body::before {
 }
 
 .faction-peeper-tool-container {
-  max-width: 950px; 
-  margin: 20px auto; 
-  background-color: #222; 
-  padding: 10px 40px;
-  padding-bottom: 25px;
-  border-radius: 12px; 
-  border: 2px solid #00a8ff; 
-  box-shadow: 0 0 20px rgba(0, 122, 204, 0.4); 
-  text-align: center; 
-  position: relative; /* For z-index stacking if needed, and positioning of pseudo-elements */
-  width: 90%; /* Responsive width */
+    max-width: 950px;
+    margin: 20px auto;
+    background-color: #222;
+    padding: 10px 40px;
+    padding-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff;
+    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    text-align: center;
+    position: relative; /* For z-index stacking if needed, and positioning of pseudo-elements */
+    width: 90%; /* Responsive width */
+    box-sizing: border-box; /* ADDED: Ensures padding and border are included in the width */
 }
 .script-title {
   font-size: 2.2rem; 
