@@ -574,7 +574,7 @@ footer.footer > p {
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-content-wrapper {
         align-items: stretch; /* Makes the content box fill the height */
-        padding-top: 40px;    /* Reduces the top gap */
+        padding-top: 50px;    /* Reduces the top gap */
         padding-bottom: -40px; /* Reduces the bottom gap */
     }
 }
