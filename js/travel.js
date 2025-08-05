@@ -646,64 +646,66 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 });
 
 function toggleLandscapeBlocker() {
-    console.log("--- Blocker function is running ---");
-
+    // This condition checks for landscape orientation on mobile/tablet devices
     const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    console.log("Is device in landscape mode? ", isMobileLandscape);
-
     let blocker = document.getElementById('landscape-blocker');
 
+    // Get references to your specific page elements.
+    // I have updated these to match the HTML file you sent.
+    const header = document.getElementById('global-header-placeholder');
     const mainContent = document.querySelector('.main-content-wrapper');
-    const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
-    const chatSystem = document.getElementById('tornpa-chat-system');
-
-    // This will show us which elements the script can find on the page
-    console.log("Found Elements Status:", {
-        mainContent: !!mainContent,
-        header: !!header,
-        footer: !!footer,
-        chatSystem: !!chatSystem
-    });
+    const footer = document.getElementById('globalfooterplaceholder');
 
     if (isMobileLandscape) {
-        console.log("Action: Should SHOW the blocker.");
+        // Only create the blocker if it doesn't already exist
         if (!blocker) {
-            console.log("Creating blocker element...");
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
-                <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
-                <p>This page is best viewed in portrait mode.</p>
+                <p>For the best experience, please use this page in portrait mode.</p>
             `;
+            // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
-                display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
-                padding: '20px', zIndex: '99999', boxSizing: 'border-box'
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#222',
+                color: '#eee',
+                textAlign: 'center',
+                padding: '20px',
+                zIndex: '99999' // A high z-index ensures it's on top of other content
             });
             document.body.appendChild(blocker);
         }
 
+        // Hide main page content
+        document.body.style.overflow = 'hidden';
         if (header) header.style.display = 'none';
         if (mainContent) mainContent.style.display = 'none';
         if (footer) footer.style.display = 'none';
-        if (chatSystem) chatSystem.style.display = 'none';
 
     } else {
-        console.log("Action: Should HIDE the blocker.");
+        // Remove the blocker if it exists
         if (blocker) {
             blocker.remove();
         }
 
+        // Re-show main page content
+        document.body.style.overflow = '';
+        // Setting display to '' reverts to the default value from your CSS file
         if (header) header.style.display = '';
         if (mainContent) mainContent.style.display = '';
         if (footer) footer.style.display = '';
-        if (chatSystem) chatSystem.style.display = '';
     }
 }
 
-// Run the function on page load and whenever the window is resized or orientation changes
+// Run the function when the page first loads and whenever it's resized
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
