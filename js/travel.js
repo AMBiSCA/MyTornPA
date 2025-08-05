@@ -645,66 +645,55 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 });
 
-function toggleLandscapeBlocker() {
-    // This condition is now more robust, checking for landscape orientation on most mobile devices including tablets
-    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    let blocker = document.getElementById('landscape-blocker');
+// Function to handle the landscape blocker logic
+    function toggleLandscapeBlocker() {
+        const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+        let blocker = document.getElementById('landscape-blocker');
 
-    // This block is for pages other than the one you are on now
-    const mainContent = document.getElementById('mainHomepageContent');
-    const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
+        // Select all the content elements to hide/show
+        const header = document.querySelector('header');
+        const mainContent = document.getElementById('mainHomepageContent'); // Corrected Selector
+        const footer = document.querySelector('footer');
+        const chatSystem = document.getElementById('tornpa-chat-system');
 
-    if (isMobileLandscape) {
-        // Only create the blocker if it doesn't already exist
-        if (!blocker) {
-            blocker = document.createElement('div');
-            blocker.id = 'landscape-blocker';
-            blocker.innerHTML = `
-                <h2>Please Rotate Your Device</h2>
-                <p>For the best experience, please use this page in portrait mode.</p>
-            `;
-            // Apply all the necessary styles directly with JavaScript
-            Object.assign(blocker.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#222',
-                color: '#eee',
-                textAlign: 'center',
-                padding: '20px',
-                zIndex: '99999'
-            });
-            document.body.appendChild(blocker);
-        }
+        if (isMobileLandscape) {
+            if (!blocker) {
+                blocker = document.createElement('div');
+                blocker.id = 'landscape-blocker';
+                blocker.innerHTML = `
+                    <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+                    <h2>Please Rotate Your Device</h2>
+                    <p>This page is best viewed in portrait mode.</p>
+                `;
+                Object.assign(blocker.style, {
+                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                    position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                    backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
+                    padding: '20px', zIndex: '99999', boxSizing: 'border-box'
+                });
+                document.body.appendChild(blocker);
+            }
 
-        // Hide main page content
-        document.body.style.overflow = 'hidden';
-        if (header) header.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'none';
-        if (footer) footer.style.display = 'none';
+            // Hide main page content
+            if (header) header.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'none';
+            if (footer) footer.style.display = 'none';
+            if (chatSystem) chatSystem.style.display = 'none';
 
-    } else {
-        // Remove the blocker if it exists
-        if (blocker) {
-            blocker.remove();
-        }
+        } else {
+            // Remove the blocker if it exists
+            if (blocker) {
+                blocker.remove();
+            }
 
-        // Re-show main page content
-        document.body.style.overflow = '';
-        if (header) header.style.display = ''; // Reverts to stylesheet's display
-        if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
-        
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
-    }
-}
-// Run the function on page load and window resize
-window.addEventListener('load', toggleLandscapeBlocker);
-window.addEventListener('resize', toggleLandscapeBlocker);
+            // Re-show main page content
+            if (header) header.style.display = '';
+            if (mainContent) mainContent.style.display = '';
+            if (footer) footer.style.display = '';
+            if (chatSystem) chatSystem.style.display = '';
+        }
+    }
+
+    // Run the function on page load and whenever the window is resized or orientation changes
+    window.addEventListener('load', toggleLandscapeBlocker);
+    window.addEventListener('resize', toggleLandscapeBlocker);
