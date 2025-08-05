@@ -645,19 +645,44 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 });
 
+// --- Visual Debugger ---
+// This creates a small box on screen to show us debug messages on your tablet.
+function visualLog(message) {
+    let debugBox = document.getElementById('visual-debugger');
+    if (!debugBox) {
+        debugBox = document.createElement('div');
+        debugBox.id = 'visual-debugger';
+        Object.assign(debugBox.style, {
+            position: 'fixed', top: '0', left: '0', padding: '5px',
+            backgroundColor: 'rgba(0,0,0,0.8)', color: 'lime', fontFamily: 'monospace',
+            fontSize: '12px', zIndex: '100000', pointerEvents: 'none'
+        });
+        document.body.appendChild(debugBox);
+    }
+    // Add the new message to the top of the box
+    debugBox.innerHTML = `<div>${message}</div>` + debugBox.innerHTML;
+}
+
+
+// --- Main Blocker Function (with Visual Debugging) ---
 function toggleLandscapeBlocker() {
-    // This condition checks for landscape orientation on devices up to 1280px wide (covers most tablets)
+    visualLog("--- Running check... ---");
+
     const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    visualLog(`Is landscape? ${isMobileLandscape}`);
+
     let blocker = document.getElementById('landscape-blocker');
 
-    // Use a generic class that exists on all pages
     const mainContent = document.querySelector('.main-content-wrapper');
     const header = document.querySelector('header');
     const footer = document.querySelector('footer');
-    const chatSystem = document.getElementById('tornpa-chat-system'); // Also target the chat system
+    const chatSystem = document.getElementById('tornpa-chat-system');
+
+    // Check which elements were found (true/false)
+    visualLog(`Found elements? H:${!!header}, F:${!!footer}, C:${!!chatSystem}`);
 
     if (isMobileLandscape) {
-        // Only create the blocker if it doesn't already exist
+        visualLog("Action: SHOW blocker");
         if (!blocker) {
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
@@ -666,46 +691,30 @@ function toggleLandscapeBlocker() {
                 <h2>Please Rotate Your Device</h2>
                 <p>This page is best viewed in portrait mode.</p>
             `;
-            // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                backgroundColor: 'rgba(20, 20, 20, 0.97)',
-                color: '#eee',
-                textAlign: 'center',
-                padding: '20px',
-                zIndex: '99999',
-                boxSizing: 'border-box'
+                display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
+                padding: '20px', zIndex: '99999', boxSizing: 'border-box'
             });
             document.body.appendChild(blocker);
         }
 
-        // Hide main page content
-        document.body.style.overflow = 'hidden';
         if (header) header.style.display = 'none';
         if (mainContent) mainContent.style.display = 'none';
         if (footer) footer.style.display = 'none';
-        if (chatSystem) chatSystem.style.display = 'none'; // Hide the chat system
+        if (chatSystem) chatSystem.style.display = 'none';
 
     } else {
-        // Remove the blocker if it exists
+        visualLog("Action: HIDE blocker");
         if (blocker) {
             blocker.remove();
         }
 
-        // Re-show main page content by reverting their display style
-        document.body.style.overflow = '';
         if (header) header.style.display = '';
         if (mainContent) mainContent.style.display = '';
         if (footer) footer.style.display = '';
-        if (chatSystem) chatSystem.style.display = ''; // Show the chat system again
+        if (chatSystem) chatSystem.style.display = '';
     }
 }
 
