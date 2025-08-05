@@ -590,19 +590,28 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
-/* --- FINAL TABLET OVERRIDE (to beat JavaScript) --- */
+@keyframes forceTabletStyle {
+    width: 75%;
+    max-width: 800px;
+    border: 10px solid orange; /* Using a new color for this test */
+  }
+  to {
+    width: 75%;
+    max-width: 800px;
+    border: 10px solid orange;
+  }
+}
+
+/* 2. Apply the animation within the media query */
 @media (min-width: 769px) and (max-width: 1024px) {
-
-    /* Force the parent wrapper to be narrower */
-    .main-content-wrapper {
-        max-width: 75% !important;
-        margin: 0 auto !important; /* Center the new, narrower wrapper */
-    }
-
-    /* Make the tool container fill its new parent */
     .faction-peeper-tool-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border: 10px solid limegreen !important; /* A new color to confirm this rule is working */
+        /* Apply the animation */
+        animation-name: forceTabletStyle;
+        animation-duration: 0.1s; /* Run the animation for a fraction of a second */
+        animation-fill-mode: forwards; /* This makes the styles from the animation stick */
+
+        /* We add these again as a fallback */
+        width: 75% !important;
+        max-width: 800px !important;
     }
 }
