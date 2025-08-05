@@ -116,7 +116,7 @@ body::before {
 }
 
 .faction-peeper-tool-container {
-  max-width: 925px; 
+  max-width: 960px; 
   margin: 20px auto; 
   background-color: #222; 
   padding: 10px 40px;
@@ -519,7 +519,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     color: #00c0ff;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     /* Main Faction Tool Container */
     .faction-peeper-tool-container {
         padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
@@ -590,28 +590,3 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
-@keyframes forceTabletStyle {
-    width: 75%;
-    max-width: 800px;
-    border: 10px solid orange; /* Using a new color for this test */
-  }
-  to {
-    width: 75%;
-    max-width: 800px;
-    border: 10px solid orange;
-  }
-}
-
-/* 2. Apply the animation within the media query */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .faction-peeper-tool-container {
-        /* Apply the animation */
-        animation-name: forceTabletStyle;
-        animation-duration: 0.1s; /* Run the animation for a fraction of a second */
-        animation-fill-mode: forwards; /* This makes the styles from the animation stick */
-
-        /* We add these again as a fallback */
-        width: 75% !important;
-        max-width: 800px !important;
-    }
-}

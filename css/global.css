@@ -1896,17 +1896,8 @@ input:checked + .slider:before {
     }
 }
 /* ... */
-@media only screen and (max-width: 991px) {
-    body:not(.page-index) .footer {
-        display: none !important;
-    }
-}
 
-/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
-@media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
-        display: none !important;
-    }
+
     .footer { /* This rule will hide the footer on screen sizes up to 991px. */
         display: none !important;
     }
@@ -2392,9 +2383,6 @@ footer.footer {
         padding-top: 115px; /* Adjust this value if needed */
     }
     
-    
-
-    /* Style the circular, icon-only buttons for small screens */
     .home-header .header-buttons .btn,
     .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
         min-width: 44px;
