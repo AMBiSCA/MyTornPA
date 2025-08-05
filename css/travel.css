@@ -208,17 +208,17 @@ header {
 
 /* --- Main Content Wrapper --- */
 .main-content-wrapper {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-    padding-top: 95px;
-    padding-bottom: 95px;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 1;
-    min-height: 0;
+flex-grow: 1;
+display: flex;
+flex-direction: column;
+align-items: stretch; /* CHANGED: This makes the content box fill the height */
+overflow: hidden;
+padding-top: 25px; /* REDUCED: This leaves a small gap at the top */
+padding-bottom: 25px; /* REDUCED: This leaves a small gap at the bottom */
+box-sizing: border-box;
+position: relative;
+z-index: 1;
+min-height: 0;
 }
 
 /* --- Footer --- */
