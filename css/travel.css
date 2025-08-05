@@ -578,3 +578,17 @@ footer.footer > p {
         padding-bottom: -40px; /* Reduces the bottom gap */
     }
 }
+
+/* --- Responsive Button Text for Travel Page --- */
+#fetch-data-btn .tablet-text {
+    display: none;
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    #fetch-data-btn .desktop-text {
+        display: none;
+    }
+    #fetch-data-btn .tablet-text {
+        display: inline;
+    }
+}
