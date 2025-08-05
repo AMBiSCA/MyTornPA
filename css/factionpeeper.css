@@ -1,238 +1,589 @@
 /* Styles specific to factionpeeper.html */
 html, body {
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #eee;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Consider changing to 'auto' or 'visible' for body if content overflows */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 0;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
 }
 
 body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-    opacity: 0.8;
-    z-index: -1;
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg'); /* Using 'background.jpg' as per your last CSS snippet */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
 }
+
+
+.header-right-controls {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-header, .header-text-link {
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 8px 12px;
+}
+.btn-header {
+  background: #00a8ff;
+  border: none;
+  color: #222;
+  transition: background-color 0.3s ease;
+}
+.btn-header:hover {
+  background: #0086d1;
+}
+.header-text-link {
+  color: #00a8ff;
+  background: none;
+  border: none;
+  padding: 8px 5px;
+}
+.header-text-link:hover {
+  text-decoration: underline;
+}
+
 
 .main-content-wrapper {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-top: 90px;
-    padding-bottom: 90px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
+    flex-grow: 1;
+    overflow-y: auto; /* Allows scrolling for content longer than the viewport height minus header/footer */
+    padding-top: 90px; /* Space for fixed header (70px + 20px buffer) */
+    padding-bottom: 90px; /* Space for fixed footer (70px + 20px buffer) */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
-.image-glow, .image-glow-flipped {
-    display: none !important;
+.image-glow {
+  position: fixed;
+  left: -3%;
+  bottom: 0;
+  filter: drop-shadow(0px 0px 12px #00a8ff);
+  width: 570px;
+  max-width: 40%; /* Ensure it scales down on smaller viewports if needed */
+  z-index: 0;
+  pointer-events: none; /* Allows clicks to pass through */
+}
+.image-glow-flipped {
+  position: fixed;
+  right: -3%;
+  bottom: 0;
+  transform: scaleX(-1); /* Flips the image horizontally */
+  filter: drop-shadow(0px 0px 12px #00a8ff);
+  width: 570px;
+  max-width: 40%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .faction-peeper-tool-container {
-  max-width: 950px; 
-  margin: 20px auto; 
-  background-color: #222; 
-  padding: 10px 40px;
-  padding-bottom: 25px;
-  border-radius: 12px; 
-  border: 2px solid #00a8ff; 
-  box-shadow: 0 0 20px rgba(0, 122, 204, 0.4); 
-  text-align: center; 
-  position: relative;
-  width: 90%;
+  max-width: 950px; 
+  margin: 20px auto; 
+  background-color: #222; 
+  padding: 10px 40px;
+  padding-bottom: 25px;
+  border-radius: 12px; 
+  border: 2px solid #00a8ff; 
+  box-shadow: 0 0 20px rgba(0, 122, 204, 0.4); 
+  text-align: center; 
+  position: relative; /* For z-index stacking if needed, and positioning of pseudo-elements */
+  width: 90%; /* Responsive width */
 }
 .script-title {
-  font-size: 2.2rem; 
-  font-weight: bold; 
-  position: relative; 
-  margin-top: 0; 
-  margin-bottom: 20px;
-  color: #00a8ff; 
-  -webkit-text-stroke: 1px black;
-  text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
+  font-size: 2.2rem; 
+  font-weight: bold; 
+  position: relative; 
+  margin-top: 0; 
+  margin-bottom: 20px;
+  color: #00a8ff; 
+  -webkit-text-stroke: 1px black; /* Adjusted stroke */
+  text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
 }
 .input-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 20px;
-  justify-content: center;
+  display: flex;
+  flex-wrap: wrap; /* Allow items to wrap to the next line on smaller screens */
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center; /* Center the input fields if they don't fill the row */
 }
 .input-field {
-  flex: 0 1 320px;
-  min-width: 250px;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
+  flex: 0 1 320px; /* Flex properties: don't grow, shrink if needed, base width 320px */
+  min-width: 250px; /* Minimum width before wrapping/shrinking too much */
+  display: flex;
+  flex-direction: column;
+  text-align: left; /* Align labels and inputs to the left within this container */
 }
-.faction-peeper-tool-container label {
-  font-weight: 600; 
-  margin-bottom: 6px; 
-  color: #007acc; 
-  font-size: 0.9rem; 
-}
-
-label[for="factionId"] {
-    font-size: 1.1rem;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    color: #007acc;
-    margin-bottom: 6px;
-}
-.dropdown-category label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #00a8ff;
-    text-align: center;
-    font-size: 0.95rem;
+.faction-peeper-tool-container label { /* General label styling within the tool container */
+  font-weight: 600; 
+  margin-bottom: 6px; 
+  color: #007acc; 
+  font-size: 0.9rem; 
 }
 
-.faction-peeper-tool-container input[type="text"], 
+label[for="factionId"],
+label[for="apiKey"] { /* Specific labels for Faction ID and API Key */
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center; /* Center these specific labels */
+    width: 100%; /* Make them take full width of their .input-field container */
+    color: #007acc;
+    margin-bottom: 6px;
+}
+.dropdown-category label { /* Labels for stat dropdown categories */
+    display: block; /* Make label take its own line */
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #00a8ff;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.faction-peeper-tool-container input[type="text"], 
 .faction-peeper-tool-container .stats-dropdown {
-  padding: 8px 12px; 
-  border-radius: 6px; 
-  border: 1.5px solid #007acc; 
-  background-color: #121212;
-  color: #eee; 
-  font-size: 1rem; 
-  transition: border-color 0.3s ease; 
-  height: 39px;
-  box-sizing: border-box;
-  width: 100%;
+  padding: 8px 12px; 
+  border-radius: 6px; 
+  border: 1.5px solid #007acc; 
+  background-color: #121212;
+  color: #eee; 
+  font-size: 1rem; 
+  transition: border-color 0.3s ease; 
+  height: 39px; /* Fixed height for alignment */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  width: 100%; /* Make input/dropdown take full width of its .input-field parent */
 }
-.faction-peeper-tool-container input[type="text"]:focus, 
+.faction-peeper-tool-container input[type="text"]:focus, 
 .faction-peeper-tool-container .stats-dropdown:focus {
-  outline: none; 
-  border-color: #00b0ff; 
-  box-shadow: 0 0 8px #00b0ff;
+  outline: none; 
+  border-color: #00b0ff; 
+  box-shadow: 0 0 8px #00b0ff;
 }
+.stats-dropdown { width: 100%; } /* Ensures dropdown takes full width of its container if not already covered */
 
-.popular-options-toggle { 
-  margin-bottom: 15px; 
-  text-align: center; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  gap: 8px;
+#statSelectionArea { margin-top: -10px; margin-bottom: 20px; }
+.popular-options-toggle { 
+  margin-bottom: 15px; 
+  text-align: center; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  gap: 8px;
 }
-.popular-options-toggle label { 
-  margin-bottom: 0;
-  color: #ccc; 
-  cursor:pointer; 
+.popular-options-toggle label { 
+  margin-bottom: 0; /* Override general label margin if needed */
+  color: #ccc; 
+  cursor:pointer; 
 }
-.popular-options-toggle input[type="checkbox"] { 
-  accent-color: #00a8ff; 
-  width:16px; 
-  height:16px; 
-  cursor:pointer;
+.popular-options-toggle input[type="checkbox"] { 
+  accent-color: #00a8ff; 
+  width:16px; 
+  height:16px; 
+  cursor:pointer;
 }
 
 .stat-dropdowns-container { display: flex; flex-direction: column; gap: 15px; }
 .dropdown-row { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
-.dropdown-row .dropdown-category { 
-  flex: 1 1 calc(33.333% - 10px);
-  min-width: 200px;
-  max-width: 280px;
+.dropdown-row .dropdown-category { 
+  flex: 1 1 calc(33.333% - 10px); /* Distribute space, allowing for gap */
+  min-width: 200px; /* Minimum width for categories */
+  max-width: 280px; /* Maximum width for categories */
 }
-.dropdown-row.single-dropdown .dropdown-category { 
-  flex-basis: 100%; 
-  max-width: 300px;
-  margin: 0 auto;
+/* Special styling for the 'Most Popular' dropdown to be wider or centered */
+.dropdown-row.single-dropdown .dropdown-category { 
+  flex-basis: 100%; 
+  max-width: 300px; /* Or adjust as needed */
+  margin: 0 auto; /* Center it if it doesn't fill the row */
+}
+::-webkit-scrollbar {
+    width: 10px; /* Adjust width of vertical scrollbar */
+    height: 10px; /* Adjust height of horizontal scrollbar */
 }
 
+/* Applies to the track (the background of the scrollbar) */
+::-webkit-scrollbar-track {
+    background: #2b2b2b; /* Dark background for the track */
+    border-radius: 5px; /* Slightly rounded corners for the track */
+}
+
+/* Applies to the thumb (the draggable part of the scrollbar) */
+::-webkit-scrollbar-thumb {
+    background-color: #007acc; /* Blue color for the thumb */
+    border-radius: 5px; /* Rounded corners for the thumb */
+    border: 2px solid #2b2b2b; /* A border to make the thumb stand out from the track */
+}
+
+/* Applies to the thumb when hovered */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff; /* Lighter blue on hover */
+}
+
+/* Optional: Corner of the scrollbar (where horizontal and vertical meet) */
+::-webkit-scrollbar-corner {
+    background: #222; /* A dark background for the corner */
+}
+#selectedStatsDisplay {
+  margin-top: 20px; padding: 10px; background-color: rgba(0,0,0,0.2); border-radius: 8px;
+  min-height: 40px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+}
+.selected-stat-tag {
+  background-color: #00a8ff; color: #111; padding: 5px 10px; border-radius: 15px;
+  font-size: 0.9em; display: flex; align-items: center;
+}
+.selected-stat-tag .remove-tag {
+  margin-left: 8px; color: #fff; background-color: #007acc; border: none; border-radius: 50%;
+  width: 18px; height: 18px; font-weight: bold; cursor: pointer; line-height: 16px; text-align: center;
+  padding:0;
+}
+.selected-stat-tag .remove-tag:hover { background-color: #005f99; }
+
 .action-buttons-container {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin: 20px auto;
-  flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: -15px auto; /* Top/bottom margin, auto left/right for centering */
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
 }
 .action-btn {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: bold;
-  border: 1px solid #000;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  min-width: 150px;
-  text-align: center;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 1px solid #000;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  min-width: 150px; /* Give buttons a minimum width */
+  text-align: center;
 }
 .action-btn.fetch-btn { background-color: #28a745; color: #000; }
 .action-btn.fetch-btn:hover { background-color: #218838; }
 .clear-btn { background-color: #f39c12; color: #000; }
 .clear-btn:hover { background-color: #e08e0b; }
+.download-btn { background-color: #00a8ff; color: #222; }
+.download-btn:hover { background-color: #0086d1; }
+
+.note { margin-top: 15px; font-size: 0.9rem; text-align: center; color: #888; font-style: italic; }
+.error-message { color: #ff4d4d; font-size: 0.9rem; font-weight: bold; margin-top: 6px; text-align: left; min-height: 1.2em; }
+#statsError { text-align: center; } /* Error specific to stats selection */
+.main-input-error-feedback { /* General error for main input fields */
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Loading Spinner Styles */
+.loading-overlay {
+  position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.7);
+  display: flex;justify-content: center;align-items: center;z-index: 2000;backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);visibility: hidden;opacity: 0;transition: visibility 0s, opacity 0.3s ease-in-out;
+}
+.loading-overlay.visible {visibility: visible;opacity: 1;}
+.spinner {
+  border: 8px solid #333;border-top: 8px solid #00a8ff;border-radius: 50%;
+  width: 60px;height: 60px;animation: spin 1s linear infinite;
+}
+@keyframes spin {0% { transform: rotate(0deg); }100% { transform: rotate(360deg); }}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.8);
+  display: flex;justify-content: center;align-items: center;z-index: 1500;visibility: hidden;opacity: 0;
+  transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+}
+.modal-overlay.visible {visibility: visible;opacity: 1;}
+.modal-content {
+  background-color: #222;border-radius: 12px;box-shadow: 0 0 25px rgba(0, 168, 255, 0.6);
+  padding: 30px;width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
+  transform: translateY(20px);opacity: 0;transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  display: flex; flex-direction: column; margin-top: 70px;
+}
+.modal-overlay.visible .modal-content {transform: translateY(0);opacity: 1;}
+.modal-close-btn {
+  position: absolute;top: 15px;right: 15px;background: none;border: none;
+  font-size: 1.8rem;color: #00a8ff;cursor: pointer;z-index: 10; /* Ensure it's above other modal content */
+}
+.modal-close-btn:hover {color: #00e0ff;}
+.modal-title {color: #00a8ff;font-size: 1.8rem;margin-top: 0;margin-bottom: 20px;text-align: center;}
+.modal-summary {margin-bottom: 20px;font-size: 1.1rem;color: #ccc;text-align: center;}
+.modal-summary span {font-weight: bold;color: #eee;}
+.modal-table-container { /* Container for the scrollable table */
+    max-height: calc(90vh - 280px); /* Adjust 280px based on other modal content height (title, summary, buttons) */
+    overflow-y: auto;border: 1px solid #007acc;border-radius: 8px;margin-top: 15px;
+    flex-grow: 1; /* Allows table container to take available space in flex modal content */
+}
+.modal-table {width: 100%;border-collapse: collapse;margin: 0;background-color: #1a1a1a;}
+.modal-table thead th {
+  background-color: #007acc;color: #000;padding: 10px 15px;text-align: left;
+  border: 1px solid #005f99;position: sticky;top: 0;z-index: 10; /* Sticky header for scrollable table */
+}
+.modal-table tbody tr:nth-child(even) {background-color: #222;}
+.modal-table tbody tr:nth-child(odd) {background-color: #2b2b2b;}
+.modal-table tbody td {padding: 8px 15px;border: 1px solid #333;color: #eee;font-size: 0.9rem;text-align: left;}
+.modal-table tbody tr:hover {background-color: #3a3a3a;}
+.modal-action-area { text-align: center; padding-top: 20px; flex-shrink: 0; } /* Prevents shrinking if modal content is sparse */
+
+
+/* Footer Styles */
+footer.footer {
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    border-top: 2px solid #00a8ff;
+    width: 100%;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    user-select: none; /* Prevent text selection in footer */
+    z-index: 102; /* Ensure it's above .body::before but below modals if needed */
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
 
 /* Responsive Media Queries */
+@media (max-width: 920px) {
+  .dropdown-row .dropdown-category { flex-basis: calc(50% - 8px); } /* Two categories per row */
+}
+@media (max-width: 768px) { /* Tablet and smaller */
+    header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    .main-content-wrapper {
+		
+	::-webkit-scrollbar {
+    width: 10px; /* Adjust width of vertical scrollbar */
+    height: 10px; /* Adjust height of horizontal scrollbar */
+}
 
-/* THIS IS THE FIX: It makes the container narrower on tablets and modern phones */
-@media (max-width: 2000px) {
+/* Applies to the track (the background of the scrollbar) */
+::-webkit-scrollbar-track {
+    background: #2b2b2b; /* Dark background for the track */
+    border-radius: 5px; /* Slightly rounded corners for the track */
+}
+
+/* Applies to the thumb (the draggable part of the scrollbar) */
+::-webkit-scrollbar-thumb {
+    background-color: #007acc; /* Blue color for the thumb */
+    border-radius: 5px; /* Rounded corners for the thumb */
+    border: 2px solid #2b2b2b; /* A border to make the thumb stand out from the track */
+}
+
+/* Applies to the thumb when hovered */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff; /* Lighter blue on hover */
+}
+
+/* Optional: Corner of the scrollbar (where horizontal and vertical meet) */
+::-webkit-scrollbar-corner {
+    background: #222; /* A dark background for the corner */
+}
+/* Contact Us Floating Action Button (FAB) Styles */
+#contactFabContainer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1050; /* Ensure it's above most other content */
+}
+
+.fab-dropdown-container { /* Wrapper for positioning dropdown relative to FAB */
+    position: relative; 
+}
+
+.btn-fab {
+    background-color: #00a8ff; /* Your primary accent blue */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Circular button */
+    width: 56px;  /* Standard FAB size */
+    height: 56px; /* Standard FAB size */
+    font-size: 24px; /* Icon size */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    padding: 0;
+    line-height: 1; /* For better vertical centering of text icon */
+}
+
+.btn-fab:hover {
+    background-color: #007ecc; /* Slightly darker blue on hover */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.btn-fab:active {
+    transform: translateY(0px); /* Remove lift on active */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-fab .fab-icon {
+    display: block;
+}
+
+/* Optional: If you want text below the icon on the FAB itself (uncomment HTML span too) */
+/*
+.btn-fab .fab-text {
+    font-size: 9px; 
+    display: block; 
+    margin-top: 1px;
+    line-height: 1.1;
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+*/
+
+/* Dropdown content for the FAB */
+.fab-dropdown-content {
+    display: none; /* Hidden by default */
+    position: absolute;
+    bottom: 65px; /* Position above the FAB (56px height + ~9px margin) */
+    right: 0;
+    background-color: #1e1e1e; /* Consistent dark background */
+    min-width: 230px; /* Adjust as needed */
+    box-shadow: 0px -4px 15px rgba(0,0,0,0.4); /* Shadow upwards */
+    z-index: -1; /* Behind the button initially, JS will handle display */
+    border-radius: 8px;
+    border: 1px solid #00a8ff; /* Theme border */
+    overflow: hidden; /* Respect border-radius for links */
+}
+
+.fab-dropdown-content a {
+    color: #d0d0d0;
+    padding: 12px 18px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.95rem; /* Slightly larger for readability */
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.fab-dropdown-content a:hover {
+    background-color: #333333;
+    color: #00c0ff;
+}
+
+@media (max-width: 768px) {
+    /* Main Faction Tool Container */
     .faction-peeper-tool-container {
-        max-width: 750px;
-        padding: 10px 15px;
-        width: 95%;
-        margin-left: -3px !important; /* This was in your original file */
+        padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
+        width: 95%; /* Ensures the container fits well on most phones */
+		margin-left: -3px !important;
     }
+
+    /* Modal Styles */
     .modal-content {
-        width: 95% !important;
-        max-width: 100% !important;
-        padding: 15px !important;
+        width: 95% !important; /* Makes the modal itself narrower */
+        max-width: 100% !important; /* Ensures it never goes off screen */
+        padding: 15px !important; /* Reduces padding inside the modal */
+    }
+    .modal-title {
+        font-size: 1.5rem; /* Smaller title font size for mobile */
+    }
+    .modal-summary {
+        font-size: 0.9rem; /* Smaller summary text */
+    }
+	
+	 .modal-content {
+        width: 95% !important; /* Makes the modal itself narrower */
+        max-width: 100% !important; /* Ensures it never goes off screen */
+        padding: 15px !important; /* Reduces padding inside the modal */
+        
+        /* NEW: This will make the modal shorter to fit the screen */
         max-height: calc(100vh - 100px) !important;
         margin-top: 93px !important;
     }
+
+    /* Table Styles */
     .modal-table-container {
+        /* This rule adds a scrollbar *just* to the table if it's too wide,
+           without breaking the rest of the page. */
         overflow-x: auto !important;
     }
     .modal-table thead th, 
     .modal-table tbody td {
-        padding: 5px 8px !important;
-        font-size: 0.75rem !important;
-        white-space: nowrap;
+        padding: 5px 8px !important; /* Reduced padding on table cells */
+        font-size: 0.75rem !important; /* Smaller text inside the table */
+        white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
     }
 }
 
-@media (max-width: 920px) {
-  .dropdown-row .dropdown-category { flex-basis: calc(50% - 8px); } /* Two categories per row */
-}
+.image-glow,
+    .image-glow-flipped {
+        display: none !important;
+    }
 
-@media (max-width: 768px) {
-    /* smaller tablet and phone rules here */
-}
-
+/* For even smaller screens, let's make things even more compact */
 @media (max-width: 480px) {
-    .faction-peeper-tool-container 
-        padding: 10px;
-    }
-    .script-title {
-        font-size: 1.8rem;
-    }
-    .action-buttons-container .action-btn {
-        min-width: unset;
-        width: 100%;
-    }
+    .faction-peeper-tool-container {
+        padding: 10px; /* Minimal padding on very small screens */
+    }
+    .script-title {
+        font-size: 1.8rem;
+    }
+    .action-buttons-container .action-btn {
+        min-width: unset;
+        width: 100%;
+    }
+    .modal-content {
+        padding: 10px !important;
+    }
+    .modal-table thead th,
+    .modal-table tbody td {
+        font-size: 0.7rem !important; /* Even smaller font */
+    }
 }
