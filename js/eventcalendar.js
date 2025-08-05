@@ -1,17 +1,153 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("eventcalendar.js: Script loaded. Using event bar rendering model.");
+    console.log("eventcalendar.js: Script loaded and restructured.");
 
+    // --- 1. SELECTORS & STATE VARIABLES ---
+    // Get all necessary elements from the page once.
     const calendarWrapper = document.querySelector('.calendar-wrapper');
     const calendarHeader = document.querySelector('.calendar-header');
     const calendarWeekdays = document.querySelector('.calendar-weekdays');
     const calendarDays = document.getElementById('calendarDays');
     const tooltip = document.getElementById('event-tooltip');
+    const currentMonthYear = document.getElementById('currentMonthYear');
     const eventColors = ['#3b5998', '#6a4c93', '#1982c4', '#8ac926', '#ffca3a', '#ff595e', '#2d6a4f'];
-    
+
+    // Define state variables that will be used by the functions.
+    let currentDate = new Date();
+    let TORN_API_KEY = null; // This will be set after login.
+
+    // --- 2. EVENT LISTENERS ---
+    // Attach event listeners once. They will be active for the entire life of the page.
+    if (calendarWrapper) {
+        calendarWrapper.addEventListener('click', (event) => {
+            // Do not allow clicks to do anything if the user isn't fully logged in.
+            if (!TORN_API_KEY) return;
+
+            if (event.target.closest('#prevMonthBtn')) {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            }
+            if (event.target.closest('#nextMonthBtn')) {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            }
+        });
+    }
+
+    if (calendarDays) {
+        calendarDays.addEventListener('mouseover', (event) => {
+            const dayElement = event.target.closest('.event-day-range');
+            if (dayElement && dayElement.dataset.events) {
+                const eventData = JSON.parse(dayElement.dataset.events)[0];
+                if (eventData) {
+                    tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
+                    tooltip.classList.add('visible');
+                }
+            }
+        });
+
+        calendarDays.addEventListener('mouseout', () => {
+            tooltip.classList.remove('visible');
+        });
+
+        calendarDays.addEventListener('mousemove', (event) => {
+            tooltip.style.left = `${event.pageX + 15}px`;
+            tooltip.style.top = `${event.pageY + 15}px`;
+        });
+    }
+
+
+    // --- 3. FUNCTION DEFINITIONS ---
+    // Define all functions in the main scope so they can be called from anywhere.
+    function renderCalendar() {
+        if (!TORN_API_KEY) return; // Safety check
+        updateNavButtonsState();
+        calendarDays.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let i = 0; i < firstDayOfMonth; i++) { const emptyDay = document.createElement('div'); emptyDay.classList.add('calendar-day', 'empty'); calendarDays.appendChild(emptyDay); }
+        for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.textContent = day; dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) { dayElement.classList.add('current-day'); } calendarDays.appendChild(dayElement); }
+        fetchTornEventsForMonth(year, month + 1);
+    }
+
+    async function fetchTornEventsForMonth(year, month) {
+        const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) { throw new Error(`API Error: ${response.status}`); }
+            const data = await response.json();
+            if (data && data.calendar && data.calendar.events) {
+                const eventsInMonth = Object.values(data.calendar.events).filter(event => {
+                    const eventStartDate = new Date(event.start * 1000);
+                    const eventEndDate = new Date(event.end * 1000);
+                    const viewStartDate = new Date(year, month - 1, 1);
+                    const viewEndDate = new Date(year, month, 0);
+                    return eventStartDate <= viewEndDate && eventEndDate >= viewStartDate;
+                });
+                displayEventsOnCalendar(eventsInMonth);
+            } else { if (data.error) throw new Error(`API Error: ${data.error.error}`); }
+        } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
+    }
+
+    function updateNavButtonsState() {
+        const actualCurrentYear = new Date().getFullYear();
+        const prevMonthBtn = document.getElementById('prevMonthBtn');
+        const nextMonthBtn = document.getElementById('nextMonthBtn');
+        if (!prevMonthBtn || !nextMonthBtn) return;
+        prevMonthBtn.disabled = (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 0);
+        nextMonthBtn.disabled = (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 11);
+    }
+
+    function displayEventsOnCalendar(events) {
+        events.forEach((event, index) => {
+            const originalStartDate = new Date(event.start * 1000);
+            const originalEndDate = new Date(event.end * 1000);
+            const normalizedStartDate = new Date(originalStartDate);
+            normalizedStartDate.setHours(0, 0, 0, 0);
+            const normalizedEndDate = new Date(originalEndDate);
+            normalizedEndDate.setHours(0, 0, 0, 0);
+            const eventColor = eventColors[index % eventColors.length];
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+
+            for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
+                const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
+
+                if (dayElement) {
+                    const displayEvent = { name: event.title, description: event.description };
+                    dayElement.dataset.events = JSON.stringify([displayEvent]);
+                    dayElement.classList.add('event-day-range');
+                    dayElement.style.backgroundColor = eventColor;
+                    const isStart = d.getTime() === normalizedStartDate.getTime();
+                    const isEnd = d.getTime() === normalizedEndDate.getTime();
+
+                    if (isStart && isEnd) { dayElement.classList.add('event-range-single'); }
+                    else if (isStart) { dayElement.classList.add('event-range-start'); }
+                    else if (isEnd) { dayElement.classList.add('event-range-end'); }
+                    
+                    if (isStart) { dayElement.innerHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`; }
+
+                    if (isStart && isEnd) {
+                        dayElement.innerHTML += `<div class="day-event-time">(${originalStartDate.toLocaleTimeString([], timeOptions)} - ${originalEndDate.toLocaleTimeString([], timeOptions)})</div>`;
+                    } else if (isStart) {
+                        dayElement.innerHTML += `<div class="day-event-time">Start: ${originalStartDate.toLocaleTimeString([], timeOptions)}</div>`;
+                    } else if (isEnd) {
+                        dayElement.innerHTML += `<div class="day-event-time">End: ${originalEndDate.toLocaleTimeString([], timeOptions)}</div>`;
+                    }
+                }
+            }
+        });
+    }
+
+    // --- 4. AUTHENTICATION & INITIALIZATION ---
+    // Set initial UI state
     if (calendarHeader) calendarHeader.style.display = 'none';
     if (calendarWeekdays) calendarWeekdays.style.display = 'none';
     if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message">Loading Calendar...</div>`;
 
+    // Now, check for authentication. This will only control VISIBILITY and the INITIAL render.
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             try {
@@ -19,164 +155,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userDoc = await userDocRef.get();
 
                 if (userDoc.exists && userDoc.data().tornApiKey) {
+                    // SUCCESS: User is logged in and has a key.
+                    TORN_API_KEY = userDoc.data().tornApiKey;
                     if (calendarHeader) calendarHeader.style.display = 'flex';
                     if (calendarWeekdays) calendarWeekdays.style.display = 'grid';
-
-                    const TORN_API_KEY = userDoc.data().tornApiKey;
-                    let currentDate = new Date();
-                    const currentMonthYear = document.getElementById('currentMonthYear');
-
-                    calendarWrapper.addEventListener('click', (event) => {
-                        if (event.target.closest('#prevMonthBtn')) {
-                            currentDate.setMonth(currentDate.getMonth() - 1);
-                            renderCalendar();
-                        }
-                        if (event.target.closest('#nextMonthBtn')) {
-                            currentDate.setMonth(currentDate.getMonth() + 1);
-                            renderCalendar();
-                        }
-                    });
-calendarDays.addEventListener('mouseover', (event) => {
-    const dayElement = event.target.closest('.event-day-range');
-    if (dayElement && dayElement.dataset.events) {
-        const eventData = JSON.parse(dayElement.dataset.events)[0];
-        if (eventData) {
-            tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
-            tooltip.classList.add('visible'); // Corrected
-        }
-    }
-});
-
-calendarDays.addEventListener('mouseout', () => {
-    tooltip.classList.remove('visible');
-});
-
-calendarDays.addEventListener('mousemove', (event) => {
-    tooltip.style.left = `${event.pageX + 15}px`;
-    tooltip.style.top = `${event.pageY + 15}px`;
-});
-                    function renderCalendar() {
-						updateNavButtonsState();
-                        calendarDays.innerHTML = '';
-                        const year = currentDate.getFullYear();
-                        const month = currentDate.getMonth();
-                        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-                        const firstDayOfMonth = new Date(year, month, 1).getDay();
-                        const daysInMonth = new Date(year, month + 1, 0).getDate();
-                        for (let i = 0; i < firstDayOfMonth; i++) { const emptyDay = document.createElement('div'); emptyDay.classList.add('calendar-day', 'empty'); calendarDays.appendChild(emptyDay); }
-                        for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.textContent = day; dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) { dayElement.classList.add('current-day'); } calendarDays.appendChild(dayElement); }
-                        fetchTornEventsForMonth(year, month + 1);
-                    }
-
-                    async function fetchTornEventsForMonth(year, month) {
-                        const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
-                        try {
-                            const response = await fetch(apiUrl);
-                            if (!response.ok) { throw new Error(`API Error: ${response.status}`); }
-                            const data = await response.json();
-                            if (data && data.calendar && data.calendar.events) {
-                                const eventsInMonth = Object.values(data.calendar.events).filter(event => {
-                                    const eventStartDate = new Date(event.start * 1000);
-                                    const eventEndDate = new Date(event.end * 1000);
-                                    const viewStartDate = new Date(year, month - 1, 1);
-                                    const viewEndDate = new Date(year, month, 0);
-                                    return eventStartDate <= viewEndDate && eventEndDate >= viewStartDate;
-                                });
-                                displayEventsOnCalendar(eventsInMonth);
-                            } else { if(data.error) throw new Error(`API Error: ${data.error.error}`); }
-                        } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
-                    }
-
-function updateNavButtonsState() {
-    const actualCurrentYear = new Date().getFullYear();
-    const prevMonthBtn = document.getElementById('prevMonthBtn');
-    const nextMonthBtn = document.getElementById('nextMonthBtn');
-
-    // Disable 'Previous' button if viewing January of the current year
-    if (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 0) {
-        prevMonthBtn.disabled = true;
-    } else {
-        prevMonthBtn.disabled = false;
-    }
-
-    // Disable 'Next' button if viewing December of the current year
-    if (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 11) {
-        nextMonthBtn.disabled = true;
-    } else {
-        nextMonthBtn.disabled = false;
-    }
-}
-
-function displayEventsOnCalendar(events) {
-    events.forEach((event, index) => {
-        // Keep original dates with time for display
-        const originalStartDate = new Date(event.start * 1000);
-        const originalEndDate = new Date(event.end * 1000);
-
-        // Create normalized dates (at midnight) for looping
-        const normalizedStartDate = new Date(originalStartDate);
-        normalizedStartDate.setHours(0, 0, 0, 0);
-        const normalizedEndDate = new Date(originalEndDate);
-        normalizedEndDate.setHours(0, 0, 0, 0);
-        
-        const eventColor = eventColors[index % eventColors.length];
-        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
-
-        for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
-            const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
-
-            if (dayElement) {
-                // --- NEW: Store the event data needed for the tooltip ---
-                const displayEvent = { name: event.title, description: event.description };
-                dayElement.dataset.events = JSON.stringify([displayEvent]);
-
-                dayElement.classList.add('event-day-range');
-                dayElement.style.backgroundColor = eventColor;
-                
-                const isStart = d.getTime() === normalizedStartDate.getTime();
-                const isEnd = d.getTime() === normalizedEndDate.getTime();
-                
-                if (isStart && isEnd) {
-                    dayElement.classList.add('event-range-single');
-                } else if (isStart) {
-                    dayElement.classList.add('event-range-start');
-                } else if (isEnd) {
-                    dayElement.classList.add('event-range-end');
-                }
-                
-                // Add the title and bell icon on the first day
-                if (isStart) {
-                    dayElement.innerHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`;
-                }
-
-                // Add start and end times
-                if (isStart && isEnd) {
-                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                    dayElement.innerHTML += `<div class="day-event-time">(${startTime} - ${endTime})</div>`;
-                } else if (isStart) {
-                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                    dayElement.innerHTML += `<div class="day-event-time">Start: ${startTime}</div>`;
-                } else if (isEnd) {
-                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                    dayElement.innerHTML += `<div class="day-event-time">End: ${endTime}</div>`;
-                }
-            }
-        }
-    });
-}
-                    
-                    renderCalendar();
-
+                    renderCalendar(); // This is the first and only initial render call.
                 } else {
+                    // FAIL: User logged in, but no API key.
+                    TORN_API_KEY = null;
+                    if (calendarHeader) calendarHeader.style.display = 'none';
+                    if (calendarWeekdays) calendarWeekdays.style.display = 'none';
                     if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>API Key Missing</h3><p>Your Torn API key is not saved in your user profile.</p></div>`;
                 }
             } catch (error) {
+                TORN_API_KEY = null;
                 console.error("Error fetching user data from Firestore:", error);
                 if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data.</p></div>`;
             }
         } else {
+            // FAIL: User is not logged in.
+            TORN_API_KEY = null;
+            if (calendarHeader) calendarHeader.style.display = 'none';
+            if (calendarWeekdays) calendarWeekdays.style.display = 'none';
             if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message"><h3>Please Log In</h3><p>You must be logged in to view the event calendar.</p></div>`;
         }
     });
