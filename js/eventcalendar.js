@@ -183,10 +183,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    // --- THIS IS THE FIX ---
+    // The rule now specifically targets TABLETS in landscape by adding a 'min-width'.
+    // This stops it from incorrectly activating on mobile phones.
+    const isTabletLandscape = window.matchMedia("(min-width: 768px) and (max-width: 1280px) and (orientation: landscape)").matches;
     let blocker = document.getElementById('landscape-blocker');
 
-    if (isMobileLandscape) {
+    if (isTabletLandscape) {
         // If the blocker doesn't exist, create and show it.
         if (!blocker) {
             blocker = document.createElement('div');
@@ -218,7 +221,7 @@ function toggleLandscapeBlocker() {
         document.body.style.overflow = 'hidden';
 
     } else {
-        // If we are in portrait, remove the blocker if it exists.
+        // If we are in portrait OR not a tablet, remove the blocker if it exists.
         if (blocker) {
             blocker.remove();
         }
@@ -226,11 +229,6 @@ function toggleLandscapeBlocker() {
         document.body.style.overflow = '';
     }
 }
-
-// Run the function when the page first loads and whenever it's resized.
-window.addEventListener('load', toggleLandscapeBlocker);
-window.addEventListener('resize', toggleLandscapeBlocker);
-
 // --- START: Mobile Landscape Enforcement ---
 // This section will handle showing an overlay on mobile phones in portrait mode.
 // It will not affect tablets or desktop computers.
