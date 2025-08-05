@@ -219,10 +219,10 @@ label[for="apiKey"] { /* Specific labels for Faction ID and API Key */
 
 .stat-dropdowns-container { display: flex; flex-direction: column; gap: 15px; }
 .dropdown-row { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
-.dropdown-row .dropdown-category { 
-  flex: 1 1 calc(33.333% - 10px); /* Distribute space, allowing for gap */
-  min-width: 200px; /* Minimum width for categories */
-  max-width: 280px; /* Maximum width for categories */
+.dropdown-row .dropdown-category {
+    flex: 1 1 220px; /* Grow, shrink, with a base width of 220px */
+    min-width: 200px; /* Keep a minimum width for consistency */
+}
 }
 /* Special styling for the 'Most Popular' dropdown to be wider or centered */
 .dropdown-row.single-dropdown .dropdown-category { 
@@ -391,9 +391,7 @@ footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 
 /* Responsive Media Queries */
-@media (max-width: 920px) {
-  .dropdown-row .dropdown-category { flex-basis: calc(50% - 8px); } /* Two categories per row */
-}
+
 @media (max-width: 768px) { /* Tablet and smaller */
     header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
