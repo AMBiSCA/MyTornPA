@@ -208,17 +208,17 @@ header {
 
 /* --- Main Content Wrapper --- */
 .main-content-wrapper {
-flex-grow: 1;
-display: flex;
-flex-direction: column;
-align-items: stretch; /* CHANGED: This makes the content box fill the height */
-overflow: hidden;
-padding-top: 25px; /* REDUCED: This leaves a small gap at the top */
-padding-bottom: 25px; /* REDUCED: This leaves a small gap at the bottom */
-box-sizing: border-box;
-position: relative;
-z-index: 1;
-min-height: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    padding-top: 95px;
+    padding-bottom: 95px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    min-height: 0;
 }
 
 /* --- Footer --- */
@@ -568,5 +568,13 @@ footer.footer > p {
     }
     .item-stats {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content-wrapper {
+        align-items: stretch; /* Makes the content box fill the height */
+        padding-top: 25px;    /* Reduces the top gap */
+        padding-bottom: 25px; /* Reduces the bottom gap */
     }
 }
