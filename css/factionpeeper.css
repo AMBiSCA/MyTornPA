@@ -1,6 +1,4 @@
 /* Styles specific to factionpeeper.html */
-
-
 html, body {
     height: 100vh;
     margin: 0;
@@ -587,31 +585,5 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .modal-table thead th,
     .modal-table tbody td {
         font-size: 0.7rem !important; /* Even smaller font */
-    }
-}
-
-@keyframes forceTabletStyle {
-    width: 75%;
-    max-width: 800px;
-    border: 10px solid orange; /* Using a new color for this test */
-  }
-  to {
-    width: 75%;
-    max-width: 800px;
-    border: 10px solid orange;
-  }
-}
-
-/* 2. Apply the animation within the media query */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .faction-peeper-tool-container {
-        /* Apply the animation */
-        animation-name: forceTabletStyle;
-        animation-duration: 0.1s; /* Run the animation for a fraction of a second */
-        animation-fill-mode: forwards; /* This makes the styles from the animation stick */
-
-        /* We add these again as a fallback */
-        width: 75% !important;
-        max-width: 800px !important;
     }
 }
