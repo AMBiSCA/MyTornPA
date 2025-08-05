@@ -645,31 +645,11 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 });
 
-// --- Visual Debugger ---
-// This creates a small box on screen to show us debug messages on your tablet.
-function visualLog(message) {
-    let debugBox = document.getElementById('visual-debugger');
-    if (!debugBox) {
-        debugBox = document.createElement('div');
-        debugBox.id = 'visual-debugger';
-        Object.assign(debugBox.style, {
-            position: 'fixed', top: '0', left: '0', padding: '5px',
-            backgroundColor: 'rgba(0,0,0,0.8)', color: 'lime', fontFamily: 'monospace',
-            fontSize: '12px', zIndex: '100000', pointerEvents: 'none'
-        });
-        document.body.appendChild(debugBox);
-    }
-    // Add the new message to the top of the box
-    debugBox.innerHTML = `<div>${message}</div>` + debugBox.innerHTML;
-}
-
-
-// --- Main Blocker Function (with Visual Debugging) ---
 function toggleLandscapeBlocker() {
-    visualLog("--- Running check... ---");
+    console.log("--- Blocker function is running ---");
 
     const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    visualLog(`Is landscape? ${isMobileLandscape}`);
+    console.log("Is device in landscape mode? ", isMobileLandscape);
 
     let blocker = document.getElementById('landscape-blocker');
 
@@ -678,12 +658,18 @@ function toggleLandscapeBlocker() {
     const footer = document.querySelector('footer');
     const chatSystem = document.getElementById('tornpa-chat-system');
 
-    // Check which elements were found (true/false)
-    visualLog(`Found elements? H:${!!header}, F:${!!footer}, C:${!!chatSystem}`);
+    // This will show us which elements the script can find on the page
+    console.log("Found Elements Status:", {
+        mainContent: !!mainContent,
+        header: !!header,
+        footer: !!footer,
+        chatSystem: !!chatSystem
+    });
 
     if (isMobileLandscape) {
-        visualLog("Action: SHOW blocker");
+        console.log("Action: Should SHOW the blocker.");
         if (!blocker) {
+            console.log("Creating blocker element...");
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
@@ -706,7 +692,7 @@ function toggleLandscapeBlocker() {
         if (chatSystem) chatSystem.style.display = 'none';
 
     } else {
-        visualLog("Action: HIDE blocker");
+        console.log("Action: Should HIDE the blocker.");
         if (blocker) {
             blocker.remove();
         }
