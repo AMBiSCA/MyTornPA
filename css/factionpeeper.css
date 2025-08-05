@@ -566,6 +566,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .image-glow-flipped {
         display: none !important;
     }
+	
+	@media (max-width: 1024px) {
+  .faction-peeper-tool-container {
+    max-width: 600px !important;
+  }
+}
 
 /* For even smaller screens, let's make things even more compact */
 @media (max-width: 480px) {
@@ -586,10 +592,4 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .modal-table tbody td {
         font-size: 0.7rem !important; /* Even smaller font */
     }
-}
-
-@media (max-width: 1024px) {
-  .faction-peeper-tool-container {
-    max-width: 600px !important;
-  }
 }
