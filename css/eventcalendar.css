@@ -10,9 +10,9 @@ main {
   background-color: var(--background-color-dark-surface);
   border: 2px solid black;
   border-radius: 8px;
-  padding: 10px; /* Reduced */
-  max-width: 650px; /* Significantly reduced to give more space on the sides */
-  margin: 20px auto; /* Reduced the top/bottom margin */
+  padding: 10px;
+  max-width: 650px;
+  margin: 10px auto; /* Significantly reduced the top/bottom margin */
   color: var(--text-color-light);
 }
 
@@ -144,15 +144,15 @@ main {
 /* Responsive adjustments */
 @media (max-width: 992px) { /* Tablet size and below */
     .calendar-wrapper {
-        max-width: 85%; /* Make it take up more space on tablets */
-        margin: 20px auto;
+        max-width: 85%;
+        margin: 15px auto; /* Adjusted margin for tablets */
     }
 }
 
 @media (max-width: 768px) { /* Normal phones, S7+ Samsung */
   .calendar-wrapper {
-    max-width: 90%; /* Allow it to be wider on smaller screens */
-    margin: 15px 10px;
+    max-width: 90%;
+    margin: 10px; /* Reduced margin for smaller screens */
     padding: 15px;
   }
 
