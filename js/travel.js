@@ -646,12 +646,12 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 });
 
 function toggleLandscapeBlocker() {
-    // This condition checks for landscape orientation on mobile/tablet devices
-    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    // This is the line we've changed.
+    // Increased from 1280px to 1920px to support larger tablets in landscape mode.
+    const isMobileLandscape = window.matchMedia("(max-width: 1920px) and (orientation: landscape)").matches;
     let blocker = document.getElementById('landscape-blocker');
 
-    // Get references to your specific page elements.
-    // I have updated these to match the HTML file you sent.
+    // These selectors are updated to match your travel.html page structure.
     const header = document.getElementById('global-header-placeholder');
     const mainContent = document.querySelector('.main-content-wrapper');
     const footer = document.getElementById('globalfooterplaceholder');
@@ -680,7 +680,7 @@ function toggleLandscapeBlocker() {
                 color: '#eee',
                 textAlign: 'center',
                 padding: '20px',
-                zIndex: '99999' // A high z-index ensures it's on top of other content
+                zIndex: '99999'
             });
             document.body.appendChild(blocker);
         }
@@ -699,7 +699,7 @@ function toggleLandscapeBlocker() {
 
         // Re-show main page content
         document.body.style.overflow = '';
-        // Setting display to '' reverts to the default value from your CSS file
+        // Reverting display to '' lets them fall back to your CSS stylesheet's default
         if (header) header.style.display = '';
         if (mainContent) mainContent.style.display = '';
         if (footer) footer.style.display = '';
