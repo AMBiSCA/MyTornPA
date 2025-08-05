@@ -529,7 +529,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
     /* Modal Styles */
     .modal-content {
-        width: 95% !important; /* Makes the modal itself narrower */
+        width: 95% !important; /* Makes the modal narrower */
         max-width: 100% !important; /* Ensures it never goes off screen */
         padding: 15px !important; /* Reduces padding inside the modal */
     }
