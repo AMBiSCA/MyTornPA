@@ -182,137 +182,89 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function toggleLandscapeBlocker() {
-    // --- THIS IS THE FIX ---
-    // The rule now specifically targets TABLETS in landscape by adding a 'min-width'.
-    // This stops it from incorrectly activating on mobile phones.
-    const isTabletLandscape = window.matchMedia("(min-width: 768px) and (max-width: 1280px) and (orientation: landscape)").matches;
-    let blocker = document.getElementById('landscape-blocker');
+// --- START: Complete Orientation Handler ---
 
-    if (isTabletLandscape) {
-        // If the blocker doesn't exist, create and show it.
+// --- Block 1: The "Rotate to Portrait" message for TABLETS ---
+
+function toggleTabletBlocker() {
+    // This rule targets devices that are likely tablets (width 768px to 1280px) AND are in landscape mode.
+    const isTabletInLandscape = window.matchMedia("(min-width: 768px) and (max-width: 1280px) and (orientation: landscape)").matches;
+    
+    let blocker = document.getElementById('tablet-portrait-blocker');
+
+    if (isTabletInLandscape) {
+        // If the tablet is in landscape, show the "rotate to portrait" message.
         if (!blocker) {
             blocker = document.createElement('div');
-            blocker.id = 'landscape-blocker';
-            blocker.innerHTML = `
-                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
-                <h2>Please Rotate Your Device</h2>
-                <p>This page is best viewed in portrait mode.</p>
-            `;
-            // These styles will make it cover the entire screen.
+            blocker.id = 'tablet-portrait-blocker';
+            blocker.innerHTML = `<div><h2>Please Rotate to Portrait</h2><p>This page is designed for portrait viewing on tablets.</p></div>`;
             Object.assign(blocker.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100vw',  // Use viewport width
-                height: '100vh', // Use viewport height
-                backgroundColor: '#1c1c1c', // A solid, dark color
-                color: '#eee',
-                textAlign: 'center',
-                zIndex: '99999' // A very high number to ensure it's on top of everything
+                display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                backgroundColor: '#1c1c1c', color: '#eee', textAlign: 'center', zIndex: '99999'
             });
             document.body.appendChild(blocker);
         }
-        // Also, prevent the page from scrolling underneath the blocker.
-        document.body.style.overflow = 'hidden';
-
     } else {
-        // If we are in portrait OR not a tablet, remove the blocker if it exists.
+        // If the tablet is in portrait (or it's not a tablet), remove the message.
         if (blocker) {
             blocker.remove();
         }
-        // And restore the ability to scroll the page.
-        document.body.style.overflow = '';
     }
 }
-// --- START: Mobile Landscape Enforcement ---
-// This section will handle showing an overlay on mobile phones in portrait mode.
-// It will not affect tablets or desktop computers.
 
-let orientationOverlay = null;
 
-/**
- * Creates and adds a hidden overlay to the page.
- * This overlay will be used to ask the user to rotate their phone.
- */
-function createOrientationOverlay() {
-    // Avoid creating multiple overlays if this script is ever run more than once.
-    if (document.getElementById('orientation-overlay-mobile')) {
-        orientationOverlay = document.getElementById('orientation-overlay-mobile');
-        return;
-    }
+// --- Block 2: The "Rotate to Landscape" message for PHONES ---
 
-    orientationOverlay = document.createElement('div');
-    orientationOverlay.id = 'orientation-overlay-mobile';
+let mobileOverlay = null;
 
-    // Apply styles to the overlay div
-    Object.assign(orientationOverlay.style, {
-        display: 'none', // Hidden by default
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#222',
-        color: '#eee',
-        textAlign: 'center',
-        padding: '20px',
-        zIndex: '99999' // Make sure it's on top of everything
+function createMobileOverlay() {
+    if (document.getElementById('mobile-landscape-overlay')) return;
+    mobileOverlay = document.createElement('div');
+    mobileOverlay.id = 'mobile-landscape-overlay';
+    mobileOverlay.innerHTML = `<div><h2>Please Rotate to Landscape</h2><p>This page is best viewed in landscape mode on your phone.</p></div>`;
+    Object.assign(mobileOverlay.style, {
+        display: 'none', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+        position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+        backgroundColor: '#1c1c1c', color: '#eee', textAlign: 'center', zIndex: '99999'
     });
-
-    // Add the message and button to the overlay
-    orientationOverlay.innerHTML = `
-        <div>
-            <h2 style="font-size: 24px; margin-bottom: 15px;">Please Rotate Your Device</h2>
-            <p style="font-size: 16px; margin: 0;">This page is best viewed in landscape mode.</p>
-            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                Go to Homepage
-            </a>
-        </div>
-    `;
-    document.body.appendChild(orientationOverlay);
+    document.body.appendChild(mobileOverlay);
 }
 
-/**
- * Checks the screen size and orientation to decide if the overlay should be shown.
- */
-function checkAndEnforceMobileLandscape() {
-    // Make sure the overlay element exists before trying to use it.
-    if (!orientationOverlay) return;
+function toggleMobileBlocker() {
+    if (!mobileOverlay) return;
 
-    // --- THIS IS THE MODIFIED LOGIC ---
-    // We define a maximum width for what we consider a "mobile" device.
-    const MOBILE_MAX_WIDTH = 768; // Affects screens narrower than 768px
+    // This rule targets devices that are likely phones (width less than 768px).
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
 
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-
-    const isMobile = screenWidth < MOBILE_MAX_WIDTH;
-    const isPortrait = screenHeight > screenWidth;
-
-    // The overlay should only appear if it's a mobile device AND it's in portrait mode.
     if (isMobile && isPortrait) {
-        orientationOverlay.style.display = 'flex'; // Show the overlay
+        // If it's a phone in portrait mode, show the "rotate to landscape" message.
+        mobileOverlay.style.display = 'flex';
     } else {
-        orientationOverlay.style.display = 'none'; // Hide the overlay
+        // Otherwise (it's a desktop, tablet, or a phone in landscape), hide the message.
+        mobileOverlay.style.display = 'none';
     }
 }
 
-// 1. Create the overlay element as soon as the script runs.
-createOrientationOverlay();
 
-// 2. Add listeners to run our check whenever the screen size or orientation might change.
-window.addEventListener('resize', checkAndEnforceMobileLandscape);
-window.addEventListener('orientationchange', checkAndEnforceMobileLandscape);
+// --- Block 3: SCRIPT INITIALIZATION ---
+// This part runs everything when the page loads and sets up the listeners.
 
-// 3. Run an initial check when the page first loads to set the correct state.
-checkAndEnforceMobileLandscape();
+// 1. Create the (hidden) mobile overlay element immediately.
+createMobileOverlay();
 
-// --- END: Mobile Landscape Enforcement ---
+// 2. Define a single function that runs all our checks.
+function handleOrientationChange() {
+    toggleTabletBlocker();
+    toggleMobileBlocker();
+}
+
+// 3. Run the checks once when the page first loads.
+handleOrientationChange();
+
+// 4. Add listeners that will re-run the checks whenever the screen size or orientation changes.
+window.addEventListener('resize', handleOrientationChange);
+window.addEventListener('orientationchange', handleOrientationChange);
+
+// --- END: Complete Orientation Handler ---
