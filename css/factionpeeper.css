@@ -519,13 +519,13 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     color: #00c0ff;
 }
 
-@media (max-width: 1024px) {
-    /* Main Faction Tool Container */
-    .faction-peeper-tool-container {
-        padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
-        width: 95%; /* Ensures the container fits well on most phones */
-		margin-left: -3px !important;
-    }
+@media (max-width: 768px) {
+
+.faction-peeper-tool-container {
+    width: 95% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
 
     /* Modal Styles */
     .modal-content {
@@ -563,6 +563,8 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
     }
 }
+/* ADD THIS RULE INSIDE THE @media (max-width: 1024px) BLOCK */
+
 
 .image-glow,
     .image-glow-flipped {
