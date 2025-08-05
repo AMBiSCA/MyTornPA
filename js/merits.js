@@ -1279,3 +1279,136 @@ async function initializeMeritsPage() {
 
 // Run initialization when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeMeritsPage);
+
+// --- START: Complete and Unified Orientation Handler ---
+
+// This single script handles all orientation logic for both phones and tablets without conflict.
+
+let portraitBlocker = null;
+let landscapeBlocker = null;
+
+/**
+ * Creates the two overlay elements with the new, requested style.
+ */
+function createOverlays() {
+    // Shared styles for the overlays, based on your example
+    const overlayStyles = {
+        display: 'none',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#1e1e1e',
+        color: '#f0f0f0',
+        textAlign: 'center',
+        fontFamily: 'sans-serif',
+        fontSize: '1.5em',
+        zIndex: '99999'
+    };
+
+    // Shared styles for the new "Return to Home" button
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px' // A readable font size for the button
+    };
+
+    // --- Create the "Rotate to Portrait" overlay for TABLETS ---
+    if (!document.getElementById('tablet-portrait-blocker')) {
+        portraitBlocker = document.createElement('div');
+        portraitBlocker.id = 'tablet-portrait-blocker';
+        Object.assign(portraitBlocker.style, overlayStyles); // Apply new styles
+        portraitBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">This page is best viewed in portrait mode.</p>
+                <button id="return-home-btn-tablet">Return to Home</button>
+            </div>`;
+        document.body.appendChild(portraitBlocker);
+
+        const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
+        if (tabletReturnBtn) {
+            Object.assign(tabletReturnBtn.style, buttonStyles); // Style the button
+            tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+
+    // --- Create the "Rotate to Landscape" overlay for PHONES ---
+    if (!document.getElementById('mobile-landscape-blocker')) {
+        landscapeBlocker = document.createElement('div');
+        landscapeBlocker.id = 'mobile-landscape-blocker';
+        Object.assign(landscapeBlocker.style, overlayStyles); // Apply new styles
+        landscapeBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-btn-mobile">Return to Home</button>
+            </div>`;
+        document.body.appendChild(landscapeBlocker);
+        
+        const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
+        if (mobileReturnBtn) {
+            Object.assign(mobileReturnBtn.style, buttonStyles); // Style the button
+            mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+}
+
+/**
+ * This is the main function that checks the device and orientation, and shows the correct overlay.
+ */
+function handleOrientation() {
+    if (!portraitBlocker || !landscapeBlocker) {
+        // Ensure the overlays exist before trying to control them
+        createOverlays(); 
+        portraitBlocker = document.getElementById('tablet-portrait-blocker');
+        landscapeBlocker = document.getElementById('mobile-landscape-blocker');
+        if (!portraitBlocker || !landscapeBlocker) return;
+    }
+
+    // First, hide both overlays so we start fresh.
+    portraitBlocker.style.display = 'none';
+    landscapeBlocker.style.display = 'none';
+
+    // Get screen properties
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    const isLandscape = !isPortrait;
+    
+    // Use the SHORTEST side of the screen to guess the device type. This is more reliable.
+    const shortestSide = Math.min(window.screen.width, window.screen.height);
+
+    const isPhone = shortestSide < 600;
+    const isTablet = shortestSide >= 600 && shortestSide < 1024;
+
+    // Now apply the rules based on our findings
+    if (isPhone && isPortrait) {
+        // It's a phone in portrait mode. Show the "Rotate to Landscape" message.
+        landscapeBlocker.style.display = 'flex';
+    } else if (isTablet && isLandscape) {
+        // It's a tablet in landscape mode. Show the "Rotate to Portrait" message.
+        portraitBlocker.style.display = 'flex';
+    }
+}
+
+// --- SCRIPT INITIALIZATION ---
+
+// 1. Run the main handler function once when the page first loads.
+// The handler will create the overlays if they don't exist.
+document.addEventListener('DOMContentLoaded', handleOrientation);
+
+// 2. Add listeners that will re-run the check whenever the screen changes.
+window.addEventListener('resize', handleOrientation);
+window.addEventListener('orientationchange', handleOrientation);
+
+// --- END: Complete and Unified Orientation Handler ---
