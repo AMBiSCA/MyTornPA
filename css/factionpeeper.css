@@ -599,19 +599,15 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     }
 }
 
-/* --- Tablet Size Correction for Faction Peeper --- */
+/* --- FINAL TABLET TEST --- */
 @media (min-width: 769px) and (max-width: 1024px) {
 
-    /* This targets the main content area that wraps your tool */
-    main {
-        width: 75% !important;
-        max-width: 800px !important;
+    /* This rule uses a very specific path to the container */
+    html body .main-content-wrapper .faction-peeper-tool-container {
+        width: 50% !important;
+        max-width: 600px !important;
+        border: 10px solid gold !important;     /* <-- ADDED FOR VISIBILITY */
+        background-color: purple !important;    /* <-- ADDED FOR VISIBILITY */
     }
 
-    /* This makes your tool fill the new, narrower space */
-    .faction-peeper-tool-container {
-        width: 100% !important;
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-    }
 }
