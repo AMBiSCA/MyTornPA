@@ -587,3 +587,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         font-size: 0.7rem !important; /* Even smaller font */
     }
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .faction-peeper-tool-container {
+        width: 70%;         /* Makes the container narrower (was 90%) */
+        max-width: 750px;   /* Reduces the maximum possible width (was 950px) */
+        padding-left: 25px; /* Reduces side padding (was 40px) */
+        padding-right: 25px;/* Reduces side padding (was 40px) */
+    }
+}
