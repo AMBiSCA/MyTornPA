@@ -645,55 +645,65 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 
 });
 
-// Function to handle the landscape blocker logic
-    function toggleLandscapeBlocker() {
-        const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-        let blocker = document.getElementById('landscape-blocker');
+function toggleLandscapeBlocker() {
+    console.log("--- Blocker function is running ---");
 
-        // Select all the content elements to hide/show
-        const header = document.querySelector('header');
-        const mainContent = document.getElementById('mainHomepageContent'); // Corrected Selector
-        const footer = document.querySelector('footer');
-        const chatSystem = document.getElementById('tornpa-chat-system');
+    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    console.log("Is device in landscape mode? ", isMobileLandscape);
 
-        if (isMobileLandscape) {
-            if (!blocker) {
-                blocker = document.createElement('div');
-                blocker.id = 'landscape-blocker';
-                blocker.innerHTML = `
-                    <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
-                    <h2>Please Rotate Your Device</h2>
-                    <p>This page is best viewed in portrait mode.</p>
-                `;
-                Object.assign(blocker.style, {
-                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-                    position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                    backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
-                    padding: '20px', zIndex: '99999', boxSizing: 'border-box'
-                });
-                document.body.appendChild(blocker);
-            }
+    let blocker = document.getElementById('landscape-blocker');
 
-            // Hide main page content
-            if (header) header.style.display = 'none';
-            if (mainContent) mainContent.style.display = 'none';
-            if (footer) footer.style.display = 'none';
-            if (chatSystem) chatSystem.style.display = 'none';
+    const mainContent = document.querySelector('.main-content-wrapper');
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
+    const chatSystem = document.getElementById('tornpa-chat-system');
 
-        } else {
-            // Remove the blocker if it exists
-            if (blocker) {
-                blocker.remove();
-            }
+    // This will show us which elements the script can find on the page
+    console.log("Found Elements Status:", {
+        mainContent: !!mainContent,
+        header: !!header,
+        footer: !!footer,
+        chatSystem: !!chatSystem
+    });
 
-            // Re-show main page content
-            if (header) header.style.display = '';
-            if (mainContent) mainContent.style.display = '';
-            if (footer) footer.style.display = '';
-            if (chatSystem) chatSystem.style.display = '';
-        }
-    }
+    if (isMobileLandscape) {
+        console.log("Action: Should SHOW the blocker.");
+        if (!blocker) {
+            console.log("Creating blocker element...");
+            blocker = document.createElement('div');
+            blocker.id = 'landscape-blocker';
+            blocker.innerHTML = `
+                <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+                <h2>Please Rotate Your Device</h2>
+                <p>This page is best viewed in portrait mode.</p>
+            `;
+            Object.assign(blocker.style, {
+                display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
+                padding: '20px', zIndex: '99999', boxSizing: 'border-box'
+            });
+            document.body.appendChild(blocker);
+        }
 
-    // Run the function on page load and whenever the window is resized or orientation changes
-    window.addEventListener('load', toggleLandscapeBlocker);
-    window.addEventListener('resize', toggleLandscapeBlocker);
+        if (header) header.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (chatSystem) chatSystem.style.display = 'none';
+
+    } else {
+        console.log("Action: Should HIDE the blocker.");
+        if (blocker) {
+            blocker.remove();
+        }
+
+        if (header) header.style.display = '';
+        if (mainContent) mainContent.style.display = '';
+        if (footer) footer.style.display = '';
+        if (chatSystem) chatSystem.style.display = '';
+    }
+}
+
+// Run the function on page load and whenever the window is resized or orientation changes
+window.addEventListener('load', toggleLandscapeBlocker);
+window.addEventListener('resize', toggleLandscapeBlocker);
