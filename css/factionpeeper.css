@@ -1,11 +1,5 @@
 /* Styles specific to factionpeeper.html */
 
-/* ---- TEMPORARY DEBUG CODE ---- */
-@media (min-width: 769px) and (max-width: 1024px) {
-    body {
-        background: red !important;
-    }
-}
 
 html, body {
     height: 100vh;
@@ -602,5 +596,22 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         max-width: 750px !important;   /* Reduces the maximum possible width (was 950px) */
         padding-left: 25px !important; /* Reduces side padding (was 40px) */
         padding-right: 25px !important;/* Reduces side padding (was 40px) */
+    }
+}
+
+/* --- Tablet Size Correction for Faction Peeper --- */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+    /* This targets the main content area that wraps your tool */
+    main {
+        width: 75% !important;
+        max-width: 800px !important;
+    }
+
+    /* This makes your tool fill the new, narrower space */
+    .faction-peeper-tool-container {
+        width: 100% !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
     }
 }
