@@ -590,6 +590,6 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 @media (max-width: 1024px) {
   .faction-peeper-tool-container {
-    max-width: 600px;
+    max-width: 600px !important;
   }
 }
