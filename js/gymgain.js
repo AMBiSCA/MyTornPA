@@ -1121,7 +1121,7 @@ function toggleLandscapeBlocker() {
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
-                <div style="transform: font-size: 50px; margin-bottom: 20px;">📱</div>
+                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
                 <p>This page is best viewed in portrait mode.</p>
             `;
