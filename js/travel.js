@@ -646,64 +646,65 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 });
 
 function toggleLandscapeBlocker() {
-    console.log("--- Blocker function is running ---");
-
+    // This condition is now more robust, checking for landscape orientation on most mobile devices including tablets
     const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    console.log("Is device in landscape mode? ", isMobileLandscape);
-
     let blocker = document.getElementById('landscape-blocker');
 
-    const mainContent = document.querySelector('.main-content-wrapper');
+    // This block is for pages other than the one you are on now
+    const mainContent = document.getElementById('mainHomepageContent');
     const header = document.querySelector('header');
     const footer = document.querySelector('footer');
-    const chatSystem = document.getElementById('tornpa-chat-system');
-
-    // This will show us which elements the script can find on the page
-    console.log("Found Elements Status:", {
-        mainContent: !!mainContent,
-        header: !!header,
-        footer: !!footer,
-        chatSystem: !!chatSystem
-    });
 
     if (isMobileLandscape) {
-        console.log("Action: Should SHOW the blocker.");
+        // Only create the blocker if it doesn't already exist
         if (!blocker) {
-            console.log("Creating blocker element...");
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
-                <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
-                <p>This page is best viewed in portrait mode.</p>
+                <p>For the best experience, please use this page in portrait mode.</p>
             `;
+            // Apply all the necessary styles directly with JavaScript
             Object.assign(blocker.style, {
-                display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                backgroundColor: 'rgba(20, 20, 20, 0.97)', color: '#eee', textAlign: 'center',
-                padding: '20px', zIndex: '99999', boxSizing: 'border-box'
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#222',
+                color: '#eee',
+                textAlign: 'center',
+                padding: '20px',
+                zIndex: '99999'
             });
             document.body.appendChild(blocker);
         }
 
+        // Hide main page content
+        document.body.style.overflow = 'hidden';
         if (header) header.style.display = 'none';
         if (mainContent) mainContent.style.display = 'none';
         if (footer) footer.style.display = 'none';
-        if (chatSystem) chatSystem.style.display = 'none';
 
     } else {
-        console.log("Action: Should HIDE the blocker.");
+        // Remove the blocker if it exists
         if (blocker) {
             blocker.remove();
         }
 
-        if (header) header.style.display = '';
-        if (mainContent) mainContent.style.display = '';
-        if (footer) footer.style.display = '';
-        if (chatSystem) chatSystem.style.display = '';
+        // Re-show main page content
+        document.body.style.overflow = '';
+        if (header) header.style.display = ''; // Reverts to stylesheet's display
+        if (mainContent) mainContent.style.display = ''; // Reverts to stylesheet's display
+        
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = 'block'; // Explicitly set to 'block'
     }
 }
-
-// Run the function on page load and whenever the window is resized or orientation changes
+// Run the function on page load and window resize
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
