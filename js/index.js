@@ -97,10 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-  if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
-  if (homeButtonHeader) homeButtonHeader.style.display = 'none';
-  if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
 
   function openAuthModal() {
     if (authModal) {
@@ -118,22 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  if (signUpButtonHeader && registerOverlay) {
-    signUpButtonHeader.addEventListener('click', function(event) {
-      event.preventDefault();
-      if (registerOverlay) {
-        registerOverlay.style.display = 'flex';
-        if (loginError) loginError.textContent = '';
-        if (forgotPasswordOverlay) forgotPasswordOverlay.style.display = 'none';
-        if (authModal && authModal.classList.contains('is-active')) {
-            closeAuthModal();
-        }
-        console.log("index.js: signUpButtonHeader clicked, showing registerOverlay.");
-      } else {
-        console.error("index.js: registerOverlay element not found for signUpButtonHeader.");
-      }
-    });
-  }
+  
 
   if (closeAuthModalBtn) {
     closeAuthModalBtn.addEventListener('click', closeAuthModal);
