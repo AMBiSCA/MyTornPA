@@ -152,6 +152,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
                 if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
                 if (homeButtonHeader) homeButtonHeader.style.display = 'none';
+                
+                // Moved signUpButtonHeader outside the if/else to allow it to show on index
+                if (isIndexPage && signUpButtonHeader) {
+                    signUpButtonHeader.style.display = 'inline-flex';
+                    // Re-link the register button to the modal on the index page
+                    if (signUpButtonHeader) signUpButtonHeader.addEventListener('click', handleSignUpNavigation);
+                }
 
                 if (user) {
                     console.log("globalheader.js: User is SIGNED IN. Configuring logged-in header.");
@@ -174,16 +181,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (headerEditProfileBtn) headerEditProfileBtn.addEventListener('click', handleEditProfile);
                 } else {
                     console.log("globalheader.js: User is SIGNED OUT. Configuring logged-out header.");
-                    // For logged-out users, show the register link and Torn homepage link
+                    // For logged-out users, show the Torn homepage link
                     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
-                    if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-
-                    // If they are not on the index page, show the home button
+                    
+                    // The register button is now handled outside this block
                     if (!isIndexPage) {
                          if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
                     }
                     if (headerLogoLink) headerLogoLink.addEventListener('click', handleHomeNavigation);
-                    if (signUpButtonHeader) signUpButtonHeader.addEventListener('click', handleSignUpNavigation);
                 }
                 closeAllManagedHeaderDropdowns(null);
             });
@@ -197,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function handleLogout() {
             auth.signOut().then(() => {
                 console.log('User signed out.');
-                window.location.href = '../index.html';
+                window.location.href = '/index.html';
             }).catch((error) => {
                 console.error('Sign out error:', error);
                 alert('Error signing out: ' + error.message);
@@ -205,11 +210,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function handleHomeNavigation() {
-            window.location.href = 'home.html';
+            window.location.href = '/pages/home.html';
         }
 
         function handleSignUpNavigation() {
-            window.location.href = '../index.html';
+            window.location.href = '/index.html';
         }
 
         function handleEditProfile() {
