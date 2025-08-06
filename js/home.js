@@ -158,7 +158,7 @@ function setupMobileTabs() {
 // --- End New: Dynamic Mobile Tab Logic with Favorite Feature ---
 
     // MOVED THE FUNCTION CALL HERE
-const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
+const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
     
     // Call this function immediately if the screen is mobile-sized
     if (mediaQueryMobile.matches) {

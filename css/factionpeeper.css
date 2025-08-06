@@ -588,3 +588,9 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         font-size: 0.7rem !important; /* Even smaller font */
     }
 }
+
+@media (max-width: 768px) {
+  .faction-peeper-tool-container > * {
+    text-align: center;
+  }
+}
