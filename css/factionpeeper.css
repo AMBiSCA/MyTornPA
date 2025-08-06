@@ -571,12 +571,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         font-size: 0.75rem !important; /* Smaller text inside the table */
         white-space: nowrap; /* Prevents text from wrapping and breaking the table layout */
     }
-}
 
 .image-glow,
     .image-glow-flipped {
         display: none !important;
     }
+}
 
 /* For even smaller screens, let's make things even more compact */
 @media (max-width: 480px) {
