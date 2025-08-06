@@ -1,5 +1,5 @@
 /* ================================================================================= */
-/* === Global Header Styles === */
+/* === Global Header Styles (Consolidated & Corrected) === */
 /* ================================================================================= */
 
 header {
@@ -19,155 +19,189 @@ header {
     border-bottom: 3px solid #00a8ff;
 }
 .header-left {
-    flex: 1; display: flex; justify-content: flex-start; align-items: center;
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 .header-left a {
-    display: flex; align-items: center; text-decoration: none;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
 }
 .header-left h1 {
-    font-size: 1.6rem; color: #00a8ff; margin: 0; user-select: none; white-space: nowrap;
+    font-size: 1.6rem;
+    color: #00a8ff;
+    margin: 0;
+    user-select: none;
+    white-space: nowrap;
 }
 .header-left .tagline {
-    font-size: 0.8rem; color: #aaa; font-weight: 400; margin-left: 8px; font-weight: bold; display: inline-block; white-space: nowrap;
+    font-size: 0.8rem;
+    color: #aaa;
+    font-weight: bold;
+    margin-left: 8px;
+    display: inline-block;
+    white-space: nowrap;
 }
 .header-center {
-    flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 20px; /* Add some margin to separate from other elements */
 }
 #headerMainLogo {
-    max-height: 70px; width: auto; display: block; margin-top: -5px;
+    max-height: 70px;
+    width: auto;
+    display: block;
     filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
 }
 .header-right-controls {
-    flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
 }
 .header-buttons {
-    display: flex; align-items: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Refactored: Base Button Style */
-.btn {
-    font-weight: bold; border-radius: 20px; /* Global 20px radius */
-    cursor: pointer; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center;
-    font-size: 14px; /* Global font size */
-    line-height: 1.4; padding: 0 12px; /* Global padding */
+/* Base Button Style for header buttons */
+.header-right-controls .btn {
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 0 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
     user-select: none;
-    -webkit-appearance: none; appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
     background-image: none;
     box-sizing: border-box;
-    outline: none; overflow: hidden; position: relative; z-index: 0;
-    text-align: center; text-transform: none;
-    vertical-align: middle; min-width: min-content;
-    margin: 8px 0; /* Default margin for all buttons */
-
-    /* Core "Little Button" appearance - removed !important */
+    outline: none;
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+    text-align: center;
+    text-transform: none;
+    vertical-align: middle;
+    min-width: min-content;
     background-color: #131314;
     border: 1px solid #00a8ff;
     color: #e3e3e3;
     height: 40px;
+    margin: 0; /* Override the default margin */
 }
-
-/* Button Hover/Focus/Active States */
-.btn:not(:disabled):hover, .btn:not(:disabled):focus {
-    border-color: #4dc4ff; /* Lighter blue border on hover/focus */
-    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
-    transform: translateY(-1px); /* Slight lift on hover */
-}
-.btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: white;
-    opacity: 0;
-    border-radius: inherit;
-    transition: opacity 0.218s;
-    /* pointer-events: none; <-- REMOVED */
-    z-index: -1;
-}
-.btn:not(:disabled):hover::before { opacity: 0.08; }
-.btn:not(:disabled):active, .btn:not(:disabled):focus { border-color: #00a8ff; }
-.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before { opacity: 0.12; }
-
-/* Disabled Button State */
-.btn:disabled {
-    cursor: default;
-    background-color: rgba(19, 19, 20, 0.38);
-    border-color: rgba(0, 168, 255, 0.38);
-    color: rgba(227, 227, 227, 0.38);
-}
-.btn:disabled::before { opacity: 0; }
-.btn:disabled .btn-text, .btn:disabled .btn-icon { opacity: 0.38; }
-
-/* Button Text/Icon Alignment */
-.btn .btn-text { order: 1; }
-.btn .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
-
-/* Specific Header Button Overrides */
-.btn-header {
-    margin: 0 4px; /* Adjust margin for header context */
-    box-shadow: none; /* No shadow by default for header buttons */
-}
-.header-text-link { /* For text-based links in header */
-    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
-    color: #00a8ff; background: none; border: none; box-shadow: none;
+.header-text-link {
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding: 8px 12px;
+    color: #00a8ff;
+    background: none;
+    border: none;
+    box-shadow: none;
 }
 .header-text-link:hover {
-    text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
+    text-decoration: underline;
+    color: #00e0ff;
+    transform: translateY(-1px);
 }
-#signUpButtonHeader {
-    font-weight: bold; /* Ensures the text "Register:" is bold */
+.btn:not(:disabled):hover, .btn:not(:disabled):focus {
+    border-color: #4dc4ff;
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    transform: translateY(-1px);
+}
+.btn .btn-text {
+    order: 1;
+}
+.btn .btn-icon {
+    order: 2;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Dropdown Styles */
-.dropdown { position: relative; display: inline-block; }
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
 .dropdown-content {
-    display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
+    display: none;
+    position: absolute;
+    background-color: #1e1e1e;
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+    z-index: 1001;
+    border-radius: 8px;
     border: 1px solid #00a8ff;
-    left: 0; /* Default alignment (left edge of parent) */
-    top: calc(100% + 5px); /* 5px below parent */
-    overflow-y: auto; max-height: 300px; padding: 0;
-}
-.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-track { background: white; border-radius: 0 8px 8px 0; }
-.header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
-.dropdown-content.show { display: block; }
-.dropdown.align-right .dropdown-content { left: auto; right: 0; }
-.dropdown-content a {
-    color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
-    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
-    transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
-}
-#usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
-.dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
-#usefulLinksDropdown, #headerContactUsDropdown {
     left: auto;
     right: 0;
+    top: calc(100% + 5px);
+    overflow-y: auto;
+    max-height: 300px;
+    padding: 0;
+}
+.dropdown-content a {
+    color: #d0d0d0;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    position: relative;
+    text-align: left;
+}
+.dropdown-content a:hover {
+    background-color: #333333;
+    color: #00c0ff;
+}
+.dropdown-divider {
+    height: 1px;
+    margin: 8px 0;
+    background-color: #444;
+}
+#usefulLinksDropdown a::after {
+    content: "\00a0\00a0🔗";
 }
 
 /* ================================================================================= */
 /* === Media Queries for Responsiveness === */
 /* ================================================================================= */
 
-/* Tablet Header Customization */
+/* Desktop layout has already been set, so we only need to handle tablet and mobile. */
+
+/* Tablet Header Customization (769px to 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
     header .header-center,
-    header .tagline,
-    header .btn-text {
+    header .tagline {
         display: none !important;
     }
     header {
         justify-content: space-between;
         padding: 0 15px;
     }
-    header .header-btn {
+    header .btn {
         min-width: 44px;
         height: 44px;
         padding: 0;
@@ -177,99 +211,82 @@ header {
         justify-content: center;
         background-color: rgba(0, 168, 255, 0.1);
         border: 1px solid #00a8ff;
-        transition: background-color 0.2s ease;
     }
-    header .header-btn:hover {
+    header .btn:hover {
         background-color: rgba(0, 168, 255, 0.25);
     }
-    header .header-btn .btn-icon {
+    header .btn .btn-text {
+        display: none !important;
+    }
+    header .btn .btn-icon {
         margin: 0;
         font-size: 1.3em;
     }
     header .header-buttons {
         gap: 12px;
     }
-    #usefulLinksBtn, #headerContactUsBtn {
+    #usefulLinksBtn, #contactUsBtn, .header-text-link {
         width: auto;
         padding: 0 12px;
         border-radius: 22px;
         height: 40px;
         background-color: rgba(0, 168, 255, 0.1);
         border: 1px solid #00a8ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 
-/* Mobile Header Customization */
+/* Mobile Header Customization (up to 768px) */
 @media (max-width: 768px) {
     header {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 102 !important;
-        height: auto !important;
-        padding-top: 8px !important;
-        padding-bottom: 5px !important;
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        border-bottom: 3px solid #00a8ff !important;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
     }
     .header-left, .header-center, .header-right-controls {
-        flex-basis: auto !important;
-        width: 100% !important;
-        justify-content: center !important;
-        margin-bottom: 0 !important;
+        flex-basis: 100%;
+        width: 100%;
+        justify-content: center;
+        margin: 0;
     }
     .header-left {
-        margin-bottom: 10px !important;
+        margin-bottom: 10px;
     }
-    #headerMainLogo {
-        max-height: 50px !important;
-        margin-top: 0 !important;
-        display: none !important;
+    .header-center {
+        display: none;
     }
     .header-left h1 {
-        font-size: 1.4rem !important;
+        font-size: 1.4rem;
     }
     .tagline {
-        font-size: 0.7rem !important;
+        font-size: 0.7rem;
     }
-    .header-text-link, .btn.header-btn, .btn-header {
-        padding: 5px 8px !important;
-        font-size: 0.85rem !important;
-        height: 30px !important;
-        margin: 2px !important;
-        flex-shrink: 1 !important;
-        flex-basis: auto !important;
+    .header-buttons, .header-right-controls {
+        gap: 5px;
+        flex-wrap: wrap;
     }
-    header .btn-text {
-        display: none !important;
+    .header-right-controls .btn,
+    .header-right-controls .header-text-link {
+        padding: 5px 8px;
+        font-size: 0.85rem;
+        height: 30px;
+        margin: 2px;
+        flex-shrink: 1;
+        flex-basis: auto;
     }
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important;
-        line-height: 1 !important;
-        display: block !important;
-        margin: auto !important;
-        content: none !important;
+    .btn .btn-text {
+        display: none;
     }
-    #usefulLinksBtn .btn-icon,
-    #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: relative !important;
-        margin: auto !important;
-        line-height: 1 !important;
-        vertical-align: middle !important;
-        text-indent: 0 !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        outline: none !important;
-        text-shadow: none !important;
-        overflow: visible !important;
+    .btn .btn-icon {
+        margin: 0;
+        font-size: 1.6em;
     }
 }
