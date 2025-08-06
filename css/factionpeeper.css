@@ -399,7 +399,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
     .main-content-wrapper {
-     justify-content: center; /* Add this line */
+     justify-content: center !important; /* Add this line */
     }
 }
 		
