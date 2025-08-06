@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!auth) console.error("home.js: Firebase Auth (auth) could not be initialized.");
 
 
-   // --- NEW: Dynamic Mobile Tab Logic with Favorite Feature ---
+// --- NEW: Dynamic Mobile Tab Logic with Favorite Feature ---
 function setupMobileTabs() {
     // ADDED THIS CHECK: If the buttons already exist, don't do anything.
     if (document.getElementById('mobile-tab-buttons-container')) {
@@ -57,9 +57,6 @@ function setupMobileTabs() {
     
     if (!statsColumn || !toolsColumn || !flexContainer) return;
     
-    // Hide the tools section by default on mobile
-    toolsColumn.classList.add('mobile-hidden');
-
     // Create the buttons container
     const tabButtonsContainer = document.createElement('div');
     tabButtonsContainer.id = 'mobile-tab-buttons-container';
@@ -79,13 +76,9 @@ function setupMobileTabs() {
     tabButtonsContainer.appendChild(statsButton);
     tabButtonsContainer.appendChild(toolsButton);
     
-    // Create and append heart icons to each button
-    addHeartIcon(statsButton);
-    addHeartIcon(toolsButton);
-
     // Insert buttons at the top of the flex container
     flexContainer.prepend(tabButtonsContainer);
-    
+
     // --- New: Save/Load Favorite Logic ---
     const allTabButtons = [statsButton, toolsButton];
     
@@ -129,6 +122,10 @@ function setupMobileTabs() {
             }
         });
     }
+    
+    // Create and append heart icons to each button
+    addHeartIcon(statsButton);
+    addHeartIcon(toolsButton);
 
     // Add click handlers for the main tab switching logic
     statsButton.addEventListener('click', () => {
@@ -146,6 +143,9 @@ function setupMobileTabs() {
         if (favoriteTabButton) {
             favoriteTabButton.classList.add('is-favorite');
             setActiveTab(favoriteTabId);
+        } else {
+            // Fallback if the saved favorite tab is invalid, default to 'stats'
+            setActiveTab('stats');
         }
     } else {
         // Default to the stats tab if no favorite is set
