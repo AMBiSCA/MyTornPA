@@ -136,22 +136,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
         const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');
 
-        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-        if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
-        if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-        if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-        if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-        if (authModal) authModal.style.display = 'none';
-        if (profileSetupModal) profileSetupModal.style.display = 'none';
-
         if (auth) {
             auth.onAuthStateChanged(function(user) {
                 console.log("globalheader.js: Auth state changed. User:", user ? user.uid : "None");
                 const currentPagePath = window.location.pathname;
                 const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase().replace('.html', '');
-                const isLoginPage = (pageName === 'index' || pageName === '');
                 const isHomePage = (pageName === 'home');
+                const isIndexPage = (pageName === 'index' || pageName === '');
 
+                // Reset all button displays
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
@@ -163,12 +156,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (user) {
                     console.log("globalheader.js: User is SIGNED IN. Configuring logged-in header.");
                     if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                    if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
                     if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                     if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
                     if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                    if (homeButtonHeader && !isHomePage) {
-                        homeButtonHeader.style.display = 'inline-flex';
+
+                    if (isHomePage) {
+                        // On the home page, show the "Edit Profile" button
+                        if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
+                    } else {
+                        // On any other page, show the "Home" button
+                        if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
                     }
 
                     if (logoutButtonHeader) logoutButtonHeader.addEventListener('click', handleLogout);
@@ -177,14 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (headerEditProfileBtn) headerEditProfileBtn.addEventListener('click', handleEditProfile);
                 } else {
                     console.log("globalheader.js: User is SIGNED OUT. Configuring logged-out header.");
-                    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                    // For logged-out users, show the register link and Torn homepage link
                     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
-                    if (signUpButtonHeader && !isLoginPage) {
-                        signUpButtonHeader.style.display = 'inline-flex';
-                    }
-                    if (homeButtonHeader) {
-                        homeButtonHeader.style.display = 'inline-flex';
-                        homeButtonHeader.addEventListener('click', handleHomeNavigation);
+                    if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+
+                    // If they are not on the index page, show the home button
+                    if (!isIndexPage) {
+                         if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
                     }
                     if (headerLogoLink) headerLogoLink.addEventListener('click', handleHomeNavigation);
                     if (signUpButtonHeader) signUpButtonHeader.addEventListener('click', handleSignUpNavigation);

@@ -12,66 +12,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
+	<link rel="stylesheet" href="../css/globalheader.css">
     <link rel="stylesheet" href="../css/home.css">
 </head>
 <body class="home-page">
 
-    <header class="home-header">
-        <div class="header-left">
-            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-		
-            <div id="trialCountdownContainer" class="trial-countdown-container"></div>
-        </div>
-        <div class="header-center">
-            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-        </div>
-        <div class="header-right-controls">
-            <div class="header-buttons" id="headerButtonsContainer">
-                <button class="btn header-btn" id="headerEditProfileBtn">
-                    <span class="btn-text">Profile:</span>
-                    <span class="btn-icon">⚙️</span>
-                </button>
-
-                <div class="dropdown" id="usefulLinksDropdownContainer">
-                    <button class="btn header-btn" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗 🔽 </span>
-                    </button>
-                    <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                    </div>
-                </div>
-
-                <div class="dropdown" id="headerContactUsContainer">
-                    <button class="btn header-btn" id="headerContactUsBtn">
-                        <span class="btn-text">Contact:</span>
-                        <span class="btn-icon">💬 🔽 </span>
-                    </button>
-                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
-                        <a href="report.html">Report an Issue</a>
-                        <a href="#">Live Chat (Soon™)</a>
-                        <a href="FAQ.html">F.A.Q</a>
-                    </div>
-                </div>
-
-                <button class="btn header-btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span>
-                    <span class="btn-icon">🚪</span>
-                </button>
-            </div>
-        </div>
-    </header>
+        <div id="global-header-placeholder"></div>
 
     <div class="homepage-content-wrapper" id="mainHomepageContent">
         <div class="welcome-block-area styled-container">

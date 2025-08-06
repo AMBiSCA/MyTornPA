@@ -1211,7 +1211,3 @@ checkAndEnforceLandscape();
     }
 
 });
-
-// Please note that this version of the file does not include the functions that were commented out
-// in your previous provided file for brevity. It is assumed they are not necessary for the
-// functionality you are currently working on.
