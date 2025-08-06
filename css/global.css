@@ -2052,18 +2052,6 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-
-    /* Main content wrapper adjustments (to start below fixed header) */
-    .main-content-wrapper {
-        margin-top: 0px !important; /* This should now rely on body padding-top */
-        margin-top: -110px !important;
-        padding-left: 15px !important; /* Keep consistent side padding for content */
-        padding-right: 15px !important;
-        
-        /* Hide scrollbars for main content wrapper */
-        -ms-overflow-style: none !important;
-        scrollbar-width: none !important;
-    }
     .main-content-wrapper::-webkit-scrollbar {
         display: none !important;
     }
