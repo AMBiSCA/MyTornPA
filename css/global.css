@@ -2056,7 +2056,7 @@ input:checked + .slider:before {
     /* Main content wrapper adjustments (to start below fixed header) */
     .main-content-wrapper {
         margin-top: 0px !important; /* This should now rely on body padding-top */
-        padding-top: 0px !important; /* Remove any padding that would push content down */
+        margin-top: -30px !important;
         padding-left: 15px !important; /* Keep consistent side padding for content */
         padding-right: 15px !important;
         
