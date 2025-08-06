@@ -827,6 +827,40 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     width: 100%;
 }
 
+/* Styling for the mobile tab container */
+#mobile-tab-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Base style for the tab buttons */
+.tab-button {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #3c3c3c;
+    background-color: #2e2e2e;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    position: relative; /* Crucial for positioning the heart icon */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Style for the active tab */
+.tab-button.active-tab {
+    background-color: #555;
+    border-color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Style for the hidden sections on mobile */
+.mobile-hidden {
+    display: none;
+}
+
 /* Styling for the heart icon */
 .favorite-heart {
     position: absolute;
@@ -834,6 +868,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     top: 5px;
     font-size: 1.2rem;
     opacity: 0.2; /* Less opaque when not selected */
+    color: #fff; /* Default color, visible but faded */
     transition: opacity 0.2s, color 0.2s;
     cursor: pointer;
 }
@@ -843,7 +878,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     opacity: 1;
     color: red;
 }
-
 /* =========== RESPONSIVE STYLES =========== */
 @media (max-width: 960px) {
     .stats-tools-flex-container {
