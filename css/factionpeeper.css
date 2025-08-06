@@ -407,6 +407,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         margin-left: 0 !important;
         margin-right: 0 !important;
 		margin-top: 425px !important;
+		margin: 0 auto;
     }
 }
 		
@@ -533,8 +534,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .faction-peeper-tool-container {
         padding: 10px 15px; /* Reduced padding for a slimmer look on mobile */
         width: 95%; /* Ensures the container fits well on most phones */
-		margin-left: -3px !important;
-    }
+		}
 
     /* Modal Styles */
     .modal-content {
