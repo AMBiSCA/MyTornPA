@@ -57,6 +57,9 @@ function setupMobileTabs() {
     
     if (!statsColumn || !toolsColumn || !flexContainer) return;
     
+    // **CORRECTION:** Hide the tools section by default on mobile. This was missing.
+    toolsColumn.classList.add('mobile-hidden');
+
     // Create the buttons container
     const tabButtonsContainer = document.createElement('div');
     tabButtonsContainer.id = 'mobile-tab-buttons-container';
