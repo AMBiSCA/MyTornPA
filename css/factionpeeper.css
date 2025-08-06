@@ -80,7 +80,7 @@ body::before {
 
 .main-content-wrapper {
     flex-grow: 1;
-    
+    overflow-y: auto; /* Allows scrolling for content longer than the viewport height minus header/footer */
     padding-top: 90px; /* Space for fixed header (70px + 20px buffer) */
     padding-bottom: 90px; /* Space for fixed footer (70px + 20px buffer) */
     box-sizing: border-box;
