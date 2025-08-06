@@ -403,7 +403,6 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     padding-top: 20px !important; /* Add a little space from the top */
     padding-left: 15px !important;
     padding-right: 15px !important;
-    overflow-y: auto !important; /* Ensure it remains scrollable */
     height: auto !important; /* Let height be determined by content */
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
