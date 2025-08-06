@@ -401,6 +401,10 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .main-content-wrapper {
      justify-content: center !important; /* Add this line */
     }
+ .faction-peeper-tool-container {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
 }
 		
 	::-webkit-scrollbar {
