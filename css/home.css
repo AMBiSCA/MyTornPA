@@ -826,6 +826,24 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     text-align: center;
     width: 100%;
 }
+
+/* Styling for the heart icon */
+.favorite-heart {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    font-size: 1.2rem;
+    opacity: 0.2; /* Less opaque when not selected */
+    transition: opacity 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+/* Make the heart red and fully visible when the tab is a favorite */
+.tab-button.is-favorite .favorite-heart {
+    opacity: 1;
+    color: red;
+}
+
 /* =========== RESPONSIVE STYLES =========== */
 @media (max-width: 960px) {
     .stats-tools-flex-container {

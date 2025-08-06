@@ -44,56 +44,115 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!auth) console.error("home.js: Firebase Auth (auth) could not be initialized.");
 
 
-    // --- NEW: Dynamic Mobile Tab Logic ---
-    // MOVED THE FUNCTION DEFINITION HERE, TO THE TOP LEVEL
-    function setupMobileTabs() {
-        // ADDED THIS CHECK: If the buttons already exist, don't do anything.
-        if (document.getElementById('mobile-tab-buttons-container')) {
-            return;
-        }
+   // --- NEW: Dynamic Mobile Tab Logic with Favorite Feature ---
+function setupMobileTabs() {
+    // ADDED THIS CHECK: If the buttons already exist, don't do anything.
+    if (document.getElementById('mobile-tab-buttons-container')) {
+        return;
+    }
 
-        const statsColumn = document.getElementById('quickStatsSection');
-        const toolsColumn = document.getElementById('exploreToolsSection');
-        const flexContainer = document.querySelector('.stats-tools-flex-container');
-        
-        if (!statsColumn || !toolsColumn || !flexContainer) return;
-        
-        // Hide the tools section by default on mobile
-        toolsColumn.classList.add('mobile-hidden');
+    const statsColumn = document.getElementById('quickStatsSection');
+    const toolsColumn = document.getElementById('exploreToolsSection');
+    const flexContainer = document.querySelector('.stats-tools-flex-container');
+    
+    if (!statsColumn || !toolsColumn || !flexContainer) return;
+    
+    // Hide the tools section by default on mobile
+    toolsColumn.classList.add('mobile-hidden');
 
-        // Create the buttons
-        const tabButtonsContainer = document.createElement('div');
-        tabButtonsContainer.id = 'mobile-tab-buttons-container';
-        
-        const statsButton = document.createElement('button');
-        statsButton.className = 'tab-button active-tab';
-        statsButton.textContent = 'Stats';
-        
-        const toolsButton = document.createElement('button');
-        toolsButton.className = 'tab-button';
-        toolsButton.textContent = 'Tools';
-        
-        tabButtonsContainer.appendChild(statsButton);
-        tabButtonsContainer.appendChild(toolsButton);
-        
-        // Insert buttons at the top of the flex container
-        flexContainer.prepend(tabButtonsContainer);
-        
-        // Add click handlers
-        statsButton.addEventListener('click', () => {
-            toolsColumn.classList.add('mobile-hidden');
-            statsColumn.classList.remove('mobile-hidden');
-            statsButton.classList.add('active-tab');
-            toolsButton.classList.remove('active-tab');
-        });
-        
-        toolsButton.addEventListener('click', () => {
-            statsColumn.classList.add('mobile-hidden');
-            toolsColumn.classList.remove('mobile-hidden');
-            toolsButton.classList.add('active-tab');
-            statsButton.classList.remove('active-tab');
+    // Create the buttons container
+    const tabButtonsContainer = document.createElement('div');
+    tabButtonsContainer.id = 'mobile-tab-buttons-container';
+    
+    // Create the Stats button
+    const statsButton = document.createElement('button');
+    statsButton.className = 'tab-button';
+    statsButton.textContent = 'Stats';
+    statsButton.setAttribute('data-tab-id', 'stats');
+
+    // Create the Tools button
+    const toolsButton = document.createElement('button');
+    toolsButton.className = 'tab-button';
+    toolsButton.textContent = 'Tools';
+    toolsButton.setAttribute('data-tab-id', 'tools');
+    
+    tabButtonsContainer.appendChild(statsButton);
+    tabButtonsContainer.appendChild(toolsButton);
+    
+    // Create and append heart icons to each button
+    addHeartIcon(statsButton);
+    addHeartIcon(toolsButton);
+
+    // Insert buttons at the top of the flex container
+    flexContainer.prepend(tabButtonsContainer);
+    
+    // --- New: Save/Load Favorite Logic ---
+    const allTabButtons = [statsButton, toolsButton];
+    
+    function addHeartIcon(button) {
+        const heartSpan = document.createElement('span');
+        heartSpan.innerHTML = '❤️';
+        heartSpan.classList.add('favorite-heart');
+        button.appendChild(heartSpan);
+
+        heartSpan.addEventListener('click', (event) => {
+            event.stopPropagation(); // Stop the click from activating the tab
+            const tabId = button.getAttribute('data-tab-id');
+            const currentFavorite = localStorage.getItem('favoriteTab');
+
+            if (currentFavorite === tabId) {
+                // Un-favorite this tab
+                localStorage.removeItem('favoriteTab');
+                button.classList.remove('is-favorite');
+            } else {
+                // Un-favorite all others and set this one as favorite
+                allTabButtons.forEach(btn => btn.classList.remove('is-favorite'));
+                localStorage.setItem('favoriteTab', tabId);
+                button.classList.add('is-favorite');
+            }
         });
     }
+
+    function setActiveTab(tabId) {
+        allTabButtons.forEach(btn => {
+            if (btn.getAttribute('data-tab-id') === tabId) {
+                btn.classList.add('active-tab');
+                if (tabId === 'stats') {
+                    statsColumn.classList.remove('mobile-hidden');
+                    toolsColumn.classList.add('mobile-hidden');
+                } else {
+                    statsColumn.classList.add('mobile-hidden');
+                    toolsColumn.classList.remove('mobile-hidden');
+                }
+            } else {
+                btn.classList.remove('active-tab');
+            }
+        });
+    }
+
+    // Add click handlers for the main tab switching logic
+    statsButton.addEventListener('click', () => {
+        setActiveTab('stats');
+    });
+    
+    toolsButton.addEventListener('click', () => {
+        setActiveTab('tools');
+    });
+
+    // On page load, check for a favorite tab and activate it
+    const favoriteTabId = localStorage.getItem('favoriteTab');
+    if (favoriteTabId) {
+        const favoriteTabButton = allTabButtons.find(btn => btn.getAttribute('data-tab-id') === favoriteTabId);
+        if (favoriteTabButton) {
+            favoriteTabButton.classList.add('is-favorite');
+            setActiveTab(favoriteTabId);
+        }
+    } else {
+        // Default to the stats tab if no favorite is set
+        setActiveTab('stats');
+    }
+}
+// --- End New: Dynamic Mobile Tab Logic with Favorite Feature ---
 
     // MOVED THE FUNCTION CALL HERE
 const mediaQueryMobile = window.matchMedia('(max-width: 960px)');
