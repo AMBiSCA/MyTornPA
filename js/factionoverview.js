@@ -2434,4 +2434,4 @@ checkAndEnforceLandscape();
         });
     }
 
-});
+
