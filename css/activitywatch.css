@@ -395,7 +395,32 @@ ul li:last-child { border-bottom: none; }
     color: #ff9900 !important;
 }
 
+@media (max-width: 768px) {
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 
+    .main-content-wrapper {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: auto;
+        min-height: unset;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content-wrapper {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
 
 #activityPeeperContainer {
     background-color: #222;
@@ -411,8 +436,8 @@ ul li:last-child { border-bottom: none; }
     padding: 20px;
     flex-grow: 1;
     min-height: 0;
-    margin-bottom: 100px;
-    margin-top: 100px
+    margin-bottom: 5px;
+    margin-top: 5px
 }
 
 #topControlPanel {
@@ -651,6 +676,25 @@ ul li:last-child { border-bottom: none; }
     }
 }
 
+@media (max-width: 768px) {
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+
+    .main-content-wrapper {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: auto;
+        min-height: unset;
+    }
+}
 
 
 .script-title {
@@ -664,171 +708,18 @@ ul li:last-child { border-bottom: none; }
     text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
 }
 
-/* Ensure the body and html take up the full screen height */
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+@media (max-width: 600px) {
+    #topControlPanel { gap: 10px; }
+    .action-btn { font-size: 0.9rem; padding: 6px 12px; }
 }
 
-#mobile-blocker {
-    display: none;
+@media (max-width: 480px) {
+    .main-content-wrapper { padding-top: 75px; }
+    #activityPeeperContainer { padding: 5px; gap: 10px; }
+    #topControlPanel { padding: 10px; gap: 8px; }
+    .control-grid-item { font-size: 0.85rem; }
+    .control-grid-item input[type="text"],
+    .control-grid-item select { font-size: 0.85rem; padding: 3px 6px; }
+    .chart-panel { padding: 10px; }
+    .chart-panel h3 { font-size: 1em; }
 }
-
-@media (max-width: 1024px) {
-    /* This shows your blocker message and makes it full-screen */
-    #mobile-blocker {
-        /* These are the new, powerful centering rules */
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-
-        /* The rest of the original styles */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-    }
-
-    /* We need to ensure the children are centered inside the parent */
-    #mobile-blocker h2,
-    #mobile-blocker p,
-    .mobile-blocker-btn {
-        margin: 0 auto; /* This centers block-level children horizontally */
-        text-align: center;
-    }
-
-    #mobile-blocker h2 {
-        color: #00a8ff;
-    }
-
-    #mobile-blocker p {
-        font-size: 1rem;
-        line-height: 1.6;
-        word-wrap: break-word; /* Ensure wrapping still happens */
-        min-width: 0;
-        white-space: normal;
-        max-width: 90%;
-    }
-    
-    .hidden {
-        display: none !important;
-    }
-
-    /* This hides the main page content, header, footer, and chat box on mobile */
-    #global-header-placeholder,
-    .main-content-wrapper,
-    #globalfooterplaceholder,
-    #chat-system-placeholder {
-        display: none !important;
-    }
-}
-
-/* Style for the new homepage button on the blocker page */
-.mobile-blocker-btn {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 12px 25px;
-    background-color: #00a8ff;
-    color: #1a1a1a;
-    font-weight: bold;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-}
-
-.mobile-blocker-btn:hover {
-    background-color: #4dc4ff;
-}
-
-/* Hide the landscape rotator by default */
-#landscape-rotator {
-    display: none;
-}
-
-/* Show the landscape rotator only on mobile devices in landscape mode */
-@media (orientation: landscape) and (max-width: 1024px) {
-    #landscape-rotator {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-    }
-
-    /* Hide the main page content when the rotator is visible */
-    #global-header-placeholder,
-    .main-content-wrapper,
-    #globalfooterplaceholder,
-    #chat-system-placeholder {
-        display: none !important;
-    }
-}
-
-/* Style for the new homepage button on the blocker page */
-.mobile-blocker-btn {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 12px 25px;
-    background-color: #00a8ff;
-    color: #1a1a1a;
-    font-weight: bold;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-}
-
-.mobile-blocker-btn:hover {
-    background-color: #4dc4ff; /* A slightly lighter blue for hover */
-}
-
-/* Hide the landscape rotator by default */
-#landscape-rotator {
-    display: none;
-}
-
-/* Show the landscape rotator only on mobile devices in landscape mode */
-@media (orientation: landscape) and (max-width: 1024px) {
-    #landscape-rotator {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #222;
-        color: #eee;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-    }
-
-    /* Hide the main page content when the rotator is visible */
-    #global-header-placeholder,
-    .main-content-wrapper,
-    #globalfooterplaceholder,
-    #chat-system-placeholder {
-        display: none !important;
-    }
-}
-
