@@ -89,6 +89,11 @@
     display: inline-flex;
     align-items: center;
 }
+
+.btn:hover {
+    border-color: #00a8ff;
+}
+
 * {
     margin: 0;
     padding: 0;
