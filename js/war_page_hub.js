@@ -4816,24 +4816,7 @@ tabButtons.forEach(button => {
             }
         });
     }
-
-
-    // Event listener for sending faction chat messages
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-    }
-    if (chatTextInput) {
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent new line in input
-                sendChatMessage();
-            }
-        });
-    }
-
-
-}); // --- END OF DOMCONTENTLOADED ---
-
+   
 /**
  * ==================================================================
  * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
