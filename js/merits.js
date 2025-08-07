@@ -1360,9 +1360,6 @@ checkAndEnforceLandscape();
     // Run Initial Setup
     init();
 
-    // NEW: Tab switching logic for mobile
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
 
     if (tabButtons.length > 0 && tabContents.length > 0) {
         tabButtons.forEach(button => {
