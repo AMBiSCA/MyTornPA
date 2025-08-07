@@ -1367,7 +1367,7 @@ function initializeMobileBlocker() {
   paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
 
   const homeButton = document.createElement('a');
-  homeButton.href = '../home.html';
+  homeButton.href = 'home.html';
   homeButton.textContent = 'Go to Homepage';
   homeButton.classList.add('mobile-blocker-btn');
 
