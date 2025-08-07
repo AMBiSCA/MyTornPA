@@ -27,7 +27,7 @@
     min-width: min-content;
     margin: 8px 0;
     background-color: var(--btn-default-bg-color);
-    border: 1px solid var(--btn-default-border-color);
+    border: 1px solid #00a8ff; /* This keeps the border blue */
     color: var(--btn-default-text-color);
     border-radius: var(--btn-border-radius);
     font-size: var(--btn-default-font-size);
@@ -54,18 +54,10 @@
 }
 
 .btn:not(:disabled):hover {
-    border-color: var(--btn-default-hover-border-color);
     box-shadow: 0 1px 2px 0 var(--btn-default-hover-shadow-color1), 0 1px 3px 1px var(--btn-default-hover-shadow-color2);
+    /* The border will stay the same as its default state. */
 }
 
-.btn:not(:disabled):active,
-.btn:not(:disabled):focus {
-    border-color: var(--btn-default-border-color);
-}
-.btn:not(:disabled):active::before,
-.btn:not(:disabled):focus::before {
-    opacity: var(--btn-default-focus-overlay-opacity);
-}
 .btn:disabled {
     cursor: default;
     background-color: var(--btn-default-disabled-bg-color);
