@@ -284,10 +284,6 @@ footer.footer > p {
     line-height: 1.2;
 }
 
-/* Removes the space between the header and the main content container */
-main.page-specific-content-area {
-    margin-top: 0 !important;
-}
 
 /* General Styles for common HTML elements inside main content sections */
 main { /* General main content area styling - might be used on home.html */
