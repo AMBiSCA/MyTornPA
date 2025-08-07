@@ -91,7 +91,7 @@
 }
 
 .btn:hover {
-    border-color: #00a8ff;
+    border-color: #00a8ff !important;
 }
 
 * {
