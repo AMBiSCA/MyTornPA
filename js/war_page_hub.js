@@ -4556,7 +4556,7 @@ tabButtons.forEach(button => {
             updateOnlineMemberCounts();
             fetchAndDisplayChainData(); // Now fetches its own chain data
             displayQuickFFTargets(userApiKey, playerId);
-            setupChatRealtimeListener(); // Sets up faction chat listener
+
 
             // Attach event listeners only once
             if (!listenersInitialized) {
@@ -4669,64 +4669,7 @@ tabButtons.forEach(button => {
     }
 });
 
-    // Add Friend Button Listener
-    if (addFriendBtn) {
-        addFriendBtn.addEventListener('click', async () => {
-            const friendId = addFriendIdInput.value.trim();
-            if (!friendId) {
-                addFriendStatus.textContent = "Please enter a Torn Player ID.";
-                addFriendStatus.style.color = 'orange';
-                return;
-            }
-
-            if (!auth.currentUser) {
-                addFriendStatus.textContent = "You must be logged in to add friends.";
-                addFriendStatus.style.color = 'red';
-                return;
-            }
-
-            addFriendStatus.textContent = "Adding friend...";
-            addFriendStatus.style.color = 'white';
-            addFriendBtn.disabled = true;
-
-            try {
-                const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
-                const doc = await friendDocRef.get();
-                if (doc.exists) {
-                    addFriendStatus.textContent = "This player is already your friend.";
-                    addFriendStatus.style.color = 'orange';
-                    addFriendBtn.disabled = false;
-                    return;
-                }
-
-                await friendDocRef.set({
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                addFriendStatus.textContent = `Successfully added friend [${friendId}]!`;
-                addFriendStatus.style.color = 'lightgreen';
-                addFriendIdInput.value = '';
-                // Refresh the friends list in the Blocked People tab if it's open
-                const friendsListSectionEl = document.getElementById('friends-list-section'); // Assuming this is the parent of friendsScrollableList
-                const ignoresListSectionEl = document.getElementById('ignores-list-section'); // Assuming this is the parent of ignoresScrollableList
-                if (friendsListSectionEl && ignoresListSectionEl) {
-                    // Check if the 'Blocked People' tab is currently active before refreshing
-                    const blockedPeopleTabButton = document.querySelector('.chat-tab[data-chat-tab="blocked-people"]');
-                    if (blockedPeopleTabButton && blockedPeopleTabButton.classList.contains('active')) {
-                        populateBlockedPeopleTab(auth.currentUser.uid, friendsScrollableList, ignoresScrollableList);
-                    }
-                }
-
-            } catch (error) {
-                console.error("Error adding friend:", error);
-                addFriendStatus.textContent = `Error adding friend: ${error.message}`;
-                addFriendStatus.style.color = 'red';
-            } finally {
-                addFriendBtn.disabled = false;
-            }
-        });
-    }
-
+  
     // Admins Save Listener (added to DOMContentLoaded as a one-time setup)
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
