@@ -41,16 +41,16 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: white; /* Corrected: Change this to a dark blue color */
+    background-color: white; /* Changed to dark blue */
     opacity: 0;
     border-radius: inherit;
     transition: opacity var(--btn-transition-speed);
     pointer-events: none;
-    z-index: -1;
+    z-index: 1; /* Changed to 1 to ensure the hover effect is visible */
 }
 
-.popup button#registerBtn.btn-uniform:not(:disabled):hover::before {
-    opacity: 0.08;
+.btn:not(:disabled):hover::before {
+    opacity: 0.05; /* You can adjust this value to control the darkness of the hover effect */
 }
 
 .btn:not(:disabled):hover {
