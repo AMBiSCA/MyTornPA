@@ -129,29 +129,7 @@ const removeDiscordWebhookBtn = document.getElementById('removeDiscordWebhookBtn
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea'); // The modal's content box
 const discordWebhookModalOverlay = document.getElementById('discordWebhookModalOverlay'); // NEW: The full-screen overlay
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
-const DEFAULT_PROFILE_ICONS = [
-    '../../images/account.png',
-    '../../images/avatar-design.png',
-    '../../images/boy.png',
-    '../../images/boys.png',
-    '../../images/boysy.png',
-    '../../images/business-man.png',
-    '../../images/customer-service.png',
-	'../../images/circle.png',
-    '../../images/display-pic.png',
-    '../../images/man.png', // The outline man icon
-    '../../images/man3w.png', // The black & white outline man
-    '../../images/mans.png',
-    '../../images/men.png', // The mostly black icon. Review if suitable.
-    '../../images/office-man.png',
-    '../../images/bussiness-man.png',
-    '../../images/piccy.png', // The dark silhouette head. Review if suitable.
-    '../../images/profile.png', // The black square. Review if suitable.
-    '../../images/user.png', // The blue gradient circular user.
-    '../../images/user2.png', // The black square. Review if suitable.
-    '../../images/user-image-with-black-background.png',
-    '../../images/working.png'
-];
+
 
 
 
