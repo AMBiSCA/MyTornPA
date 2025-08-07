@@ -2065,7 +2065,7 @@ input:checked + .slider:before {
 
     /* General main section styles */
     main {
-        margin-top: 0px !important; /* This should start relative to its parent/body padding */
+        
         margin-left: 15px !important;
         margin-right: 15px !important;
         padding: 25px 20px !important;

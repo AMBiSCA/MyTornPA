@@ -539,6 +539,10 @@ footer.footer > p {
     }
     .page-specific-content-area {
         padding: 20px;
+		margin-top: 140px;
+		margin-bottom: 60px;
+		
+		
     }
     .travel-layout-container {
         grid-template-columns: 1fr;
