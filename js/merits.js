@@ -1280,20 +1280,20 @@ async function initializeMeritsPage() {
 // Run initialization when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeMeritsPage);
 
-// --- START: Complete and Unified Orientation Handler ---
-
-// This single script handles all orientation logic for both phones and tablets without conflict.
-
-let portraitBlocker = null;
-let landscapeBlocker = null;
+let orientationOverlay = null;
 
 /**
- * Creates the two overlay elements with the new, requested style.
+ * Creates and adds a hidden overlay to the page.
+ * This overlay will be used to ask the user to rotate their tablet.
+ * NEW: A "Go to Homepage" button has been added.
  */
-function createOverlays() {
-    // Shared styles for the overlays, based on your example
-    const overlayStyles = {
-        display: 'none',
+function createOrientationOverlay() {
+    orientationOverlay = document.createElement('div');
+    orientationOverlay.id = 'orientation-overlay';
+
+    // Apply the styles directly from your example
+    Object.assign(orientationOverlay.style, {
+        display: 'none', // Will be toggled to 'flex' to show
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
@@ -1302,113 +1302,84 @@ function createOverlays() {
         left: '0',
         width: '100%',
         height: '100%',
-        backgroundColor: '#1e1e1e',
-        color: '#f0f0f0',
+        backgroundColor: '#222',
+        color: '#eee',
         textAlign: 'center',
-        fontFamily: 'sans-serif',
-        fontSize: '1.5em',
+        padding: '20px',
         zIndex: '99999'
-    };
+    });
 
-    // Shared styles for the new "Return to Home" button
-    const buttonStyles = {
-        backgroundColor: '#007bff',
-        color: 'black',
-        padding: '8px 15px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        marginTop: '20px',
-        textDecoration: 'none',
-        fontSize: '16px' // A readable font size for the button
-    };
-
-    // --- Create the "Rotate to Portrait" overlay for TABLETS ---
-    if (!document.getElementById('tablet-portrait-blocker')) {
-        portraitBlocker = document.createElement('div');
-        portraitBlocker.id = 'tablet-portrait-blocker';
-        Object.assign(portraitBlocker.style, overlayStyles); // Apply new styles
-        portraitBlocker.innerHTML = `
-            <div>
-                <h2>Please Rotate Your Device</h2>
-                <p style="font-size: 0.7em; margin-top: 5px;">This page is best viewed in portrait mode.</p>
-                <button id="return-home-btn-tablet">Return to Home</button>
-            </div>`;
-        document.body.appendChild(portraitBlocker);
-
-        const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
-        if (tabletReturnBtn) {
-            Object.assign(tabletReturnBtn.style, buttonStyles); // Style the button
-            tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
-        }
-    }
-
-    // --- Create the "Rotate to Landscape" overlay for PHONES ---
-    if (!document.getElementById('mobile-landscape-blocker')) {
-        landscapeBlocker = document.createElement('div');
-        landscapeBlocker.id = 'mobile-landscape-blocker';
-        Object.assign(landscapeBlocker.style, overlayStyles); // Apply new styles
-        landscapeBlocker.innerHTML = `
-            <div>
-                <h2>Please Rotate Your Device</h2>
-                <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
-                <button id="return-home-btn-mobile">Return to Home</button>
-            </div>`;
-        document.body.appendChild(landscapeBlocker);
-        
-        const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
-        if (mobileReturnBtn) {
-            Object.assign(mobileReturnBtn.style, buttonStyles); // Style the button
-            mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
-        }
-    }
+    // Use the same HTML structure for the message, now with a button
+    orientationOverlay.innerHTML = `
+        <div>
+            <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
+            <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
+            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Go to Homepage
+            </a>
+        </div>
+    `;
+    document.body.appendChild(orientationOverlay);
 }
 
 /**
- * This is the main function that checks the device and orientation, and shows the correct overlay.
+ * Checks the screen size and orientation to decide if the overlay should be shown.
  */
-function handleOrientation() {
-    if (!portraitBlocker || !landscapeBlocker) {
-        // Ensure the overlays exist before trying to control them
-        createOverlays(); 
-        portraitBlocker = document.getElementById('tablet-portrait-blocker');
-        landscapeBlocker = document.getElementById('mobile-landscape-blocker');
-        if (!portraitBlocker || !landscapeBlocker) return;
-    }
+function checkAndEnforceLandscape() {
+    if (!orientationOverlay) return; // Safety check
 
-    // First, hide both overlays so we start fresh.
-    portraitBlocker.style.display = 'none';
-    landscapeBlocker.style.display = 'none';
+    // Realistic sizing for tablets
+    const TABLET_MIN_WIDTH = 768;
+    const TABLET_MAX_WIDTH = 1280;
 
-    // Get screen properties
-    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-    const isLandscape = !isPortrait;
-    
-    // Use the SHORTEST side of the screen to guess the device type. This is more reliable.
-    const shortestSide = Math.min(window.screen.width, window.screen.height);
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
-    const isPhone = shortestSide < 600;
-    const isTablet = shortestSide >= 600 && shortestSide < 1024;
+    const isPossiblyTablet = screenWidth >= TABLET_MIN_WIDTH && screenWidth <= TABLET_MAX_WIDTH;
+    const isPortrait = screenHeight > screenWidth;
 
-    // Now apply the rules based on our findings
-    if (isPhone && isPortrait) {
-        // It's a phone in portrait mode. Show the "Rotate to Landscape" message.
-        landscapeBlocker.style.display = 'flex';
-    } else if (isTablet && isLandscape) {
-        // It's a tablet in landscape mode. Show the "Rotate to Portrait" message.
-        portraitBlocker.style.display = 'flex';
+    if (isPossiblyTablet && isPortrait) {
+        orientationOverlay.style.display = 'flex'; // Show the overlay
+    } else {
+        orientationOverlay.style.display = 'none'; // Hide the overlay
     }
 }
 
-// --- SCRIPT INITIALIZATION ---
+// 1. Create the overlay element once the page structure is ready.
+createOrientationOverlay();
 
-// 1. Run the main handler function once when the page first loads.
-// The handler will create the overlays if they don't exist.
-document.addEventListener('DOMContentLoaded', handleOrientation);
+// 2. Add listeners to run our check whenever the screen might change.
+window.addEventListener('resize', checkAndEnforceLandscape);
+window.addEventListener('orientationchange', checkAndEnforceLandscape);
 
-// 2. Add listeners that will re-run the check whenever the screen changes.
-window.addEventListener('resize', handleOrientation);
-window.addEventListener('orientationchange', handleOrientation);
+// 3. Run an initial check when the page first loads.
+checkAndEnforceLandscape();
 
-// --- END: Complete and Unified Orientation Handler ---
+// --- END: Tablet Landscape Enforcement ---
+	
+    // Run Initial Setup
+    init();
+
+    // NEW: Tab switching logic for mobile
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    if (tabButtons.length > 0 && tabContents.length > 0) {
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                const newContent = document.getElementById(tabName);
+                if (newContent) {
+                    newContent.classList.add('active');
+                }
+            });
+        });
+    }
+
+});
+
