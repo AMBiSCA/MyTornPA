@@ -129,34 +129,6 @@ header {
     box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
     transform: translateY(-1px);
 }
-
-/* Corrected specific hover style */
-.btn#signUpButtonHeader:hover {
-    background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
-    color: #ffffff; /* Keep the text white for contrast */
-    cursor: pointer;
-}
-
-/* New rule to add the subtle overlay effect for all header buttons */
-.header-right-controls .btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: white; /* Change this to your desired overlay color */
-    opacity: 0;
-    border-radius: inherit;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.header-right-controls .btn:not(:disabled):hover::before {
-    opacity: 0.08; /* The subtle semi-transparent effect you like */
-}
-
 .btn .btn-text {
     order: 1;
 }
@@ -253,6 +225,13 @@ header {
     header .header-buttons {
         gap: 12px;
     }
+	
+	.btn#signUpButtonHeader:hover {
+        background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
+        color: #ffffff; /* Keep the text white for contrast */
+        cursor: pointer;
+    }
+
     #usefulLinksBtn, #contactUsBtn, .header-text-link {
         width: auto;
         padding: 0 12px;
@@ -318,3 +297,4 @@ header {
         font-size: 1.6em;
     }
 }
+
