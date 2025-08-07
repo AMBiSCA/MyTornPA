@@ -3574,8 +3574,6 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
-let orientationOverlay = null;
-
 /**
  * Creates and adds a hidden overlay to the page.
  * This overlay will be used to ask the user to rotate their tablet.
