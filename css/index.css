@@ -1223,13 +1223,6 @@ header {
     }
 }
 
-@media (max-width: 991px) {
-    html, body {
-        overflow: hidden !important;
-    }
-}
-
-
 @media (max-width: 800px) {
     .form-options-container {
         flex-direction: row !important;
