@@ -1366,9 +1366,8 @@ function initializeMobileBlocker() {
   const paragraph = document.createElement('p');
   paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
 
-  // Create the "Return to Home" button
   const homeButton = document.createElement('a');
-  homeButton.href = '../index.html'; // Set the link to your homepage
+  homeButton.href = '../index.html';
   homeButton.textContent = 'Return to Home';
   homeButton.classList.add('mobile-blocker-btn');
 
@@ -1396,6 +1395,25 @@ function initializeMobileBlocker() {
       text-align: center;
       padding: 20px;
       z-index: 9999;
+    }
+
+    /* Updated styles for the blocker's content to center it and add a better look */
+    #mobile-blocker h2 {
+        color: #00a8ff;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    #mobile-blocker p {
+        font-size: 1rem;
+        line-height: 1.6;
+        word-wrap: break-word;
+        min-width: 0;
+        white-space: normal;
+        max-width: 90%;
+        margin: 0 0 20px 0;
+        text-align: center;
     }
 
     /* Styles for the new button */
