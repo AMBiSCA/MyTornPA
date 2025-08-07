@@ -146,9 +146,9 @@ header {
     background-color: white;
     opacity: 0;
     border-radius: inherit;
-    transition: opacity .218s;
-    pointer-events: none;
-    z-index: 1;
+    transition: opacity 0.218s;
+    /* pointer-events: none; <-- REMOVED */
+    z-index: -1;
 }
 .btn:not(:disabled):hover::before { opacity: 0.08; }
 .btn:not(:disabled):active, .btn:not(:disabled):focus { border-color: #00a8ff; }
