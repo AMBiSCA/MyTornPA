@@ -1231,7 +1231,23 @@ header {
   }
 	.login-container {
     margin-top: -1in;
-	
+	}
+  .index-main-feature-box {
+    display: none !important;
+  }
+  .login-container {
+    margin-top: -1in;
+  }
+  .login-buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Adds space between the buttons */
+  }
+  .form-options-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Adds space between the checkboxes */
   }
 }
-
