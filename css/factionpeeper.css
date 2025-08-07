@@ -114,6 +114,7 @@ body::before {
 .faction-peeper-tool-container {
     max-width: 950px;
     margin: 20px auto;
+	margin-top: 1in;
     background-color: #222;
     padding: 10px 40px;
     padding-bottom: 25px;
@@ -595,4 +596,10 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
   .faction-peeper-tool-container > * {
     text-align: center;
   }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .faction-peeper-tool-container {
+        margin-top: 50px; /* Adjust this value as needed */
+    }
 }
