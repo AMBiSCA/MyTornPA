@@ -918,20 +918,19 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         width: 100%;
     }
     /* Styles for the tab buttons themselves */
-    .tab-button {
-        background-color: #2c2f33;
-        border: 1px solid #00a8ff;
-        border-radius: 8px;
-        color: #00a8ff;
-        cursor: pointer;
-        flex-grow: 1;
-        font-weight: bold;
-        max-width: 200px;
-        padding: 10px 20px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-        margin-top: -40px;
-        /* <-- Add this line */
-    }
+   .tab-button {
+    background-color: #2c2f33;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    color: #00a8ff;
+    cursor: pointer;
+    flex-grow: 1;
+    font-weight: bold;
+    max-width: 200px;
+    padding: 10px 20px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-top: 110px; /* Changed from -40px to 15px */
+}
     .tab-button.active-tab {
         background-color: #00a8ff;
         color: #1a1a1a;
