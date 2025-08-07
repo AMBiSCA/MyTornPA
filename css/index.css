@@ -41,25 +41,23 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: white; /* Changed to dark blue */
+    background-color: white;
     opacity: 0;
     border-radius: inherit;
     transition: opacity var(--btn-transition-speed);
     pointer-events: none;
-    z-index: 1; /* Changed to 1 to ensure the hover effect is visible */
+    z-index: 1;
 }
 
 .btn:not(:disabled):hover::before {
-    opacity: 0.05; /* You can adjust this value to control the darkness of the hover effect */
+    opacity: 0.08;
 }
 
 .btn:not(:disabled):hover {
     border-color: var(--btn-default-hover-border-color);
     box-shadow: 0 1px 2px 0 var(--btn-default-hover-shadow-color1), 0 1px 3px 1px var(--btn-default-hover-shadow-color2);
 }
-.btn:not(:disabled):hover::before {
-    opacity: var(--btn-default-hover-overlay-opacity);
-}
+
 .btn:not(:disabled):active,
 .btn:not(:disabled):focus {
     border-color: var(--btn-default-border-color);
@@ -85,31 +83,11 @@
     order: 1;
 }
 .btn .btn-icon {
-    order: 0; /* Changed from 2 to 0 to place icon before text */
-    margin-right: 8px; /* Added/adjusted margin to create space between icon and text */
-    margin-left: 0; /* Ensure no left margin pushes it further right */
+    order: 0;
+    margin-right: 8px;
+    margin-left: 0;
     display: inline-flex;
     align-items: center;
-}
-.btn-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: var(--btn-close-padding);
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--btn-close-color);
-    font-size: var(--btn-close-font-size);
-    transition: color var(--btn-close-transition-speed) ease, transform var(--btn-close-transition-speed) ease;
-    z-index: 10;
-}
-.btn-close:hover,
-.btn-close:focus {
-    color: var(--btn-close-hover-color);
-    transform: scale(1.1);
-    outline: none;
 }
 * {
     margin: 0;
