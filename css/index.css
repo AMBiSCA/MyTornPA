@@ -1040,7 +1040,7 @@ header {
         margin-bottom: 20px;
     }
 }
-
+/* Styling for the popup container */
 .popup {
   background-color: #2d2d3d;
   border: 1px solid #00a8ff;
@@ -1051,33 +1051,25 @@ header {
   color: #ccc;
 }
 
+/* Styling for the heading inside the popup */
 .popup h3 {
   color: #00a8ff;
   margin-top: 0;
+  margin-bottom: 15px;
 }
 
+/* Specific styling for the inputs inside the popup */
 .popup .custom-input {
   margin-bottom: 10px;
 }
 
-/* This is the class for the buttons */
-.btn-uniform {
+/* Adjustments for the uniform buttons inside the popup */
+.popup .btn-uniform {
   width: 100%;
+  margin-top: 10px;
   margin-bottom: 10px;
-  background-color: #00a8ff;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-weight: bold;
-  text-transform: uppercase;
 }
 
-/* A subtle hover effect */
-.btn-uniform:hover {
-  background-color: #008cc9;
-}
 
 @media (max-width: 768px) {
     body {
