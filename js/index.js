@@ -603,7 +603,7 @@ function toggleLandscapeBlocker() {
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
                 <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
-                <h2>Please Rotate Your Device</h2>
+                <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
                 <p>This page is best viewed in portrait mode.</p>
             `;
             // These styles will make it cover the entire screen.
