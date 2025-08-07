@@ -4816,7 +4816,9 @@ tabButtons.forEach(button => {
             }
         });
     }
-   
+
+}); // --- END OF DOMCONTENTLOADED ---
+
 /**
  * ==================================================================
  * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
