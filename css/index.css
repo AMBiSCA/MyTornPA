@@ -1070,6 +1070,11 @@ header {
   margin-bottom: 10px;
 }
 
+.popup-button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Adjust this value to increase or decrease the space between the buttons */
+}
 
 @media (max-width: 768px) {
     body {
