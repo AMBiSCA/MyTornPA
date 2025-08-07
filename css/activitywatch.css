@@ -411,8 +411,8 @@ ul li:last-child { border-bottom: none; }
     padding: 20px;
     flex-grow: 1;
     min-height: 0;
-    margin-bottom: 5px;
-    margin-top: 5px
+    margin-bottom: 100px;
+    margin-top: 100px
 }
 
 #topControlPanel {
