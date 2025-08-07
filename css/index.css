@@ -1040,6 +1040,45 @@ header {
         margin-bottom: 20px;
     }
 }
+
+.popup {
+  background-color: #2d2d3d;
+  border: 1px solid #00a8ff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 320px;
+  margin: auto;
+  color: #ccc;
+}
+
+.popup h3 {
+  color: #00a8ff;
+  margin-top: 0;
+}
+
+.popup .custom-input {
+  margin-bottom: 10px;
+}
+
+/* This is the class for the buttons */
+.btn-uniform {
+  width: 100%;
+  margin-bottom: 10px;
+  background-color: #00a8ff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* A subtle hover effect */
+.btn-uniform:hover {
+  background-color: #008cc9;
+}
+
 @media (max-width: 768px) {
     body {
         padding-top: 0;
