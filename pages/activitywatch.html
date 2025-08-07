@@ -10,22 +10,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/activitywatch.css?v=1.1">
+    <link rel="stylesheet" href="../css/activitywatch.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-	
 </head>
 <body>
 
-
-
-<div id="mobile-blocker">
-    <h2>Feature Unavailable on Mobile</h2>
-    <p>For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.</p>
-
-    <a href="https://mytornpa.com/pages/home.html" class="mobile-blocker-btn">Go to Homepage</a>
-</div>
 <script src="../js/auth-guard.js"></script>
 
     <div id="global-header-placeholder"></div>
@@ -61,20 +50,9 @@
                     <span id="totalMembersMyFaction"></span>
                 </div>
                 <div class="control-grid-item" id="actionButtonsGroup">
-                   <button id="startButton" class="action-btn start-btn">
-    <span class="icon">▶️</span>
-    <span class="text">Start.</span>
-</button>
-
-<button id="stopButton" class="action-btn stop-btn">
-    <span class="icon">⏹️</span>
-    <span class="text">Stop.</span>
-</button>
-
-<button id="clearDataButton" class="action-btn clear-btn">
-    <span class="icon">🗑️/📋</span>
-    <span class="text">Clear/Download.</span>
-</button>
+                    <button id="startButton" class="action-btn start-btn">Start.</button>
+                    <button id="stopButton" class="action-btn stop-btn">Stop.</button>
+                    <button id="clearDataButton" class="action-btn clear-btn">Clear/Download.</button>
                 </div>
                 <div class="control-grid-item" id="lastRefreshGroup">
                     <label>Last cycle refresh:</label>
