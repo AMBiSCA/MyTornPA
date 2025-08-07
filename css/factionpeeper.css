@@ -80,8 +80,6 @@ body::before {
 
 .main-content-wrapper {
     flex-grow: 1;
-    
-    padding-top: 90px; /* Space for fixed header (70px + 20px buffer) */
     padding-bottom: 90px; /* Space for fixed footer (70px + 20px buffer) */
     box-sizing: border-box;
     display: flex;
@@ -490,21 +488,6 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 .btn-fab .fab-icon {
     display: block;
 }
-
-/* Optional: If you want text below the icon on the FAB itself (uncomment HTML span too) */
-/*
-.btn-fab .fab-text {
-    font-size: 9px; 
-    display: block; 
-    margin-top: 1px;
-    line-height: 1.1;
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-}
-*/
 
 /* Dropdown content for the FAB */
 .fab-dropdown-content {
