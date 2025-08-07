@@ -3666,57 +3666,6 @@ function setupEventListeners(apiKey) {
 	
 }
 
-// ... (rest of your code, unchanged) ...
-
-if (addFriendBtn) {
-    addFriendBtn.addEventListener('click', async () => {
-        const friendId = addFriendIdInput.value.trim();
-        if (!friendId) {
-            addFriendStatus.textContent = "Please enter a Torn Player ID.";
-            addFriendStatus.style.color = 'orange';
-            return;
-        }
-
-        if (!auth.currentUser) {
-            addFriendStatus.textContent = "You must be logged in to add friends.";
-            addFriendStatus.style.color = 'red';
-            return;
-        }
-
-        addFriendStatus.textContent = "Adding friend...";
-        addFriendStatus.style.color = 'white';
-        addFriendBtn.disabled = true;
-
-        try {
-            // This now saves to the subcollection, matching your other code
-            const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
-            
-            const doc = await friendDocRef.get();
-            if (doc.exists) {
-                addFriendStatus.textContent = "This player is already your friend.";
-                addFriendStatus.style.color = 'orange';
-                addFriendBtn.disabled = false;
-                return;
-            }
-
-            await friendDocRef.set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            addFriendStatus.textContent = `Successfully added friend [${friendId}]!`;
-            addFriendStatus.style.color = 'lightgreen';
-            addFriendIdInput.value = '';
-
-        } catch (error) {
-            console.error("Error adding friend:", error);
-            addFriendStatus.textContent = `Error adding friend: ${error.message}`;
-            addFriendStatus.style.color = 'red';
-        } finally {
-            addFriendBtn.disabled = false;
-        }
-    });
-}
-
 function formatDuration(seconds) {
     if (seconds < 0) seconds = 0;
     const days = Math.floor(seconds / 86400);
@@ -3733,6 +3682,7 @@ function formatDuration(seconds) {
     // Return in D:HH:MM:SS format
     return `${days}:${paddedHours}:${paddedMinutes}:${paddedSecs}`;
 }
+
 function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
@@ -3757,9 +3707,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
-
-    // Game Plan & Announcements (from Firebase warData)
-   // Game Plan & Announcements (from Firebase warData)
+  
 if (gamePlanDisplay) {
     // Check if a saved image URL exists
     if (warData.gamePlanImageUrl) {
@@ -4066,297 +4014,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     }
 }
 
-
-async function fetchAndDisplayFriends() {
-    if (!auth.currentUser) {
-        console.log("No user logged in, cannot fetch friends.");
-        if (friendsTbody) {
-            friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view your friends.</td></tr>`;
-        }
-        return;
-    }
-
-    if (!friendsTbody) {
-        console.error("JavaScript error: Cannot find the 'friends-tbody' element.");
-        return;
-    }
-
-    friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Loading friends...</td></tr>`;
-
-    try {
-        const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
-        const userProfileDoc = await userProfileDocRef.get();
-
-        if (userProfileDoc.exists && userProfileDoc.data().friends) {
-            const friendTornIds = userProfileDoc.data().friends;
-            console.log("Friend Torn IDs from user profile:", friendTornIds);
-
-            if (friendTornIds.length === 0) {
-                friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">You have no friends added yet.</td></tr>`;
-                return;
-            }
-
-            const friendPromises = friendTornIds.map(id => db.collection('users').doc(String(id)).get());
-            const friendDocs = await Promise.all(friendPromises);
-
-            let allRowsHtml = '';
-            let friendsFound = 0;
-
-            for (const friendDoc of friendDocs) {
-                if (friendDoc.exists) {
-                    const friend = friendDoc.data();
-                    const tornPlayerId = friendDoc.id; // Document ID is the Torn Player ID
-
-                    // You might need to adjust these field names based on what you actually store in your 'users' collection
-                    const name = friend.name || 'N/A';
-                    const level = friend.level || 'N/A';
-                    const lastAction = friend.last_action ? formatRelativeTime(friend.last_action.timestamp) : 'N/A'; // Assuming formatRelativeTime exists
-                    const status = friend.status ? friend.status.description : 'N/A';
-                    
-                    // Placeholders for stats - You'll need to fetch these from Torn API or store them if needed
-                    const strength = friend.strength || 'N/A'; 
-                    const dexterity = friend.dexterity || 'N/A';
-                    const speed = friend.speed || 'N/A';
-                    const defense = friend.defense || 'N/A';
-                    const nerve = friend.nerve || 'N/A'; // Assuming you meant battle stats here, not actual nerve bar
-                    const energy = friend.energy || 'N/A'; // Assuming you meant battle stats here, not actual energy bar
-                    const revivable = (friend.status && friend.status.state === 'Hospital' && friend.status.description.includes('hospital')) ? 'Yes' : 'No';
-
-                    const profileUrl = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
-
-                    allRowsHtml += `
-                        <tr data-id="${tornPlayerId}">
-                            <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td>
-                            <td>${level}</td>
-                            <td>${lastAction}</td>
-                            <td>${status}</td>
-                            <td>${strength}</td>
-                            <td>${dexterity}</td>
-                            <td>${speed}</td>
-                            <td>${defense}</td>
-                            <td>${nerve}</td>
-                            <td>${energy}</td>
-                            <td>${revivable}</td>
-                        </tr>
-                    `;
-                    friendsFound++;
-                } else {
-                    console.warn(`Friend document with ID ${friendDoc.id} does not exist in 'users' collection.`);
-                }
-            }
-
-            if (friendsFound === 0) {
-                friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No friend data found for your listed friends.</td></tr>`;
-            } else {
-                friendsTbody.innerHTML = allRowsHtml;
-            }
-
-        } else {
-            friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">You have no friends added yet.</td></tr>`;
-        }
-    } catch (error) {
-        console.error("Error fetching or displaying friends:", error);
-        friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Error loading friends: ${error.message}</td></tr>`;
-    }
-}
-// MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
-// MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
-async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl) {
-    console.log("[Blocked People Tab] Populating tab. User ID:", currentUserId); // Log current user ID for debug
-
-    if (!friendsListEl || !ignoresListEl) {
-        console.error("HTML Error: Friends or Ignores list elements not provided to populateBlockedPeopleTab function.");
-        return;
-    }
-
-    friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px;">Loading friends...</p>';
-    ignoresListEl.innerHTML = '<p style="text-align:center; padding: 10px;">Loading ignores...</p>'; // Still show loading for ignores while friends load
-
-    if (!currentUserId) {
-        friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>';
-        console.warn("[Blocked People Tab] Current user ID not available to fetch friends.");
-        // If no currentUserId, still populate dummy ignores
-        const dummyIgnores = generateDummyIgnores(50); // Assumes generateDummyIgnores is defined globally
-        let ignoresHtml = '';
-        dummyIgnores.forEach(ignore => { // Simplified to ensure it runs
-            const displayId = ignore.id.split('_')[1];
-            if (ignore.type === 'user') {
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <img src="../../images/default_profile_icon.png" alt="Profile Pic" class="profile-pic">
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            } else {
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <span class="item-icon faction-icon">🏢</span>
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            }
-        });
-        ignoresListEl.innerHTML = ignoresHtml;
-        return;
-    }
-
-    // --- Fetch and Display Friends from Firebase ---
-    try {
-        const friendsCollectionRef = db.collection('userProfiles').doc(currentUserId).collection('friends');
-        console.log("[Blocked People Tab] Fetching friends from:", friendsCollectionRef.path);
-        const friendsSnapshot = await friendsCollectionRef.get();
-
-        const friendDetailsPromises = [];
-
-        if (friendsSnapshot.empty) {
-            friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px;">No friends added yet.</p>';
-            console.log("[Blocked People Tab] Friends sub-collection is empty.");
-        } else {
-            console.log("[Blocked People Tab] Friends snapshot not empty. Processing friends...");
-            for (const friendDoc of friendsSnapshot.docs) {
-                const friendTornId = friendDoc.id;
-                console.log("[Blocked People Tab] Processing friend ID from sub-collection:", friendTornId);
-
-                friendDetailsPromises.push(
-                    db.collection('users').doc(friendTornId).get().then(userDoc => {
-                        console.log(`[Blocked People Tab] Fetched users/${friendTornId}. Document exists:`, userDoc.exists);
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            const userFactionId = userData.faction_id;
-
-// If they have a faction ID, start the real-time listener for the new display
-if (userFactionId) {
-    setupFactionHitsListener(db, userFactionId);
-}
-                            const friendName = userData.name || `Torn ID: ${friendTornId}`;
-                            const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
-                            console.log(`[Blocked People Tab] Found user data for ${friendName} (ID: ${friendTornId}):`, userData);
-                            return `
-                                <div class="list-item friend-entry">
-                                    <img src="${profileImage}" alt="Profile Pic" class="profile-pic">
-                                    <span class="item-name">${friendName} [${friendTornId}]</span>
-                                    <button class="item-button letter-button" data-friend-id="${friendTornId}">✉️</button>
-                                    <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                                </div>
-                            `;
-                        } else {
-                            console.warn(`[Blocked People Tab] No detailed 'users' data found for friend Torn ID: ${friendTornId}. Displaying placeholder.`);
-                            return `
-                                <div class="list-item friend-entry">
-                                    <img src="../../images/default_profile_icon.png" alt="Default Profile Pic" class="profile-pic">
-                                    <span class="item-name">Unknown [${friendTornId}]</span>
-                                    <button class="item-button letter-button" data-friend-id="${friendTornId}">✉️</button>
-                                    <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                                </div>
-                            `;
-                        }
-                    }).catch(error => {
-                        console.error(`[Blocked People Tab] Error fetching user data for friend ${friendTornId}:`, error);
-                        return `
-                            <div class="list-item friend-entry">
-                                <img src="../../images/default_profile_icon.png" alt="Default Profile Pic" class="profile-pic">
-                                <span class="item-name">Error [${friendTornId}]</span>
-                                <button class="item-button letter-button" data-friend-id="${friendTornId}">✉️</button>
-                                <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                            </div>
-                        `;
-                    })
-                );
-            }
-            const friendsHtmlArray = await Promise.all(friendDetailsPromises);
-            friendsListEl.innerHTML = friendsHtmlArray.join('');
-            console.log("[Blocked People Tab] Friends list HTML updated with real data.");
-
-            // Add event listeners for new buttons (message, trash) via delegation
-friendsListEl.addEventListener('click', async function(event) {
-    const button = event.target.closest('.item-button');
-    if (!button) return;
-
-    const friendId = button.dataset.friendId;
-    if (!friendId) return;
-
-    if (button.classList.contains('letter-button')) {
-        console.log(`Message button clicked for friend ID: ${friendId}. Switching to private chat.`);
-        
-        // 1. Trigger a switch to the "Private Chat" tab
-        const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
-        if (privateChatTabButton) {
-            handleChatTabClick({ currentTarget: privateChatTabButton });
-        } else {
-            console.warn("Private Chat tab button not found. Cannot switch tab.");
-            window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
-            return;
-        }
-        
-        // 2. Call a new function to select and load this specific private chat
-        if (typeof selectPrivateChat === 'function') {
-            selectPrivateChat(friendId); 
-        } else {
-            console.warn("selectPrivateChat function not yet implemented or not in scope. Cannot open specific private chat.");
-            const selectedChatDisplay = document.getElementById('selectedChatDisplay');
-            if (selectedChatDisplay) {
-                selectedChatDisplay.innerHTML = `<p class="message-placeholder">Functionality for direct private chat selection is coming soon!</p>`;
-            }
-        }
-
-    } else if (button.classList.contains('trash-button')) {
-        // --- THIS IS THE CHANGED PART ---
-        const userConfirmed = await showCustomConfirm(`Are you sure you want to remove Torn ID: ${friendId} from your friends list?`, "Confirm Friend Removal");
-        if (userConfirmed) {
-            try {
-                if (!currentUserId) {
-                    alert("Error: User not logged in. Cannot remove friend.");
-                    return;
-                }
-                await db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendId).delete();
-                // We don't need the alert() here anymore as the custom UI provides feedback
-                
-                // Re-populate the list after removal
-                populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl);
-            } catch (error) {
-                console.error("Error removing friend from database:", error);
-                // You can use your custom alert for errors too if you have one
-                alert("Failed to remove friend. See console for details.");
-            }
-        }
-        // --- END OF CHANGED PART ---
-    }
-});
-
-        } // End of if (friendsSnapshot.empty) else block
-
-    } catch (error) {
-        console.error("Error fetching friends list or friend details from Firebase:", error);
-        friendsListEl.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error loading friends: ${error.message}</p>`;
-    }
-
-    // --- Populate Dummy Ignores (Keep as is) ---
-    const dummyIgnores = generateDummyIgnores(50); // Assumes generateDummyIgnores is defined globally
-    let ignoresHtml = '';
-    dummyIgnores.forEach(ignore => { // Simplified
-        const displayId = ignore.id.split('_')[1];
-        if (ignore.type === 'user') {
-            ignoresHtml += `
-                <div class="list-item ignore-entry">
-                    <img src="../../images/default_profile_icon.png" alt="Profile Pic" class="profile-pic">
-                    <span class="item-name">${ignore.name} [${displayId}]</span>
-                    <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
-        } else {
-            ignoresHtml += `
-                <div class="list-item ignore-entry">
-                    <span class="item-icon faction-icon">🏢</span>
-                    <span class="item-name">${ignore.name} [${displayId}]</span>
-                    <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
-        }
-    });
-    ignoresListEl.innerHTML = ignoresHtml;
-}
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
@@ -4453,6 +4110,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     }
 }
+
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
@@ -4579,7 +4237,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-           document.addEventListener('DOMContentLoaded', () => {
+          
+		  document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
     // --- NEW: This block reads the URL to see if a specific tab was requested ---
