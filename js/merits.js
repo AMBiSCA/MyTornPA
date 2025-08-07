@@ -1355,3 +1355,92 @@ window.addEventListener('orientationchange', checkAndEnforceLandscape);
 // 3. Run an initial check when the page first loads.
 checkAndEnforceLandscape();
 
+function initializeMobileBlocker() {
+  // === HTML Creation ===
+  const blockerDiv = document.createElement('div');
+  blockerDiv.id = 'mobile-blocker';
+
+  const heading = document.createElement('h2');
+  heading.textContent = 'Feature Unavailable on Mobile';
+
+  const paragraph = document.createElement('p');
+  paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
+
+  // Create the "Return to Home" button
+  const homeButton = document.createElement('a');
+  homeButton.href = '../index.html'; // Set the link to your homepage
+  homeButton.textContent = 'Return to Home';
+  homeButton.classList.add('mobile-blocker-btn');
+
+  blockerDiv.appendChild(heading);
+  blockerDiv.appendChild(paragraph);
+  blockerDiv.appendChild(homeButton);
+  document.body.appendChild(blockerDiv);
+
+  // === CSS Styling Injection ===
+  const style = document.createElement('style');
+  style.textContent = `
+    /* By default, the mobile blocker is hidden */
+    #mobile-blocker {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #222;
+      color: #eee;
+      text-align: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    /* Styles for the new button */
+    .mobile-blocker-btn {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 12px 25px;
+        background-color: #00a8ff;
+        color: #1a1a1a;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .mobile-blocker-btn:hover {
+        background-color: #4dc4ff;
+    }
+
+    /* When the 'mobile-blocked' class is present on the body, hide the main content */
+    body.mobile-blocked #global-header-placeholder,
+    body.mobile-blocked .main-content-wrapper,
+    body.mobile-blocked #globalfooterplaceholder {
+      display: none;
+    }
+
+    /* When the 'mobile-blocked' class is present, show the blocker */
+    body.mobile-blocked #mobile-blocker {
+      display: flex;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // === JavaScript Logic ===
+  function checkScreenSize() {
+    if (window.innerWidth <= 1024) {
+      document.body.classList.add('mobile-blocked');
+    } else {
+      document.body.classList.remove('mobile-blocked');
+    }
+  }
+
+  // Run the function on page load and window resize
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+}
+
+// Call the function to run everything
+initializeMobileBlocker();
