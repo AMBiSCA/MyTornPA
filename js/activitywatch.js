@@ -1106,108 +1106,111 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-	// --- START: Tablet Landscape Enforcement ---
-// This section will handle showing an overlay on tablets in portrait mode.
+function initializeMobileBlocker() {
+  // === HTML Creation ===
+  const blockerDiv = document.createElement('div');
+  blockerDiv.id = 'mobile-blocker';
 
-let orientationOverlay = null;
+  const heading = document.createElement('h2');
+  heading.textContent = 'Feature Unavailable on Mobile';
 
-/**
- * Creates and adds a hidden overlay to the page.
- * This overlay will be used to ask the user to rotate their tablet.
- * NEW: A "Go to Homepage" button has been added.
- */
-function createOrientationOverlay() {
-    orientationOverlay = document.createElement('div');
-    orientationOverlay.id = 'orientation-overlay';
+  const paragraph = document.createElement('p');
+  paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
 
-    // Apply the styles directly from your example
-    Object.assign(orientationOverlay.style, {
-        display: 'none', // Will be toggled to 'flex' to show
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#222',
-        color: '#eee',
-        textAlign: 'center',
-        padding: '20px',
-        zIndex: '99999'
-    });
+  const homeButton = document.createElement('a');
+  homeButton.href = '../home.html';
+  homeButton.textContent = 'Go to Homepage';
+  homeButton.classList.add('mobile-blocker-btn');
 
-    // Use the same HTML structure for the message, now with a button
-    orientationOverlay.innerHTML = `
-        <div>
-            <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
-            <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
-            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                Go to Homepage
-            </a>
-        </div>
-    `;
-    document.body.appendChild(orientationOverlay);
-}
+  blockerDiv.appendChild(heading);
+  blockerDiv.appendChild(paragraph);
+  blockerDiv.appendChild(homeButton);
+  document.body.appendChild(blockerDiv);
 
-/**
- * Checks the screen size and orientation to decide if the overlay should be shown.
- */
-function checkAndEnforceLandscape() {
-    if (!orientationOverlay) return; // Safety check
+  // === CSS Styling Injection ===
+  const style = document.createElement('style');
+  style.textContent = `
+    /* By default, the mobile blocker is hidden */
+    #mobile-blocker {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #222;
+      color: #eee;
+      text-align: center;
+      padding: 20px;
+      z-index: 9999;
+    }
 
-    // Realistic sizing for tablets
-    const TABLET_MIN_WIDTH = 768;
-    const TABLET_MAX_WIDTH = 1280;
+    /* Updated styles for the blocker's content to center it and add a better look */
+    #mobile-blocker h2 {
+        color: #00a8ff;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
 
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    #mobile-blocker p {
+        font-size: 1rem;
+        line-height: 1.6;
+        word-wrap: break-word;
+        min-width: 0;
+        white-space: normal;
+        max-width: 90%;
+        margin: 0 0 20px 0;
+        text-align: center;
+    }
 
-    const isPossiblyTablet = screenWidth >= TABLET_MIN_WIDTH && screenWidth <= TABLET_MAX_WIDTH;
-    const isPortrait = screenHeight > screenWidth;
+    /* Styles for the new button */
+    .mobile-blocker-btn {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 12px 25px;
+        background-color: #00a8ff;
+        color: #1a1a1a;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+    .mobile-blocker-btn:hover {
+        background-color: #4dc4ff;
+    }
 
-    if (isPossiblyTablet && isPortrait) {
-        orientationOverlay.style.display = 'flex'; // Show the overlay
+    /* When the 'mobile-blocked' class is present on the body, hide the main content */
+    body.mobile-blocked #global-header-placeholder,
+    body.mobile-blocked .main-content-wrapper,
+    body.mobile-blocked #globalfooterplaceholder {
+      display: none;
+    }
+
+    /* When the 'mobile-blocked' class is present, show the blocker */
+    body.mobile-blocked #mobile-blocker {
+      display: flex;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // === JavaScript Logic ===
+  function checkScreenSize() {
+    if (window.innerWidth <= 1024) {
+      document.body.classList.add('mobile-blocked');
     } else {
-        orientationOverlay.style.display = 'none'; // Hide the overlay
+      document.body.classList.remove('mobile-blocked');
     }
+  }
+
+  // Run the function on page load and window resize
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
 }
 
-// 1. Create the overlay element once the page structure is ready.
-createOrientationOverlay();
-
-// 2. Add listeners to run our check whenever the screen might change.
-window.addEventListener('resize', checkAndEnforceLandscape);
-window.addEventListener('orientationchange', checkAndEnforceLandscape);
-
-// 3. Run an initial check when the page first loads.
-checkAndEnforceLandscape();
-
-// --- END: Tablet Landscape Enforcement ---
-	
-    // Run Initial Setup
-    init();
-
-    // NEW: Tab switching logic for mobile
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    if (tabButtons.length > 0 && tabContents.length > 0) {
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.dataset.tab;
-
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                button.classList.add('active');
-                const newContent = document.getElementById(tabName);
-                if (newContent) {
-                    newContent.classList.add('active');
-                }
-            });
-        });
-    }
-
-});
+// Call the function to run everything
+initializeMobileBlocker();
