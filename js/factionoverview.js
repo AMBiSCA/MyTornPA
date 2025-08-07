@@ -9,10 +9,12 @@
 // Firebase (initialized in firebase-init.js, made globally available)
 // Ensure 'db' and 'auth' are accessible from 'firebase-init.js' or passed as arguments to relevant functions
 // const db = firebase.firestore(); // Assuming these are initialized globally from firebase-init.js
-// const auth = firebase.auth();   // If not, they'll need to be passed or re-initialized here.
+// const auth = firebase.auth();    // If not, they'll need to be passed or re-initialized here.
 
 let factionOverviewUserApiKey = null; // Stores the logged-in user's Torn API key for this page
 let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
+let primaryFactionApiKey = null; // Stores the faction's shared primary API key
+let lastFetchTimestamps = {}; // NEW: Caches the last successful timestamp for each news category
 
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
 let factionApiFullData = null; 
@@ -856,7 +858,7 @@ function setupTableSorting(tableElement, originalData) {
                     // Reconstruct row based on current table's columns (from headers)
                     headers.forEach(headerCol => {
                         const colKey = headerCol.dataset.sortKey || ''; // Use dataset.sortKey if it exists
-                        let displayValue = row[colKey] !== undefined ? row[colKey] : 'N/A';
+                        let displayValue = row[colKey] !== undefined ? row[col.key] : 'N/A';
                         if (colKey === 'timestamp' && displayValue !== 'N/A') {
                             displayValue = formatTimestampToLocale(displayValue);
                         } else if (colKey === 'amount' && typeof displayValue === 'number') {
@@ -906,34 +908,90 @@ async function fetchTornApiData(url, comment) {
 }
 
 
-async function fetchAllRawFactionNewsData() {
-    // Use Promise.all to fetch all categories concurrently for efficiency
+/**
+ * Fetches and caches new Torn API faction news.
+ * It fetches data from the last known timestamp to avoid re-fetching old data.
+ * @param {string} category The news category to fetch (e.g., 'armoryAction').
+ * @param {string} comment A comment for the API call.
+ * @param {Array} currentDataArray The global array to append new data to.
+ * @returns {Promise<number>} A promise that resolves with the timestamp of the newest entry, or null if no new data.
+ */
+async function fetchAndCacheFactionNews(category, comment, currentDataArray) {
+    let url = `https://api.torn.com/v2/faction/news?cat=${category}`;
+    const lastTimestamp = lastFetchTimestamps[category];
+
+    // If we have a last fetched timestamp, use the 'from' parameter
+    if (lastTimestamp) {
+        url += `&from=${lastTimestamp + 1}`; // Add 1 to avoid fetching the last entry again
+    } else {
+        url += `&limit=100`; // Initial fetch, get a larger batch
+    }
+
     try {
-        const [armoryWithdrawalsResp, armoryDepositsResp, fundDepositsResp, fundWithdrawalsResp, crimeResp] = await Promise.all([
-            fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=armoryAction&limit=100`, 'MyTornPA_ArmoryWithdrawals'),
-            fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=armoryDeposit&limit=100`, 'MyTornPA_ArmoryDeposits'),
-            fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=depositFunds&limit=100`, 'MyTornPA_FundDeposits'),
-            fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=giveFunds&limit=100`, 'MyTornPA_FundWithdrawals'),
-            fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=crime&limit=100`, 'MyTornPA_CrimeLog')
-        ]);
+        console.log(`[Cache] Fetching new data for category: ${category} from timestamp: ${lastTimestamp || 'the beginning'}`);
+        const response = await fetchTornApiData(url, comment);
+        const newNews = response?.news || [];
 
-        // Process and store the fetched data into global variables
-        armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || {}, 'armoryAction');
-        armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || {}, 'armoryDeposit');
-        fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || {}, 'depositFunds');
-        fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || {}, 'giveFunds');
-        crimeData = processFactionNewsForTable(crimeResp?.news || {}, 'crime');
-        console.log("All raw faction news data fetched and processed.");
+        if (newNews.length > 0) {
+            const processedNewData = processFactionNewsForTable(newNews, category);
+            
+            // Append new data to the existing global array and sort it
+            currentDataArray.push(...processedNewData);
+            currentDataArray.sort((a, b) => b.timestamp - a.timestamp);
 
-        // --- NEW CODE BLOCK TO FETCH FACTION BALANCES ---
+            // Get the timestamp of the newest entry received
+            const newestTimestamp = processedNewData[0].timestamp; 
+            console.log(`[Cache] Successfully fetched and processed ${newNews.length} new entries for ${category}. Newest timestamp: ${newestTimestamp}`);
+            return newestTimestamp;
+        } else {
+            console.log(`[Cache] No new data found for category: ${category}.`);
+            return lastTimestamp; // Return the old timestamp if nothing new was found
+        }
+    } catch (error) {
+        console.error(`[Cache] Error fetching new data for ${category}:`, error);
+        return lastTimestamp; // Return the old timestamp so we don't accidentally re-fetch from a bad state
+    }
+}
+
+/**
+ * Orchestrates the fetching of all faction news data with a caching strategy.
+ * This is the function that replaces your existing fetchAllRawFactionNewsData.
+ */
+async function fetchAllRawFactionNewsData() {
+    try {
+        // Fetch faction balances first as it's a simple, non-cached call.
         const balanceResp = await fetchTornApiData(`https://api.torn.com/v2/faction/balance`, 'MyTornPA_FactionBalances');
         factionBalancesData = balanceResp?.balance || null;
         console.log("Faction Balances data fetched successfully.");
-        // --- END NEW CODE BLOCK ---
+        
+        // Use Promise.all to fetch all categories concurrently using the caching function
+        const [
+            armoryWithdrawalsTimestamp,
+            armoryDepositsTimestamp,
+            fundDepositsTimestamp,
+            fundWithdrawalsTimestamp,
+            crimeTimestamp
+        ] = await Promise.all([
+            fetchAndCacheFactionNews('armoryAction', 'MyTornPA_ArmoryWithdrawals', armoryWithdrawalsData),
+            fetchAndCacheFactionNews('armoryDeposit', 'MyTornPA_ArmoryDeposits', armoryDepositsData),
+            fetchAndCacheFactionNews('depositFunds', 'MyTornPA_FundDeposits', fundDepositsData),
+            fetchAndCacheFactionNews('giveFunds', 'MyTornPA_FundWithdrawals', fundWithdrawalsData),
+            fetchAndCacheFactionNews('crime', 'MyTornPA_CrimeLog', crimeData)
+        ]);
+
+        // Update the last fetch timestamps in our cache
+        lastFetchTimestamps = {
+            armoryAction: armoryWithdrawalsTimestamp,
+            armoryDeposit: armoryDepositsTimestamp,
+            depositFunds: fundDepositsTimestamp,
+            giveFunds: fundWithdrawalsTimestamp,
+            crime: crimeTimestamp
+        };
+
+        console.log("All raw faction news data fetched and processed with caching.");
 
         // If the current tab is one of these, refresh its display
-        if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime'].includes(currentActiveSubTab)) {
-            // Re-render the current tab to show updated data
+        if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime', 'faction-balances'].includes(currentActiveSubTab)) {
             switchFactionOverviewSubTab(currentActiveSubTab);
         }
 
@@ -942,7 +1000,6 @@ async function fetchAllRawFactionNewsData() {
 
     } catch (error) {
         console.error("Failed to fetch all raw faction news data:", error);
-        // Display an error message in the main content area if needed
         const displayArea = document.getElementById('factionOverviewDisplayArea');
         if (displayArea) {
             displayArea.innerHTML = `<p style="text-align: center; color: red; padding-top: 50px;">Error loading data: ${error.message}</p>`;
@@ -1031,10 +1088,10 @@ function processFactionNewsForTable(newsArray, category) {
 
                 // Clean up common suffixes from the captured item name
                 item = item.replace(/\s+items?$/, '')
-                           .replace(/\s+from the faction armory$/, '')
-                           .replace(/\s+to themselves$/, '')
-                           .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
-                           .trim();
+                         .replace(/\s+from the faction armory$/, '')
+                         .replace(/\s+to themselves$/, '')
+                         .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
+                         .trim();
 
                 // --- NEW/UPDATED: Prepend action verb to item name based on the sourceText ---
                 if (sourceText.includes("retrieved")) { 
@@ -1446,7 +1503,7 @@ function populateLogisticsData() {
     // --- Part 1: Calculate Current Faction Armory Stock Levels (Estimated) ---
     // This requires processing all historical armory actions to get net quantities.
     const itemNetQuantities = {}; // itemName -> net quantity (deposits - withdrawals)
-    const itemUsagePerDay = {};   // itemName -> { dayTimestamp -> total used }
+    const itemUsagePerDay = {};    // itemName -> { dayTimestamp -> total used }
     const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
     const now = new Date().getTime();
 
@@ -1972,7 +2029,7 @@ async function populateBankerCheckboxes(container) {
 async function saveDesignatedBankers(container, modalOverlay, newPrimaryApiKey) {
     // Get currently selected (checked) banker IDs from the checkboxes
     const selectedBankerIds = Array.from(container.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)'))
-                                 .map(cb => cb.value);
+                                     .map(cb => cb.value);
 
     // This section for limiting to 3 bankers and ensuring leaders are included is complex
     // and depends on having faction member data readily available.
@@ -2195,11 +2252,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                              console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar. This is okay if you haven't set it yet.");
                         }
+
+                        // NEW: Load cached timestamps to know where to start fetching from next
+                        lastFetchTimestamps = warData.lastFetchTimestamps || {};
+                        console.log("[DEBUG] Loaded lastFetchTimestamps from Firebase:", lastFetchTimestamps);
+
                     } else {
                         // If factionWars/currentWar document doesn't exist, initialize with empty values
                         designatedBankers = [];
                         primaryFactionApiKey = null;
-                        console.log("[DEBUG] factionWars/currentWar document not found. Initializing bankers/primary API key to empty.");
+                        lastFetchTimestamps = {}; // NEW: Initialize timestamps as empty
+                        console.log("[DEBUG] factionWars/currentWar document not found. Initializing bankers/primary API key/timestamps to empty.");
                     }
                     // --- END ROBUST LOADING ---
 
