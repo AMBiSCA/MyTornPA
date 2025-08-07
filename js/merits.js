@@ -1355,28 +1355,3 @@ window.addEventListener('orientationchange', checkAndEnforceLandscape);
 // 3. Run an initial check when the page first loads.
 checkAndEnforceLandscape();
 
-// --- END: Tablet Landscape Enforcement ---
-	
-    // Run Initial Setup
-    init();
-
-
-    if (tabButtons.length > 0 && tabContents.length > 0) {
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.dataset.tab;
-
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                button.classList.add('active');
-                const newContent = document.getElementById(tabName);
-                if (newContent) {
-                    newContent.classList.add('active');
-                }
-            });
-        });
-    }
-
-});
-
