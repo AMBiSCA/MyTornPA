@@ -270,7 +270,7 @@
     }
 }
 @media (max-width: 480px) {
-    .peeper-tool-container { margin: 10px auto; padding: 15px; }
+    .peeper-tool-container { margin: 10px auto; padding: 15px; margin-top: 170px; }
     .script-title { font-size: 1.6rem; }
     .battle-stats-box, .faction-search-box { max-width: 95%; }
     .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
