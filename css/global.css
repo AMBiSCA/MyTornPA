@@ -1937,13 +1937,6 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    /* Set body padding-top equal to the header's height to prevent content from going under it */
-    /* Adjust '115px' (increased from 110px) as needed after testing for top cutoff */
-    body {
-        padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
-        padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
-    }
-
     /* HEADER Styles for Mobile (Fixed and Responsive) */
     header {
         position: fixed !important; /* Forces header to stay fixed at the top */
