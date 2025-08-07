@@ -2269,3 +2269,80 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function managePortraitBlocker() {
+    // This condition is now more specific to target phones and exclude tablets
+    const isMobilePortrait = window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
+    let blocker = document.getElementById('portrait-blocker');
+    const mainContentArea = document.querySelector('.page-specific-content-area');
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
+
+    if (isMobilePortrait) {
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'portrait-blocker';
+            blocker.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #1e1e1e;
+                color: #f0f0f0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                font-family: sans-serif;
+                font-size: 1.5em;
+                z-index: 99999;
+            `;
+            blocker.innerHTML = `
+                <h2>Please Rotate Your Device</h2>
+                <p>For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-button">Return to Home</button>
+            `;
+            document.body.appendChild(blocker);
+
+            const returnHomeButton = document.getElementById('return-home-button');
+            if (returnHomeButton) {
+                Object.assign(returnHomeButton.style, {
+                    backgroundColor: '#007bff',
+                    color: 'black',
+                    padding: '8px 15px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    marginTop: '20px',
+                    textDecoration: 'none'
+                });
+                returnHomeButton.addEventListener('click', () => {
+                    window.location.href = 'home.html'; 
+                });
+            }
+        }
+        
+        if (header) header.style.display = 'none';
+        if (mainContentArea) mainContentArea.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        document.body.style.overflow = 'hidden';
+
+    } else {
+        if (blocker) {
+            blocker.remove();
+        }
+
+        if (header) header.style.display = '';
+        if (mainContentArea) mainContentArea.style.display = '';
+        if (footer) footer.style.display = '';
+        document.body.style.overflow = '';
+    }
+}
+
+// Attach the listener to the window resize and orientationchange events
+window.addEventListener('resize', managePortraitBlocker);
+window.addEventListener('orientationchange', managePortraitBlocker);
+window.addEventListener('DOMContentLoaded', managePortraitBlocker);
