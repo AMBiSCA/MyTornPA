@@ -31,11 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
     const factionNameDisplay = document.getElementById('factionNameDisplay');
     const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
-    
-    // Original page containers we need to reorganize
-    const activityPeeperContainer = document.getElementById('activityPeeperContainer');
-    const topControlPanel = document.getElementById('topControlPanel');
-    const chartsGridArea = document.getElementById('chartsGridArea');
 
     // --- 2. Global Variables & State ---
     let rawActivityChartInstance = null;
@@ -50,95 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let historicalData = [];
     const SKIP_CONFIRM_KEY = 'skipClearConfirmation';
 
-
-    // --- NEW: Dynamic Content Reorganization for Mobile ---
-    function reorganizeContentForMobile() {
-        if (!activityPeeperContainer || !topControlPanel || !chartsGridArea) {
-            console.error("Missing core container elements for reorganization.");
-            return;
-        }
-
-        // 1. Create the mobile tabs container and buttons
-        const tabButtonsContainer = document.createElement('div');
-        tabButtonsContainer.id = 'mobileTabs';
-        tabButtonsContainer.className = 'mobile-tabs-container';
-        activityPeeperContainer.prepend(tabButtonsContainer);
-
-        const setupButton = createTabButton('Setup', 'setup-tab');
-        const overallButton = createTabButton('Overall', 'overall-tab');
-        const individualsButton = createTabButton('Individuals', 'individuals-tab');
-        tabButtonsContainer.appendChild(setupButton);
-        tabButtonsContainer.appendChild(overallButton);
-        tabButtonsContainer.appendChild(individualsButton);
-
-        // 2. Create the tab content containers
-        const setupContent = createTabContent('setup-tab');
-        const overallContent = createTabContent('overall-tab');
-        const individualsContent = createTabContent('individuals-tab');
-        activityPeeperContainer.appendChild(setupContent);
-        activityPeeperContainer.appendChild(overallContent);
-        activityPeeperContainer.appendChild(individualsContent);
-        
-        // 3. Move the existing content into the new containers
-        setupContent.appendChild(topControlPanel);
-        
-        const overallCharts = [
-            document.getElementById('rawActivityChart').parentNode,
-            document.getElementById('activityDifferenceChart').parentNode
-        ];
-        overallCharts.forEach(chartPanel => overallContent.appendChild(chartPanel));
-        
-        const individualCharts = [
-            document.getElementById('myFactionIndividualsChart').parentNode,
-            document.getElementById('enemyFactionIndividualsChart').parentNode
-        ];
-        individualCharts.forEach(chartPanel => individualsContent.appendChild(chartPanel));
-
-        // 4. Add click handlers to the new tabs
-        const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
-        const allContents = activityPeeperContainer.querySelectorAll('.tab-content');
-        
-        allButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTabId = button.dataset.tab;
-                
-                allButtons.forEach(btn => btn.classList.remove('active'));
-                allContents.forEach(content => content.classList.remove('active'));
-                
-                button.classList.add('active');
-                const targetContent = document.getElementById(targetTabId);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-            });
-        });
-
-        // Set the initial active tab
-        setupButton.classList.add('active');
-        setupContent.classList.add('active');
-    }
-
-    function createTabButton(text, targetId) {
-        const button = document.createElement('button');
-        button.className = 'tab-button';
-        button.textContent = text;
-        button.dataset.tab = targetId;
-        return button;
-    }
-    
-    function createTabContent(id) {
-        const content = document.createElement('div');
-        content.id = id;
-        content.className = 'tab-content';
-        return content;
-    }
-
-    // Check if on a mobile screen to run the reorganization
-    if (window.innerWidth <= 768) {
-        reorganizeContentForMobile();
-    }
-    // --- END NEW: Dynamic Content Reorganization for Mobile ---
-
+    // All functions related to mobile content reorganization have been removed.
 
     function saveSessionState(state) {
         localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(state));
@@ -451,7 +358,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateIndividualCharts();
     }
 
-    // REPLACE your entire fetchAndProcessFactionActivity function with this one
     async function fetchAndProcessFactionActivity() {
         updateStatus("Running.", 'info', "Fetching data...");
         try {
@@ -541,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         stopAutoStopTimer();
         clearSessionState();
-        
+
         myFactionIDInput.value = '';
         enemyFactionIDInput.value = '';
 
@@ -679,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!memberDetails) return;
             const factionName = historicalData[0]?.[factionType].name || (factionType === 'myFaction' ? 'My Faction' : 'Enemy Faction');
             reportContent += `--- ${factionName}: ${memberDetails.name} [${memberDetails.id}] ---\n`;
-            
+
             let totalActiveIntervals = 0;
             let totalIntervalsTracked = 0;
             historicalData.forEach(record => {
@@ -700,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         addMemberDataToReport(myMemberDetails, 'myFaction');
         addMemberDataToReport(enemyMemberDetails, 'enemyFaction');
-        
+
         closeReportOptionsModal();
 
         const blob = new Blob([reportContent], { type: 'text/plain' });
@@ -747,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const latestRecord = historicalData[historicalData.length - 1];
         const firstRecordTime = new Date(historicalData[0].timestamp);
         const lastRecordTime = new Date(latestRecord.timestamp);
-        
+
         // Calculate tracking duration
         const durationMs = lastRecordTime.getTime() - firstRecordTime.getTime();
         const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(1);
@@ -806,10 +712,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortedByAttackAdvantage = [...hourlyAverages].sort((a, b) => b.avgDifference - a.avgDifference);
         const sortedByTurtleAdvantage = [...hourlyAverages].sort((a, b) => a.avgDifference - b.avgDifference);
 
-        const topAttackHours = sortedByAttackAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        const topAttackHours = sortedByAttackAdvantage.slice(0, 3).map(h => h.hour).sort((a, b) => a - b);
         bestAttackWindows = getContiguousRanges(topAttackHours);
 
-        const topTurtleHours = sortedByTurtleAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        const topTurtleHours = sortedByTurtleAdvantage.slice(0, 3).map(h => h.hour).sort((a, b) => a - b);
         bestTurtleWindows = getContiguousRanges(topTurtleHours);
 
         function formatHour(hour) {
@@ -831,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let currentRange = [hours[0]];
 
             for (let i = 1; i < hours.length; i++) {
-                if (hours[i] === hours[i-1] + 1) {
+                if (hours[i] === hours[i - 1] + 1) {
                     currentRange.push(hours[i]);
                 } else {
                     ranges.push(currentRange);
@@ -848,7 +754,11 @@ document.addEventListener('DOMContentLoaded', function() {
         historicalData.forEach(record => {
             record.myFaction.individuals.forEach(member => {
                 if (!myFactionMembersActivity.has(member.id)) {
-                    myFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                    myFactionMembersActivity.set(member.id, {
+                        name: member.name,
+                        totalIntervals: 0,
+                        activeIntervals: 0
+                    });
                 }
                 const data = myFactionMembersActivity.get(member.id);
                 data.totalIntervals++;
@@ -859,7 +769,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             record.enemyFaction.individuals.forEach(member => {
                 if (!enemyFactionMembersActivity.has(member.id)) {
-                    enemyFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                    enemyFactionMembersActivity.set(member.id, {
+                        name: member.name,
+                        totalIntervals: 0,
+                        activeIntervals: 0
+                    });
                 }
                 const data = enemyFactionMembersActivity.get(member.id);
                 data.totalIntervals++;
@@ -991,7 +905,7 @@ document.addEventListener('DOMContentLoaded', function() {
         skipConfirmCheckbox.checked = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         updateStatus("Loading...", 'info', "Initializing application.");
     }
-    
+
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(async function(user) {
             if (user) {
@@ -1057,29 +971,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     stopButton.addEventListener('click', enterStoppedState);
-    
+
     clearDataButton.addEventListener('click', openReportModal);
 
     compareUser1Select.addEventListener('change', updateIndividualCharts);
     compareUser2Select.addEventListener('change', updateIndividualCharts);
 
     reportModalCloseBtn.addEventListener('click', closeReportModal);
-    
+
     downloadReportBtn.addEventListener('click', openReportOptionsModal);
 
     reportOptionsModalCloseBtn.addEventListener('click', closeReportOptionsModal);
 
     generateCustomReportBtn.addEventListener('click', generateAndDownloadFactionWideReport);
-    
+
     compareTwoIndividualsBtn.addEventListener('click', generateAndDownloadIndividualComparisonReport);
 
     reportMyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
     reportEnemyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
-    
+
     skipConfirmCheckbox.addEventListener('change', (e) => {
         localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
     });
-    
+
     confirmClearBtn.addEventListener('click', async () => {
         const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         let userDidConfirm = false;
@@ -1105,112 +1019,115 @@ document.addEventListener('DOMContentLoaded', function() {
             openReportModal();
         }
     });
-    
-function initializeMobileBlocker() {
-  // === HTML Creation ===
-  const blockerDiv = document.createElement('div');
-  blockerDiv.id = 'mobile-blocker';
 
-  const heading = document.createElement('h2');
-  heading.textContent = 'Feature Unavailable on Mobile';
+    function initializeMobileBlocker() {
+        // === HTML Creation ===
+        const blockerDiv = document.createElement('div');
+        blockerDiv.id = 'mobile-blocker';
 
-  const paragraph = document.createElement('p');
-  paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
+        const heading = document.createElement('h2');
+        heading.textContent = 'Feature Unavailable on Mobile';
 
-  const homeButton = document.createElement('a');
-  homeButton.href = '../home.html';
-  homeButton.textContent = 'Go to Homepage';
-  homeButton.classList.add('mobile-blocker-btn');
+        const paragraph = document.createElement('p');
+        paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
 
-  blockerDiv.appendChild(heading);
-  blockerDiv.appendChild(paragraph);
-  blockerDiv.appendChild(homeButton);
-  document.body.appendChild(blockerDiv);
+        const homeButton = document.createElement('a');
+        homeButton.href = '../home.html';
+        homeButton.textContent = 'Go to Homepage';
+        homeButton.classList.add('mobile-blocker-btn');
 
-  // === CSS Styling Injection ===
-  const style = document.createElement('style');
-  style.textContent = `
-    /* By default, the mobile blocker is hidden */
-    #mobile-blocker {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: #222;
-      color: #eee;
-      text-align: center;
-      padding: 20px;
-      z-index: 9999;
+        blockerDiv.appendChild(heading);
+        blockerDiv.appendChild(paragraph);
+        blockerDiv.appendChild(homeButton);
+        document.body.appendChild(blockerDiv);
+
+        // === CSS Styling Injection ===
+        const style = document.createElement('style');
+        style.textContent = `
+          /* By default, the mobile blocker is hidden */
+          #mobile-blocker {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+            color: #eee;
+            text-align: center;
+            padding: 20px;
+            z-index: 9999;
+          }
+
+          /* Updated styles for the blocker's content to center it and add a better look */
+          #mobile-blocker h2 {
+              color: #00a8ff;
+              font-size: 1.5rem;
+              margin-bottom: 10px;
+              text-align: center;
+          }
+
+          #mobile-blocker p {
+              font-size: 1rem;
+              line-height: 1.6;
+              word-wrap: break-word;
+              min-width: 0;
+              white-space: normal;
+              max-width: 90%;
+              margin: 0 0 20px 0;
+              text-align: center;
+          }
+
+          /* Styles for the new button */
+          .mobile-blocker-btn {
+              display: inline-block;
+              margin-top: 25px;
+              padding: 12px 25px;
+              background-color: #00a8ff;
+              color: #1a1a1a;
+              font-weight: bold;
+              text-decoration: none;
+              border-radius: 5px;
+              transition: background-color 0.2s ease;
+          }
+          .mobile-blocker-btn:hover {
+              background-color: #4dc4ff;
+          }
+
+          /* When the 'mobile-blocked' class is present on the body, hide the main content */
+          body.mobile-blocked #global-header-placeholder,
+          body.mobile-blocked .main-content-wrapper,
+          body.mobile-blocked #globalfooterplaceholder {
+            display: none;
+          }
+
+          /* When the 'mobile-blocked' class is present, show the blocker */
+          body.mobile-blocked #mobile-blocker {
+            display: flex;
+          }
+        `;
+        document.head.appendChild(style);
+
+        // === JavaScript Logic ===
+        function checkScreenSize() {
+            if (window.innerWidth <= 1024) {
+                document.body.classList.add('mobile-blocked');
+            } else {
+                document.body.classList.remove('mobile-blocked');
+            }
+        }
+
+        // Run the function on page load and window resize
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
     }
 
-    /* Updated styles for the blocker's content to center it and add a better look */
-    #mobile-blocker h2 {
-        color: #00a8ff;
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-        text-align: center;
-    }
+    // Call the function to run everything
+    initializeMobileBlocker();
+    init();
 
-    #mobile-blocker p {
-        font-size: 1rem;
-        line-height: 1.6;
-        word-wrap: break-word;
-        min-width: 0;
-        white-space: normal;
-        max-width: 90%;
-        margin: 0 0 20px 0;
-        text-align: center;
-    }
-
-    /* Styles for the new button */
-    .mobile-blocker-btn {
-        display: inline-block;
-        margin-top: 25px;
-        padding: 12px 25px;
-        background-color: #00a8ff;
-        color: #1a1a1a;
-        font-weight: bold;
-        text-decoration: none;
-        border-radius: 5px;
-        transition: background-color 0.2s ease;
-    }
-    .mobile-blocker-btn:hover {
-        background-color: #4dc4ff;
-    }
-
-    /* When the 'mobile-blocked' class is present on the body, hide the main content */
-    body.mobile-blocked #global-header-placeholder,
-    body.mobile-blocked .main-content-wrapper,
-    body.mobile-blocked #globalfooterplaceholder {
-      display: none;
-    }
-
-    /* When the 'mobile-blocked' class is present, show the blocker */
-    body.mobile-blocked #mobile-blocker {
-      display: flex;
-    }
-  `;
-  document.head.appendChild(style);
-
-  // === JavaScript Logic ===
-  function checkScreenSize() {
-    if (window.innerWidth <= 1024) {
-      document.body.classList.add('mobile-blocked');
-    } else {
-      document.body.classList.remove('mobile-blocked');
-    }
-  }
-
-  // Run the function on page load and window resize
-  checkScreenSize();
-  window.addEventListener('resize', checkScreenSize);
-}
-
-// Call the function to run everything
-initializeMobileBlocker();
+});
