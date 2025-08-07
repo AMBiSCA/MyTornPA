@@ -3675,9 +3675,6 @@ checkAndEnforceLandscape();
         });
     }
 
-});
-
-
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
