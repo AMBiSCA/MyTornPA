@@ -646,26 +646,20 @@ window.addEventListener('resize', toggleLandscapeBlocker);
 });
 
 function toggleLandscapeBlocker() {
-    // This is the line we've changed.
-    // Increased from 1280px to 1920px to support larger tablets in landscape mode.
-    const isMobileLandscape = window.matchMedia("(max-width: 1920px) and (orientation: landscape)").matches;
+    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
     let blocker = document.getElementById('landscape-blocker');
 
-    // These selectors are updated to match your travel.html page structure.
-    const header = document.getElementById('global-header-placeholder');
-    const mainContent = document.querySelector('.main-content-wrapper');
-    const footer = document.getElementById('globalfooterplaceholder');
-
     if (isMobileLandscape) {
-        // Only create the blocker if it doesn't already exist
+        // If the blocker doesn't exist, create and show it.
         if (!blocker) {
             blocker = document.createElement('div');
             blocker.id = 'landscape-blocker';
             blocker.innerHTML = `
-                <h2>Please Rotate Your Device</h2>
-                <p>For the best experience, please use this page in portrait mode.</p>
+                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+                <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
+                <p>This page is best viewed in portrait mode.</p>
             `;
-            // Apply all the necessary styles directly with JavaScript
+            // These styles will make it cover the entire screen.
             Object.assign(blocker.style, {
                 display: 'flex',
                 flexDirection: 'column',
@@ -674,38 +668,28 @@ function toggleLandscapeBlocker() {
                 position: 'fixed',
                 top: '0',
                 left: '0',
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#222',
+                width: '100vw',  // Use viewport width
+                height: '100vh', // Use viewport height
+                backgroundColor: '#1c1c1c', // A solid, dark color
                 color: '#eee',
                 textAlign: 'center',
-                padding: '20px',
-                zIndex: '99999'
+                zIndex: '99999' // A very high number to ensure it's on top of everything
             });
             document.body.appendChild(blocker);
         }
-
-        // Hide main page content
+        // Also, prevent the page from scrolling underneath the blocker.
         document.body.style.overflow = 'hidden';
-        if (header) header.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'none';
-        if (footer) footer.style.display = 'none';
 
     } else {
-        // Remove the blocker if it exists
+        // If we are in portrait, remove the blocker if it exists.
         if (blocker) {
             blocker.remove();
         }
-
-        // Re-show main page content
+        // And restore the ability to scroll the page.
         document.body.style.overflow = '';
-        // Reverting display to '' lets them fall back to your CSS stylesheet's default
-        if (header) header.style.display = '';
-        if (mainContent) mainContent.style.display = '';
-        if (footer) footer.style.display = '';
     }
 }
 
-// Run the function when the page first loads and whenever it's resized
+// Run the function when the page first loads and whenever it's resized.
 window.addEventListener('load', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
