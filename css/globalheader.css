@@ -185,6 +185,12 @@ header {
     content: "\00a0\00a0🔗";
 }
 
+.btn#signUpButtonHeader:hover {
+    background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
+    color: #ffffff; /* Keep the text white for contrast */
+    cursor: pointer;
+}
+
 /* ================================================================================= */
 /* === Media Queries for Responsiveness === */
 /* ================================================================================= */
@@ -290,3 +296,4 @@ header {
         font-size: 1.6em;
     }
 }
+
