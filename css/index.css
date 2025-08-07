@@ -34,6 +34,24 @@
     height: var(--btn-default-height);
     padding: var(--btn-default-padding);
 }
+.btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #2e6b8c; /* Corrected: Change this to a dark blue color */
+    opacity: 0;
+    border-radius: inherit;
+    transition: opacity var(--btn-transition-speed);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.popup button#registerBtn.btn-uniform:not(:disabled):hover::before {
+    opacity: 0.08;
+}
 
 .btn:not(:disabled):hover {
     border-color: var(--btn-default-hover-border-color);
