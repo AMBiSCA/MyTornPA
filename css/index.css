@@ -675,7 +675,6 @@ header {
     margin-bottom: 20px;
 }
 .remember-me-label {
-    display: flex;
     align-items: center;
     font-size: 0.85rem;
     cursor: pointer;
@@ -1249,5 +1248,6 @@ header {
     flex-direction: column;
     align-items: center;
     gap: 10px; /* Adds space between the checkboxes */
+	ma
   }
 }
