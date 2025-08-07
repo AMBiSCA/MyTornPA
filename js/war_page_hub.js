@@ -32,7 +32,7 @@ let onlineEnemyMembersDisplay = null;
 let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
-
+let orientationOverlay = null;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -3649,31 +3649,6 @@ window.addEventListener('orientationchange', checkAndEnforceLandscape);
 // 3. Run an initial check when the page first loads.
 checkAndEnforceLandscape();
 
-// --- END: Tablet Landscape Enforcement ---
-	
-    // Run Initial Setup
-    init();
-
-    // NEW: Tab switching logic for mobile
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    if (tabButtons.length > 0 && tabContents.length > 0) {
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.dataset.tab;
-
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                button.classList.add('active');
-                const newContent = document.getElementById(tabName);
-                if (newContent) {
-                    newContent.classList.add('active');
-                }
-            });
-        });
-    }
 
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
