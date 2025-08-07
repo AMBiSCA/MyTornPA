@@ -591,3 +591,52 @@ if (whatsNewListElement) {
   }
   console.log("index.js: DOMContentLoaded setup and event listeners complete.");
 });
+
+function toggleLandscapeBlocker() {
+    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    let blocker = document.getElementById('landscape-blocker');
+
+    if (isMobileLandscape) {
+        // If the blocker doesn't exist, create and show it.
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'landscape-blocker';
+            blocker.innerHTML = `
+                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+                <h2>Please Rotate Your Device</h2>
+                <p>This page is best viewed in portrait mode.</p>
+            `;
+            // These styles will make it cover the entire screen.
+            Object.assign(blocker.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '100vw',  // Use viewport width
+                height: '100vh', // Use viewport height
+                backgroundColor: '#1c1c1c', // A solid, dark color
+                color: '#eee',
+                textAlign: 'center',
+                zIndex: '99999' // A very high number to ensure it's on top of everything
+            });
+            document.body.appendChild(blocker);
+        }
+        // Also, prevent the page from scrolling underneath the blocker.
+        document.body.style.overflow = 'hidden';
+
+    } else {
+        // If we are in portrait, remove the blocker if it exists.
+        if (blocker) {
+            blocker.remove();
+        }
+        // And restore the ability to scroll the page.
+        document.body.style.overflow = '';
+    }
+}
+
+// Run the function when the page first loads and whenever it's resized.
+window.addEventListener('load', toggleLandscapeBlocker);
+window.addEventListener('resize', toggleLandscapeBlocker);
