@@ -3,41 +3,42 @@
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// Initialize Firebase Admin SDK
-// It will only initialize once, even on multiple function calls
-try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+// This function will initialize Firebase, but only if it hasn't been already.
+// This is a robust way to handle both "cold" and "warm" function starts.
+async function initializeFirebase() {
   if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log('Firebase Admin Initialized successfully.');
+    } catch (e) {
+      console.error('Firebase admin initialization error:', e);
+      // Throw a specific error if initialization fails
+      throw new Error('Server Configuration Error: Could not initialize Firebase. Check credentials.');
+    }
   }
-} catch (e) {
-  console.error('Firebase admin initialization error', e);
 }
-const db = admin.firestore();
 
 // The main function handler
 exports.handler = async function(event, context) {
-  // Allow requests from any origin (important for the Tampermonkey script)
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'text/html',
   };
 
-  // Get the API key from the URL query (e.g., ...?apiKey=YOUR_KEY)
-  const apiKey = event.queryStringParameters.apiKey;
-
-  if (!apiKey) {
-    return {
-      statusCode: 400,
-      headers,
-      body: '<p style="color:red;">Error: API key is missing.</p>',
-    };
-  }
-
   try {
+    // Run our initialization function first
+    await initializeFirebase();
+    const db = admin.firestore();
+
+    const apiKey = event.queryStringParameters.apiKey;
+    if (!apiKey) {
+      return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' };
+    }
+
     // 1. Get user's faction ID using their API key
     const userResponse = await fetch(`https://api.torn.com/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
@@ -45,6 +46,10 @@ exports.handler = async function(event, context) {
       return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error: ${userData.error.error}</p>` };
     }
     const factionId = userData.faction.faction_id;
+    if (!factionId) {
+        return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` };
+    }
+
 
     // 2. Get faction members and cooldowns from Torn API
     const factionResponse = await fetch(`https://api.torn.com/faction/${factionId}?selections=members,cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
@@ -56,14 +61,17 @@ exports.handler = async function(event, context) {
     // 3. Get private energy data from your Firestore database
     const memberIds = Object.keys(factionData.members);
     const firestoreData = {};
-    const promises = [];
-    for (let i = 0; i < memberIds.length; i += 10) {
-      const chunk = memberIds.slice(i, i + 10);
-      const query = db.collection('overlayinfo').where(admin.firestore.FieldPath.documentId(), 'in', chunk);
-      promises.push(query.get());
+    if (memberIds.length > 0) {
+        const promises = [];
+        for (let i = 0; i < memberIds.length; i += 10) {
+            const chunk = memberIds.slice(i, i + 10);
+            const query = db.collection('overlayinfo').where(admin.firestore.FieldPath.documentId(), 'in', chunk);
+            promises.push(query.get());
+        }
+        const snapshots = await Promise.all(promises);
+        snapshots.forEach(snapshot => snapshot.forEach(doc => firestoreData[doc.id] = doc.data()));
     }
-    const snapshots = await Promise.all(promises);
-    snapshots.forEach(snapshot => snapshot.forEach(doc => firestoreData[doc.id] = doc.data()));
+
 
     // 4. Build the HTML response
     let rowsHtml = '';
@@ -75,18 +83,28 @@ exports.handler = async function(event, context) {
         const energy = `${privateInfo.energy?.current ?? 'N/A'} / ${privateInfo.energy?.maximum ?? 'N/A'}`;
         const drugCooldown = formatDrugCooldown(cooldown?.drug ?? 0);
 
+        // This HTML is injected into the Tampermonkey panel
         rowsHtml += `
             <div class="member-row">
-                <span class="name"><a href="https://www.torn.com/profiles.php?XID=${id}" target="_blank">${member.name}</a></span>
-                <span class="level">${member.level}</span>
-                <span class="status">${member.status.description}</span>
-                <span class="energy">${energy}</span>
-                <span class="cooldown ${drugCooldown.className}">${drugCooldown.value}</span>
+                <span style="flex: 3; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><a href="https://www.torn.com/profiles.php?XID=${id}" target="_blank">${member.name}</a></span>
+                <span style="flex: 2; text-align: center;">${member.status.description}</span>
+                <span style="flex: 3; text-align: center;">${energy}</span>
+                <span style="flex: 2; text-align: right;" class="${drugCooldown.className}">${drugCooldown.value}</span>
             </div>
         `;
     }
 
-    const finalHtml = `<div class="member-list">${rowsHtml}</div>`;
+    // Add a simple header row
+    const headerHtml = `
+        <div class="member-row" style="font-weight: bold; border-bottom: 2px solid #555;">
+            <span style="flex: 3;">Name</span>
+            <span style="flex: 2; text-align: center;">Status</span>
+            <span style="flex: 3; text-align: center;">Energy</span>
+            <span style="flex: 2; text-align: right;">Drug CD</span>
+        </div>
+    `;
+    
+    const finalHtml = `<div class="member-list">${headerHtml}${rowsHtml}</div>`;
     
     return {
       statusCode: 200,
@@ -95,7 +113,7 @@ exports.handler = async function(event, context) {
     };
 
   } catch (error) {
-    console.error('Error in Netlify function:', error);
+    console.error('Error in Netlify function handler:', error);
     return {
       statusCode: 500,
       headers,
