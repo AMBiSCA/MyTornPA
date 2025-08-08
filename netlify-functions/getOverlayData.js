@@ -28,33 +28,32 @@ exports.handler = async function(event, context) {
     const apiKey = event.queryStringParameters.apiKey;
     if (!apiKey) { return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' }; }
 
-    const userResponse = await fetch(`https://api.torn.com/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
+    // CORRECTED: Added /v2/ to the API URL
+    const userResponse = await fetch(`https://api.torn.com/v2/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
     if (userData.error) { return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error (User Check): ${userData.error.error}</p>` }; }
     
     const factionId = userData.faction.faction_id;
     if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
 
-    // --- THIS BLOCK HAS BEEN IMPROVED WITH BETTER ERROR CHECKING ---
-    const membersPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
-    const cooldownsPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
+    // CORRECTED: Added /v2/ to the API URLs
+    const membersPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
+    const cooldownsPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
 
     const [membersResponse, cooldownsResponse] = await Promise.all([membersPromise, cooldownsPromise]);
     const membersData = await membersResponse.json();
     const cooldownsData = await cooldownsResponse.json();
 
-    // Check if the API returned an error in the response body
     if (membersData.error) {
         return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` };
     }
     
     const factionMembers = membersData.members;
-    const factionCooldowns = cooldownsData.cooldowns; // Cooldowns can be null if key is public, which is fine
+    const factionCooldowns = cooldownsData.cooldowns;
 
     if (!factionMembers) {
          return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members. Check API key permissions.</p>` };
     }
-    // --- END OF IMPROVED BLOCK ---
 
     const memberIds = Object.keys(factionMembers);
     const firestoreData = {};
