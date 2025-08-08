@@ -35,24 +35,17 @@ exports.handler = async function(event, context) {
     const factionId = userData.faction.faction_id;
     if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
 
-    // --- THIS BLOCK HAS BEEN REFACTORED FOR STABILITY ---
-    // Fetch and parse the JSON for both endpoints in parallel.
     const [membersData, cooldownsData] = await Promise.all([
         fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`).then(res => res.json()),
         fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`).then(res => res.json())
     ]);
 
-    if (membersData.error) {
-        return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` };
-    }
+    if (membersData.error) { return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` }; }
     
     const factionMembers = membersData.members;
     const factionCooldowns = cooldownsData.cooldowns;
 
-    if (!factionMembers) {
-         return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members. Check API key permissions.</p>` };
-    }
-    // --- END OF REFACTORED BLOCK ---
+    if (!factionMembers) { return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members. Check API key permissions.</p>` }; }
 
     const memberIds = Object.keys(factionMembers);
     const memberProfiles = {};
@@ -133,6 +126,7 @@ function formatDrugCooldown(cooldownValue) {
         else if (cooldownValue > 7200) className = 'status-other';
         return { value, className };
     } else {
-        return { value: 'None 🍁', className = 'status-okay' };
+        // THIS LINE HAS BEEN CORRECTED (used a colon instead of an equals sign)
+        return { value: 'None 🍁', className: 'status-okay' };
     }
 }
