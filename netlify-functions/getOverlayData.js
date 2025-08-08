@@ -3,7 +3,6 @@
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// Helper function for Firebase initialization
 async function initializeFirebase() {
   if (!admin.apps.length) {
     try {
@@ -19,7 +18,6 @@ async function initializeFirebase() {
   }
 }
 
-// Main function handler
 exports.handler = async function(event, context) {
   const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html' };
 
@@ -30,16 +28,13 @@ exports.handler = async function(event, context) {
     const apiKey = event.queryStringParameters.apiKey;
     if (!apiKey) { return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' }; }
 
-    console.log("Step 1: Fetching user's faction ID...");
     const userResponse = await fetch(`https://api.torn.com/v2/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
     if (userData.error) { return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error (User Check): ${userData.error.error}</p>` }; }
     
     const factionId = userData.faction.faction_id;
     if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
-    console.log(`Step 1 Complete. Faction ID: ${factionId}`);
 
-    console.log("Step 2: Fetching public faction data (members & cooldowns)...");
     const membersPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
     const cooldownsPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
     const [membersResponse, cooldownsResponse] = await Promise.all([membersPromise, cooldownsPromise]);
@@ -48,41 +43,38 @@ exports.handler = async function(event, context) {
     if (membersData.error) { return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` }; }
     
     const factionMembers = membersData.members;
-    if (!factionMembers) { return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members.</p>` }; }
-    console.log(`Step 2 Complete. Found ${Object.keys(factionMembers).length} faction members.`);
+    if (!factionMembers) { return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members. Check API key permissions.</p>` }; }
     
     const memberIds = Object.keys(factionMembers);
     const memberProfiles = {};
 
-    console.log("Step 3: Looking for registered users in 'userProfiles' collection...");
     if (memberIds.length > 0) {
         const promises = [];
         for (let i = 0; i < memberIds.length; i += 10) {
             const chunk = memberIds.slice(i, i + 10);
-            const query = db.collection('userProfiles').where(admin.firestore.FieldPath.documentId(), 'in', chunk);
+            // --- THIS IS THE CORRECTED QUERY ---
+            // It now looks for the 'tornProfileId' field instead of the document ID.
+            const query = db.collection('userProfiles').where('tornProfileId', 'in', chunk);
             promises.push(query.get());
         }
         const snapshots = await Promise.all(promises);
-        snapshots.forEach(snapshot => snapshot.forEach(doc => memberProfiles[doc.id] = doc.data()));
+        // We now need to key our results by the tornProfileId, not the doc.id
+        snapshots.forEach(snapshot => snapshot.forEach(doc => {
+            const docData = doc.data();
+            if (docData.tornProfileId) {
+                memberProfiles[docData.tornProfileId] = docData;
+            }
+        }));
     }
-    console.log(`Step 3 Complete. Found ${Object.keys(memberProfiles).length} matching profiles in the database.`);
-    // NEW LOG: Show which profiles were found
-    console.log("Found profiles:", JSON.stringify(memberProfiles, null, 2));
 
-
-    console.log("Step 4: Fetching private energy data for registered users...");
     const privateDataPromises = [];
     for (const id in memberProfiles) {
         const profile = memberProfiles[id];
-        // NEW LOG: Check each profile for an API key
         if (profile && profile.tornApiKey) {
-            console.log(`- Found key for user ${id}. Preparing API call.`);
             const privateDataPromise = fetch(`https://api.torn.com/v2/user/${id}?selections=bars&key=${profile.tornApiKey}&comment=MyTornPA_Netlify`)
                 .then(res => res.json())
                 .then(data => ({ id, data }));
             privateDataPromises.push(privateDataPromise);
-        } else {
-            console.log(`- User ${id} is registered but has no 'tornApiKey' field.`);
         }
     }
     const privateDataResults = await Promise.all(privateDataPromises);
@@ -92,10 +84,7 @@ exports.handler = async function(event, context) {
             privateEnergyData[result.id] = result.data;
         }
     });
-    console.log(`Step 4 Complete. Successfully fetched private data for ${Object.keys(privateEnergyData).length} users.`);
 
-
-    console.log("Step 5: Building final HTML...");
     let rowsHtml = '';
     for (const id in factionMembers) {
         const publicInfo = factionMembers[id];
