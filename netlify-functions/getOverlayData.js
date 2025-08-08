@@ -3,29 +3,18 @@
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// This function will initialize Firebase, but only if it hasn't been already.
 async function initializeFirebase() {
   if (!admin.apps.length) {
     try {
-      // --- THIS BLOCK HAS BEEN CHANGED TO USE YOUR BASE64 VARIABLE ---
-      // 1. Get the Base64 encoded string from your environment variable
       const credentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
       if (!credentialsBase64) {
         throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable not set.');
       }
-      
-      // 2. Decode the Base64 string to get the raw JSON string
       const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString('utf8');
-
-      // 3. Parse the decoded JSON string
       const serviceAccount = JSON.parse(credentialsJson);
-      // --- END OF CHANGED BLOCK ---
-
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
-      console.log('Firebase Admin Initialized successfully.');
-
     } catch (e) {
       console.error('Firebase admin initialization error:', e);
       throw new Error('Server Configuration Error: Could not initialize Firebase. Check credentials.');
@@ -33,7 +22,6 @@ async function initializeFirebase() {
   }
 }
 
-// The main function handler
 exports.handler = async function(event, context) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -60,13 +48,23 @@ exports.handler = async function(event, context) {
         return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` };
     }
 
-    const factionResponse = await fetch(`https://api.torn.com/faction/${factionId}?selections=members,cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
-    const factionData = await factionResponse.json();
-    if (factionData.error) {
-      return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error: ${factionData.error.error}</p>` };
-    }
+    // --- THIS BLOCK HAS BEEN CHANGED TO SPLIT THE API CALL ---
+    // 2. Make two separate requests to the faction endpoint
+    const membersPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
+    const cooldownsPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
 
-    const memberIds = Object.keys(factionData.members);
+    // Wait for both requests to complete
+    const [membersResponse, cooldownsResponse] = await Promise.all([membersPromise, cooldownsPromise]);
+
+    const factionMembers = (await membersResponse.json()).members;
+    const factionCooldowns = (await cooldownsResponse.json()).cooldowns;
+
+    if (!factionMembers) {
+         return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members.</p>` };
+    }
+    // --- END OF CHANGED BLOCK ---
+
+    const memberIds = Object.keys(factionMembers);
     const firestoreData = {};
     if (memberIds.length > 0) {
         const promises = [];
@@ -80,9 +78,9 @@ exports.handler = async function(event, context) {
     }
 
     let rowsHtml = '';
-    for (const id in factionData.members) {
-        const member = factionData.members[id];
-        const cooldown = factionData.cooldowns[id];
+    for (const id in factionMembers) {
+        const member = factionMembers[id];
+        const cooldown = factionCooldowns ? factionCooldowns[id] : {};
         const privateInfo = firestoreData[id] || {};
 
         const energy = `${privateInfo.energy?.current ?? 'N/A'} / ${privateInfo.energy?.maximum ?? 'N/A'}`;
