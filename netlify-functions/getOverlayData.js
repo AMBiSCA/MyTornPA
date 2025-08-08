@@ -30,15 +30,16 @@ exports.handler = async function(event, context) {
     const apiKey = event.queryStringParameters.apiKey;
     if (!apiKey) { return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' }; }
 
-    // 1. Get the requesting user's faction ID
+    console.log("Step 1: Fetching user's faction ID...");
     const userResponse = await fetch(`https://api.torn.com/v2/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
     if (userData.error) { return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error (User Check): ${userData.error.error}</p>` }; }
     
     const factionId = userData.faction.faction_id;
     if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
+    console.log(`Step 1 Complete. Faction ID: ${factionId}`);
 
-    // 2. Get the faction's public data (members list and cooldowns)
+    console.log("Step 2: Fetching public faction data (members & cooldowns)...");
     const membersPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
     const cooldownsPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
     const [membersResponse, cooldownsResponse] = await Promise.all([membersPromise, cooldownsPromise]);
@@ -48,33 +49,40 @@ exports.handler = async function(event, context) {
     
     const factionMembers = membersData.members;
     if (!factionMembers) { return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members.</p>` }; }
+    console.log(`Step 2 Complete. Found ${Object.keys(factionMembers).length} faction members.`);
     
     const memberIds = Object.keys(factionMembers);
-    const memberProfiles = {}; // To store registered users' profiles from Firestore
+    const memberProfiles = {};
 
-    // 3. In batches, get all registered user profiles from your DB
+    console.log("Step 3: Looking for registered users in 'userProfiles' collection...");
     if (memberIds.length > 0) {
         const promises = [];
         for (let i = 0; i < memberIds.length; i += 10) {
             const chunk = memberIds.slice(i, i + 10);
-            // NOTE: We now query 'userProfiles' to find the stored API keys
             const query = db.collection('userProfiles').where(admin.firestore.FieldPath.documentId(), 'in', chunk);
             promises.push(query.get());
         }
         const snapshots = await Promise.all(promises);
         snapshots.forEach(snapshot => snapshot.forEach(doc => memberProfiles[doc.id] = doc.data()));
     }
+    console.log(`Step 3 Complete. Found ${Object.keys(memberProfiles).length} matching profiles in the database.`);
+    // NEW LOG: Show which profiles were found
+    console.log("Found profiles:", JSON.stringify(memberProfiles, null, 2));
 
-    // 4. In a parallel batch, fetch private energy data for ONLY the registered users
+
+    console.log("Step 4: Fetching private energy data for registered users...");
     const privateDataPromises = [];
     for (const id in memberProfiles) {
         const profile = memberProfiles[id];
-        // Only make a call if the user is registered AND has a key stored
+        // NEW LOG: Check each profile for an API key
         if (profile && profile.tornApiKey) {
+            console.log(`- Found key for user ${id}. Preparing API call.`);
             const privateDataPromise = fetch(`https://api.torn.com/v2/user/${id}?selections=bars&key=${profile.tornApiKey}&comment=MyTornPA_Netlify`)
                 .then(res => res.json())
-                .then(data => ({ id, data })); // Return the ID with the data
+                .then(data => ({ id, data }));
             privateDataPromises.push(privateDataPromise);
+        } else {
+            console.log(`- User ${id} is registered but has no 'tornApiKey' field.`);
         }
     }
     const privateDataResults = await Promise.all(privateDataPromises);
@@ -84,18 +92,16 @@ exports.handler = async function(event, context) {
             privateEnergyData[result.id] = result.data;
         }
     });
+    console.log(`Step 4 Complete. Successfully fetched private data for ${Object.keys(privateEnergyData).length} users.`);
 
-    // 5. Build the final HTML, merging public and private data
+
+    console.log("Step 5: Building final HTML...");
     let rowsHtml = '';
     for (const id in factionMembers) {
         const publicInfo = factionMembers[id];
         const cooldown = cooldownsData.cooldowns ? cooldownsData.cooldowns[id] : {};
-        const privateInfo = privateEnergyData[id] || {}; // Get the new private data
-
-        const energy = (privateInfo.energy)
-            ? `${privateInfo.energy.current} / ${privateInfo.energy.maximum}`
-            : 'N/A'; // Default to N/A if not found
-
+        const privateInfo = privateEnergyData[id] || {};
+        const energy = (privateInfo.energy) ? `${privateInfo.energy.current}/${privateInfo.energy.maximum}` : 'N/A';
         const drugCooldown = formatDrugCooldown(cooldown?.drug ?? 0);
 
         rowsHtml += `
@@ -125,7 +131,6 @@ exports.handler = async function(event, context) {
   }
 };
 
-// Helper function to format cooldowns
 function formatDrugCooldown(cooldownValue) {
     if (cooldownValue > 0) {
         const hours = Math.floor(cooldownValue / 3600);
