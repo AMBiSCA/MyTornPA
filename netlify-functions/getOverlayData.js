@@ -4,18 +4,30 @@ const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
 // This function will initialize Firebase, but only if it hasn't been already.
-// This is a robust way to handle both "cold" and "warm" function starts.
 async function initializeFirebase() {
   if (!admin.apps.length) {
     try {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+      // --- THIS BLOCK HAS BEEN CHANGED TO USE YOUR BASE64 VARIABLE ---
+      // 1. Get the Base64 encoded string from your environment variable
+      const credentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+      if (!credentialsBase64) {
+        throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable not set.');
+      }
+      
+      // 2. Decode the Base64 string to get the raw JSON string
+      const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString('utf8');
+
+      // 3. Parse the decoded JSON string
+      const serviceAccount = JSON.parse(credentialsJson);
+      // --- END OF CHANGED BLOCK ---
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       console.log('Firebase Admin Initialized successfully.');
+
     } catch (e) {
       console.error('Firebase admin initialization error:', e);
-      // Throw a specific error if initialization fails
       throw new Error('Server Configuration Error: Could not initialize Firebase. Check credentials.');
     }
   }
@@ -30,7 +42,6 @@ exports.handler = async function(event, context) {
   };
 
   try {
-    // Run our initialization function first
     await initializeFirebase();
     const db = admin.firestore();
 
@@ -39,7 +50,6 @@ exports.handler = async function(event, context) {
       return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' };
     }
 
-    // 1. Get user's faction ID using their API key
     const userResponse = await fetch(`https://api.torn.com/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
     if (userData.error) {
@@ -50,15 +60,12 @@ exports.handler = async function(event, context) {
         return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` };
     }
 
-
-    // 2. Get faction members and cooldowns from Torn API
     const factionResponse = await fetch(`https://api.torn.com/faction/${factionId}?selections=members,cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
     const factionData = await factionResponse.json();
     if (factionData.error) {
       return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error: ${factionData.error.error}</p>` };
     }
 
-    // 3. Get private energy data from your Firestore database
     const memberIds = Object.keys(factionData.members);
     const firestoreData = {};
     if (memberIds.length > 0) {
@@ -72,8 +79,6 @@ exports.handler = async function(event, context) {
         snapshots.forEach(snapshot => snapshot.forEach(doc => firestoreData[doc.id] = doc.data()));
     }
 
-
-    // 4. Build the HTML response
     let rowsHtml = '';
     for (const id in factionData.members) {
         const member = factionData.members[id];
@@ -83,7 +88,6 @@ exports.handler = async function(event, context) {
         const energy = `${privateInfo.energy?.current ?? 'N/A'} / ${privateInfo.energy?.maximum ?? 'N/A'}`;
         const drugCooldown = formatDrugCooldown(cooldown?.drug ?? 0);
 
-        // This HTML is injected into the Tampermonkey panel
         rowsHtml += `
             <div class="member-row">
                 <span style="flex: 3; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><a href="https://www.torn.com/profiles.php?XID=${id}" target="_blank">${member.name}</a></span>
@@ -94,7 +98,6 @@ exports.handler = async function(event, context) {
         `;
     }
 
-    // Add a simple header row
     const headerHtml = `
         <div class="member-row" style="font-weight: bold; border-bottom: 2px solid #555;">
             <span style="flex: 3;">Name</span>
