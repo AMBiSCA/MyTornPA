@@ -7,14 +7,10 @@ async function initializeFirebase() {
   if (!admin.apps.length) {
     try {
       const credentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
-      if (!credentialsBase64) {
-        throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable not set.');
-      }
+      if (!credentialsBase64) { throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable not set.'); }
       const credentialsJson = Buffer.from(credentialsBase64, 'base64').toString('utf8');
       const serviceAccount = JSON.parse(credentialsJson);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     } catch (e) {
       console.error('Firebase admin initialization error:', e);
       throw new Error('Server Configuration Error: Could not initialize Firebase. Check credentials.');
@@ -23,46 +19,42 @@ async function initializeFirebase() {
 }
 
 exports.handler = async function(event, context) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'text/html',
-  };
+  const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html' };
 
   try {
     await initializeFirebase();
     const db = admin.firestore();
 
     const apiKey = event.queryStringParameters.apiKey;
-    if (!apiKey) {
-      return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' };
-    }
+    if (!apiKey) { return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' }; }
 
     const userResponse = await fetch(`https://api.torn.com/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
-    if (userData.error) {
-      return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error: ${userData.error.error}</p>` };
-    }
+    if (userData.error) { return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error (User Check): ${userData.error.error}</p>` }; }
+    
     const factionId = userData.faction.faction_id;
-    if (!factionId) {
-        return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` };
-    }
+    if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
 
-    // --- THIS BLOCK HAS BEEN CHANGED TO SPLIT THE API CALL ---
-    // 2. Make two separate requests to the faction endpoint
+    // --- THIS BLOCK HAS BEEN IMPROVED WITH BETTER ERROR CHECKING ---
     const membersPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
     const cooldownsPromise = fetch(`https://api.torn.com/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
 
-    // Wait for both requests to complete
     const [membersResponse, cooldownsResponse] = await Promise.all([membersPromise, cooldownsPromise]);
+    const membersData = await membersResponse.json();
+    const cooldownsData = await cooldownsResponse.json();
 
-    const factionMembers = (await membersResponse.json()).members;
-    const factionCooldowns = (await cooldownsResponse.json()).cooldowns;
+    // Check if the API returned an error in the response body
+    if (membersData.error) {
+        return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` };
+    }
+    
+    const factionMembers = membersData.members;
+    const factionCooldowns = cooldownsData.cooldowns; // Cooldowns can be null if key is public, which is fine
 
     if (!factionMembers) {
-         return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members.</p>` };
+         return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members. Check API key permissions.</p>` };
     }
-    // --- END OF CHANGED BLOCK ---
+    // --- END OF IMPROVED BLOCK ---
 
     const memberIds = Object.keys(factionMembers);
     const firestoreData = {};
@@ -82,7 +74,6 @@ exports.handler = async function(event, context) {
         const member = factionMembers[id];
         const cooldown = factionCooldowns ? factionCooldowns[id] : {};
         const privateInfo = firestoreData[id] || {};
-
         const energy = `${privateInfo.energy?.current ?? 'N/A'} / ${privateInfo.energy?.maximum ?? 'N/A'}`;
         const drugCooldown = formatDrugCooldown(cooldown?.drug ?? 0);
 
@@ -107,19 +98,10 @@ exports.handler = async function(event, context) {
     
     const finalHtml = `<div class="member-list">${headerHtml}${rowsHtml}</div>`;
     
-    return {
-      statusCode: 200,
-      headers,
-      body: finalHtml,
-    };
-
+    return { statusCode: 200, headers, body: finalHtml, };
   } catch (error) {
     console.error('Error in Netlify function handler:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: `<p style="color:red;">A server error occurred: ${error.message}</p>`,
-    };
+    return { statusCode: 500, headers, body: `<p style="color:red;">A server error occurred: ${error.message}</p>`, };
   }
 };
 
