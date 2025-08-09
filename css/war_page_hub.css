@@ -259,16 +259,17 @@ min-width: 450px;
 
 
 .enemy-targets-list-section {
-  max-width: 900px; 
-  background-color: #222;
-  border: 1px solid black;
-  border-radius: 8px;
-  overflow: hidden; 
-  height: 475px; /* This makes it match the chat box height */
-  display: flex; /* Add flex to help center the placeholder text */
-  flex-direction: column; /* Stack content vertically */
+    max-width: 900px;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 475px; /* This makes it match the chat box height */
+    display: flex; /* Add flex to help center the placeholder text */
+    flex-direction: column; /* Stack content vertically */
+    margin-left: auto; /* Centers the container */
+    margin-right: auto; /* Centers the container */
 }
-
 /* ==================================================================
    War History Log Styles
    ================================================================== */
