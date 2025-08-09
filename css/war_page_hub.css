@@ -270,7 +270,7 @@ min-width: 450px;
     height: 475px; /* This makes it match the chat box height */
     display: flex; /* Add flex to help center the placeholder text */
     flex-direction: column; /* Stack content vertically */
-    margin-left: 445px; /* Centers the container */
+    margin-left: 400px; /* Centers the container */
     margin-right: auto; /* Centers the container */
 }
 /* ==================================================================
