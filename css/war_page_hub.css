@@ -2441,6 +2441,14 @@ min-width: 320px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
+/* --- FIX for Status Box Alignment --- */
+.status-box-row {
+display: flex; 
+justify-content: space-around;
+gap: 15px; /* Adjust space between boxes */
+margin-bottom: 15px; /* Space between the boxes and the table below */
+}
+
 .table-title-centered {
     position: relative;
     left: -25px; 
