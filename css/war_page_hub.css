@@ -247,6 +247,7 @@
     width: 100%; /* Ensures it spans the full width of its parent */
     align-items: flex-start; /* Aligns content to the top within the row */
     flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
+    justify-content: center; /* ADDED: This centers the items horizontally */
 }
 
 .active-ops-left-panel {
