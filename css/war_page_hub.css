@@ -250,6 +250,10 @@
     justify-content: center; /* ADDED: This centers the items horizontally */
 }
 
+.enemy-targets-list-section {
+    margin-left: 455px; /* Adjust this value as needed */
+}
+
 .active-ops-left-panel {
 display: flex;
 flex-direction: column;
