@@ -2441,14 +2441,6 @@ min-width: 320px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-/* --- FIX for Status Box Alignment --- */
-.status-box-row {
-display: flex; 
-justify-content: space-around;
-gap: 15px; /* Adjust space between boxes */
-margin-bottom: 15px; /* Space between the boxes and the table below */
-}
-
 .table-title-centered {
     position: relative;
     left: -25px; 
@@ -2560,7 +2552,15 @@ margin-bottom: 15px; /* Space between the boxes and the table below */
     /* CRITICAL ADDITION: Force content alignment to the left within this div */
     text-align: left !important; /* THIS IS THE KEY TO FIX CENTERING PROPAGATION */
 }
-/* Update: l */
+
+.ops-left-group {
+margin-top: -65px;
+display: flex;
+flex-direction: row; /* This forces the boxes into a horizontal row */
+align-items: flex-start; /* This aligns them all to the top */
+justify-content: flex-start; /* This starts them from the left */
+gap: 15px;
+}
 
 
 /* Rule for equal width children */
