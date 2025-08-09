@@ -2417,7 +2417,7 @@ min-width: 320px;
 /* 4. Reset the scoreboard container just in case */
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
-	margin-left: 155px;
+	margin-left: 165px;
 	width: 425px;
 }
 #friendly-status-tab .friendly-members-panel {
