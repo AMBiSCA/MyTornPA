@@ -28,7 +28,6 @@ exports.handler = async function(event, context) {
     const apiKey = event.queryStringParameters.apiKey;
     if (!apiKey) { return { statusCode: 400, headers, body: '<p style="color:red;">Error: API key is missing.</p>' }; }
 
-    // Step 1: Get user's faction ID
     const userResponse = await fetch(`https://api.torn.com/v2/user/?selections=profile&key=${apiKey}&comment=MyTornPA_Netlify`);
     const userData = await userResponse.json();
     if (userData.error) { return { statusCode: 401, headers, body: `<p style="color:red;">Torn API Error (User Check): ${userData.error.error}</p>` }; }
@@ -36,10 +35,10 @@ exports.handler = async function(event, context) {
     const factionId = userData.faction.faction_id;
     if (!factionId) { return { statusCode: 404, headers, body: `<p style="color:orange;">User is not in a faction.</p>` }; }
 
-    // Step 2: Get public faction data
-    const membersPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`);
-    const cooldownsPromise = fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`);
-    const [membersData, cooldownsData] = await Promise.all([membersPromise.then(res => res.json()), cooldownsPromise.then(res => res.json())]);
+    const [membersData, cooldownsData] = await Promise.all([
+        fetch(`https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Netlify`).then(res => res.json()),
+        fetch(`https://api.torn.com/v2/faction/${factionId}?selections=cooldowns&key=${apiKey}&comment=MyTornPA_Netlify`).then(res => res.json())
+    ]);
 
     if (membersData.error) { return { statusCode: 500, headers, body: `<p style="color:red;">Torn API Error (Faction Members): ${membersData.error.error}</p>` }; }
     
@@ -47,34 +46,46 @@ exports.handler = async function(event, context) {
     const factionCooldowns = cooldownsData.cooldowns;
     if (!factionMembers) { return { statusCode: 500, headers, body: `<p style="color:red;">Error: Could not retrieve faction members.</p>` }; }
 
-    // Step 3: Get detailed stats from your 'users' collection
     const memberIds = Object.keys(factionMembers);
-    const firestoreData = {};
+    const memberProfiles = {};
     if (memberIds.length > 0) {
         const promises = [];
         for (let i = 0; i < memberIds.length; i += 10) {
             const chunk = memberIds.slice(i, i + 10);
-            // CORRECTED: Query the 'users' collection using the document ID
-            const query = db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', chunk);
+            const query = db.collection('userProfiles').where('tornProfileId', 'in', chunk);
             promises.push(query.get());
         }
         const snapshots = await Promise.all(promises);
         snapshots.forEach(snapshot => snapshot.forEach(doc => {
-            firestoreData[doc.id] = doc.data();
+            const docData = doc.data();
+            if (docData.tornProfileId) { memberProfiles[docData.tornProfileId] = docData; }
         }));
     }
 
-    // Step 4: Build the final HTML
+    const privateDataPromises = [];
+    for (const id in memberProfiles) {
+        const profile = memberProfiles[id];
+        if (profile && profile.tornApiKey) {
+            const privateDataPromise = fetch(`https://api.torn.com/v2/user/${id}?selections=bars&key=${profile.tornApiKey}&comment=MyTornPA_Netlify`)
+                .then(res => res.json())
+                .then(data => ({ id, data }));
+            privateDataPromises.push(privateDataPromise);
+        }
+    }
+    const privateDataResults = await Promise.all(privateDataPromises);
+    const privateEnergyData = {};
+    privateDataResults.forEach(result => {
+        if (result.data && !result.data.error) {
+            privateEnergyData[result.id] = result.data;
+        }
+    });
+
     let rowsHtml = '';
     for (const id in factionMembers) {
         const publicInfo = factionMembers[id];
         const cooldown = factionCooldowns ? factionCooldowns[id] : {};
-        const privateInfo = firestoreData[id] || {}; // Get data from 'users' collection
-
-        const energy = (privateInfo.energy) 
-            ? `${privateInfo.energy.current}/${privateInfo.energy.maximum}` 
-            : 'N/A';
-            
+        const privateInfo = privateEnergyData[id] || {};
+        const energy = (privateInfo.energy) ? `${privateInfo.energy.current}/${privateInfo.energy.maximum}` : 'N/A';
         const drugCooldown = formatDrugCooldown(cooldown?.drug ?? 0);
 
         rowsHtml += `
