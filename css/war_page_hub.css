@@ -273,6 +273,17 @@ min-width: 450px;
     margin-left: 430px; /* Centers the container */
     margin-right: auto; /* Centers the container */
 }
+
+.chat-message.system-notification {
+background-color: #4a5568; /* A neutral grey-blue */
+color: #ff5c5c; /* CHANGED: Switched to red for high visibility */
+font-weight: bold; /* ADDED: Makes the text bold */
+align-self: center; /* Center align system messages */
+font-style: italic;
+max-width: 90%;
+text-align: center;
+}
+
 /* ==================================================================
    War History Log Styles
    ================================================================== */
