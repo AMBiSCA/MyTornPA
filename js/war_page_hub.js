@@ -4918,3 +4918,81 @@ function applyStatColorCoding() {
         }
     });
 }
+
+function blockLandscape() {
+  const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+  let blocker = document.getElementById('landscape-blocker');
+
+  if (isMobileLandscape) {
+    if (!blocker) {
+      blocker = document.createElement('div');
+      blocker.id = 'landscape-blocker';
+      blocker.innerHTML = `
+        <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+        <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
+        <p>This section is best viewed in portrait mode.</p>
+      `;
+      Object.assign(blocker.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#1c1c1c',
+        color: '#eee',
+        textAlign: 'center',
+        zIndex: '99999'
+      });
+      document.body.appendChild(blocker);
+    }
+    document.body.style.overflow = 'hidden';
+  } else {
+    if (blocker) {
+      blocker.remove();
+    }
+    document.body.style.overflow = '';
+  }
+}
+
+function blockPortrait() {
+  const isMobilePortrait = window.matchMedia("(max-width: 1280px) and (orientation: portrait)").matches;
+  let blocker = document.getElementById('portrait-blocker');
+
+  if (isMobilePortrait) {
+    if (!blocker) {
+      blocker = document.createElement('div');
+      blocker.id = 'portrait-blocker';
+      blocker.innerHTML = `
+        <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">🔄</div>
+        <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
+        <p>This section is best viewed in landscape mode.</p>
+      `;
+      Object.assign(blocker.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#1c1c1c',
+        color: '#eee',
+        textAlign: 'center',
+        zIndex: '99999'
+      });
+      document.body.appendChild(blocker);
+    }
+    document.body.style.overflow = 'hidden';
+  } else {
+    if (blocker) {
+      blocker.remove();
+    }
+    document.body.style.overflow = '';
+  }
+}
