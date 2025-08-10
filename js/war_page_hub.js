@@ -4850,9 +4850,6 @@ function blockLandscape() {
 
   if (isMobileLandscape) {
     if (!blocker) {
-      // NEW LINE ADDED: Pushes a state to history when the blocker is created.
-      history.pushState({ overlayActive: true }, '', window.location.href);
-
       blocker = document.createElement('div');
       blocker.id = 'landscape-blocker';
       blocker.innerHTML = `
@@ -4892,9 +4889,6 @@ function blockPortrait() {
 
   if (isMobilePortrait) {
     if (!blocker) {
-      // NEW LINE ADDED: Pushes a state to history when the blocker is created.
-      history.pushState({ overlayActive: true }, '', window.location.href);
-
       blocker = document.createElement('div');
       blocker.id = 'portrait-blocker';
       blocker.innerHTML = `
@@ -4928,6 +4922,26 @@ function blockPortrait() {
   }
 }
 
+/**
+ * Main controller to decide which orientation blocker to use.
+ */
+function handleOrientation() {
+    // Check if the "Latest Announcements" tab has the 'active' class.
+    const announcementsTabIsActive = document.querySelector('.tab-button.active[data-tab="announcements"]');
+
+    if (announcementsTabIsActive) {
+        // If on the Announcements tab, block landscape mode.
+        blockLandscape();
+        // Clean up the other blocker, just in case it was active.
+        document.getElementById('portrait-blocker')?.remove();
+    } else {
+        // If on any other tab, block portrait mode.
+        blockPortrait();
+        // Clean up the landscape blocker.
+        document.getElementById('landscape-blocker')?.remove();
+    }
+}
+
 // --- Event Listeners ---
 // Remove your old event listeners and replace them with these.
 
@@ -4941,19 +4955,4 @@ window.addEventListener('resize', handleOrientation);
 document.querySelector('.tab-navigation').addEventListener('click', () => {
     // We use a tiny delay to make sure the 'active' class has switched to the new tab before we run our check.
     setTimeout(handleOrientation, 50);
-});
-
-// --- NEW: Intercepts the phone's back button to close overlays ---
-window.addEventListener('popstate', function(event) {
-  const landscapeBlocker = document.getElementById('landscape-blocker');
-  if (landscapeBlocker) {
-    landscapeBlocker.remove();
-    document.body.style.overflow = ''; // Restore scrolling
-  }
-
-  const portraitBlocker = document.getElementById('portrait-blocker');
-  if (portraitBlocker) {
-    portraitBlocker.remove();
-    document.body.style.overflow = ''; // Restore scrolling
-  }
 });
