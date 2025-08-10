@@ -2411,3 +2411,76 @@ footer.footer {
         margin: 0;
     }
 }
+
+/* --- Header Toggle Button Styling --- */
+
+/* Hides the checkbox itself */
+#header-toggle {
+    display: none;
+}
+
+/* Styles the arrow button */
+.header-toggle-button {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    z-index: 1001;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(25, 25, 25, 0.7);
+    border: 1px solid #555;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.header-toggle-button:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+}
+
+.header-toggle-button svg {
+    width: 24px;
+    height: 24px;
+    fill: #e0e0e0;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* --- Header Toggle Logic --- */
+
+/* Flips the arrow when the header is hidden */
+#header-toggle:checked + .header-toggle-button svg {
+    transform: rotate(180deg);
+}
+
+/* This prepares the header for animation */
+header { /* <-- UPDATED from #global-header-placeholder */
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
+    max-height: 150px; /* Adjust if your header is taller */
+    overflow: hidden;
+    opacity: 1;
+}
+
+/* Hides the header when the button is clicked */
+#header-toggle:checked ~ header { /* <-- UPDATED from #global-header-placeholder */
+    max-height: 0;
+    opacity: 0;
+}
+
+/* --- Hide Header Toggle on Desktop --- */
+
+/* This media query targets large screens */
+@media screen and (min-width: 1201px) {
+    /* Hides the toggle button on desktop */
+    .header-toggle-button {
+        display: none;
+    }
+
+    /* Ensures the header is always visible on desktop */
+    header { /* <-- UPDATED from #global-header-placeholder */
+        max-height: 150px;
+        opacity: 1;
+    }
+}
