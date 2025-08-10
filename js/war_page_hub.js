@@ -4862,6 +4862,45 @@ document.querySelector('.tab-navigation').addEventListener('click', () => {
     setTimeout(handleOrientation, 50);
 });
 
+function handleOrientation() {
+    const activeTab = document.querySelector('.tab-pane.active');
+
+    // First, clear any existing blockers to start fresh on each check.
+    const landscapeBlocker = document.getElementById('landscape-blocker');
+    if (landscapeBlocker) landscapeBlocker.remove();
+
+    const portraitBlocker = document.getElementById('portrait-blocker');
+    if (portraitBlocker) portraitBlocker.remove();
+
+    // Always reset the body scroll just in case
+    document.body.style.overflow = '';
+
+    // If there's no active tab for some reason, do nothing.
+    if (!activeTab) {
+        console.log("Orientation check: No active tab found.");
+        return;
+    }
+
+    console.log(`Orientation check: Active tab is '${activeTab.id}'.`);
+
+    // --- DEFINE YOUR RULES HERE ---
+    // List the IDs of all tabs that should be viewed in LANDSCAPE mode.
+    const landscapeOnlyTabs = ['friendly-status-tab'];
+
+    // --- LOGIC TO APPLY THE RULES ---
+    if (landscapeOnlyTabs.includes(activeTab.id)) {
+        // If the active tab IS in our landscape list, it needs landscape view.
+        // Therefore, we call blockPortrait() to show the "please turn to landscape" message if the user is in portrait.
+        console.log(`Tab '${activeTab.id}' requires landscape. Applying blockPortrait logic.`);
+        blockPortrait();
+    } else {
+        // If the active tab IS NOT in our list, it needs portrait view.
+        // Therefore, we call blockLandscape() to show the "please turn to portrait" message if the user is in landscape.
+        console.log(`Tab '${activeTab.id}' requires portrait. Applying blockLandscape logic.`);
+        blockLandscape();
+    }
+}
+
 // --- NEW: Intercepts the phone's back button to close overlays ---
 window.addEventListener('popstate', function(event) {
   const landscapeBlocker = document.getElementById('landscape-blocker');
