@@ -3330,8 +3330,12 @@ margin-right: auto !important;
         display: none;
     }
 
-   
+    .user-status-panel h4 {
+        display: none;
+    }
 
 }
+
+
   
  
