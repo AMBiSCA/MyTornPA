@@ -155,6 +155,36 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
+async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
+    if (!chatMessagesCollection || !auth.currentUser) {
+        console.warn("Cannot send claim message: Firebase collection or user not available.");
+        return;
+    }
+
+    // Ensure the message format is clear and distinctive
+    const messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: "MyTornPA System", // Can be 'System' or the user's name as preferred for announcement
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'claim_notification' // Add a type to distinguish these messages
+    };
+
+    try {
+        await chatMessagesCollection.add(messageObj);
+        console.log("Claim message sent to Firebase:", messageObj);
+
+        // --- NEW LINE: Display locally immediately without waiting for Firebase listener ---
+        displayChatMessage(messageObj); 
+
+    } catch (error) {
+        console.error("Error sending claim message to Firebase:", error);
+    }
+}
+
 function formatBattleStats(num) {
     if (isNaN(num) || num === 0) return '0';
     if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
@@ -927,7 +957,58 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
         }
     }
 }
- 
+ // Update Chain Timer Display (smooth 1-second countdown)
+ console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+ if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+     const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+     const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+     chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+ } else if (chainTimerDisplay) {
+     chainTimerDisplay.textContent = 'Chain Over';
+ }
+
+ // Update Chain Started Time Display
+ if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+     chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+ } else if (chainStartedDisplay) {
+     chainStartedDisplay.textContent = 'Started: N/A';
+ }
+
+ // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+ // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+ if (warStartedTime && globalWarStartedActualTime > 0) {
+     warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+ } else if (warStartedTime) {
+     warStartedTime.textContent = 'N/A';
+ }
+
+
+
+  // Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // Update Chain Started Time Display
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+
+  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+  if (warStartedTime && globalWarStartedActualTime > 0) {
+      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+  } else if (warStartedTime) {
+      warStartedTime.textContent = 'N/A';
+  }
+
 function updateAnnouncementEnergyDisplay() {
     const announcementEnergyElement = document.getElementById('rw-user-energy_announcement');
 
@@ -4861,45 +4942,6 @@ document.querySelector('.tab-navigation').addEventListener('click', () => {
     // We use a tiny delay to make sure the 'active' class has switched to the new tab before we run our check.
     setTimeout(handleOrientation, 50);
 });
-
-function handleOrientation() {
-    const activeTab = document.querySelector('.tab-pane.active');
-
-    // First, clear any existing blockers to start fresh on each check.
-    const landscapeBlocker = document.getElementById('landscape-blocker');
-    if (landscapeBlocker) landscapeBlocker.remove();
-
-    const portraitBlocker = document.getElementById('portrait-blocker');
-    if (portraitBlocker) portraitBlocker.remove();
-
-    // Always reset the body scroll just in case
-    document.body.style.overflow = '';
-
-    // If there's no active tab for some reason, do nothing.
-    if (!activeTab) {
-        console.log("Orientation check: No active tab found.");
-        return;
-    }
-
-    console.log(`Orientation check: Active tab is '${activeTab.id}'.`);
-
-    // --- DEFINE YOUR RULES HERE ---
-    // List the IDs of all tabs that should be viewed in LANDSCAPE mode.
-    const landscapeOnlyTabs = ['friendly-status-tab'];
-
-    // --- LOGIC TO APPLY THE RULES ---
-    if (landscapeOnlyTabs.includes(activeTab.id)) {
-        // If the active tab IS in our landscape list, it needs landscape view.
-        // Therefore, we call blockPortrait() to show the "please turn to landscape" message if the user is in portrait.
-        console.log(`Tab '${activeTab.id}' requires landscape. Applying blockPortrait logic.`);
-        blockPortrait();
-    } else {
-        // If the active tab IS NOT in our list, it needs portrait view.
-        // Therefore, we call blockLandscape() to show the "please turn to portrait" message if the user is in landscape.
-        console.log(`Tab '${activeTab.id}' requires portrait. Applying blockLandscape logic.`);
-        blockLandscape();
-    }
-}
 
 // --- NEW: Intercepts the phone's back button to close overlays ---
 window.addEventListener('popstate', function(event) {
