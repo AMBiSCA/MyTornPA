@@ -4892,24 +4892,31 @@ function blockPortrait() {
   }
 }
 
-/**
- * Main controller to decide which orientation blocker to use.
- */
 function handleOrientation() {
-    // Check if the "Latest Announcements" tab has the 'active' class.
-    const announcementsTabIsActive = document.querySelector('.tab-button.active[data-tab="announcements"]');
+    // Define which tabs should enforce landscape mode. All others will default to portrait.
+    const landscapeRequiredTabs = [
+        'active-ops',
+        'war-availability',
+        'leader-config', // This is the tab you wanted to add to this behavior
+        'friendly-status'
+    ];
 
-    if (announcementsTabIsActive) {
-        // If on the Announcements tab, block landscape mode.
-        blockLandscape();
-        // Clean up the other blocker, just in case it was active.
-        document.getElementById('portrait-blocker')?.remove();
-    } else {
-        // If on any other tab, block portrait mode.
-        blockPortrait();
-        // Clean up the landscape blocker.
-        document.getElementById('landscape-blocker')?.remove();
-    }
+    // Find the currently active tab button to see which view is selected
+    const activeTabButton = document.querySelector('.tab-button.active');
+    const activeTabName = activeTabButton ? activeTabButton.dataset.tab : null;
+
+    // Check if the currently active tab is one that requires landscape mode
+    if (activeTabName && landscapeRequiredTabs.includes(activeTabName)) {
+        // If it is, enforce landscape mode (by calling the function that blocks portrait)
+        blockPortrait();
+        // And make sure the other orientation blocker is removed, just in case
+        document.getElementById('landscape-blocker')?.remove();
+    } else {
+        // If the active tab is not in the list (e.g., it's 'announcements'), enforce portrait mode
+        blockLandscape();
+        // And clean up the other blocker
+        document.getElementById('portrait-blocker')?.remove();
+    }
 }
 
 // --- Event Listeners ---
