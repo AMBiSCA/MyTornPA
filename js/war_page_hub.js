@@ -4996,3 +4996,38 @@ function blockPortrait() {
     document.body.style.overflow = '';
   }
 }
+
+/**
+ * Main controller to decide which orientation blocker to use.
+ */
+function handleOrientation() {
+    // Check if the "Latest Announcements" tab has the 'active' class.
+    const announcementsTabIsActive = document.querySelector('.tab-button.active[data-tab="announcements"]');
+
+    if (announcementsTabIsActive) {
+        // If on the Announcements tab, block landscape mode.
+        blockLandscape();
+        // Clean up the other blocker, just in case it was active.
+        document.getElementById('portrait-blocker')?.remove();
+    } else {
+        // If on any other tab, block portrait mode.
+        blockPortrait();
+        // Clean up the landscape blocker.
+        document.getElementById('landscape-blocker')?.remove();
+    }
+}
+
+// --- Event Listeners ---
+// Remove your old event listeners and replace them with these.
+
+// Run the check when the page first loads.
+window.addEventListener('load', handleOrientation);
+
+// Run the check whenever the screen is resized or rotated.
+window.addEventListener('resize', handleOrientation);
+
+// IMPORTANT: Run the check every time a tab is clicked.
+document.querySelector('.tab-navigation').addEventListener('click', () => {
+    // We use a tiny delay to make sure the 'active' class has switched to the new tab before we run our check.
+    setTimeout(handleOrientation, 50);
+});
