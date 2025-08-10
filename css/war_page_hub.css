@@ -3316,4 +3316,10 @@ margin-right: auto !important;
   #factionWarHubTitle {
     display: none;
   }
+  
+  #warPageHubContainer {
+    margin-top: 50px !important; /* You can change this value to move it up or down */
+  }
 }
+  
+ 
