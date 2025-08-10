@@ -345,6 +345,29 @@ function autoUnclaimHitTargets() {
     }
 }
 
+function displayChatMessage(message) {
+    // This is the ID from your new chat system's HTML for the war chat
+    const displayArea = document.getElementById('war-chat-display-area'); 
+    
+    if (!displayArea) {
+        console.error("Fatal Error: Could not find the war chat display area with ID 'war-chat-display-area'.");
+        return;
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message', 'system-notification'); // Add classes for styling
+
+    // Format the message content
+    // Note: The 'sender' is "Chain Alert:" from your other function
+    messageDiv.innerHTML = `<strong>${message.sender}</strong> ${message.text}`;
+    
+    // Add the new message to the chat display
+    displayArea.appendChild(messageDiv);
+
+    // Automatically scroll to the bottom to see the latest message
+    displayArea.scrollTop = displayArea.scrollHeight;
+}
+
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
         return false;
