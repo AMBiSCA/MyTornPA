@@ -2455,23 +2455,24 @@ footer.footer {
     transform: rotate(180deg);
 }
 
-/* This prepares the header for animation */
-header { /* <-- UPDATED from #global-header-placeholder */
+/* This prepares the header for animation.
+   It now ONLY targets the <header> immediately after our button. */
+.header-toggle-button + header { /* <-- UPDATED to be more specific */
     transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
     max-height: 150px; /* Adjust if your header is taller */
     overflow: hidden;
     opacity: 1;
 }
 
-/* Hides the header when the button is clicked */
-#header-toggle:checked ~ header { /* <-- UPDATED from #global-header-placeholder */
+/* Hides the header when the button is clicked.
+   This selector is now also more specific. */
+#header-toggle:checked + .header-toggle-button + header { /* <-- UPDATED to be more specific */
     max-height: 0;
     opacity: 0;
 }
 
 /* --- Hide Header Toggle on Desktop --- */
 
-/* This media query targets large screens */
 @media screen and (min-width: 1201px) {
     /* Hides the toggle button on desktop */
     .header-toggle-button {
@@ -2479,7 +2480,7 @@ header { /* <-- UPDATED from #global-header-placeholder */
     }
 
     /* Ensures the header is always visible on desktop */
-    header { /* <-- UPDATED from #global-header-placeholder */
+    .header-toggle-button + header { /* <-- UPDATED to be more specific */
         max-height: 150px;
         opacity: 1;
     }
