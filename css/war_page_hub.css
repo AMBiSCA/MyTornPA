@@ -3311,3 +3311,9 @@ margin-right: auto !important;
 #friendly-members-table tbody tr:hover {
     background-color: #38383e;
 }
+
+@media (max-width: 411px) {
+  #factionWarHubTitle {
+    display: none;
+  }
+}
