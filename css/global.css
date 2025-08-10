@@ -2424,7 +2424,7 @@ footer.footer {
     position: fixed;
     top: 5px;
     right: 5px;
-    z-index: 1001;
+    z-index: 1003; /* Increased z-index to be safe */
     width: 32px;
     height: 32px;
     background-color: rgba(25, 25, 25, 0.7);
@@ -2455,20 +2455,20 @@ footer.footer {
     transform: rotate(180deg);
 }
 
-/* This prepares the header for animation.
-   It now ONLY targets the <header> immediately after our button. */
-.header-toggle-button + header { /* <-- UPDATED to be more specific */
-    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
-    max-height: 150px; /* Adjust if your header is taller */
+/* Prepares the header for animation using its new unique ID */
+#site-header {
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, overflow 0s 0.4s;
+    max-height: 500px; /* Use a large max-height to not conflict with 'height: auto' */
     overflow: hidden;
     opacity: 1;
 }
 
-/* Hides the header when the button is clicked.
-   This selector is now also more specific. */
-#header-toggle:checked + .header-toggle-button + header { /* <-- UPDATED to be more specific */
+/* Hides the header when the button is clicked by targeting its ID */
+#header-toggle:checked ~ #site-header {
     max-height: 0;
     opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, overflow 0s 0s;
 }
 
 /* --- Hide Header Toggle on Desktop --- */
@@ -2480,8 +2480,9 @@ footer.footer {
     }
 
     /* Ensures the header is always visible on desktop */
-    .header-toggle-button + header { /* <-- UPDATED to be more specific */
-        max-height: 150px;
+    #site-header {
+        max-height: 500px;
         opacity: 1;
+        overflow: visible;
     }
 }
