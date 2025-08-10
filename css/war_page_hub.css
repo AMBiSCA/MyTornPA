@@ -3321,5 +3321,23 @@ margin-right: auto !important;
     margin-top: 100px !important; /* You can change this value to move it up or down */
   }
 }
+
+
+@media screen and (orientation: landscape) and (max-height: 600px) {
+
+    /* Hide the main title */
+    #factionWarHubTitle {
+        display: none;
+    }
+
+    /* Hide the navigation tabs */
+    .tab-navigation {
+        display: none;
+    }
+
+    /* Hide the content area that the tabs control */
+    .tab-content-container {
+        display: none;
+    }
   
  
