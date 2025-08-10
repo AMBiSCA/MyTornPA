@@ -3354,6 +3354,13 @@ margin-right: auto !important;
 }
 
 
-
+@media (max-width: 992px) {
+  .enemy-targets-list-section {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 100%; /* Ensure it doesn't exceed screen width */
+  }
+}
   
  
