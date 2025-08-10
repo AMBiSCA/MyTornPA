@@ -3330,11 +3330,29 @@ margin-right: auto !important;
         display: none;
     }
 
+    /* Hide the "Live Faction Activity" tab button from the navigation bar */
+    .tab-button[data-tab="friendly-status"] {
+        display: none;
+    }
+
+    /* Hide the "Your Availability" title */
     .user-status-panel h4 {
         display: none;
     }
 
+    /* --- Chat System Rules --- */
+    /* First, hide the chat system by default in mobile landscape */
+    #chat-system-placeholder {
+        display: none;
+    }
+
+    /* Then, show the chat system ONLY if the "Active Operation" tab is the one that's active */
+    body:has(#active-ops-tab.active) #chat-system-placeholder {
+        display: block;
+    }
+
 }
+
 
 
   
