@@ -3335,9 +3335,6 @@ margin-right: auto !important;
         display: none;
     }
 
-    /* Hide the content area that the tabs control */
-    .tab-content-container {
-        display: none;
-    }
+}
   
  
