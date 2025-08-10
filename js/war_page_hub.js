@@ -155,36 +155,6 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
-    if (!chatMessagesCollection || !auth.currentUser) {
-        console.warn("Cannot send claim message: Firebase collection or user not available.");
-        return;
-    }
-
-    // Ensure the message format is clear and distinctive
-    const messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
-    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
-
-    const messageObj = {
-        senderId: auth.currentUser.uid,
-        sender: "MyTornPA System", // Can be 'System' or the user's name as preferred for announcement
-        text: filteredMessage,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        type: 'claim_notification' // Add a type to distinguish these messages
-    };
-
-    try {
-        await chatMessagesCollection.add(messageObj);
-        console.log("Claim message sent to Firebase:", messageObj);
-
-        // --- NEW LINE: Display locally immediately without waiting for Firebase listener ---
-        displayChatMessage(messageObj); 
-
-    } catch (error) {
-        console.error("Error sending claim message to Firebase:", error);
-    }
-}
-
 function formatBattleStats(num) {
     if (isNaN(num) || num === 0) return '0';
     if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
