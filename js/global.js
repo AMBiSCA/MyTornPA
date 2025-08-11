@@ -460,19 +460,14 @@ function toggleDebugMode() {
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
-   /**
- * [UPGRADED FUNCTION]
- * Works like the updateFriendlyMembersTable function by triggering a backend refresh
- * and using efficient, chunked database reads for optimal performance.
- * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
- */
-async function populateFactionOverview(overviewContent) {
-    if (!overviewContent) {
-        console.error("Faction Overview panel content area not found!");
+   async function populateFactionOverview(targetDisplayElement) {
+    // This function now receives the HTML element directly, preventing timing errors.
+    if (!targetDisplayElement) {
+        console.error("A target display element was not provided to populateFactionOverview.");
         return;
     }
 
-    overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
+    targetDisplayElement.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
 
     try {
         const factionId = window.currentUserFactionId;
@@ -480,21 +475,14 @@ async function populateFactionOverview(overviewContent) {
         const db = firebase.firestore();
 
         if (!factionId || !apiKey) {
-            overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+            targetDisplayElement.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
             return;
         }
 
-        // 1. Trigger the backend refresh to ensure data is up-to-date, just like in your other function.
-        console.log("Triggering backend refresh for faction data...");
-        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
-        if (!refreshResponse.ok) {
-            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
-            console.error("Backend refresh failed:", errorResult.message);
-        } else {
-            console.log("Backend refresh triggered successfully.");
-        }
+        // Trigger the backend refresh
+        await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
 
-        // 2. Fetch the live member list from the Torn API.
+        // Fetch live data from Torn API
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
@@ -503,11 +491,11 @@ async function populateFactionOverview(overviewContent) {
 
         const memberIds = Object.keys(tornData.members || {});
         if (memberIds.length === 0) {
-            overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
+            targetDisplayElement.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
             return;
         }
         
-        // 3. Efficiently fetch all corresponding Firebase data in chunks.
+        // Efficiently fetch all corresponding Firebase data
         const firestoreData = {};
         const CHUNK_SIZE = 10;
         for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
@@ -519,7 +507,6 @@ async function populateFactionOverview(overviewContent) {
             });
         }
         
-        // 4. Combine API data with the efficiently fetched Firebase data and sort by name.
         const membersToDisplay = memberIds.map(id => ({
             api: tornData.members[id],
             firestore: firestoreData[id] || {}
@@ -527,11 +514,10 @@ async function populateFactionOverview(overviewContent) {
         
         membersToDisplay.sort((a, b) => a.api.name.localeCompare(b.api.name));
 
-        // 5. Build the HTML for the table.
         const memberRowsHtml = membersToDisplay.map(member => {
+            // ... (HTML generation logic for each row remains the same)
             const apiMember = member.api;
             const firestoreMember = member.firestore;
-            
             const name = apiMember.name;
             const memberId = apiMember.id;
             const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
@@ -569,8 +555,7 @@ async function populateFactionOverview(overviewContent) {
             `;
         }).join('');
 
-        // 6. Display the final table.
-        overviewContent.innerHTML = `
+        targetDisplayElement.innerHTML = `
             <table class="overview-table">
                 <thead>
                     <tr>
@@ -590,7 +575,7 @@ async function populateFactionOverview(overviewContent) {
 
     } catch (error) {
         console.error("Error populating Faction Overview:", error);
-        overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
     }
 }
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
