@@ -464,9 +464,9 @@ function toggleDebugMode() {
         }
     });
   /**
- * [FINAL CORRECTED VERSION]
- * Implements the exact same robust ID-finding logic from updateFriendlyMembersTable
- * to fix the "N/A" error and display all data correctly.
+ * [FINAL, CORRECTED VERSION]
+ * This function now correctly fetches the revive setting from the Firebase database,
+ * matching the logic of your working "War Hub" page.
  * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
  */
 async function populateFactionOverview(overviewContent) {
@@ -487,10 +487,10 @@ async function populateFactionOverview(overviewContent) {
             return;
         }
 
-        // Trigger the backend refresh
+        // 1. Trigger the backend refresh to ensure Firebase is up-to-date.
         await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
 
-        // Fetch live data from Torn API
+        // 2. Fetch live status from the simple Torn API call.
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const factionData = await apiResponse.json();
@@ -503,7 +503,7 @@ async function populateFactionOverview(overviewContent) {
             return;
         }
 
-        // Efficiently fetch all corresponding Firebase data in chunks
+        // 3. Get the detailed, saved data (including revive setting) from Firebase.
         const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
         const allMemberFirebaseData = {};
         const CHUNK_SIZE = 10;
@@ -516,10 +516,7 @@ async function populateFactionOverview(overviewContent) {
             });
         }
         
-        // Process and sort the data
         const processedMembers = membersArray.map((tornData) => {
-            // --- THIS IS THE CRITICAL FIX ---
-            // This now uses the exact same logic as your working function to find the member ID.
             const memberId = String(tornData.user_id || tornData.id);
             const firebaseData = allMemberFirebaseData[memberId] || {};
             return { tornData, firebaseData };
@@ -527,7 +524,6 @@ async function populateFactionOverview(overviewContent) {
 
         processedMembers.sort((a, b) => a.tornData.name.localeCompare(b.tornData.name));
 
-        // Build the HTML for the table
         const memberRowsHtml = processedMembers.map(member => {
             const { tornData, firebaseData } = member;
             
@@ -535,9 +531,13 @@ async function populateFactionOverview(overviewContent) {
             const memberId = tornData.id;
             const energy = `${firebaseData.energy?.current || 'N/A'} / ${firebaseData.energy?.maximum || 'N/A'}`;
             const drugCooldown = firebaseData.cooldowns?.drug || 0;
-            const reviveSetting = tornData.revivable === 1 ? "Everyone" : (tornData.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firebaseData.energyRefillUsed ? 'Yes' : 'No';
             const status = tornData.status.description;
+
+            // --- THIS IS THE CRITICAL FIX ---
+            // We get the revive setting from the Firebase data, not the live API data.
+            const reviveSetting = firebaseData.revive_setting || 'No one'; // Default to "No one" if not found
+            // --- END FIX ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -549,9 +549,8 @@ async function populateFactionOverview(overviewContent) {
             }
 
             let reviveCircleClass = 'rev-circle-red';
-            const revivableValue = tornData.revivable;
-            if (revivableValue === 1) reviveCircleClass = 'rev-circle-green';
-            else if (revivableValue === 2) reviveCircleClass = 'rev-circle-orange';
+            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
+            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
 
             let statusClass = 'status-okay';
             if (tornData.status.state === 'Hospital') statusClass = 'status-hospital';
@@ -569,7 +568,6 @@ async function populateFactionOverview(overviewContent) {
             `;
         }).join('');
 
-        // Display the final table.
         overviewContent.innerHTML = `
             <table class="overview-table">
                 <thead>
