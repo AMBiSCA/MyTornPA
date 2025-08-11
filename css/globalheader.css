@@ -298,17 +298,17 @@ header {
     }
 }
 
-/* --- Header Toggle Functionality --- */
+/* --- Header Toggle Functionality (V2 - More Specific) --- */
 
 /* Prepare the header for positioning and animation */
 header {
-    position: relative; /* This is crucial for positioning the toggle button */
-    transition: transform 0.4s ease-in-out;
+    position: relative !important; /* !important makes this rule a priority */
+    transition: transform 0.4s ease-in-out !important;
 }
 
-/* 1. Style the toggle button but keep it hidden on desktop by default */
-.header-toggle-button {
-    display: none; /* Hidden on desktop */
+/* 1. Style the toggle button using a more specific selector to avoid conflicts. */
+header > .header-toggle-button {
+    display: none; /* Hidden on desktop by default */
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -326,34 +326,31 @@ header {
     transition: transform 0.4s ease-in-out;
 }
 
-.header-toggle-button:hover {
+header > .header-toggle-button:hover {
     background-color: #4CAF50; /* A nice hover effect */
 }
-
 
 /* 2. Media query to apply styles only on tablet/mobile */
 @media (max-width: 768px) {
 
-    /* Make header sticky at the top on mobile */
     header {
-        position: sticky;
+        position: sticky !important; /* !important makes this rule a priority */
         top: 0;
         z-index: 1000;
     }
 
     /* Show the button on mobile */
-    .header-toggle-button {
+    header > .header-toggle-button {
         display: block;
     }
 
     /* 3. This is the state when the header is collapsed */
     header.header-collapsed {
-        /* Move the header up, but leave 20px (the button height) visible */
-        transform: translateY(calc(-100% + 20px));
+        transform: translateY(calc(-100% + 20px)) !important;
     }
 
     /* Flip the arrow when the header is collapsed */
-    header.header-collapsed .header-toggle-button {
+    header.header-collapsed > .header-toggle-button {
         transform: translateX(-50%) rotate(180deg);
     }
 }
