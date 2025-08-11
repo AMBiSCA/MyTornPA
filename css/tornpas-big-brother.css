@@ -807,3 +807,10 @@ h2 {
         padding-top: 20px !important;
     }
 }
+
+@media only screen and (orientation: landscape) and (max-height: 500px) {
+    .friendly-members-table th:nth-child(8),
+    .friendly-members-table td:nth-child(8) {
+        display: none;
+    }
+}
