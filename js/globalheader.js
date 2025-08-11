@@ -271,3 +271,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log("globalheader.js: End of script (initial DOMContentLoaded phase).");
 });
+
+// Wait for the page to be fully loaded before running the script
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Find the header and the toggle button on the page
+    const header = document.querySelector('header');
+    const toggleButton = document.getElementById('headerToggleButton');
+
+    // Check if both elements were actually found
+    if (header && toggleButton) {
+        
+        // Listen for a click on the toggle button
+        toggleButton.addEventListener('click', () => {
+            // When clicked, simply add or remove the 'header-collapsed' class from the header.
+            // The CSS we wrote handles the rest!
+            header.classList.toggle('header-collapsed');
+        });
+
+    }
+    
+});

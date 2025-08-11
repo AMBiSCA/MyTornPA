@@ -2441,7 +2441,7 @@ footer.footer {
     }
 
     /* ...BUT, make an exception and keep the toggle button visible! */
-    header.header--collapsed > .header-toggle-button {
+    header.header-collapsed > .header-toggle-button {
         display: block;
         transform: rotate(180deg); /* Flips the arrow to point down */
     }
