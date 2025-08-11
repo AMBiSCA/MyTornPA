@@ -812,5 +812,9 @@ h2 {
     .friendly-members-table th:nth-child(8),
     .friendly-members-table td:nth-child(8) {
         display: none;
-    }
+	}
+  .friendly-members-table th, .friendly-members-table td {
+        padding: 8px 4px; 
+   }
+
 }
