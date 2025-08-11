@@ -2730,6 +2730,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         // Step 3: Build the HTML from the sorted data
         let allRowsHtml = '';
         for (const member of processedMembers) {
+			console.log('WORKING PAGE - Firebase Data:', member.firebaseData);
             const { tornData, firebaseData, totalStats } = member;
             const memberId = tornData.user_id || tornData.id;
             const name = tornData.name || 'Unknown';
