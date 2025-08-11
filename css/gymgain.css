@@ -514,15 +514,20 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
         flex: none; /* Remove flex sizing */
         width: 100%; /* Take full width */
         max-width: none;
-		margin-top: 25px;
+        margin-top: 25px;
     }
 
-    /* Adjustments for the new tab buttons in the narrower column */
+    /* Hide the .gym-section content on screens smaller than 992px */
+    .gym-section {
+        display: none !important;
+    }
+
+    /* ... (rest of the code for this media query) ... */
     .tab-button-bb {
         padding: 8px 10px;
-        min-width: unset; /* Remove min-width to allow more flexibility */
-        flex-grow: 1; /* Allow to grow within flex container */
-        font-size: 0.85em; /* Further adjustment for smaller screens */
+        min-width: unset;
+        flex-grow: 1;
+        font-size: 0.85em;
     }
     .tab-navigation-bb {
         justify-content: space-between; /* Spread buttons evenly */
@@ -557,11 +562,9 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 .personal-gains-display .gain-neutral {
     color: #bbb !important; /* Grey for zero gains */
     font-weight: bold !important;
-}
+  }
 
-.gym-section {
-        display: none !important;
-    }
+}
 
 @media (max-width: 768px) {
     /* Tab navigation can stack vertically on very small screens */
