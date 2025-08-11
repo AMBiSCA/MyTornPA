@@ -298,3 +298,62 @@ header {
     }
 }
 
+/* --- Header Toggle Functionality --- */
+
+/* Prepare the header for positioning and animation */
+header {
+    position: relative; /* This is crucial for positioning the toggle button */
+    transition: transform 0.4s ease-in-out;
+}
+
+/* 1. Style the toggle button but keep it hidden on desktop by default */
+.header-toggle-button {
+    display: none; /* Hidden on desktop */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -20px; /* This makes the button "peek" out from the bottom */
+    width: 50px;
+    height: 25px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 0 0 10px 10px; /* Rounded bottom corners */
+    cursor: pointer;
+    z-index: 100;
+    font-size: 16px;
+    line-height: 25px;
+    transition: transform 0.4s ease-in-out;
+}
+
+.header-toggle-button:hover {
+    background-color: #4CAF50; /* A nice hover effect */
+}
+
+
+/* 2. Media query to apply styles only on tablet/mobile */
+@media (max-width: 768px) {
+
+    /* Make header sticky at the top on mobile */
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* Show the button on mobile */
+    .header-toggle-button {
+        display: block;
+    }
+
+    /* 3. This is the state when the header is collapsed */
+    header.header-collapsed {
+        /* Move the header up, but leave 20px (the button height) visible */
+        transform: translateY(calc(-100% + 20px));
+    }
+
+    /* Flip the arrow when the header is collapsed */
+    header.header-collapsed .header-toggle-button {
+        transform: translateX(-50%) rotate(180deg);
+    }
+}
