@@ -512,7 +512,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 
     .gym-main-content, .gym-sidebar-right {
         flex: none; /* Remove flex sizing */
-        width: 100%; /* Take full width */
+        width: 40%; /* Take full width */
         max-width: none;
     }
 
@@ -557,6 +557,10 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     color: #bbb !important; /* Grey for zero gains */
     font-weight: bold !important;
 }
+
+.gym-section {
+        display: none !important;
+    }
 
 @media (max-width: 768px) {
     /* Tab navigation can stack vertically on very small screens */
