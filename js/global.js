@@ -464,9 +464,10 @@ function toggleDebugMode() {
         }
     });
   /**
- * [FINAL, CORRECTED VERSION]
- * This function now correctly fetches the revive setting from the Firebase database,
- * matching the logic of your working "War Hub" page.
+ * [FINAL WORKING VERSION]
+ * This function now works exactly like the table on your War Hub page.
+ * It calls the backend refresh script and correctly reads all detailed data,
+ * including the revive setting, from the Firebase database.
  * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
  */
 async function populateFactionOverview(overviewContent) {
@@ -490,7 +491,7 @@ async function populateFactionOverview(overviewContent) {
         // 1. Trigger the backend refresh to ensure Firebase is up-to-date.
         await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
 
-        // 2. Fetch live status from the simple Torn API call.
+        // 2. Fetch the live member list and status from the simple Torn API call.
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const factionData = await apiResponse.json();
@@ -535,8 +536,8 @@ async function populateFactionOverview(overviewContent) {
             const status = tornData.status.description;
 
             // --- THIS IS THE CRITICAL FIX ---
-            // We get the revive setting from the Firebase data, not the live API data.
-            const reviveSetting = firebaseData.revive_setting || 'No one'; // Default to "No one" if not found
+            // We now get the revive setting from the Firebase data, just like your working page.
+            const reviveSetting = firebaseData.revive_setting || 'No one';
             // --- END FIX ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
