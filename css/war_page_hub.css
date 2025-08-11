@@ -3364,15 +3364,9 @@ margin-right: auto !important;
 }
 
 @media (max-width: 768px) {
-  /* Hides the top control bar on the Active Operation tab */
+  /* Hides the top control bars on mobile */
   #active-ops-tab .ops-controls-grid {
-    display: none;
-  }
-
-  /* Hides the top control bar on the Live Faction Activity tab */
-  #friendly-status-tab .ops-controls-grid {
-    display: none;
+    display: none !important;
   }
 }
-  
  
