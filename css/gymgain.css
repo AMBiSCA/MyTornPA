@@ -514,6 +514,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
         flex: none; /* Remove flex sizing */
         width: 100%; /* Take full width */
         max-width: none;
+		margin-top: 25px;
     }
 
     /* Adjustments for the new tab buttons in the narrower column */
