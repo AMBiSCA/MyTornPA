@@ -814,4 +814,7 @@ h2 {
         display: none;
 	}
 
+    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 9%; }
+
+  }
 }
