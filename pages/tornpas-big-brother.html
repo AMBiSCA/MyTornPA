@@ -1,102 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MyTornPA - TornPAs Big Brother</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - TornPAs Big Brother</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/global.css">
 	<link rel="stylesheet" href="../css/globalheader.css">
-    <link rel="stylesheet" href="../css/tornpas-big-brother.css">
+    <link rel="stylesheet" href="../css/tornpas-big-brother.css">
 </head>
 <body>
 
 <script src="../js/auth-guard.js"></script>
 
-    <div id="global-header-placeholder"></div>
+    <div id="global-header-placeholder"></div>
 
-  <div style="height: 20px;"></div> <main class="page-specific-content-area">
-        <h2>TornPAs Big Brother.</h2>
+  <div style="height: 20px;"></div> <main class="page-specific-content-area">
+        <h2>TornPAs Big Brother.</h2>
 
-        <button id="downloadTableDataBtn" class="download-button">Download Current Tab</button>
+        <button id="downloadTableDataBtn" class="download-button">Download Current Tab</button>
 
-        <div class="main-content-wrapper">
+        <div class="main-content-wrapper">
 
-            <div class="tab-navigation-bb">
+            <div class="tab-navigation-bb">
 				<div id="availability-admin-controls" class="admin-controls-placeholder"></div>
-                <button class="tab-button-bb active" data-tab="current-stats">Current Stats</button>
-                <button class="tab-button-bb" data-tab="gains-tracking">Gains Tracking</button>
-            </div>
+                <button class="tab-button-bb active" data-tab="current-stats">Current Stats</button>
+                <button class="tab-button-bb" data-tab="energy-usage">Energy Usage</button>
+                <button class="tab-button-bb" data-tab="gains-tracking">Gains Tracking</button>
+            </div>
 
-            <div class="tab-content-container-bb" id="tabContentContainer">
+            <div class="tab-content-container-bb" id="tabContentContainer">
 
-                <div id="current-stats-tab" class="tab-pane-bb active">
-                    <div class="table-container">
-                        <table class="friendly-members-table" id="friendly-members-table">
-                           <thead>
-    <tr>
-        <th class="col-name">Name</th>
-        <th class="col-last-action hide-on-mobile">Last Action</th>
-        <th>Strength</th>
-        <th>Dexterity</th>
-        <th>Speed</th>
-        <th>Defense</th>
-        <th>Total</th>
-        <th class="hide-on-mobile">Status</th>
-        <th class="hide-on-mobile">Nerve</th>
-        <th class="hide-on-mobile">Energy</th>
-        <th class="hide-on-mobile">Drug CD</th>
-    </tr>
+                <div id="current-stats-tab" class="tab-pane-bb active">
+                    <div class="table-container">
+                        <table class="friendly-members-table" id="friendly-members-table">
+                           <thead>
+    <tr>
+        <th class="col-name">Name</th>
+        <th class="col-last-action hide-on-mobile">Last Action</th>
+        <th>Strength</th>
+        <th>Dexterity</th>
+        <th>Speed</th>
+        <th>Defense</th>
+        <th>Total</th>
+        <th class="hide-on-mobile">Status</th>
+        <th class="hide-on-mobile">Nerve</th>
+        <th class="hide-on-mobile">Energy</th>
+        <th class="hide-on-mobile">Drug CD</th>
+    </tr>
 </thead>
-                            <tbody id="friendly-members-tbody">
-                                </tbody>
-                        </table>
-                    </div>
+                            <tbody id="friendly-members-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="energy-usage-tab" class="tab-pane-bb">
+                    <p>This tab will show detailed energy usage for your faction members.</p>
+                    <div id="energy-usage-content"></div>
                 </div>
 
-                <div id="gains-tracking-tab" class="tab-pane-bb">
-                    <div class="gains-tracking-controls">
-                        <p>This tab will show stat gains over time for your faction members.</p>                     
-                        <button id="startTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
-                        <button id="stopTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
-                        <div id="trackingStatus">Not currently tracking.</div>
-                        <span id="gainsStartedAt"></span> </div>
-                    <div class="gains-table-container table-container">
-                        <p>No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
-                        <table class="gains-overview-table" id="gains-overview-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Strength Gain</th>
-                                    <th>Dexterity Gain</th>
-                                    <th>Speed Gain</th>
-                                    <th>Defense Gain</th>
-                                    <th>Total Gain</th>
-                                </tr>
-                            </thead>
-                            <tbody id="gains-overview-tbody">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div id="gains-tracking-tab" class="tab-pane-bb">
+                    <div class="gains-tracking-controls">
+                        <p>This tab will show stat gains over time for your faction members.</p>                     
+                        <button id="startTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
+                        <button id="stopTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
+                        <div id="trackingStatus">Not currently tracking.</div>
+                        <span id="gainsStartedAt"></span> </div>
+                    <div class="gains-table-container table-container">
+                        <p>No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
+                        <table class="gains-overview-table" id="gains-overview-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Strength Gain</th>
+                                    <th>Dexterity Gain</th>
+                                    <th>Speed Gain</th>
+                                    <th>Defense Gain</th>
+                                    <th>Total Gain</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gains-overview-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
 
-            </div>
-        </div>
-    </main>
+            </div>
+        </div>
+    </main>
 
-    <div id="globalfooterplaceholder"></div>
+    <div id="globalfooterplaceholder"></div>
 
-    <div id="chat-system-placeholder" class="chat-box-button"></div> <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <div id="chat-system-placeholder" class="chat-box-button"></div> <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
-    <script src="../js/firebase-init.js"></script>
-    <script src="../js/globalheader.js"></script>
-    <script src="../js/global.js"></script> 
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script> 
 	<script src="../js/tornpas-big-brother.js"></script>
-    <script src="../js/globalfooter.js"></script>
+    <script src="../js/globalfooter.js"></script>
 
 </body>
 </html>
