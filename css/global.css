@@ -2411,3 +2411,38 @@ footer.footer {
         margin: 0;
     }
 }
+/* --- Header Toggle Functionality (Simple Method) --- */
+
+/* 1. By default, the toggle button is hidden on desktop. */
+.header-toggle-button {
+    display: none;
+    font-size: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+    background: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 8px;
+    margin: 10px auto; /* Adds some space and centers it */
+}
+
+/* 2. Media query to apply styles only on tablet/mobile */
+@media (max-width: 768px) {
+
+    /* On mobile, show the toggle button. */
+    .header-toggle-button {
+        display: block;
+    }
+
+    /* 3. This is the magic for the collapsed state */
+    /* When collapsed, hide all direct children of the header... */
+    header.header-collapsed > * {
+        display: none;
+    }
+
+    /* ...BUT, make an exception and keep the toggle button visible! */
+    header.header--collapsed > .header-toggle-button {
+        display: block;
+        transform: rotate(180deg); /* Flips the arrow to point down */
+    }
+}
