@@ -815,7 +815,7 @@ h2 {
 	}
   .friendly-members-table th:nth-child(7), 
     .friendly-members-table td:nth-child(7) {
-        min-width: 75px; 
+        min-width: 75px !important;
    }
 
 }
