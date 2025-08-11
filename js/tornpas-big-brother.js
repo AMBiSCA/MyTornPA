@@ -243,10 +243,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         processedMembers.sort((a, b) => b.totalStats - a.totalStats);
 
-        // --- NEW CODE START ---
-        // Define the media query we want to check against.
         const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
-        // --- NEW CODE END ---
 
         let allRowsHtml = '';
         for (const member of processedMembers) {
@@ -262,16 +259,12 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
             
-            // --- MODIFIED CODE START ---
             let energyValue;
             if (mobileLandscapeQuery.matches) {
-                // On mobile landscape, just show the current energy
                 energyValue = firebaseData.energy?.current ?? 'N/A';
             } else {
-                // Otherwise, show the full "current / max"
                 energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
             }
-            // --- MODIFIED CODE END ---
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
             let drugCooldown, drugCooldownClass = '';
@@ -283,8 +276,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
                 else drugCooldownClass = 'status-okay';
             } else {
-                drugCooldown = 'None 🍁';
+                // --- MODIFIED CODE START ---
+                if (mobileLandscapeQuery.matches) {
+                    drugCooldown = 'None';
+                } else {
+                    drugCooldown = 'None 🍁';
+                }
                 drugCooldownClass = 'status-okay';
+                // --- MODIFIED CODE END ---
             }
 
             const statusState = tornData.status?.state || '';
