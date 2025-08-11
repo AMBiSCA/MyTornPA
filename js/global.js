@@ -463,14 +463,19 @@ function toggleDebugMode() {
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
-   async function populateFactionOverview(targetDisplayElement) {
-    // This function now receives the HTML element directly, preventing timing errors.
-    if (!targetDisplayElement) {
-        console.error("A target display element was not provided to populateFactionOverview.");
+  /**
+ * [CORRECTED VERSION]
+ * This function now correctly processes data in the same way as updateFriendlyMembersTable,
+ * fixing the "N/A" issue and ensuring all data displays correctly.
+ * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
+ */
+async function populateFactionOverview(overviewContent) {
+    if (!overviewContent) {
+        console.error("Faction Overview panel content area not found or not provided!");
         return;
     }
 
-    targetDisplayElement.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
+    overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
 
     try {
         const factionId = window.currentUserFactionId;
@@ -478,56 +483,65 @@ function toggleDebugMode() {
         const db = firebase.firestore();
 
         if (!factionId || !apiKey) {
-            targetDisplayElement.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+            overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
             return;
         }
 
-        // Trigger the backend refresh
-        await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
+        // 1. Trigger the backend refresh (same as the working function)
+        console.log("Triggering backend refresh for faction data...");
+        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
+        if (!refreshResponse.ok) {
+            console.error("Backend refresh failed, but continuing with existing data.");
+        } else {
+            console.log("Backend refresh triggered successfully.");
+        }
 
-        // Fetch live data from Torn API
+        // 2. Fetch the live member list from the Torn API (same as the working function)
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
-        const apiResponse = await fetch(factionApiUrl);
-        const tornData = await apiResponse.json();
+        const factionResponse = await fetch(factionApiUrl);
+        const factionData = await factionResponse.json();
 
-        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
-
-        const memberIds = Object.keys(tornData.members || {});
-        if (memberIds.length === 0) {
-            targetDisplayElement.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
+        if (factionData.error) throw new Error(`Torn API Error: ${factionData.error.error}`);
+        
+        const membersArray = Object.values(factionData.members || {});
+        if (membersArray.length === 0) {
+            overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
             return;
         }
-        
-        // Efficiently fetch all corresponding Firebase data
-        const firestoreData = {};
+
+        // 3. Efficiently fetch all corresponding Firebase data in chunks (same as the working function)
+        const allMemberTornIds = membersArray.map(member => String(member.id));
+        const allMemberFirebaseData = {};
         const CHUNK_SIZE = 10;
-        for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
-            const chunk = memberIds.slice(i, i + CHUNK_SIZE);
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
             const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
             const snapshot = await query.get();
             snapshot.forEach(doc => {
-                firestoreData[doc.id] = doc.data();
+                allMemberFirebaseData[doc.id] = doc.data();
             });
         }
         
-        const membersToDisplay = memberIds.map(id => ({
-            api: tornData.members[id],
-            firestore: firestoreData[id] || {}
-        }));
-        
-        membersToDisplay.sort((a, b) => a.api.name.localeCompare(b.api.name));
+        // 4. Process and sort the data (this structure now perfectly matches your working function)
+        const processedMembers = membersArray.map((tornData) => {
+            const memberId = String(tornData.id);
+            const firebaseData = allMemberFirebaseData[memberId] || {};
+            return { tornData, firebaseData };
+        });
 
-        const memberRowsHtml = membersToDisplay.map(member => {
-            // ... (HTML generation logic for each row remains the same)
-            const apiMember = member.api;
-            const firestoreMember = member.firestore;
-            const name = apiMember.name;
-            const memberId = apiMember.id;
-            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
-            const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
-            const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
-            const status = apiMember.status.description;
+        processedMembers.sort((a, b) => a.tornData.name.localeCompare(b.tornData.name));
+
+        // 5. Build the HTML for the table (using the corrected data structure)
+        const memberRowsHtml = processedMembers.map(member => {
+            const { tornData, firebaseData } = member;
+            
+            const name = tornData.name;
+            const memberId = tornData.id;
+            const energy = `${firebaseData.energy?.current || 'N/A'} / ${firebaseData.energy?.maximum || 'N/A'}`;
+            const drugCooldown = firebaseData.cooldowns?.drug || 0;
+            const reviveSetting = tornData.revivable === 1 ? "Everyone" : (tornData.revivable === 0 ? "No one" : "Friends & faction");
+            const energyRefillUsed = firebaseData.energyRefillUsed ? 'Yes' : 'No';
+            const status = tornData.status.description;
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -543,8 +557,8 @@ function toggleDebugMode() {
             else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
 
             let statusClass = 'status-okay';
-            if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
-            if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+            if (tornData.status.state === 'Hospital') statusClass = 'status-hospital';
+            if (tornData.status.state === 'Traveling') statusClass = 'status-other';
 
             return `
                 <tr>
@@ -558,7 +572,8 @@ function toggleDebugMode() {
             `;
         }).join('');
 
-        targetDisplayElement.innerHTML = `
+        // 6. Display the final table.
+        overviewContent.innerHTML = `
             <table class="overview-table">
                 <thead>
                     <tr>
@@ -578,7 +593,7 @@ function toggleDebugMode() {
 
     } catch (error) {
         console.error("Error populating Faction Overview:", error);
-        targetDisplayElement.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+        overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
     }
 }
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
