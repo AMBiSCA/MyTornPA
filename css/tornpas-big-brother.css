@@ -266,7 +266,7 @@ h2 {
 .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
 .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
 .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
-.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
+.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 9%; }
 .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; }
 .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
 .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
@@ -813,9 +813,5 @@ h2 {
     .friendly-members-table td:nth-child(8) {
         display: none;
 	}
-  .friendly-members-table th:nth-child(7), 
-    .friendly-members-table td:nth-child(7) {
-        min-width: 500px !important;
-   }
 
 }
