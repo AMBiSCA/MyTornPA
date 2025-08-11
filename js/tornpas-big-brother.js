@@ -243,6 +243,11 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         processedMembers.sort((a, b) => b.totalStats - a.totalStats);
 
+        // --- NEW CODE START ---
+        // Define the media query we want to check against.
+        const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
+        // --- NEW CODE END ---
+
         let allRowsHtml = '';
         for (const member of processedMembers) {
             const { tornData, firebaseData, totalStats } = member;
@@ -250,16 +255,23 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
             
-            // --- MODIFIED CODE START ---
             const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
             const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
             const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
             const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
-            // --- MODIFIED CODE END ---
 
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
             
-            const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            // --- MODIFIED CODE START ---
+            let energyValue;
+            if (mobileLandscapeQuery.matches) {
+                // On mobile landscape, just show the current energy
+                energyValue = firebaseData.energy?.current ?? 'N/A';
+            } else {
+                // Otherwise, show the full "current / max"
+                energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            }
+            // --- MODIFIED CODE END ---
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
             let drugCooldown, drugCooldownClass = '';
