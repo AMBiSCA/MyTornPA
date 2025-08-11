@@ -478,7 +478,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     font-weight: bold;
     transition: background-color 0.2s ease;
     z-index: 10;
-	margin-top: -10px;
+	margin-top: -20px;
 }
 
 .download-button:hover {
