@@ -464,9 +464,9 @@ function toggleDebugMode() {
         }
     });
   /**
- * [CORRECTED VERSION]
- * This function now correctly processes data in the same way as updateFriendlyMembersTable,
- * fixing the "N/A" issue and ensuring all data displays correctly.
+ * [CORRECTED VERSION 2]
+ * Fixes the bug where the revive status was displayed incorrectly.
+ * This version uses explicit logic to correctly identify all three revive states.
  * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
  */
 async function populateFactionOverview(overviewContent) {
@@ -487,29 +487,23 @@ async function populateFactionOverview(overviewContent) {
             return;
         }
 
-        // 1. Trigger the backend refresh (same as the working function)
-        console.log("Triggering backend refresh for faction data...");
-        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
-        if (!refreshResponse.ok) {
-            console.error("Backend refresh failed, but continuing with existing data.");
-        } else {
-            console.log("Backend refresh triggered successfully.");
-        }
+        // Trigger the backend refresh
+        await fetch(`/.netlify/functions/refresh-faction-data?factionId=${factionId}`);
 
-        // 2. Fetch the live member list from the Torn API (same as the working function)
+        // Fetch live data from Torn API
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
-        const factionResponse = await fetch(factionApiUrl);
-        const factionData = await factionResponse.json();
+        const apiResponse = await fetch(factionApiUrl);
+        const tornData = await apiResponse.json();
 
-        if (factionData.error) throw new Error(`Torn API Error: ${factionData.error.error}`);
+        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
         
-        const membersArray = Object.values(factionData.members || {});
+        const membersArray = Object.values(tornData.members || {});
         if (membersArray.length === 0) {
             overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
             return;
         }
 
-        // 3. Efficiently fetch all corresponding Firebase data in chunks (same as the working function)
+        // Efficiently fetch all corresponding Firebase data in chunks
         const allMemberTornIds = membersArray.map(member => String(member.id));
         const allMemberFirebaseData = {};
         const CHUNK_SIZE = 10;
@@ -522,7 +516,7 @@ async function populateFactionOverview(overviewContent) {
             });
         }
         
-        // 4. Process and sort the data (this structure now perfectly matches your working function)
+        // Process and sort the data
         const processedMembers = membersArray.map((tornData) => {
             const memberId = String(tornData.id);
             const firebaseData = allMemberFirebaseData[memberId] || {};
@@ -531,7 +525,7 @@ async function populateFactionOverview(overviewContent) {
 
         processedMembers.sort((a, b) => a.tornData.name.localeCompare(b.tornData.name));
 
-        // 5. Build the HTML for the table (using the corrected data structure)
+        // Build the HTML for the table
         const memberRowsHtml = processedMembers.map(member => {
             const { tornData, firebaseData } = member;
             
@@ -539,9 +533,29 @@ async function populateFactionOverview(overviewContent) {
             const memberId = tornData.id;
             const energy = `${firebaseData.energy?.current || 'N/A'} / ${firebaseData.energy?.maximum || 'N/A'}`;
             const drugCooldown = firebaseData.cooldowns?.drug || 0;
-            const reviveSetting = tornData.revivable === 1 ? "Everyone" : (tornData.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firebaseData.energyRefillUsed ? 'Yes' : 'No';
             const status = tornData.status.description;
+
+            // --- START: Corrected Revive Logic ---
+            const revivableValue = tornData.revivable; // This is the number from the API (0, 1, or 2)
+            let reviveSettingText = '';
+            let reviveCircleClass = '';
+
+            switch (revivableValue) {
+                case 1: // Can be revived by anyone
+                    reviveSettingText = "Everyone";
+                    reviveCircleClass = 'rev-circle-green';
+                    break;
+                case 2: // Can be revived by friends/faction
+                    reviveSettingText = "Friends & faction";
+                    reviveCircleClass = 'rev-circle-orange';
+                    break;
+                default: // This covers 0 (cannot be revived) and any other cases
+                    reviveSettingText = "No one";
+                    reviveCircleClass = 'rev-circle-red';
+                    break;
+            }
+            // --- END: Corrected Revive Logic ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -552,10 +566,6 @@ async function populateFactionOverview(overviewContent) {
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
-            let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
-            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
-
             let statusClass = 'status-okay';
             if (tornData.status.state === 'Hospital') statusClass = 'status-hospital';
             if (tornData.status.state === 'Traveling') statusClass = 'status-other';
@@ -565,14 +575,14 @@ async function populateFactionOverview(overviewContent) {
                     <td class="overview-name"><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                     <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
-                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
+                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSettingText}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
             `;
         }).join('');
 
-        // 6. Display the final table.
+        // Display the final table.
         overviewContent.innerHTML = `
             <table class="overview-table">
                 <thead>
