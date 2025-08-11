@@ -182,11 +182,14 @@ function initializeGlobals() {
                     });
                 }
                 if (openGraphIcon) {
-                    openGraphIcon.addEventListener('click', () => {
-                        openChatPanel(factionOverviewPanel);
-                        populateFactionOverview(); // This calls the function to load the data
-                    });
-                }
+                    openGraphIcon.addEventListener('click', () => {
+                        openChatPanel(factionOverviewPanel);
+                        // This is the fix: We find the element first...
+                        const overviewContent = document.getElementById('faction-overview-content');
+                        // ...and then pass it to the function.
+                        populateFactionOverview(overviewContent);
+                    });
+                }
 
                 // NEW: Save Alliance ID button listener
                 if (saveAllianceButton) {
