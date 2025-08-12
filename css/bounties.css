@@ -28,7 +28,7 @@
 .filters-panel {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end; /* UPDATED: Aligns items to the bottom for a cleaner look */
     gap: 20px;
     margin-bottom: 30px;
     flex-wrap: wrap;
@@ -47,8 +47,9 @@
     font-weight: bold;
 }
 
+/* UPDATED: Increased width for better appearance */
 .filters-panel select, .filters-panel input {
-    width: 150px;
+    width: 220px; /* UPDATED: Was 150px, makes Sort By and Min Bounty larger */
     height: 38px;
     padding: 6px 12px;
     border-radius: 6px;
@@ -74,6 +75,26 @@
     color: #eee;
 }
 
+/* NEW: Styling for the 'Apply Filters' button */
+.filters-panel button {
+    padding: 8px 20px;
+    height: 38px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007acc;
+    border: 1px solid #00a8ff;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.filters-panel button:hover {
+    background-color: #00a8ff;
+    transform: translateY(-2px);
+}
+
 /* Table container styling for horizontal scrolling */
 .table-wrapper {
     overflow-x: auto;
@@ -85,7 +106,7 @@
     width: 100%;
     border-collapse: collapse;
     background-color: #1c1c1c;
-    min-width: 700px; /* Ensures a minimum width for readability on small screens */
+    min-width: 700px;
 }
 
 .bounty-table thead th {
@@ -112,12 +133,30 @@
     vertical-align: middle;
 }
 
+/* NEW: Center the content of the last column (Actions) */
+.bounty-table td:last-child {
+    text-align: center;
+}
+
 .bounty-table tbody tr:hover { background-color: #404040; }
 
+/* UPDATED: Styling for the 'Attack' button */
 .bounty-table .action-btn {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007acc;
+    border: 1px solid #00a8ff;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.bounty-table .action-btn:hover {
+    background-color: #00a8ff;
+    transform: scale(1.05);
 }
 
 .bounty-table .bounty-link {
@@ -152,8 +191,9 @@
         text-align: center;
     }
 
-    .fetch-btn {
+    /* UPDATED: Renamed from .fetch-btn to be more general for any button in the filters */
+    .filters-panel button {
         width: 100%;
-        margin-top: 15px;
+        margin-top: 5px; /* was 15px */
     }
 }
