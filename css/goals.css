@@ -11,9 +11,13 @@
     border-color: #495057;
 }
 
-.table .thead-dark th {
-    background-color: #212529;
-    border-color: #495057;
+/* Ensure only the active gym is displayed */
+.gymInfo > div {
+    display: none !important;
+}
+
+.gymInfo > div:first-of-type {
+    display: block !important;
 }
 
 /* You can add more custom styles here if needed */
