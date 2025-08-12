@@ -1,5 +1,6 @@
-// A simple function to initialize the calculator.
-function initGoalsCalculator() {
+// This file is now structured to be loaded directly on the page without an extra script tag.
+// The code inside the jQuery document.ready block will automatically run when the page is ready.
+$(document).ready(function () {
     $('#gymSelect').change(function () {
         console.log("Gym dropdown changed. Selected gym ID:", $(this).find('option:selected').attr('value'));
 
@@ -299,11 +300,8 @@ function initGoalsCalculator() {
 
         // console.log(str, def, spd, dex, total);
     }
-
-    function commaSeparateNumber(val) {
-        while (/(\d+)(\d{3})/.test(val.toString())) {
-            val = val.toString().replace(/(\d+)(\d{3})/, '$1' + ',' + '$2');
-        }
-        return val;
-    }
-}
+    
+    // Initial run to populate the calculator on page load
+    calculateGain();
+    calculateGyms();
+});
