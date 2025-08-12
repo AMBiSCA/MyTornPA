@@ -12,32 +12,27 @@ exports.handler = async (event, context) => {
         };
     }
 
-    // Parse the API key from the request body
-    const { apiKey } = JSON.parse(event.body);
-
-    // --- NEW LOGGING ADDED HERE ---
-    console.log('Received request for bounties.');
-    if (!apiKey) {
-        console.error('API key is missing in the request body.');
-    } else {
-        console.log(`Successfully received an API key.`);
-    }
-
-    // Basic validation for the API key
-    if (!apiKey) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'API key is missing' })
-        };
-    }
-
     try {
+        const { apiKey } = JSON.parse(event.body);
+
+        console.log('Received request for bounties.');
+        if (!apiKey) {
+            console.error('API key is missing in the request body.');
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'API key is missing' })
+            };
+        }
+        console.log(`Successfully received an API key.`);
+
         // --- Step 1: Fetch the list of current bounties from Torn API ---
         const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
         const bountiesResponse = await fetch(bountiesUrl);
         const bountiesData = await bountiesResponse.json();
-        
-        console.log('Torn API bounties response received.');
+
+        // --- NEW LOG: Log the raw response from the Torn API ---
+        console.log('Torn API bounties response received. Raw Data:');
+        console.log(JSON.stringify(bountiesData, null, 2));
 
         // Handle any errors from the Torn API itself
         if (bountiesData.error) {
@@ -48,8 +43,19 @@ exports.handler = async (event, context) => {
             };
         }
         
+        // Ensure the 'bounties' property exists and is a valid object
+        if (!bountiesData.bounties || typeof bountiesData.bounties !== 'object') {
+            console.error('Torn API response format is unexpected. "bounties" object not found.');
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Unexpected API response format.' })
+            };
+        }
+        
         // --- Step 2: For each bounty, fetch the target's name and level ---
         const bounties = Object.values(bountiesData.bounties);
+        console.log(`Found ${bounties.length} bounties in the raw response.`);
+
         const bountyPromises = bounties.map(async (bounty) => {
             const userUrl = `https://api.torn.com/v2/user/${bounty.target_player_id}?selections=basic&key=${apiKey}`;
             const userResponse = await fetch(userUrl);
@@ -80,14 +86,14 @@ exports.handler = async (event, context) => {
         const finalBounties = enrichedBounties.filter(bounty => !bounty.error);
         
         // --- Step 3: Return the final, enriched list to the client ---
-        console.log(`Returning ${finalBounties.length} bounties.`);
+        console.log(`Returning ${finalBounties.length} bounties to the client.`);
         return {
             statusCode: 200,
             body: JSON.stringify({ bounties: finalBounties })
         };
 
     } catch (error) {
-        console.error('Netlify Function Error:', error);
+        console.error('Netlify Function caught an exception:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Internal Server Error' })
