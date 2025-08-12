@@ -536,8 +536,8 @@ async function populateFactionOverview(overviewContent) {
             const status = tornData.status.description;
 
             // --- THIS IS THE CRITICAL FIX ---
-            // We now get the revive setting from the Firebase data, just like your working page.
-            const reviveSetting = firebaseData.revive_setting || 'No one';
+            // Get the revive setting from the live API data (tornData), just like your working page.
+            const reviveSetting = tornData.revive_setting || 'No one';
             // --- END FIX ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
