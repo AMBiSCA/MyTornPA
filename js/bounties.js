@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (bountyApiKeyErrorDiv) bountyApiKeyErrorDiv.textContent = '';
                             if (applyFiltersBtn) {
                                 applyFiltersBtn.disabled = false;
+                                applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
                             }
                             await fetchBounties(tornApiKey);
                             applyFiltersAndSort(); // Run initial sort after fetching
-                            applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
 
                         } else {
                             const message = 'Your Torn API Key is not set in your profile.';
@@ -72,48 +72,30 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">${message}</td></tr>`;
     }
 
-    // Function to fetch data directly from the Torn API
     async function fetchBounties(apiKey) {
         try {
             bountyTableBody.innerHTML = '<tr><td colspan="5">Fetching bounties from Torn...</td></tr>';
             
-            const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
-            const bountiesResponse = await fetch(bountiesUrl);
-            const bountiesData = await bountiesResponse.json();
+            const functionUrl = `/.netlify/functions/get-bounties`; 
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey: apiKey })
+            });
+            const data = await response.json();
             
-            if (bountiesData.error) {
-                bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+            if (data.error) {
+                bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${data.error}</td></tr>`;
                 return;
             }
             
-            let bounties = [];
-            if (bountiesData.bounties) {
-                if (Array.isArray(bountiesData.bounties)) {
-                    bounties = bountiesData.bounties;
-                } else if (typeof bountiesData.bounties === 'object') {
-                    bounties = Object.values(bountiesData.bounties);
-                }
-            }
-
-            const bountyPromises = bounties.map(async (bounty) => {
-                const userUrl = `https://api.torn.com/v2/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
-                const userResponse = await fetch(userUrl);
-                const userData = await userResponse.json();
-                
-                if (userData.error) {
-                    return { ...bounty, target_name: 'Error', target_level: 0, error: userData.error.error };
-                }
-                
-                return {
-                    ...bounty,
-                    target_name: userData.basic.name,
-                    target_level: userData.basic.level,
-                };
-            });
-            
-            const enrichedBounties = await Promise.all(bountyPromises);
-            allBounties = enrichedBounties.filter(bounty => !bounty.error);
+            // --- CRITICAL FIX ---
+            // The Netlify function returns a single object with a 'bounties' key, which is an array
+            allBounties = data.bounties || [];
             totalBountiesSpan.textContent = allBounties.length;
+            
+            // --- DIAGNOSTIC LOG ---
+            console.log("allBounties variable populated. Length:", allBounties.length);
 
         } catch (error) {
             console.error('Error fetching bounties:', error);
@@ -121,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to apply filters and sort
     function applyFiltersAndSort() {
         if (!allBounties || allBounties.length === 0) {
             bountyTableBody.innerHTML = '<tr><td colspan="5">No bounties match your criteria.</td></tr>';
@@ -160,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         displayBounties(filteredBounties);
     }
 
-    // Function to display bounties in the table
     function displayBounties(bountiesToShow) {
         bountyTableBody.innerHTML = ''; // Clear existing rows
         currentBountiesSpan.textContent = bountiesToShow.length;
