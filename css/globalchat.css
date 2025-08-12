@@ -1121,17 +1121,27 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
-/* Style for a recent chat item that has an unread message */
-.recent-chat-item.has-new-message {
-    background-color: #1c3d24; /* A darker green background */
-    border: 1px solid #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
-    border-radius: 5px; /* Make sure this matches your existing style */
+/* Make the icon div the positioning container for the badge */
+.chat-bar-icon {
+  position: relative;
 }
 
-/* Optional: Add a transition for a smooth effect */
-.recent-chat-item {
-    transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
+/* This is the notification badge itself */
+.notification-badge {
+  position: absolute;   /* Position it relative to the icon container */
+  top: 0;               /* Adjust as needed for your icon size */
+  right: 0;             /* Adjust as needed for your icon size */
+  width: 8px;           /* The size of the dot */
+  height: 8px;          /* The size of the dot */
+  background-color: #ff3333; /* A bright red color */
+  border-radius: 50%;   /* This makes it a perfect circle */
+  border: 1px solid #000; /* Optional: A thin black border makes it pop */
+  display: none;        /* Hide the badge by default */
+}
+
+/* Add this class with JavaScript to show the badge */
+.notification-badge.show {
+  display: block;
 }
 
 /* Specific Mobile Styles for Chat System */
