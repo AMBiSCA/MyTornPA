@@ -1121,6 +1121,37 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
+.has-new-message::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    background-color: #e74c3c; /* Red color for the notification */
+    border-radius: 50%;
+    position: absolute;
+    top: 5px; /* Adjust positioning as needed */
+    right: 5px; /* Adjust positioning as needed */
+    border: 1px solid #1b263b; /* Border to stand out against the background */
+}
+
+/* Add a glowing effect to the bell icon when there's a notification */
+#open-notifications-icon.has-notification {
+    animation: pulse-bell 1.5s infinite;
+    color: #e74c3c; /* Change the icon color to red */
+}
+
+@keyframes pulse-bell {
+    0% {
+        box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
+    }
+}
+
 /* Specific Mobile Styles for Chat System */
 @media (max-width: 768px) {
     #tornpa-chat-system {

@@ -169,6 +169,7 @@ function initializeGlobals() {
                 if (openNotificationsIcon) {
                     openNotificationsIcon.addEventListener('click', () => {
                         openChatPanel(notificationsPanel);
+						updateBellIcon(false);
                     });
                 }
 
@@ -984,6 +985,7 @@ async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElem
             
             // --- NEW: Add notification to friend's name when a message is sent ---
             updateFriendNotification(friendTornId, true);
+			updateBellIcon(true);
 
         } catch (error) {
             console.error("Error sending private message:", error);
@@ -1005,6 +1007,18 @@ async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElem
         closeButton.removeEventListener('click', newCloseButtonListener);
     };
     closeButton.addEventListener('click', newCloseButtonListener);
+}
+
+// Function to toggle the bell icon notification
+function updateBellIcon(hasNotification) {
+    const bellIcon = document.getElementById('open-notifications-icon');
+    if (bellIcon) {
+        if (hasNotification) {
+            bellIcon.classList.add('has-notification');
+        } else {
+            bellIcon.classList.remove('has-notification');
+        }
+    }
 }
     // A custom confirmation box that returns a promise with the user's choice
     function showCustomConfirmWithOptions(message, title = "Confirm") {
