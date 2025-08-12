@@ -15,6 +15,14 @@ exports.handler = async (event, context) => {
     // Parse the API key from the request body
     const { apiKey } = JSON.parse(event.body);
 
+    // --- NEW LOGGING ADDED HERE ---
+    console.log('Received request for bounties.');
+    if (!apiKey) {
+        console.error('API key is missing in the request body.');
+    } else {
+        console.log(`Successfully received an API key.`);
+    }
+
     // Basic validation for the API key
     if (!apiKey) {
         return {
@@ -28,6 +36,8 @@ exports.handler = async (event, context) => {
         const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
         const bountiesResponse = await fetch(bountiesUrl);
         const bountiesData = await bountiesResponse.json();
+        
+        console.log('Torn API bounties response received.');
 
         // Handle any errors from the Torn API itself
         if (bountiesData.error) {
@@ -37,7 +47,7 @@ exports.handler = async (event, context) => {
                 body: JSON.stringify({ error: `Torn API Error: ${bountiesData.error.error}` })
             };
         }
-
+        
         // --- Step 2: For each bounty, fetch the target's name and level ---
         const bounties = Object.values(bountiesData.bounties);
         const bountyPromises = bounties.map(async (bounty) => {
@@ -70,6 +80,7 @@ exports.handler = async (event, context) => {
         const finalBounties = enrichedBounties.filter(bounty => !bounty.error);
         
         // --- Step 3: Return the final, enriched list to the client ---
+        console.log(`Returning ${finalBounties.length} bounties.`);
         return {
             statusCode: 200,
             body: JSON.stringify({ bounties: finalBounties })
