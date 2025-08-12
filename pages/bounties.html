@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyTornPA - Bounty Hunter</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/bounties.css"> <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    </head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div class="peeper-tool-container bounty-page">
+            <h2 class="script-title">Bounty Hunter's Dashboard</h2>
+
+            <section class="filters-panel">
+                <div class="filter-group">
+                    <label for="sort-by">Sort By:</label>
+                    <select id="sort-by">
+                        <option value="amount-desc">Bounty Amount (High-Low)</option>
+                        <option value="amount-asc">Bounty Amount (Low-High)</option>
+                        <option value="level-desc">Target Level (High-Low)</option>
+                        <option value="level-asc">Target Level (Low-High)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Level Range:</label>
+                    <div class="level-inputs">
+                        <input type="number" id="min-level" value="1" min="1" max="100">
+                        <span>to</span>
+                        <input type="number" id="max-level" value="100" min="1" max="100">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="min-bounty">Min Bounty ($):</label>
+                    <input type="number" id="min-bounty" value="1000" min="1000">
+                </div>
+
+                <button id="apply-filters-btn" class="fetch-btn">Apply Filters</button>
+            </section>
+
+            <section class="bounty-list-container">
+                <p id="bounty-count" class="results-inline-status">Displaying <span id="current-bounties">0</span> of <span id="total-bounties">0</span> bounties.</p>
+                <div class="table-wrapper">
+                    <table class="modal-table bounty-table">
+                        <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Level</th>
+                                <th>Bounty Amount</th>
+                                <th>Reason</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bounty-table-body">
+                            <tr><td colspan="5">Loading bounties...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="globalfooterplaceholder"></div>
+
+    <script src="../js/bounties.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/globalfooter.js"></script>
+</body>
+</html>
