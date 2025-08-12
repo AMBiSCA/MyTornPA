@@ -1012,34 +1012,36 @@ function updateBellIcon(hasNotification) {
         }
     }
 	
-	// --- NEW FUNCTION TO LISTEN FOR UNREAD PRIVATE CHATS ---
 function setupUnreadChatsListener(user) {
     console.log("Setting up listener for unread chats for user:", user.uid);
 
     const unreadQuery = db.collection('privateChats')
-                          .where('participants', 'array-contains', user.uid) // Ensure we only listen to our own chats
-                          .where('unreadFor', '==', user.uid); // And only those marked as unread for us
+                          .where('participants', 'array-contains', user.uid)
+                          .where('unreadFor', '==', user.uid);
 
     const unsubscribe = unreadQuery.onSnapshot(async (snapshot) => {
-	  console.log("Unread chat listener fired! Found documents:", snapshot.size);
+        console.log("Unread chat listener fired! Found documents:", snapshot.size);
+
         if (snapshot.empty) {
-            // No unread chats, nothing to do.
             return;
         }
 
-        // A set to keep track of which friends have new messages.
         const unreadFromTornIds = new Set();
 
         for (const doc of snapshot.docs) {
             const chatData = doc.data();
             const otherParticipantUid = chatData.participants.find(uid => uid !== user.uid);
+            
+            console.log('Found unread chat. Other participant UID:', otherParticipantUid);
 
             if (otherParticipantUid) {
                 try {
-                    // We need to find the other user's Torn ID to update the UI
                     const profileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
                     if (profileDoc.exists) {
                         const tornId = profileDoc.data().tornProfileId;
+                        
+                        console.log('Found Torn ID from their profile:', tornId);
+                        
                         if (tornId) {
                             unreadFromTornIds.add(String(tornId));
                         }
@@ -1050,12 +1052,16 @@ function setupUnreadChatsListener(user) {
             }
         }
 
-        // Now, update the UI for all unread chats
         unreadFromTornIds.forEach(tornId => {
-            const friendElement = document.querySelector(`.recent-chat-item[data-friend-id="${tornId}"]`);
+            const selector = `.recent-chat-item[data-friend-id="${tornId}"]`;
+            const friendElement = document.querySelector(selector);
+            
+            console.log('Attempting to find element with selector:', selector);
+            console.log('Element found:', friendElement);
+
             if (friendElement) {
                 friendElement.classList.add('has-new-message');
-                updateBellIcon(true); // Also make the main bell icon glow
+                updateBellIcon(true);
             }
         });
 
@@ -1063,10 +1069,8 @@ function setupUnreadChatsListener(user) {
         console.error("Error in unread chat listener:", error);
     });
 
-    // Return the unsubscribe function so we can stop listening on logout
     return unsubscribe;
 }
-
    // CORRECTED: This function now adds a unique ID to each recent-chat-item
 async function loadRecentPrivateChats(targetDisplayElement) {
     if (!targetDisplayElement) {
