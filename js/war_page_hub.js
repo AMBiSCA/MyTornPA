@@ -4451,97 +4451,116 @@ tabButtons.forEach(button => {
         }
 
         if (apiKey && playerId) {
-            userApiKey = apiKey; // Set global API key
+                userApiKey = apiKey; // Set global API key
 
-            await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+                await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
 
-            setupProgressText();
+                setupProgressText();
 
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-                factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
-            }
-
-            // Initial calls to update UI
-            displayWarRoster(); // This now expects data from Firebase
-            setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
-            setupWarClaimsListener(); // Listens for claims
-
-            userEnergyDisplay = document.getElementById('userEnergyDisplay');
-            onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-            onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
-            updateUserEnergyDisplay();
-            updateOnlineMemberCounts();
-            fetchAndDisplayChainData(); // Now fetches its own chain data
-            displayQuickFFTargets(userApiKey, playerId);
-
-
-            // Attach event listeners only once
-            if (!listenersInitialized) {
-                setupEventListeners(apiKey); // Contains generic save buttons with new robust code
-                setupMemberClickEvents(); // For the friendly members table
-
-                // Attach chat tab click listeners
-                chatTabs.forEach(tab => {
-                    tab.addEventListener('click', handleChatTabClick);
-                });
-
-                // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
-                if (factionApiFullData && factionApiFullData.members) {
-                    setupTeamLeadAutocomplete(factionApiFullData.members);
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
                 }
 
-                listenersInitialized = true; // Flag to prevent re-initialization
+                // Initial calls to update UI
+                displayWarRoster(); // This now expects data from Firebase
+                setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
+                setupWarClaimsListener(); // Listens for claims
 
-                // Set up interval updates
-                setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
-                setInterval(() => {
-                    if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
-                    }
-                }, 15000); // Fetch enemy data every 15 seconds
-                setInterval(() => {
-                    if (userApiKey && globalYourFactionID) {
-                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
-                        fetchAndDisplayChainData(); // Re-fetches primary chain data
-                    }
-                }, 5000); // Fetch chain data every 5 seconds
-                setInterval(() => {
-                    if (userApiKey && globalYourFactionID) {
-                        // This ensures the main data, including war score and members, is refreshed.
-                        // The populateUiComponents will also be called within this, which refreshes all sections.
-                        initializeAndLoadData(userApiKey, globalYourFactionID);
-                    }
-                }, 300000); // Refresh all data every 5 minutes (300,000 ms)
-                setInterval(() => {
-                    if (userApiKey) {
-                        updateUserEnergyDisplay(); // Refreshes user's energy display
-                        updateOnlineMemberCounts(); // Refreshes online member counts
-                    }
-                }, 60000); // Update energy and online counts every 1 minute
-                setInterval(() => {
-                    if (userApiKey && playerId) {
-                        displayQuickFFTargets(userApiKey, playerId);
-                    }
-                }, 10000); // Refresh quick FF targets every 10 seconds
-				
+                userEnergyDisplay = document.getElementById('userEnergyDisplay');
+                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
+                updateUserEnergyDisplay();
+                updateOnlineMemberCounts();
+                fetchAndDisplayChainData(); // Now fetches its own chain data
+                displayQuickFFTargets(userApiKey, playerId);
 
 
-                // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
-                // After all setup is complete, we check the URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const requestedView = urlParams.get('view');
+                // Attach event listeners only once
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey); // Contains generic save buttons with new robust code
+                    setupMemberClickEvents(); // For the friendly members table
 
-                if (requestedView === 'friendly-status') {
-                    // Find the button for the requested tab and "click" it
-                    const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
-                    if (targetButton) {
-                        targetButton.click();
+                    // Attach chat tab click listeners
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
+
+                    // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
+                    if (factionApiFullData && factionApiFullData.members) {
+                        setupTeamLeadAutocomplete(factionApiFullData.members);
                     }
+
+                    listenersInitialized = true; // Flag to prevent re-initialization
+
+                    // Set up interval updates
+                    setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
+                        }
+                    }, 15000); // Fetch enemy data every 15 seconds
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
+                            fetchAndDisplayChainData(); // Re-fetches primary chain data
+                        }
+                    }, 5000); // Fetch chain data every 5 seconds
+                    /*
+                    // I've removed this 5-minute full data refresh.
+                    // This is the likely cause of your read spikes. The tab clicks already handle this.
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            // This ensures the main data, including war score and members, is refreshed.
+                            // The populateUiComponents will also be called within this, which refreshes all sections.
+                            initializeAndLoadData(userApiKey, globalYourFactionID);
+                        }
+                    }, 300000); // Refresh all data every 5 minutes (300,000 ms)
+                    */
+                    setInterval(() => {
+                        if (userApiKey) {
+                            updateUserEnergyDisplay(); // Refreshes user's energy display
+                            updateOnlineMemberCounts(); // Refreshes online member counts
+                        }
+                    }, 60000); // Update energy and online counts every 1 minute
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        }
+                    }, 10000); // Refresh quick FF targets every 10 seconds
+
+
+
+                    // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
+                    // After all setup is complete, we check the URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const requestedView = urlParams.get('view');
+
+                    if (requestedView === 'friendly-status') {
+                        // Find the button for the requested tab and "click" it
+                        const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
+                        if (targetButton) {
+                            targetButton.click();
+                        }
+                    }
+                    // --- END: NEW CODE ---
                 }
-                // --- END: NEW CODE ---
+            } else {
+                console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                // Reset/clear relevant UI elements if API key is missing
+                populateWarStatusDisplay({});
+                loadWarStatusForEdit({});
+                if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
+                displayEnemyTargetsTable(null);
+                populateFriendlyMemberCheckboxes({}, [], []);
+                populateEnemyMemberCheckboxes({}, []);
             }
+			
+			
         } else {
             console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
