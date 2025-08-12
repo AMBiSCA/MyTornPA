@@ -4559,21 +4559,7 @@ tabButtons.forEach(button => {
                 populateFriendlyMemberCheckboxes({}, [], []);
                 populateEnemyMemberCheckboxes({}, []);
             }
-			
-			
-        } else {
-            console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            // Reset/clear relevant UI elements if API key is missing
-            populateWarStatusDisplay({});
-            loadWarStatusForEdit({});
-            if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-            displayEnemyTargetsTable(null);
-            populateFriendlyMemberCheckboxes({}, [], []);
-            populateEnemyMemberCheckboxes({}, []);
-        }
+     
     } else {
         userApiKey = null;
         listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
