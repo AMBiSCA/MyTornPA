@@ -1063,15 +1063,15 @@ input:checked + .slider:before {
     border-right: none; /* Remove border from the last column */
 }
 
-.overview-name-link {
-    color: #5bc0de; /* The nice blue color you asked for */
-    text-decoration: none; /* Removes the underline */
+.overview-table .overview-name a.overview-name-link {
+    color: #5bc0de !important; /* The nice blue color you asked for, forced to apply */
+    text-decoration: none !important; /* Removes the underline, forced to apply */
     transition: color 0.2s; /* Smooth color change on hover */
 }
 
-.overview-name-link:hover {
-    color: #88d7ff; /* A slightly lighter blue on hover */
-    text-decoration: underline; /* Add underline on hover for better user feedback */
+.overview-table .overview-name a.overview-name-link:hover {
+    color: #88d7ff !important; /* A slightly lighter blue on hover */
+    text-decoration: underline !important; /* Add underline on hover for better user feedback */
 }
 
 .overview-table .energy-text {
