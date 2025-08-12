@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const searchCategorySelect = document.getElementById('searchCategory');
     const playerIdInput = document.getElementById('playerId');
     const checkStatsBtn = document.getElementById('checkStatsBtn');
     const statsResultsContainer = document.getElementById('stats-results-container');
@@ -44,8 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkStatsBtn) {
         checkStatsBtn.addEventListener('click', () => {
             const playerId = playerIdInput.value.trim();
+            const category = searchCategorySelect.value;
             if (playerId && tornApiKey) {
-                fetchPlayerStats(playerId, tornApiKey);
+                fetchPlayerStats(playerId, tornApiKey, category);
             } else if (!playerId) {
                 if (statsApiKeyErrorDiv) statsApiKeyErrorDiv.textContent = 'Please enter a Player ID.';
             } else if (!tornApiKey) {
@@ -54,12 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function fetchPlayerStats(playerId, apiKey) {
+    async function fetchPlayerStats(playerId, apiKey, category) {
         try {
             statsResultsContainer.style.display = 'none';
             statsTableBody.innerHTML = '<tr><td colspan="2">Fetching player stats...</td></tr>';
 
-            const playerStatsUrl = `https://api.torn.com/v2/user/${playerId}?selections=personalstats&key=${apiKey}`;
+            const playerStatsUrl = `https://api.torn.com/v2/user/${playerId}?selections=${category}&key=${apiKey}`;
             const response = await fetch(playerStatsUrl);
             const data = await response.json();
 
@@ -71,7 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             playerNameDisplay.textContent = `${data.basic.name} [${playerId}]`;
             
-            const stats = data.personalstats;
+            const stats = data[category];
+            if (!stats) {
+                statsTableBody.innerHTML = `<tr><td colspan="2">No data found for this category.</td></tr>`;
+                statsResultsContainer.style.display = 'block';
+                return;
+            }
+            
             const statsArray = Object.entries(stats).map(([key, value]) => ({ stat: key, value: value }));
 
             statsTableBody.innerHTML = '';
