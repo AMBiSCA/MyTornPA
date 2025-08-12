@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyTornPA - Broker's Hub</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/broker.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script src="../js/firebase-init.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div class="peeper-tool-container broker-page">
+            <h2 class="script-title">Broker's Hub</h2>
+            
+            <div id="brokerApiKeyError" class="error-message"></div>
+
+            <section class="filters-panel">
+                <div class="filter-group" style="width: 50%; min-width: 300px; position: relative;">
+                    <label for="item-search">Add Item to Watchlist:</label>
+                    <input type="text" id="item-search" placeholder="Type to search for an item...">
+                    <div id="search-results" class="search-results-dropdown"></div>
+                </div>
+                <button id="add-item-btn" class="fetch-btn">Add Item</button>
+            </section>
+
+            <section class="item-list-container">
+                <p id="item-count" class="results-inline-status">Tracking <span id="current-items">0</span> items.</p>
+                <div class="table-wrapper">
+                    <table class="modal-table item-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Market Price</th>
+                                <th>Bazaar Price</th>
+                                <th>Your Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="item-table-body">
+                            <tr><td colspan="5">Add an item to your watchlist to begin...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="globalfooterplaceholder"></div>
+    <div id="chat-system-placeholder"></div>
+    
+    <script src="../js/broker.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/globalfooter.js"></script>
+</body>
+</html>
