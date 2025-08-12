@@ -510,7 +510,7 @@ async function populateFactionOverview(overviewContent) {
         const CHUNK_SIZE = 10;
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            const query = db.collection('userProfiles').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            const query = db.collection('userProfiles').where('tornProfileId', 'in', chunk);
             const snapshot = await query.get();
             snapshot.forEach(doc => {
                 allMemberFirebaseData[doc.id] = doc.data();
