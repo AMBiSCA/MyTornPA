@@ -22,16 +22,12 @@ const DEFAULT_PROFILE_ICONS = [
     '../../images/working.png'
 ];
 
-const unreadChatTornIds = new Set();
-	let unsubscribeFromUnreadListener = null;
-
 function initializeGlobals() {
     // ---- Firebase Setup ----
     const db = firebase.firestore();
     const auth = firebase.auth();
     let chatMessagesCollection = null;
     let unsubscribeFromChat = null;
-
     let currentTornUserName = 'Unknown';
     let currentUserFactionId = null;
     let userTornApiKey = null;
@@ -126,7 +122,6 @@ function initializeGlobals() {
                 // --- Event Listeners for Collapsed Chat Bar Icons ---
                 if (openFactionChatIcon) {
                     openFactionChatIcon.addEventListener('click', () => {
-                        hideNotification('open-faction-chat-icon'); // HIDE NOTIFICATION
                         openChatPanel(factionChatPanel);
                         if (factionChatTextInput) factionChatTextInput.focus();
                         setupChatRealtimeListener('faction');
@@ -136,7 +131,6 @@ function initializeGlobals() {
                 // NEW: Global Chat collapsed icon listener
                 if (openGlobalChatIcon) {
                     openGlobalChatIcon.addEventListener('click', () => {
-                        hideNotification('open-global-chat-icon'); // HIDE NOTIFICATION
                         openChatPanel(globalChatPanel);
                         if (globalChatTextInput) globalChatTextInput.focus();
                         setupChatRealtimeListener('global');
@@ -146,7 +140,6 @@ function initializeGlobals() {
                 // NEW: Alliance Chat collapsed icon listener
                 if (openAllianceChatIcon) {
                     openAllianceChatIcon.addEventListener('click', () => {
-                        hideNotification('open-alliance-chat-icon'); // HIDE NOTIFICATION
                         openChatPanel(allianceChatPanel);
                         if (allianceChatTextInput) allianceChatTextInput.focus();
                         setupChatRealtimeListener('alliance');
@@ -155,7 +148,6 @@ function initializeGlobals() {
 
                 if (openWarChatIcon) {
                     openWarChatIcon.addEventListener('click', () => {
-                        hideNotification('open-war-chat-icon'); // HIDE NOTIFICATION
                         openChatPanel(warChatPanel);
                         if (warChatTextInput) warChatTextInput.focus();
                         setupChatRealtimeListener('war');
@@ -164,7 +156,6 @@ function initializeGlobals() {
 
                 if (openFriendsIcon) {
                     openFriendsIcon.addEventListener('click', () => {
-                        hideNotification('open-friends-icon'); // HIDE NOTIFICATION
                         openChatPanel(friendsPanel);
                         // When friends icon is clicked, activate the default sub-tab (Recent Chats)
                         if (recentChatsSubTab) {
@@ -177,9 +168,8 @@ function initializeGlobals() {
 
                 if (openNotificationsIcon) {
                     openNotificationsIcon.addEventListener('click', () => {
-                        hideNotification('open-notifications-icon'); // HIDE NOTIFICATION
                         openChatPanel(notificationsPanel);
-                        updateBellIcon(false);
+						 updateBellIcon(false);
                     });
                 }
 
@@ -193,14 +183,14 @@ function initializeGlobals() {
                     });
                 }
                 if (openGraphIcon) {
-                    openGraphIcon.addEventListener('click', () => {
-                        openChatPanel(factionOverviewPanel);
+                    openGraphIcon.addEventListener('click', () => {
+                        openChatPanel(factionOverviewPanel);
                         // This is the fix: We find the element first...
-                        const overviewContent = document.getElementById('faction-overview-content');
+                        const overviewContent = document.getElementById('faction-overview-content');
                         // ...and then pass it to the function.
-                        populateFactionOverview(overviewContent);
-                    });
-                }
+                        populateFactionOverview(overviewContent);
+                    });
+                }
 
                 // NEW: Save Alliance ID button listener
                 if (saveAllianceButton) {
@@ -377,13 +367,111 @@ function initializeGlobals() {
                         populateIgnoreListTab(friendsPanelContent);
                     });
                 }
-
-                // Function to toggle debug mode
-                function toggleDebugMode() {
-                    document.body.classList.toggle('debug');
-                }
 				
-				async function populateFactionOverview(overviewContent) {
+				// Function to toggle debug mode
+function toggleDebugMode() {
+    document.body.classList.toggle('debug');
+}
+				
+
+
+                // --- Send Message Logic ---
+                function setupMessageSending(textInput, sendBtn, collectionType) {
+                    if (sendBtn) {
+                        sendBtn.onclick = async () => {
+                            await sendChatMessage(textInput, collectionType);
+                        };
+                    }
+                    if (textInput) {
+                        textInput.onkeydown = async (event) => {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                await sendChatMessage(textInput, collectionType);
+                            }
+                        };
+                    }
+                }
+
+                setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
+                setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
+                // NEW: Setup message sending for global chat
+                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
+                // NEW: Setup message sending for alliance chat
+                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
+
+
+            } else {
+                console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
+            }
+        })
+        .catch(error => console.error('global.js: Error loading global chat:', error));
+
+    // ---- AUTHENTICATION LISTENER ----
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            if (doc.exists) {
+                const userData = doc.data();
+                currentUserFactionId = String(userData.faction_id);
+                currentTornUserName = userData.preferredName || 'Unknown';
+                userTornApiKey = userData.tornApiKey;
+                // UPDATED: Load user's alliance IDs from profile (now an array)
+                currentUserAllianceIds = userData.allianceIds || [];
+
+                // Make globals accessible to functions outside this scope, especially for re-rendering
+                window.currentUserFactionId = currentUserFactionId;
+                window.userTornApiKey = userTornApiKey;
+                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
+                // UPDATED: Expose currentUserAllianceIds globally
+                window.currentUserAllianceIds = currentUserAllianceIds;
+
+
+                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
+            } else {
+                console.warn("User profile not found for authenticated user:", user.uid);
+                currentUserFactionId = null;
+                userTornApiKey = null;
+                currentUserAllianceIds = []; // Clear alliance IDs if profile not found
+                // Clear globals on logout/missing profile
+                window.currentUserFactionId = null;
+                window.userTornApiKey = null;
+                window.TORN_API_BASE_URL = null;
+                window.currentUserAllianceIds = [];
+            }
+        } else {
+            // User is signed out
+            if (unsubscribeFromChat) unsubscribeFromChat();
+            chatMessagesCollection = null;
+            currentUserFactionId = null;
+            userTornApiKey = null;
+            currentUserAllianceIds = []; // Clear alliance IDs on logout
+            // Clear globals on logout
+            window.currentUserFactionId = null;
+            window.userTornApiKey = null;
+            window.TORN_API_BASE_URL = null;
+            window.currentUserAllianceIds = [];
+
+            const chatDisplayAreaFaction = document.getElementById('chat-display-area');
+            const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
+            const chatDisplayAreaGlobal = document.getElementById('global-chat-display-area'); // NEW: Global Chat display area
+            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area'); // NEW: Alliance Chat display area
+
+            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
+            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
+            if (chatDisplayAreaGlobal) chatDisplayAreaGlobal.innerHTML = '<p>Please log in to use global chat.</p>'; // NEW: Global Chat message
+            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Alliance Chat message
+            console.log("User logged out. Chat functionalities are reset.");
+        }
+    });
+  /**
+ * [FINAL WORKING VERSION]
+ * This function now works exactly like the table on your War Hub page.
+ * It calls the backend refresh script and correctly reads all detailed data,
+ * including the revive setting, from the Firebase database.
+ * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
+ */
+async function populateFactionOverview(overviewContent) {
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found or not provided!");
         return;
@@ -578,35 +666,6 @@ function updateFriendNotification(friendName, hasNewMessage) {
         }
     }
 
-/**
- * Shows the notification badge for a specific icon.
- * @param {string} iconId The ID of the icon element (e.g., 'open-global-chat-icon').
- */
-function showNotification(iconId) {
-  // Find the icon element by its ID
-  const iconElement = document.getElementById(iconId);
-  if (iconElement) {
-    // Find the badge inside that specific icon
-    const badge = iconElement.querySelector('.notification-badge');
-    if (badge) {
-      badge.classList.add('show');
-    }
-  }
-}
-
-/**
- * Hides the notification badge for a specific icon.
- * @param {string} iconId The ID of the icon element (e.g., 'open-global-chat-icon').
- */
-function hideNotification(iconId) {
-  const iconElement = document.getElementById(iconId);
-  if (iconElement) {
-    const badge = iconElement.querySelector('.notification-badge');
-    if (badge) {
-      badge.classList.remove('show');
-    }
-  }
-}
 
     // A function to open a private chat window with a specified user
 function openPrivateChatWindow(userId, userName) {
@@ -648,6 +707,91 @@ function openPrivateChatWindow(userId, userName) {
     // --- THIS IS THE NEW LINE ---
     // After creating the window, call the function to load its messages and make it work
     loadAndHandlePrivateChat(userId, userName, chatDiv);
+}
+
+// CORRECTED: This function now adds a unique ID to each member-item
+async function populateFriendListTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Friend List tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your friend list...</p>`;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your friends.</p>';
+        return;
+    }
+
+    try {
+        const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+
+        if (friendsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">You have not added any friends yet.</p>';
+            return;
+        }
+
+        const friendDetailsPromises = friendsSnapshot.docs.map(doc => {
+            const friendTornId = doc.id;
+            return db.collection('users').doc(friendTornId).get().then(userDoc => {
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const friendName = userData.name || `User ID ${friendTornId}`;
+                    const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                    return { id: friendTornId, name: friendName, image: profileImage };
+                }
+                return { id: friendTornId, name: `Unknown [${friendTornId}]`, image: '../../images/default_profile_icon.png' };
+            });
+        });
+
+        const friendDetails = await Promise.all(friendDetailsPromises);
+
+        let cardsHtml = '';
+        friendDetails.forEach(friend => {
+            // --- CHANGE IS HERE: The friend item now has a unique ID for notifications ---
+            cardsHtml += `
+                <div class="member-item" id="friend-${friend.id}">
+                    <div class="member-identity">
+                        <img src="${friend.image}" alt="${friend.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${friend.id}" target="_blank" class="member-name">${friend.name}</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="item-button message-friend-button" data-friend-id="${friend.id}" data-friend-name="${friend.name}" title="Send Message">✉️</button>
+                        <button class="item-button remove-friend-button" data-friend-id="${friend.id}" title="Remove Friend">🗑️</button>
+                    </div>
+                </div>`;
+        });
+
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container';
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = '';
+        targetDisplayElement.appendChild(membersListContainer);
+
+        // Add event listener for remove and message buttons
+        membersListContainer.addEventListener('click', async (event) => {
+            const removeButton = event.target.closest('.remove-friend-button');
+            const messageButton = event.target.closest('.message-friend-button');
+
+            if (removeButton) {
+                const friendIdToRemove = removeButton.dataset.friendId;
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
+                if (userConfirmed) {
+                    await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
+                    populateFriendListTab(targetDisplayElement); // Refresh the list
+                }
+            } else if (messageButton) {
+                // --- CHANGE IS HERE: This handles the click on the new message button ---
+                const friendId = messageButton.dataset.friendId;
+                const friendName = messageButton.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Friend List tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
+    }
 }
 
     async function populateFriendListTab(targetDisplayElement) {
@@ -757,129 +901,112 @@ function openPrivateChatWindow(userId, userName) {
         `;
         displayElement.appendChild(messageElement);
     }
-  // CORRECTED: The function to load and handle private chat logic
+    // CORRECTED: The function to load and handle private chat logic
 async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
-    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
-    const inputField = chatWindowElement.querySelector('.pcw-input');
-    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
+    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+    const inputField = chatWindowElement.querySelector('.pcw-input');
+    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
-        return;
-    }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+        return;
+    }
+    
+    // --- NEW: Clear notification when chat is opened ---
+    updateFriendNotification(friendTornId, false);
 
-    // --- NEW: Define variables needed for chat ID and the parent document reference ---
-    let friendFirebaseUid = null;
-    try {
-        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
-        if (profileQuery.empty) {
-            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
-            inputField.disabled = true;
-            sendButton.disabled = true;
-            return;
-        }
-        friendFirebaseUid = profileQuery.docs[0].id;
-    } catch (error) {
-        console.error("Error fetching friend's Firebase UID:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
-        return;
-    }
-
-    const participants = [currentUser.uid, friendFirebaseUid].sort();
-    const chatDocId = `private_${participants[0]}_${participants[1]}`;
-    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
-    // --- NEW: A re-usable reference to the main parent chat document ---
-    const chatDocRef = db.collection('privateChats').doc(chatDocId);
-
-    // --- NEW: When the chat window opens, we mark it as "read" by the current user ---
-    // This checks if the 'unreadFor' flag was set for you, and clears it.
-    chatDocRef.get().then(doc => {
-        if (doc.exists && doc.data().unreadFor === currentUser.uid) {
-            chatDocRef.update({ unreadFor: null }); // Clear the unread flag
+    let friendFirebaseUid = null;
+    try {
+        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+        if (profileQuery.empty) {
+            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+            inputField.disabled = true;
+            sendButton.disabled = true;
+            return;
         }
-    }).catch(err => console.error("Error marking chat as read:", err));
+        friendFirebaseUid = profileQuery.docs[0].id;
+    } catch (error) {
+        console.error("Error fetching friend's Firebase UID:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+        return;
+    }
 
+    const participants = [currentUser.uid, friendFirebaseUid].sort();
+    const chatDocId = `private_${participants[0]}_${participants[1]}`;
+    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
 
-    try {
-        await chatDocRef.set({
-            participants: participants,
-        }, { merge: true });
-    } catch (error) {
-        console.error("Error ensuring parent chat document exists:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
-        return;
-    }
+    try {
+        await db.collection('privateChats').doc(chatDocId).set({
+            participants: participants,
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error ensuring parent chat document exists:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
+        return;
+    }
 
-    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-        messagesContainer.innerHTML = '';
-        if (snapshot.empty) {
-            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
-        } else {
-            snapshot.forEach(doc => {
-                const messageData = doc.data();
-                const isMyMessage = messageData.senderId === currentUser.uid;
-                displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
-            });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    }, error => {
-        console.error("Error loading private messages:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
-    });
-
-    const sendMessage = async () => {
-        const messageText = inputField.value.trim();
-        if (messageText === '') return;
-
-        const messageObj = {
-            senderId: currentUser.uid,
-            sender: currentTornUserName,
-            text: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-            // --- START OF CHANGES ---
-
-            // 1. Update the parent document with last message info AND the new 'unreadFor' flag.
-            await chatDocRef.update({
-                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastMessageSnippet: messageText, // Store a snippet for the recent chats list
-                unreadFor: friendFirebaseUid // Flag this chat as unread FOR THE FRIEND
+    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        messagesContainer.innerHTML = '';
+        if (snapshot.empty) {
+            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+        } else {
+            snapshot.forEach(doc => {
+                const messageData = doc.data();
+                const isMyMessage = messageData.senderId === currentUser.uid;
+                displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
             });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }, error => {
+        console.error("Error loading private messages:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+    });
 
-            // 2. Add the new message to the subcollection (this is original code).
-            await messagesCollectionRef.add(messageObj);
+    const sendMessage = async () => {
+        const messageText = inputField.value.trim();
+        if (messageText === '') return;
+
+        const messageObj = {
+            senderId: currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('privateChats').doc(chatDocId).update({
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await messagesCollectionRef.add(messageObj);
+            inputField.value = '';
+            inputField.focus();
             
-            // --- END OF CHANGES ---
-
-            inputField.value = '';
-            inputField.focus();
-            
-            // This just updates the sender's bell icon, which is fine.
+            // --- NEW: Add notification to friend's name when a message is sent ---
+            updateFriendNotification(friendTornId, true);
 			updateBellIcon(true);
 
-        } catch (error) {
-            console.error("Error sending private message:", error);
-            alert("Failed to send message.");
-        }
-    };
+        } catch (error) {
+            console.error("Error sending private message:", error);
+            alert("Failed to send message.");
+        }
+    };
 
-    sendButton.addEventListener('click', sendMessage);
-    inputField.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
+    sendButton.addEventListener('click', sendMessage);
+    inputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
 
-    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
-    const newCloseButtonListener = () => {
-        unsubscribe();
-        closeButton.removeEventListener('click', newCloseButtonListener);
-    };
-    closeButton.addEventListener('click', newCloseButtonListener);
+    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+    const newCloseButtonListener = () => {
+        unsubscribe();
+        closeButton.removeEventListener('click', newCloseButtonListener);
+    };
+    closeButton.addEventListener('click', newCloseButtonListener);
 }
 
 // Function to toggle the bell icon notification
@@ -952,138 +1079,7 @@ function updateBellIcon(hasNotification) {
         }
     }
 
-function setupChatRealtimeListener(type) {
-    let chatDisplayArea = null;
-    let collectionRef = null;
-    let displayAreaId = '';
-    let consoleLogPath = '';
-
-    // NEW: Map chat types to their icon and panel IDs
-    const chatConfig = {
-        faction: { iconId: 'open-faction-chat-icon', panelId: 'faction-chat-panel' },
-        war: { iconId: 'open-war-chat-icon', panelId: 'war-chat-panel' },
-        global: { iconId: 'open-global-chat-icon', panelId: 'global-chat-panel' },
-        alliance: { iconId: 'open-alliance-chat-icon', panelId: 'alliance-chat-panel' }
-    };
-    const currentConfig = chatConfig[type];
-
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat(); // Unsubscribe from previous listener to prevent multiple listeners
-        console.log("Unsubscribed from previous chat listener.");
-    }
-
-    if (type === 'faction' && firebase.auth().currentUser) {
-        if (window.currentUserFactionId) {
-            collectionRef = firebase.firestore().collection('factionChats').doc(window.currentUserFactionId).collection('messages');
-            displayAreaId = 'chat-display-area';
-            consoleLogPath = `factionChats/${window.currentUserFactionId}/messages`;
-        } else {
-            chatDisplayArea = document.getElementById('chat-display-area');
-            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat. Please ensure your profile is complete.</p>';
-            return;
-        }
-    } else if (type === 'war') {
-        collectionRef = firebase.firestore().collection('warChats').doc('currentWar').collection('messages');
-        displayAreaId = 'war-chat-display-area';
-        consoleLogPath = `warChats/currentWar/messages`;
-    } else if (type === 'global' && firebase.auth().currentUser) {
-        collectionRef = firebase.firestore().collection('globalChats').doc('allUsers').collection('messages');
-        displayAreaId = 'global-chat-display-area';
-        consoleLogPath = `globalChats/allUsers/messages`;
-    } else if (type === 'alliance' && firebase.auth().currentUser) {
-        if (window.currentUserAllianceIds && window.currentUserAllianceIds.length > 0) {
-            const allianceIdToListenTo = window.currentUserAllianceIds[0];
-            collectionRef = firebase.firestore().collection('allianceChats').doc(allianceIdToListenTo).collection('messages');
-            displayAreaId = 'alliance-chat-display-area';
-            consoleLogPath = `allianceChats/${allianceIdToListenTo}/messages`;
-        } else {
-            chatDisplayArea = document.getElementById('alliance-chat-display-area');
-            if (chatDisplayArea) chatDisplayArea.innerHTML = "<p>No Alliance ID saved. Go to Settings to enter one.</p>";
-            return;
-        }
-    } else if (!firebase.auth().currentUser) {
-        const displayAreas = {
-            'faction': 'chat-display-area',
-            'war': 'war-chat-display-area',
-            'global': 'global-chat-display-area',
-            'alliance': 'alliance-chat-display-area'
-        };
-        chatDisplayArea = document.getElementById(displayAreas[type]);
-        if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
-        return;
-    }
-
-    chatDisplayArea = document.getElementById(displayAreaId);
-    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>Loading ${type} messages...</p>`;
-    console.log(`Setting up ${type} chat listener for path: ${consoleLogPath}`);
-
-    if (collectionRef) {
-        unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
-            .onSnapshot(snapshot => {
-                if (chatDisplayArea) chatDisplayArea.innerHTML = '';
-                if (snapshot.empty) {
-                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No ${type} messages yet.</p>`;
-                    return;
-                }
-                
-                // Show notification ONLY if the panel is hidden and there are messages
-                const panelElement = document.getElementById(currentConfig.panelId);
-                if (panelElement && panelElement.classList.contains('hidden') && !snapshot.empty) {
-                    showNotification(currentConfig.iconId);
-                }
-
-                snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId));
-            }, error => {
-                console.error(`Error listening to ${type} chat messages:`, error);
-                if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading ${type} messages.</p>`;
-            });
-    }
-}
-
-function setupUnreadChatsListener(user) {
-    console.log("Setting up listener for unread chats for user:", user.uid);
-    const db = firebase.firestore();
-    const unreadQuery = db.collection('privateChats').where('participants', 'array-contains', user.uid);
-
-    const unsubscribe = unreadQuery.onSnapshot(async (snapshot) => {
-        let hasAnyUnread = false; // Flag to check if any chat is unread
-        for (const doc of snapshot.docs) {
-            const chatData = doc.data();
-            if (chatData.unreadFor === user.uid) {
-                hasAnyUnread = true;
-                const otherParticipantUid = chatData.participants.find(uid => uid !== user.uid);
-                if (otherParticipantUid) {
-                    try {
-                        const profileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
-                        if (profileDoc.exists) {
-                            const tornId = profileDoc.data().tornProfileId;
-                            if (tornId) {
-                                unreadChatTornIds.add(String(tornId));
-                            }
-                        }
-                    } catch (err) {
-                        console.error("Error fetching user profile for notification:", err);
-                    }
-                }
-            }
-        }
-        
-        // If there is at least one unread message, show the Friends notification
-        if (hasAnyUnread) {
-            const friendsPanel = document.getElementById('friends-panel');
-            // Only show if friends panel is closed
-            if (friendsPanel && friendsPanel.classList.contains('hidden')) {
-                showNotification('open-friends-icon');
-            }
-        }
-
-    }, (error) => {
-        console.error("Error in unread chat listener:", error);
-    });
-
-    return unsubscribe;
-}
-
+   // CORRECTED: This function now adds a unique ID to each recent-chat-item
 async function loadRecentPrivateChats(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Recent Chats tab.");
@@ -1124,14 +1120,13 @@ async function loadRecentPrivateChats(targetDisplayElement) {
 
             const userDoc = await db.collection('users').doc(friendTornId).get();
             const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
-            
-            // Reverted to your original, more robust way of getting the last message
+
             const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
             const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
 
             return {
-                chatId: doc.id,
-                tornId: String(friendTornId), // Ensure Torn ID is a string
+                chatId: doc.id, // We need the chat document ID for deletion
+                tornId: friendTornId,
                 name: friendName,
                 image: friendImage,
                 lastMessage: lastMessage.text
@@ -1142,16 +1137,9 @@ async function loadRecentPrivateChats(targetDisplayElement) {
 
         let listHtml = '';
         chatDetails.forEach(chat => {
-            // --- This is the corrected logic ---
-            const isUnread = unreadChatTornIds.has(chat.tornId);
-            const unreadClass = isUnread ? 'has-new-message' : '';
-            if (isUnread) {
-                updateBellIcon(true);
-            }
-
-            // This HTML structure should match your original styling
+            // --- CHANGE IS HERE: The chat item now has a unique ID for notifications ---
             listHtml += `
-                <div class="recent-chat-item ${unreadClass}" id="friend-${chat.tornId}" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
+                <div class="recent-chat-item" id="friend-${chat.tornId}" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
                     <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
                     <div class="rc-details" title="Open chat with ${chat.name}">
                         <span class="rc-name">${chat.name}</span>
@@ -1164,13 +1152,12 @@ async function loadRecentPrivateChats(targetDisplayElement) {
 
         targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
 
-        // This is your original event listener logic, it remains unchanged
         targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
             const chatItem = event.target.closest('.recent-chat-item');
             const deleteButton = event.target.closest('.rc-delete-btn');
 
             if (deleteButton) {
-                event.stopPropagation();
+                event.stopPropagation(); // Stop the click from opening the chat window
                 const chatId = deleteButton.dataset.chatId;
                 const friendName = deleteButton.dataset.friendName;
 
@@ -1183,13 +1170,14 @@ async function loadRecentPrivateChats(targetDisplayElement) {
                         localStorage.setItem('confirmDeleteChat', 'false');
                     }
                     if (!result.confirmed) {
-                        return;
+                        return; // User clicked "No"
                     }
                 }
 
+                // If confirmed or if we are skipping confirmation, proceed to delete
                 const success = await deletePrivateChat(chatId);
                 if (success) {
-                    loadRecentPrivateChats(targetDisplayElement);
+                    loadRecentPrivateChats(targetDisplayElement); // Refresh the list
                 }
 
             } else if (chatItem) {
@@ -1204,6 +1192,7 @@ async function loadRecentPrivateChats(targetDisplayElement) {
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
     }
 }
+
     async function populateIgnoreListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
             console.error("HTML Error: Target display element not provided for Ignore List tab.");
@@ -1364,7 +1353,82 @@ async function loadRecentPrivateChats(targetDisplayElement) {
         }
     }
 
-    
+    function setupChatRealtimeListener(type) {
+        let chatDisplayArea = null;
+        let collectionRef = null;
+        let displayAreaId = '';
+        let consoleLogPath = '';
+
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat(); // Unsubscribe from previous listener to prevent multiple listeners
+            console.log("Unsubscribed from previous chat listener.");
+        }
+
+        if (type === 'faction' && auth.currentUser) {
+            if (currentUserFactionId) {
+                collectionRef = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
+                displayAreaId = 'chat-display-area';
+                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat. Please ensure your profile is complete.</p>';
+                console.warn("User has no faction ID to set up faction chat listener.");
+                return; // Exit if no faction ID
+            }
+        } else if (type === 'war') {
+            collectionRef = db.collection('warChats').doc('currentWar').collection('messages');
+            displayAreaId = 'war-chat-display-area';
+            consoleLogPath = `warChats/currentWar/messages`;
+        } else if (type === 'global' && auth.currentUser) { // NEW: Global chat listener
+            collectionRef = db.collection('globalChats').doc('allUsers').collection('messages');
+            displayAreaId = 'global-chat-display-area';
+            consoleLogPath = `globalChats/allUsers/messages`;
+        } else if (type === 'alliance' && auth.currentUser) { // NEW: Alliance chat listener
+            // Use the first saved alliance ID for displaying messages
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToListenTo = currentUserAllianceIds[0];
+                collectionRef = db.collection('allianceChats').doc(allianceIdToListenTo).collection('messages');
+                displayAreaId = 'alliance-chat-display-area';
+                consoleLogPath = `allianceChats/${allianceIdToListenTo}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('alliance-chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = "<p>No Alliance ID saved. Go to Settings to enter one.</p>";
+                console.warn("User has no alliance ID to set up alliance chat listener.");
+                return; // Exit if no alliance ID
+            }
+        } else if (!auth.currentUser) { // If user is not logged in for any chat type
+            const displayAreas = {
+                'faction': 'chat-display-area',
+                'war': 'war-chat-display-area',
+                'global': 'global-chat-display-area', // NEW: Global chat display area ID
+                'alliance': 'alliance-chat-display-area'
+            };
+            chatDisplayArea = document.getElementById(displayAreas[type]);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+            console.warn(`User not logged in. Cannot set up ${type} chat listener.`);
+            return; // Exit if user not logged in
+        }
+
+        chatDisplayArea = document.getElementById(displayAreaId);
+        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>Loading ${type} messages...</p>`;
+        console.log(`Setting up ${type} chat listener for path: ${consoleLogPath}`);
+
+        if (collectionRef) {
+            unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                .onSnapshot(snapshot => {
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = ''; // Clear previous messages
+                    if (snapshot.empty) {
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No ${type} messages yet.</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId));
+                }, error => {
+                    console.error(`Error listening to ${type} chat messages:`, error);
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading ${type} messages.</p>`;
+                });
+        }
+    }
+} // END of initializeGlobals function
 
 async function populateRecentlyMetTab(targetDisplayElement) {
     if (!targetDisplayElement) {
@@ -1552,37 +1616,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     }
 }
 
-        // --- Send Message Logic ---
-                function setupMessageSending(textInput, sendBtn, collectionType) {
-                    if (sendBtn) {
-                        sendBtn.onclick = async () => {
-                            await sendChatMessage(textInput, collectionType);
-                        };
-                    }
-                    if (textInput) {
-                        textInput.onkeydown = async (event) => {
-                            if (event.key === 'Enter') {
-                                event.preventDefault();
-                                await sendChatMessage(textInput, collectionType);
-                            }
-                        };
-                    }
-                }
-
-                setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
-                setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
-                // NEW: Setup message sending for global chat
-                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
-                // NEW: Setup message sending for alliance chat
-                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
-
-
-            } else {
-                console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
-            }
-        })
-        .catch(error => console.error('global.js: Error loading global chat:', error));
-
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     const db = firebase.firestore();
     const auth = firebase.auth();
@@ -1755,74 +1788,3 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
 // Run the main initialization function
 initializeGlobals();
-
-
-
-        
-
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            if (doc.exists) {
-                const userData = doc.data();
-                currentUserFactionId = String(userData.faction_id);
-                currentTornUserName = userData.preferredName || 'Unknown';
-                userTornApiKey = userData.tornApiKey;
-                currentUserAllianceIds = userData.allianceIds || [];
-
-                window.currentUserFactionId = currentUserFactionId;
-                window.userTornApiKey = userTornApiKey;
-                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
-                window.currentUserAllianceIds = currentUserAllianceIds;
-
-                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
-
-                // --- NEW: Start the listener for unread private messages ---
-                unsubscribeFromUnreadListener = setupUnreadChatsListener(user);
-
-            } else {
-                console.warn("User profile not found for authenticated user:", user.uid);
-                currentUserFactionId = null;
-                userTornApiKey = null;
-                currentUserAllianceIds = [];
-                window.currentUserFactionId = null;
-                window.userTornApiKey = null;
-                window.TORN_API_BASE_URL = null;
-                window.currentUserAllianceIds = [];
-            }
-        } else {
-            // User is signed out
-            if (unsubscribeFromChat) unsubscribeFromChat();
-            // --- NEW: Stop the listener when the user logs out ---
-            if (unsubscribeFromUnreadListener) unsubscribeFromUnreadListener();
-
-            chatMessagesCollection = null;
-            currentUserFactionId = null;
-            userTornApiKey = null;
-            currentUserAllianceIds = [];
-            window.currentUserFactionId = null;
-            window.userTornApiKey = null;
-            window.TORN_API_BASE_URL = null;
-            window.currentUserAllianceIds = [];
-
-            const chatDisplayAreaFaction = document.getElementById('chat-display-area');
-            const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
-            const chatDisplayAreaGlobal = document.getElementById('global-chat-display-area');
-            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area');
-
-            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
-            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
-            if (chatDisplayAreaGlobal) chatDisplayAreaGlobal.innerHTML = '<p>Please log in to use global chat.</p>';
-            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>';
-            console.log("User logged out. Chat functionalities are reset.");
-        }
-    });
-}
-  /**
- * [FINAL WORKING VERSION]
- * This function now works exactly like the table on your War Hub page.
- * It calls the backend refresh script and correctly reads all detailed data,
- * including the revive setting, from the Firebase database.
- * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
- */
