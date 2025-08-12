@@ -1,0 +1,138 @@
+/* mysite/css/playerstats.css */
+
+/* Reusing container styles for consistency */
+.peeper-tool-container.player-stats-page {
+    max-width: 900px;
+    margin: 50px auto;
+    background-color: #222;
+    padding: 30px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff;
+    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    text-align: center;
+    width: 90%;
+}
+
+/* Page title style */
+.script-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #00a8ff;
+    -webkit-text-stroke: 1px black;
+    text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
+    margin-bottom: 30px;
+}
+
+/* Search panel and input styles */
+.stats-search-panel {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.stats-search-panel .search-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.stats-search-panel label {
+    font-size: 1rem;
+    color: #eee;
+    font-weight: bold;
+}
+
+.stats-search-panel input {
+    width: 250px;
+    height: 38px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    border: 1.5px solid #007acc;
+    background-color: #121212;
+    color: #eee;
+    box-sizing: border-box;
+}
+
+/* Reusing button style */
+.fetch-btn {
+    display: block;
+    width: auto;
+    padding: 10px 16px;
+    background-color: #28a745;
+    color: black;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.5);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+}
+
+.fetch-btn:hover {
+    background-color: #218838;
+}
+
+/* Results container */
+.stats-results-container {
+    margin-top: 30px;
+}
+
+.stats-results-container .results-status {
+    font-size: 1rem;
+    color: #00a8ff;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Table styles */
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1c1c1c;
+}
+
+.stats-table thead th {
+    background-color: #007acc;
+    color: black;
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #005f99;
+    font-size: 0.95rem;
+}
+
+.stats-table tbody td {
+    padding: 10px 15px;
+    border: 1px solid #444;
+    color: #eee;
+    font-size: 0.9rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.stats-table tbody tr:nth-child(even) { background-color: #2a2a2a; }
+.stats-table tbody tr:nth-child(odd) { background-color: #333; }
+.stats-table tbody tr:hover { background-color: #404040; }
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+    .stats-search-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .stats-search-panel .search-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .stats-search-panel input {
+        width: 100%;
+    }
+    .stats-search-panel button {
+        width: 100%;
+    }
+}

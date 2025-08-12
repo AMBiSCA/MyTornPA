@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyTornPA - Player Stats Checker</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/playerstats.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script src="../js/firebase-init.js"></script>
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div class="peeper-tool-container player-stats-page">
+            <h2 class="script-title">Player Stats Checker</h2>
+            
+            <div id="statsApiKeyError" class="error-message"></div>
+
+            <section class="stats-search-panel">
+                <div class="search-group">
+                    <label for="playerId">Player ID:</label>
+                    <input type="text" id="playerId" placeholder="Enter Player ID">
+                    <button id="checkStatsBtn" class="fetch-btn">Check Stats</button>
+                </div>
+            </section>
+            
+            <section id="stats-results-container" class="stats-results-container" style="display: none;">
+                <p class="results-status">Displaying stats for <span id="playerNameDisplay"></span></p>
+                <div class="table-wrapper">
+                    <table class="modal-table stats-table">
+                        <thead>
+                            <tr>
+                                <th>Stat</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+            
+        </div>
+    </div>
+
+    <div id="globalfooterplaceholder"></div>
+    <div id="chat-system-placeholder"></div>
+    <script src="../js/playerstats.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/globalfooter.js"></script>
+</body>
+</html>
