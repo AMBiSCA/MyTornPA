@@ -1021,6 +1021,7 @@ function setupUnreadChatsListener(user) {
                           .where('unreadFor', '==', user.uid); // And only those marked as unread for us
 
     const unsubscribe = unreadQuery.onSnapshot(async (snapshot) => {
+	  console.log("Unread chat listener fired! Found documents:", snapshot.size);
         if (snapshot.empty) {
             // No unread chats, nothing to do.
             return;
