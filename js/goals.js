@@ -1,5 +1,7 @@
 $(document).ready(function () {
     $('#gymSelect').change(function () {
+        console.log("Gym dropdown changed. Selected gym ID:", $(this).find('option:selected').attr('value'));
+
         // Hide all gym details by setting their display to 'none'
         for (let i = 1; i <= 33; i++) {
             $('#gym_' + i).css('display', 'none');
