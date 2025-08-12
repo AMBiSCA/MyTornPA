@@ -1,7 +1,6 @@
-// This file is now structured to be loaded directly on the page without an extra script tag.
-// The code inside the jQuery document.ready block will automatically run when the page is ready.
 $(document).ready(function () {
-    $('#gymSelect').change(function () {
+    // Using event delegation to ensure the change event is always caught
+    $('.main-content-wrapper').on('change', '#gymSelect', function () {
         console.log("Gym dropdown changed. Selected gym ID:", $(this).find('option:selected').attr('value'));
 
         // Hide all gym details by setting their display to 'none'
@@ -301,7 +300,6 @@ $(document).ready(function () {
         // console.log(str, def, spd, dex, total);
     }
     
-    // Initial run to populate the calculator on page load
     calculateGain();
     calculateGyms();
 });
