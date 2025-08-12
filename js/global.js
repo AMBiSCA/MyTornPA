@@ -510,7 +510,7 @@ async function populateFactionOverview(overviewContent) {
         const CHUNK_SIZE = 10;
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            const query = db.collection('userProfiles').where('tornProfileId', 'in', chunk);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
             const snapshot = await query.get();
             snapshot.forEach(doc => {
                 allMemberFirebaseData[doc.id] = doc.data();
@@ -532,11 +532,13 @@ async function populateFactionOverview(overviewContent) {
             const memberId = tornData.id;
             const energy = `${firebaseData.energy?.current || 'N/A'} / ${firebaseData.energy?.maximum || 'N/A'}`;
             const drugCooldown = firebaseData.cooldowns?.drug || 0;
-			const isRevivable = (tornData.revive_setting || '').trim();
             const energyRefillUsed = firebaseData.energyRefillUsed ? 'Yes' : 'No';
             const status = tornData.status.description;
 
-        
+            // --- THIS IS THE CRITICAL FIX ---
+            // We now get the revive setting from the Firebase data, just like your working page.
+            const reviveSetting = firebaseData.revive_setting || 'No one';
+            // --- END FIX ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -547,11 +549,9 @@ async function populateFactionOverview(overviewContent) {
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
-            let revivableClass = '';
-            if (isRevivable === 'Everyone') { revivableClass = 'revivable-text-green'; }
-            else if (isRevivable === 'Friends & faction') { revivableClass = 'revivable-text-orange'; }
-            else if (isRevivable === 'No one') { revivableClass = 'revivable-text-red'; }
-
+            let reviveCircleClass = 'rev-circle-red';
+            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
+            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
 
             let statusClass = 'status-okay';
             if (tornData.status.state === 'Hospital') statusClass = 'status-hospital';
@@ -562,7 +562,7 @@ async function populateFactionOverview(overviewContent) {
                     <td class="overview-name"><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                     <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
-                     <td class="${revivableClass}">${isRevivable}</td>
+                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
