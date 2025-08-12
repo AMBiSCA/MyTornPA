@@ -1068,14 +1068,14 @@ input:checked + .slider:before {
     font-weight: bold;
 }
 
-.overview-table .overview-name a.overview-name-link,
-.overview-table .overview-name a.overview-name-link:visited {
+.overview-table .overview-name a,
+.overview-table .overview-name a:visited {
     color: #5bc0de !important; /* The nice blue color you asked for, forced to apply */
     text-decoration: none !important; /* Removes the underline, forced to apply */
     transition: color 0.2s; /* Smooth color change on hover */
 }
 
-.overview-table .overview-name a.overview-name-link:hover {
+.overview-table .overview-name a:hover {
     color: #88d7ff !important; /* A slightly lighter blue on hover */
     text-decoration: underline !important; /* Add underline on hover for better user feedback */
 }
