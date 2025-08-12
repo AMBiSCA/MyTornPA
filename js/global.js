@@ -547,9 +547,11 @@ async function populateFactionOverview(overviewContent) {
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
-            let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
-            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
+            let revivableClass = '';
+            if (isRevivable === 'Everyone') { revivableClass = 'revivable-text-green'; }
+            else if (isRevivable === 'Friends & faction') { revivableClass = 'revivable-text-orange'; }
+            else if (isRevivable === 'No one') { revivableClass = 'revivable-text-red'; }
+
 
             let statusClass = 'status-okay';
             if (tornData.status.state === 'Hospital') statusClass = 'status-hospital';
