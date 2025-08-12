@@ -27,6 +27,13 @@
 
             <section class="stats-search-panel">
                 <div class="search-group">
+                    <label for="searchCategory">Category:</label>
+                    <select id="searchCategory">
+                        <option value="personalstats">Personal Stats</option>
+                        <option value="basic">Basic Info</option>
+                    </select>
+                </div>
+                <div class="search-group">
                     <label for="playerId">Player ID:</label>
                     <input type="text" id="playerId" placeholder="Enter Player ID">
                     <button id="checkStatsBtn" class="fetch-btn">Check Stats</button>
