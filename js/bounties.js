@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
-   // The FINAL, corrected version of the displayBounties function
+   // The FINAL, DEFINITIVE version of the displayBounties function
 function displayBounties(bountiesToShow) {
     bountyTableBody.innerHTML = '';
     currentBountiesSpan.textContent = bountiesToShow.length;
@@ -166,6 +166,8 @@ function displayBounties(bountiesToShow) {
         const statusText = status.description || 'Loading...';
 
         let statusClass = '';
+        
+        // CORRECTED: Added the 'Abroad' state to the list.
         switch (status.state) {
             case 'Hospital':
                 statusClass = 'status-red';
@@ -174,6 +176,7 @@ function displayBounties(bountiesToShow) {
                 statusClass = 'status-orange';
                 break;
             case 'Traveling':
+            case 'Abroad': // Grouping 'Abroad' with 'Traveling'
                 statusClass = 'status-blue';
                 break;
             case 'Okay':
@@ -181,10 +184,7 @@ function displayBounties(bountiesToShow) {
                 break;
         }
 
-        // CORRECTED: Added a safer check to ensure 'status.description' exists.
-        if (status.state === 'Okay' && status.description && status.description.startsWith('In ')) {
-            statusClass = 'status-blue';
-        }
+        // The previous extra 'if' statement is no longer needed and has been removed.
 
         row.innerHTML = `
             <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
