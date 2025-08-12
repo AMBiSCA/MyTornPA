@@ -1121,7 +1121,18 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
+/* Style for a recent chat item that has an unread message */
+.recent-chat-item.has-new-message {
+    background-color: #1c3d24; /* A darker green background */
+    border: 1px solid #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
+    border-radius: 5px; /* Make sure this matches your existing style */
+}
 
+/* Optional: Add a transition for a smooth effect */
+.recent-chat-item {
+    transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
+}
 
 /* Specific Mobile Styles for Chat System */
 @media (max-width: 768px) {
