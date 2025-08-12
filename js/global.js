@@ -1056,119 +1056,128 @@ function setupUnreadChatsListener(user) {
 
     return unsubscribe;
 }
+// CORRECTED: This function now adds a unique ID to each recent-chat-item
 async function loadRecentPrivateChats(targetDisplayElement) {
-    if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for Recent Chats tab.");
-        return;
-    }
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Recent Chats tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
-        return;
-    }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
+        return;
+    }
 
-    try {
-        const chatsSnapshot = await db.collection('privateChats')
-            .where('participants', 'array-contains', currentUser.uid)
-            .orderBy('lastMessageAt', 'desc')
-            .limit(20)
-            .get();
+    try {
+        const chatsSnapshot = await db.collection('privateChats')
+            .where('participants', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageAt', 'desc')
+            .limit(20)
+            .get();
 
-        if (chatsSnapshot.empty) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
-            return;
-        }
+        if (chatsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+            return;
+        }
 
-        const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
-            const chatData = doc.data();
-            const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+        const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
+            const chatData = doc.data();
+            const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
 
-            if (!otherParticipantUid) return null;
+            if (!otherParticipantUid) return null;
 
-            const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
-            if (!userProfileDoc.exists) return null;
+            const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+            if (!userProfileDoc.exists) return null;
 
-            const profileData = userProfileDoc.data();
-            const friendTornId = profileData.tornProfileId;
-            const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+            const profileData = userProfileDoc.data();
+            const friendTornId = profileData.tornProfileId;
+            const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
 
-            const userDoc = await db.collection('users').doc(friendTornId).get();
-            const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+            const userDoc = await db.collection('users').doc(friendTornId).get();
+            const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+            
+            // Use the snippet from the parent doc for the last message, falling back to the old way if needed
+            const lastMessageText = chatData.lastMessageSnippet || '...';
 
-            const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
-            const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
+            return {
+                chatId: doc.id,
+                tornId: String(friendTornId), // Ensure Torn ID is a string
+                name: friendName,
+                image: friendImage,
+                lastMessage: lastMessageText
+            };
+        });
 
-            return {
-                chatId: doc.id, // We need the chat document ID for deletion
-                tornId: friendTornId,
-                name: friendName,
-                image: friendImage,
-                lastMessage: lastMessage.text
-            };
-        });
+        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
 
-        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
-
-        let listHtml = '';
-        chatDetails.forEach(chat => {
-            // --- CHANGE IS HERE: The chat item now has a unique ID for notifications ---
-            listHtml += `
-                <div class="recent-chat-item" id="friend-${chat.tornId}" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
-                    <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
-                    <div class="rc-details" title="Open chat with ${chat.name}">
-                        <span class="rc-name">${chat.name}</span>
-                        <span class="rc-last-message">${chat.lastMessage}</span>
-                    </div>
-                    <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
-                </div>
-            `;
-        });
-
-        targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
-
-        targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
-            const chatItem = event.target.closest('.recent-chat-item');
-            const deleteButton = event.target.closest('.rc-delete-btn');
-
-            if (deleteButton) {
-                event.stopPropagation(); // Stop the click from opening the chat window
-                const chatId = deleteButton.dataset.chatId;
-                const friendName = deleteButton.dataset.friendName;
-
-                const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
-
-                if (confirmDelete) {
-                    const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
-
-                    if (result.dontAskAgain) {
-                        localStorage.setItem('confirmDeleteChat', 'false');
-                    }
-                    if (!result.confirmed) {
-                        return; // User clicked "No"
-                    }
-                }
-
-                // If confirmed or if we are skipping confirmation, proceed to delete
-                const success = await deletePrivateChat(chatId);
-                if (success) {
-                    loadRecentPrivateChats(targetDisplayElement); // Refresh the list
-                }
-
-            } else if (chatItem) {
-                const friendId = chatItem.dataset.friendId;
-                const friendName = chatItem.dataset.friendName;
-                openPrivateChatWindow(friendId, friendName);
+        let listHtml = '';
+        chatDetails.forEach(chat => {
+            // --- START OF NEW LOGIC ---
+            // Check if this chat's Torn ID is in our global set of unread chats.
+            const isUnread = unreadChatTornIds.has(chat.tornId);
+            // If it's unread, we'll add the notification class. Otherwise, add nothing.
+            const unreadClass = isUnread ? 'has-new-message' : '';
+            if (isUnread) {
+                updateBellIcon(true); // Also trigger the main bell icon if any chat is unread
             }
-        });
+            // --- END OF NEW LOGIC ---
 
-    } catch (error) {
-        console.error("Error populating Recent Chats tab:", error);
-        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
-    }
+            // --- THE CHANGE IS APPLIED HERE in the class attribute ---
+            listHtml += `
+                <div class="recent-chat-item ${unreadClass}" id="friend-${chat.tornId}" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
+                    <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
+                    <div class="rc-details" title="Open chat with ${chat.name}">
+                        <span class="rc-name">${chat.name}</span>
+                        <span class="rc-last-message">${chat.lastMessage}</span>
+                    </div>
+                    <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
+                </div>
+            `;
+        });
+
+        targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
+
+        targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
+            const chatItem = event.target.closest('.recent-chat-item');
+            const deleteButton = event.target.closest('.rc-delete-btn');
+
+            if (deleteButton) {
+                event.stopPropagation();
+                const chatId = deleteButton.dataset.chatId;
+                const friendName = deleteButton.dataset.friendName;
+
+                const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
+
+                if (confirmDelete) {
+                    const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
+
+                    if (result.dontAskAgain) {
+                        localStorage.setItem('confirmDeleteChat', 'false');
+                    }
+                    if (!result.confirmed) {
+                        return;
+                    }
+                }
+
+                const success = await deletePrivateChat(chatId);
+                if (success) {
+                    loadRecentPrivateChats(targetDisplayElement);
+                }
+
+            } else if (chatItem) {
+                const friendId = chatItem.dataset.friendId;
+                const friendName = chatItem.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Recent Chats tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+    }
 }
-
     async function populateIgnoreListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
             console.error("HTML Error: Target display element not provided for Ignore List tab.");
