@@ -592,6 +592,17 @@ async function populateFactionOverview(overviewContent) {
         overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
     }
 }
+
+function updateFriendNotification(friendName, hasNewMessage) {
+    const friendElement = document.getElementById(`friend-${friendName}`);
+    if (friendElement) {
+        if (hasNewMessage) {
+            friendElement.classList.add('has-new-message');
+        } else {
+            friendElement.classList.remove('has-new-message');
+        }
+    }
+}
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
     async function addOrUpdateUserAllianceId(newAllianceId) {
         const user = auth.currentUser;
@@ -655,46 +666,132 @@ async function populateFactionOverview(overviewContent) {
     }
 
 
-    function openPrivateChatWindow(userId, userName) {
-        // First, remove any other private chat window that might be open
-        const existingWindow = document.querySelector('.private-chat-window');
-        if (existingWindow) {
-            // Important: Manually trigger the close button's click to unsubscribe from listeners
-            existingWindow.querySelector('.pcw-close-btn').click();
+    // A function to open a private chat window with a specified user
+function openPrivateChatWindow(userId, userName) {
+    // First, remove any other private chat window that might be open
+    const existingWindow = document.querySelector('.private-chat-window');
+    if (existingWindow) {
+        // Important: Manually trigger the close button's click to unsubscribe from listeners
+        existingWindow.querySelector('.pcw-close-btn').click();
+    }
+
+    // Create the main window container
+    const chatDiv = document.createElement('div');
+    chatDiv.className = 'private-chat-window';
+    chatDiv.id = `private-chat-window-${userId}`;
+
+    // Create the inner HTML for the window
+    chatDiv.innerHTML = `
+        <div class="pcw-header">
+            <span class="pcw-title" title="${userName} [${userId}]">Chat with ${userName}</span>
+            <button class="pcw-close-btn" title="Close">×</button>
+        </div>
+        <div class="pcw-messages">
+            <p style="color: #888;">Loading messages...</p>
+        </div>
+        <div class="pcw-input-area">
+            <input type="text" class="pcw-input" placeholder="Type a message...">
+            <button class="pcw-send-btn">Send</button>
+        </div>
+    `;
+
+    // Add the new chat window to the page
+    document.body.appendChild(chatDiv);
+
+    // Make the close button work (it now only handles removing the element)
+    chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
+        chatDiv.remove();
+    });
+
+    // --- THIS IS THE NEW LINE ---
+    // After creating the window, call the function to load its messages and make it work
+    loadAndHandlePrivateChat(userId, userName, chatDiv);
+}
+
+// CORRECTED: This function now adds a unique ID to each member-item
+async function populateFriendListTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Friend List tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your friend list...</p>`;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your friends.</p>';
+        return;
+    }
+
+    try {
+        const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+
+        if (friendsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">You have not added any friends yet.</p>';
+            return;
         }
 
-        // Create the main window container
-        const chatDiv = document.createElement('div');
-        chatDiv.className = 'private-chat-window';
-        chatDiv.id = `private-chat-window-${userId}`;
-
-        // Create the inner HTML for the window
-        chatDiv.innerHTML = `
-            <div class="pcw-header">
-                <span class="pcw-title" title="${userName} [${userId}]">Chat with ${userName}</span>
-                <button class="pcw-close-btn" title="Close">×</button>
-            </div>
-            <div class="pcw-messages">
-                <p style="color: #888;">Loading messages...</p>
-            </div>
-            <div class="pcw-input-area">
-                <input type="text" class="pcw-input" placeholder="Type a message...">
-                <button class="pcw-send-btn">Send</button>
-            </div>
-        `;
-
-        // Add the new chat window to the page
-        document.body.appendChild(chatDiv);
-
-        // Make the close button work (it now only handles removing the element)
-        chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
-            chatDiv.remove();
+        const friendDetailsPromises = friendsSnapshot.docs.map(doc => {
+            const friendTornId = doc.id;
+            return db.collection('users').doc(friendTornId).get().then(userDoc => {
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const friendName = userData.name || `User ID ${friendTornId}`;
+                    const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                    return { id: friendTornId, name: friendName, image: profileImage };
+                }
+                return { id: friendTornId, name: `Unknown [${friendTornId}]`, image: '../../images/default_profile_icon.png' };
+            });
         });
 
-        // --- THIS IS THE NEW LINE ---
-        // After creating the window, call the function to load its messages and make it work
-        loadAndHandlePrivateChat(userId, userName, chatDiv);
+        const friendDetails = await Promise.all(friendDetailsPromises);
+
+        let cardsHtml = '';
+        friendDetails.forEach(friend => {
+            // --- CHANGE IS HERE: The friend item now has a unique ID for notifications ---
+            cardsHtml += `
+                <div class="member-item" id="friend-${friend.id}">
+                    <div class="member-identity">
+                        <img src="${friend.image}" alt="${friend.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${friend.id}" target="_blank" class="member-name">${friend.name}</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="item-button message-friend-button" data-friend-id="${friend.id}" data-friend-name="${friend.name}" title="Send Message">✉️</button>
+                        <button class="item-button remove-friend-button" data-friend-id="${friend.id}" title="Remove Friend">🗑️</button>
+                    </div>
+                </div>`;
+        });
+
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container';
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = '';
+        targetDisplayElement.appendChild(membersListContainer);
+
+        // Add event listener for remove and message buttons
+        membersListContainer.addEventListener('click', async (event) => {
+            const removeButton = event.target.closest('.remove-friend-button');
+            const messageButton = event.target.closest('.message-friend-button');
+
+            if (removeButton) {
+                const friendIdToRemove = removeButton.dataset.friendId;
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
+                if (userConfirmed) {
+                    await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
+                    populateFriendListTab(targetDisplayElement); // Refresh the list
+                }
+            } else if (messageButton) {
+                // --- CHANGE IS HERE: This handles the click on the new message button ---
+                const friendId = messageButton.dataset.friendId;
+                const friendName = messageButton.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Friend List tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
     }
+}
 
     async function populateFriendListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
@@ -803,107 +900,112 @@ async function populateFactionOverview(overviewContent) {
         `;
         displayElement.appendChild(messageElement);
     }
-    // This function loads messages and handles sending for a private chat window
-    async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
-        const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
-        const inputField = chatWindowElement.querySelector('.pcw-input');
-        const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
+    // CORRECTED: The function to load and handle private chat logic
+async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
+    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+    const inputField = chatWindowElement.querySelector('.pcw-input');
+    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
 
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+        return;
+    }
+    
+    // --- NEW: Clear notification when chat is opened ---
+    updateFriendNotification(friendTornId, false);
+
+    let friendFirebaseUid = null;
+    try {
+        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+        if (profileQuery.empty) {
+            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+            inputField.disabled = true;
+            sendButton.disabled = true;
             return;
         }
-
-        let friendFirebaseUid = null;
-        try {
-            const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
-            if (profileQuery.empty) {
-                messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
-                inputField.disabled = true;
-                sendButton.disabled = true;
-                return;
-            }
-            friendFirebaseUid = profileQuery.docs[0].id;
-        } catch (error) {
-            console.error("Error fetching friend's Firebase UID:", error);
-            messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
-            return;
-        }
-
-        const participants = [currentUser.uid, friendFirebaseUid].sort();
-        const chatDocId = `private_${participants[0]}_${participants[1]}`;
-        const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
-
-        try {
-            await db.collection('privateChats').doc(chatDocId).set({
-                participants: participants,
-                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        } catch (error) {
-            console.error("Error ensuring parent chat document exists:", error);
-            messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
-            return;
-        }
-
-        const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-            messagesContainer.innerHTML = '';
-            if (snapshot.empty) {
-                messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
-            } else {
-                snapshot.forEach(doc => {
-                    const messageData = doc.data();
-                    // --- THIS IS THE KEY CHANGE ---
-                    const isMyMessage = messageData.senderId === currentUser.uid;
-                    displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
-                });
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }, error => {
-            console.error("Error loading private messages:", error);
-            messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
-        });
-
-        const sendMessage = async () => {
-            const messageText = inputField.value.trim();
-            if (messageText === '') return;
-
-            const messageObj = {
-                senderId: currentUser.uid,
-                sender: currentTornUserName,
-                text: messageText,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            try {
-                await db.collection('privateChats').doc(chatDocId).update({
-                    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                await messagesCollectionRef.add(messageObj);
-                inputField.value = '';
-                inputField.focus();
-            } catch (error) {
-                console.error("Error sending private message:", error);
-                alert("Failed to send message.");
-            }
-        };
-
-        sendButton.addEventListener('click', sendMessage);
-        inputField.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-
-        const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
-        const newCloseButtonListener = () => {
-            unsubscribe();
-            closeButton.removeEventListener('click', newCloseButtonListener);
-        };
-        closeButton.addEventListener('click', newCloseButtonListener);
+        friendFirebaseUid = profileQuery.docs[0].id;
+    } catch (error) {
+        console.error("Error fetching friend's Firebase UID:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+        return;
     }
 
+    const participants = [currentUser.uid, friendFirebaseUid].sort();
+    const chatDocId = `private_${participants[0]}_${participants[1]}`;
+    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+
+    try {
+        await db.collection('privateChats').doc(chatDocId).set({
+            participants: participants,
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error ensuring parent chat document exists:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
+        return;
+    }
+
+    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        messagesContainer.innerHTML = '';
+        if (snapshot.empty) {
+            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+        } else {
+            snapshot.forEach(doc => {
+                const messageData = doc.data();
+                const isMyMessage = messageData.senderId === currentUser.uid;
+                displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }, error => {
+        console.error("Error loading private messages:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+    });
+
+    const sendMessage = async () => {
+        const messageText = inputField.value.trim();
+        if (messageText === '') return;
+
+        const messageObj = {
+            senderId: currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('privateChats').doc(chatDocId).update({
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await messagesCollectionRef.add(messageObj);
+            inputField.value = '';
+            inputField.focus();
+            
+            // --- NEW: Add notification to friend's name when a message is sent ---
+            updateFriendNotification(friendTornId, true);
+
+        } catch (error) {
+            console.error("Error sending private message:", error);
+            alert("Failed to send message.");
+        }
+    };
+
+    sendButton.addEventListener('click', sendMessage);
+    inputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+    const newCloseButtonListener = () => {
+        unsubscribe();
+        closeButton.removeEventListener('click', newCloseButtonListener);
+    };
+    closeButton.addEventListener('click', newCloseButtonListener);
+}
     // A custom confirmation box that returns a promise with the user's choice
     function showCustomConfirmWithOptions(message, title = "Confirm") {
         return new Promise(resolve => {
@@ -963,117 +1065,119 @@ async function populateFactionOverview(overviewContent) {
         }
     }
 
-    async function loadRecentPrivateChats(targetDisplayElement) {
-        if (!targetDisplayElement) {
-            console.error("HTML Error: Target display element not provided for Recent Chats tab.");
-            return;
-        }
-        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
-
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
-            return;
-        }
-
-        try {
-            const chatsSnapshot = await db.collection('privateChats')
-                .where('participants', 'array-contains', currentUser.uid)
-                .orderBy('lastMessageAt', 'desc')
-                .limit(20)
-                .get();
-
-            if (chatsSnapshot.empty) {
-                targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
-                return;
-            }
-
-            const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
-                const chatData = doc.data();
-                const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
-
-                if (!otherParticipantUid) return null;
-
-                const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
-                if (!userProfileDoc.exists) return null;
-
-                const profileData = userProfileDoc.data();
-                const friendTornId = profileData.tornProfileId;
-                const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
-
-                const userDoc = await db.collection('users').doc(friendTornId).get();
-                const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
-
-                const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
-                const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
-
-                return {
-                    chatId: doc.id, // We need the chat document ID for deletion
-                    tornId: friendTornId,
-                    name: friendName,
-                    image: friendImage,
-                    lastMessage: lastMessage.text
-                };
-            });
-
-            const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
-
-            let listHtml = '';
-            chatDetails.forEach(chat => {
-                listHtml += `
-                    <div class="recent-chat-item" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
-                        <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
-                        <div class="rc-details" title="Open chat with ${chat.name}">
-                            <span class="rc-name">${chat.name}</span>
-                            <span class="rc-last-message">${chat.lastMessage}</span>
-                        </div>
-                        <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
-                    </div>
-                `;
-            });
-
-            targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
-
-            targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
-                const chatItem = event.target.closest('.recent-chat-item');
-                const deleteButton = event.target.closest('.rc-delete-btn');
-
-                if (deleteButton) {
-                    event.stopPropagation(); // Stop the click from opening the chat window
-                    const chatId = deleteButton.dataset.chatId;
-                    const friendName = deleteButton.dataset.friendName;
-
-                    const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
-
-                    if (confirmDelete) {
-                        const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
-
-                        if (result.dontAskAgain) {
-                            localStorage.setItem('confirmDeleteChat', 'false');
-                        }
-                        if (!result.confirmed) {
-                            return; // User clicked "No"
-                        }
-                    }
-
-                    // If confirmed or if we are skipping confirmation, proceed to delete
-                    const success = await deletePrivateChat(chatId);
-                    if (success) {
-                        loadRecentPrivateChats(targetDisplayElement); // Refresh the list
-                    }
-
-                } else if (chatItem) {
-                    const friendId = chatItem.dataset.friendId;
-                    const friendName = chatItem.dataset.friendName;
-                    openPrivateChatWindow(friendId, friendName);
-                }
-            });
-
-        } catch (error) {
-            console.error("Error populating Recent Chats tab:", error);
-            targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
-        }
+   // CORRECTED: This function now adds a unique ID to each recent-chat-item
+async function loadRecentPrivateChats(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Recent Chats tab.");
+        return;
     }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
+        return;
+    }
+
+    try {
+        const chatsSnapshot = await db.collection('privateChats')
+            .where('participants', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageAt', 'desc')
+            .limit(20)
+            .get();
+
+        if (chatsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+            return;
+        }
+
+        const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
+            const chatData = doc.data();
+            const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+
+            if (!otherParticipantUid) return null;
+
+            const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+            if (!userProfileDoc.exists) return null;
+
+            const profileData = userProfileDoc.data();
+            const friendTornId = profileData.tornProfileId;
+            const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+
+            const userDoc = await db.collection('users').doc(friendTornId).get();
+            const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+
+            const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
+            const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
+
+            return {
+                chatId: doc.id, // We need the chat document ID for deletion
+                tornId: friendTornId,
+                name: friendName,
+                image: friendImage,
+                lastMessage: lastMessage.text
+            };
+        });
+
+        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
+
+        let listHtml = '';
+        chatDetails.forEach(chat => {
+            // --- CHANGE IS HERE: The chat item now has a unique ID for notifications ---
+            listHtml += `
+                <div class="recent-chat-item" id="friend-${chat.tornId}" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
+                    <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
+                    <div class="rc-details" title="Open chat with ${chat.name}">
+                        <span class="rc-name">${chat.name}</span>
+                        <span class="rc-last-message">${chat.lastMessage}</span>
+                    </div>
+                    <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
+                </div>
+            `;
+        });
+
+        targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
+
+        targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
+            const chatItem = event.target.closest('.recent-chat-item');
+            const deleteButton = event.target.closest('.rc-delete-btn');
+
+            if (deleteButton) {
+                event.stopPropagation(); // Stop the click from opening the chat window
+                const chatId = deleteButton.dataset.chatId;
+                const friendName = deleteButton.dataset.friendName;
+
+                const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
+
+                if (confirmDelete) {
+                    const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
+
+                    if (result.dontAskAgain) {
+                        localStorage.setItem('confirmDeleteChat', 'false');
+                    }
+                    if (!result.confirmed) {
+                        return; // User clicked "No"
+                    }
+                }
+
+                // If confirmed or if we are skipping confirmation, proceed to delete
+                const success = await deletePrivateChat(chatId);
+                if (success) {
+                    loadRecentPrivateChats(targetDisplayElement); // Refresh the list
+                }
+
+            } else if (chatItem) {
+                const friendId = chatItem.dataset.friendId;
+                const friendName = chatItem.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Recent Chats tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+    }
+}
 
     async function populateIgnoreListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
