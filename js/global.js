@@ -382,107 +382,8 @@ function initializeGlobals() {
                 function toggleDebugMode() {
                     document.body.classList.toggle('debug');
                 }
-
-
-
-                // --- Send Message Logic ---
-                function setupMessageSending(textInput, sendBtn, collectionType) {
-                    if (sendBtn) {
-                        sendBtn.onclick = async () => {
-                            await sendChatMessage(textInput, collectionType);
-                        };
-                    }
-                    if (textInput) {
-                        textInput.onkeydown = async (event) => {
-                            if (event.key === 'Enter') {
-                                event.preventDefault();
-                                await sendChatMessage(textInput, collectionType);
-                            }
-                        };
-                    }
-                }
-
-                setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
-                setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
-                // NEW: Setup message sending for global chat
-                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
-                // NEW: Setup message sending for alliance chat
-                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
-
-
-            } else {
-                console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
-            }
-        })
-        .catch(error => console.error('global.js: Error loading global chat:', error));
-
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            if (doc.exists) {
-                const userData = doc.data();
-                currentUserFactionId = String(userData.faction_id);
-                currentTornUserName = userData.preferredName || 'Unknown';
-                userTornApiKey = userData.tornApiKey;
-                currentUserAllianceIds = userData.allianceIds || [];
-
-                window.currentUserFactionId = currentUserFactionId;
-                window.userTornApiKey = userTornApiKey;
-                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
-                window.currentUserAllianceIds = currentUserAllianceIds;
-
-                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
-
-                // --- NEW: Start the listener for unread private messages ---
-                unsubscribeFromUnreadListener = setupUnreadChatsListener(user);
-
-            } else {
-                console.warn("User profile not found for authenticated user:", user.uid);
-                currentUserFactionId = null;
-                userTornApiKey = null;
-                currentUserAllianceIds = [];
-                window.currentUserFactionId = null;
-                window.userTornApiKey = null;
-                window.TORN_API_BASE_URL = null;
-                window.currentUserAllianceIds = [];
-            }
-        } else {
-            // User is signed out
-            if (unsubscribeFromChat) unsubscribeFromChat();
-            // --- NEW: Stop the listener when the user logs out ---
-            if (unsubscribeFromUnreadListener) unsubscribeFromUnreadListener();
-
-            chatMessagesCollection = null;
-            currentUserFactionId = null;
-            userTornApiKey = null;
-            currentUserAllianceIds = [];
-            window.currentUserFactionId = null;
-            window.userTornApiKey = null;
-            window.TORN_API_BASE_URL = null;
-            window.currentUserAllianceIds = [];
-
-            const chatDisplayAreaFaction = document.getElementById('chat-display-area');
-            const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
-            const chatDisplayAreaGlobal = document.getElementById('global-chat-display-area');
-            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area');
-
-            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
-            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
-            if (chatDisplayAreaGlobal) chatDisplayAreaGlobal.innerHTML = '<p>Please log in to use global chat.</p>';
-            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>';
-            console.log("User logged out. Chat functionalities are reset.");
-        }
-    });
-}
-  /**
- * [FINAL WORKING VERSION]
- * This function now works exactly like the table on your War Hub page.
- * It calls the backend refresh script and correctly reads all detailed data,
- * including the revive setting, from the Firebase database.
- * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
- */
-async function populateFactionOverview(overviewContent) {
+				
+				async function populateFactionOverview(overviewContent) {
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found or not provided!");
         return;
@@ -1651,6 +1552,37 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     }
 }
 
+        // --- Send Message Logic ---
+                function setupMessageSending(textInput, sendBtn, collectionType) {
+                    if (sendBtn) {
+                        sendBtn.onclick = async () => {
+                            await sendChatMessage(textInput, collectionType);
+                        };
+                    }
+                    if (textInput) {
+                        textInput.onkeydown = async (event) => {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                await sendChatMessage(textInput, collectionType);
+                            }
+                        };
+                    }
+                }
+
+                setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
+                setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
+                // NEW: Setup message sending for global chat
+                setupMessageSending(globalChatTextInput, globalChatSendBtn, 'global');
+                // NEW: Setup message sending for alliance chat
+                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
+
+
+            } else {
+                console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
+            }
+        })
+        .catch(error => console.error('global.js: Error loading global chat:', error));
+
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     const db = firebase.firestore();
     const auth = firebase.auth();
@@ -1823,3 +1755,74 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
 // Run the main initialization function
 initializeGlobals();
+
+
+
+        
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            if (doc.exists) {
+                const userData = doc.data();
+                currentUserFactionId = String(userData.faction_id);
+                currentTornUserName = userData.preferredName || 'Unknown';
+                userTornApiKey = userData.tornApiKey;
+                currentUserAllianceIds = userData.allianceIds || [];
+
+                window.currentUserFactionId = currentUserFactionId;
+                window.userTornApiKey = userTornApiKey;
+                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
+                window.currentUserAllianceIds = currentUserAllianceIds;
+
+                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
+
+                // --- NEW: Start the listener for unread private messages ---
+                unsubscribeFromUnreadListener = setupUnreadChatsListener(user);
+
+            } else {
+                console.warn("User profile not found for authenticated user:", user.uid);
+                currentUserFactionId = null;
+                userTornApiKey = null;
+                currentUserAllianceIds = [];
+                window.currentUserFactionId = null;
+                window.userTornApiKey = null;
+                window.TORN_API_BASE_URL = null;
+                window.currentUserAllianceIds = [];
+            }
+        } else {
+            // User is signed out
+            if (unsubscribeFromChat) unsubscribeFromChat();
+            // --- NEW: Stop the listener when the user logs out ---
+            if (unsubscribeFromUnreadListener) unsubscribeFromUnreadListener();
+
+            chatMessagesCollection = null;
+            currentUserFactionId = null;
+            userTornApiKey = null;
+            currentUserAllianceIds = [];
+            window.currentUserFactionId = null;
+            window.userTornApiKey = null;
+            window.TORN_API_BASE_URL = null;
+            window.currentUserAllianceIds = [];
+
+            const chatDisplayAreaFaction = document.getElementById('chat-display-area');
+            const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
+            const chatDisplayAreaGlobal = document.getElementById('global-chat-display-area');
+            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area');
+
+            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
+            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
+            if (chatDisplayAreaGlobal) chatDisplayAreaGlobal.innerHTML = '<p>Please log in to use global chat.</p>';
+            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>';
+            console.log("User logged out. Chat functionalities are reset.");
+        }
+    });
+}
+  /**
+ * [FINAL WORKING VERSION]
+ * This function now works exactly like the table on your War Hub page.
+ * It calls the backend refresh script and correctly reads all detailed data,
+ * including the revive setting, from the Firebase database.
+ * @param {HTMLElement} overviewContent The DOM element where the overview table will be injected.
+ */
