@@ -28,6 +28,7 @@ function initializeGlobals() {
     const auth = firebase.auth();
     let chatMessagesCollection = null;
     let unsubscribeFromChat = null;
+	const unreadChatTornIds = new Set();
 	let unsubscribeFromUnreadListener = null;
     let currentTornUserName = 'Unknown';
     let currentUserFactionId = null;
@@ -1011,59 +1012,43 @@ function updateBellIcon(hasNotification) {
             return false;
         }
     }
-	
 function setupUnreadChatsListener(user) {
     console.log("Setting up listener for unread chats for user:", user.uid);
 
-    const unreadQuery = db.collection('privateChats')
-                          .where('participants', 'array-contains', user.uid)
-                          .where('unreadFor', '==', user.uid);
+    const unreadQuery = db.collection('privateChats').where('participants', 'array-contains', user.uid);
 
     const unsubscribe = unreadQuery.onSnapshot(async (snapshot) => {
-        console.log("Unread chat listener fired! Found documents:", snapshot.size);
-
-        if (snapshot.empty) {
-            return;
-        }
-
-        const unreadFromTornIds = new Set();
+        // Clear the set each time to get a fresh list of who has unread messages
+        unreadChatTornIds.clear();
 
         for (const doc of snapshot.docs) {
             const chatData = doc.data();
-            const otherParticipantUid = chatData.participants.find(uid => uid !== user.uid);
-            
-            console.log('Found unread chat. Other participant UID:', otherParticipantUid);
 
-            if (otherParticipantUid) {
-                try {
-                    const profileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
-                    if (profileDoc.exists) {
-                        const tornId = profileDoc.data().tornProfileId;
-                        
-                        console.log('Found Torn ID from their profile:', tornId);
-                        
-                        if (tornId) {
-                            unreadFromTornIds.add(String(tornId));
+            // If this chat is marked as unread for the current user...
+            if (chatData.unreadFor === user.uid) {
+                const otherParticipantUid = chatData.participants.find(uid => uid !== user.uid);
+
+                if (otherParticipantUid) {
+                    try {
+                        const profileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+                        if (profileDoc.exists) {
+                            const tornId = profileDoc.data().tornProfileId;
+                            if (tornId) {
+                                // Add the sender's Torn ID to our unread set
+                                unreadChatTornIds.add(String(tornId));
+                            }
                         }
+                    } catch (err) {
+                        console.error("Error fetching user profile for notification:", err);
                     }
-                } catch (err) {
-                    console.error("Error fetching user profile for notification:", err);
                 }
             }
         }
 
-        unreadFromTornIds.forEach(tornId => {
-            const selector = `.recent-chat-item[data-friend-id="${tornId}"]`;
-            const friendElement = document.querySelector(selector);
-            
-            console.log('Attempting to find element with selector:', selector);
-            console.log('Element found:', friendElement);
+        console.log("Updated list of unread Torn IDs:", unreadChatTornIds);
 
-            if (friendElement) {
-                friendElement.classList.add('has-new-message');
-                updateBellIcon(true);
-            }
-        });
+        // We are no longer trying to update the UI here. We just manage the list.
+        // The function that builds the friends list will now handle the UI update.
 
     }, (error) => {
         console.error("Error in unread chat listener:", error);
@@ -1071,7 +1056,6 @@ function setupUnreadChatsListener(user) {
 
     return unsubscribe;
 }
-   // CORRECTED: This function now adds a unique ID to each recent-chat-item
 async function loadRecentPrivateChats(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Recent Chats tab.");
