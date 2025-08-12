@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
-   // The FINAL version of the displayBounties function
+   // The FINAL, corrected version of the displayBounties function
 function displayBounties(bountiesToShow) {
     bountyTableBody.innerHTML = '';
     currentBountiesSpan.textContent = bountiesToShow.length;
@@ -181,9 +181,9 @@ function displayBounties(bountiesToShow) {
                 break;
         }
 
-        // UPDATED: One last check for being in another country
-        if (status.state === 'Okay' && status.description.startsWith('In ')) {
-            statusClass = 'status-blue'; // Re-use the blue color
+        // CORRECTED: Added a safer check to ensure 'status.description' exists.
+        if (status.state === 'Okay' && status.description && status.description.startsWith('In ')) {
+            statusClass = 'status-blue';
         }
 
         row.innerHTML = `
