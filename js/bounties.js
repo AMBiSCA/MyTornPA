@@ -192,27 +192,3 @@ function displayBounties(bountiesToShow) {
 
         displayBounties(filteredBounties);
     }
-
-    // Function to display bounties in the table
-    function displayBounties(bountiesToShow) {
-        bountyTableBody.innerHTML = ''; // Clear existing rows
-        currentBountiesSpan.textContent = bountiesToShow.length;
-
-        if (bountiesToShow.length === 0) {
-            bountyTableBody.innerHTML = '<tr><td colspan="5">No bounties match your criteria.</td></tr>';
-            return;
-        }
-
-        bountiesToShow.forEach(bounty => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
-                <td>${bounty.target_level}</td>
-                <td>$${bounty.reward.toLocaleString('en-US')}</td>
-                <td>${bounty.reason}</td>
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
-            `;
-            bountyTableBody.appendChild(row);
-        });
-    }
-});
