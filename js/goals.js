@@ -1,4 +1,5 @@
-$(document).ready(function () {
+// A simple function to initialize the calculator.
+function initGoalsCalculator() {
     $('#gymSelect').change(function () {
         console.log("Gym dropdown changed. Selected gym ID:", $(this).find('option:selected').attr('value'));
 
@@ -305,7 +306,4 @@ $(document).ready(function () {
         }
         return val;
     }
-
-    calculateGain();
-    calculateGyms();
-});
+}
