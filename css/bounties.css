@@ -1,8 +1,7 @@
 /* mysite/css/bounties.css */
 
-/* Reusing your existing container style for consistency */
 .peeper-tool-container.bounty-page {
-    max-width: 1200px; /* Wider to accommodate the table */
+    max-width: 1200px;
     margin-top: 50px;
     margin-bottom: 50px;
     background-color: #222;
@@ -11,10 +10,9 @@
     border: 2px solid #00a8ff;
     box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
     text-align: center;
-    width: 95%; /* Adjust width for wider content on large screens */
+    width: 95%;
 }
 
-/* Page Title (reused from fairfight.css) */
 .script-title {
     font-size: 2.2rem;
     font-weight: bold;
@@ -24,11 +22,10 @@
     margin-bottom: 30px;
 }
 
-/* Filters Panel Styling */
 .filters-panel {
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* UPDATED: Aligns items to the bottom for a cleaner look */
+    align-items: flex-end;
     gap: 20px;
     margin-bottom: 30px;
     flex-wrap: wrap;
@@ -47,9 +44,8 @@
     font-weight: bold;
 }
 
-/* UPDATED: Increased width for better appearance */
+/* UPDATED: Removed general width property */
 .filters-panel select, .filters-panel input {
-    width: 220px; /* UPDATED: Was 150px, makes Sort By and Min Bounty larger */
     height: 38px;
     padding: 6px 12px;
     border-radius: 6px;
@@ -60,14 +56,24 @@
     box-sizing: border-box;
 }
 
+/* NEW: Added specific widths for each input for better control */
+#sort-by {
+    width: 250px;
+}
+
+#min-bounty {
+    width: 150px;
+}
+
 .filters-panel .level-inputs {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
+/* UPDATED: Increased width to prevent numbers being cut off */
 .filters-panel .level-inputs input {
-    width: 65px;
+    width: 80px; /* Was 65px */
     text-align: center;
 }
 
@@ -75,7 +81,6 @@
     color: #eee;
 }
 
-/* NEW: Styling for the 'Apply Filters' button */
 .filters-panel button {
     padding: 8px 20px;
     height: 38px;
@@ -95,7 +100,6 @@
     transform: translateY(-2px);
 }
 
-/* Table container styling for horizontal scrolling */
 .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -133,14 +137,12 @@
     vertical-align: middle;
 }
 
-/* NEW: Center the content of the last column (Actions) */
 .bounty-table td:last-child {
     text-align: center;
 }
 
 .bounty-table tbody tr:hover { background-color: #404040; }
 
-/* UPDATED: Styling for the 'Attack' button */
 .bounty-table .action-btn {
     display: inline-block;
     padding: 6px 14px;
@@ -163,11 +165,11 @@
     color: #00a8ff;
     text-decoration: none;
 }
+
 .bounty-table .bounty-link:hover {
     text-decoration: underline;
 }
 
-/* Mobile Media Queries */
 @media (max-width: 768px) {
     .peeper-tool-container.bounty-page {
         margin-top: 20px;
@@ -186,14 +188,14 @@
         align-items: center;
     }
 
+    /* UPDATED: Set width to auto to respect the new specific ID widths */
     .filters-panel select, .filters-panel input {
         width: 100%;
         text-align: center;
     }
 
-    /* UPDATED: Renamed from .fetch-btn to be more general for any button in the filters */
     .filters-panel button {
         width: 100%;
-        margin-top: 5px; /* was 15px */
+        margin-top: 5px;
     }
 }
