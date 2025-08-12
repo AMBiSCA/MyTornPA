@@ -192,6 +192,30 @@
     text-decoration: underline;
 }
 
+/* Add this to the end of your bounties.css file */
+
+/* Makes all text in the table body slightly bolder for readability */
+.bounty-table tbody td {
+    font-weight: 600;
+}
+
+/* New Status Color Classes */
+.status-red {
+    color: #FF4136 !important; /* A bright red for hospital/offline */
+}
+
+.status-green {
+    color: #2ECC40 !important; /* A nice green for 'Okay' */
+}
+
+.status-orange {
+    color: #FF851B !important; /* An orange for jail */
+}
+
+.status-blue {
+    color: #7FDBFF !important; /* A light blue for traveling */
+}
+
 @media (max-width: 768px) {
     .peeper-tool-container.bounty-page {
         margin-top: 20px;

@@ -144,42 +144,61 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
-    function displayBounties(bountiesToShow) {
-        bountyTableBody.innerHTML = '';
-        currentBountiesSpan.textContent = bountiesToShow.length;
+   // REPLACE your displayBounties function in bounties.js with this FINAL version
+function displayBounties(bountiesToShow) {
+    bountyTableBody.innerHTML = '';
+    currentBountiesSpan.textContent = bountiesToShow.length;
 
-        if (timerInterval) {
-            clearInterval(timerInterval);
-        }
-
-        if (bountiesToShow.length === 0) {
-            bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
-            return;
-        }
-
-        bountiesToShow.forEach(bounty => {
-            const row = document.createElement('tr');
-            
-            const reasonText = bounty.reason || ''; 
-            const status = bounty.status || {};
-            const statusText = status.description || 'Loading...';
-
-            row.innerHTML = `
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
-                <td>${bounty.target_level}</td>
-                <td>$${bounty.reward.toLocaleString('en-US')}</td>
-                <td>${reasonText}</td>
-                <td data-until="${status.until || 0}" data-state="${status.state || ''}">
-                    ${statusText}
-                </td>
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
-            `;
-            bountyTableBody.appendChild(row);
-        });
-
-        timerInterval = setInterval(updateTimers, 1000);
+    if (timerInterval) {
+        clearInterval(timerInterval);
     }
 
+    if (bountiesToShow.length === 0) {
+        bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
+        return;
+    }
+
+    bountiesToShow.forEach(bounty => {
+        const row = document.createElement('tr');
+        
+        // UPDATED: Use 'None' if the reason is blank
+        const reasonText = bounty.reason || 'None'; 
+        const status = bounty.status || {};
+        const statusText = status.description || 'Loading...';
+
+        // NEW: Determine the CSS class based on the target's status state
+        let statusClass = '';
+        switch (status.state) {
+            case 'Hospital':
+                statusClass = 'status-red';
+                break;
+            case 'Jail':
+                statusClass = 'status-orange';
+                break;
+            case 'Traveling':
+                statusClass = 'status-blue';
+                break;
+            case 'Okay':
+                statusClass = 'status-green';
+                break;
+        }
+
+        // UPDATED: Added the statusClass to the <td>
+        row.innerHTML = `
+            <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
+            <td>${bounty.target_level}</td>
+            <td>$${bounty.reward.toLocaleString('en-US')}</td>
+            <td>${reasonText}</td>
+            <td class="${statusClass}" data-until="${status.until || 0}" data-state="${status.state || ''}">
+                ${statusText}
+            </td>
+            <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
+        `;
+        bountyTableBody.appendChild(row);
+    });
+
+    timerInterval = setInterval(updateTimers, 1000);
+}
     function applyFiltersAndSort() {
         if (!allBounties || allBounties.length === 0) {
             bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
