@@ -1,11 +1,12 @@
 $(document).ready(function () {
     $('#gymSelect').change(function () {
-        // alert("Yep");
-        for (i = 1; i <= 33; i++) {
-            $('#gym_' + i).hide();
+        // Hide all gym details by setting their display to 'none'
+        for (let i = 1; i <= 33; i++) {
+            $('#gym_' + i).css('display', 'none');
         }
-        //$('#form1, #form2, #form3').hide();
-        $('#gym_' + $(this).find('option:selected').attr('value')).show();
+        
+        // Show the selected gym's details by setting its display to 'block'
+        $('#gym_' + $(this).find('option:selected').attr('value')).css('display', 'block');
 
         calculateGain();
     });
