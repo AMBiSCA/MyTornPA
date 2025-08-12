@@ -709,7 +709,7 @@ function openPrivateChatWindow(userId, userName) {
     loadAndHandlePrivateChat(userId, userName, chatDiv);
 }
 
-// CORRECTED: This function now adds a unique ID to each member-item
+// Corrected and Final Working Version of populateFriendListTab
 async function populateFriendListTab(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Friend List tab.");
@@ -748,7 +748,7 @@ async function populateFriendListTab(targetDisplayElement) {
 
         let cardsHtml = '';
         friendDetails.forEach(friend => {
-            // --- CHANGE IS HERE: The friend item now has a unique ID for notifications ---
+            // This is the CRITICAL line that has been updated
             cardsHtml += `
                 <div class="member-item" id="friend-${friend.id}">
                     <div class="member-identity">
@@ -768,7 +768,6 @@ async function populateFriendListTab(targetDisplayElement) {
         targetDisplayElement.innerHTML = '';
         targetDisplayElement.appendChild(membersListContainer);
 
-        // Add event listener for remove and message buttons
         membersListContainer.addEventListener('click', async (event) => {
             const removeButton = event.target.closest('.remove-friend-button');
             const messageButton = event.target.closest('.message-friend-button');
@@ -778,10 +777,9 @@ async function populateFriendListTab(targetDisplayElement) {
                 const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
                 if (userConfirmed) {
                     await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
-                    populateFriendListTab(targetDisplayElement); // Refresh the list
+                    populateFriendListTab(targetDisplayElement);
                 }
             } else if (messageButton) {
-                // --- CHANGE IS HERE: This handles the click on the new message button ---
                 const friendId = messageButton.dataset.friendId;
                 const friendName = messageButton.dataset.friendName;
                 openPrivateChatWindow(friendId, friendName);
