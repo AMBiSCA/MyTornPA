@@ -98,51 +98,52 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (error handling as before)
     }
 
-    async function fetchBounties(apiKey) {
-        try {
-            bountyTableBody.innerHTML = '<tr><td colspan="6">Fetching bounties from Torn...</td></tr>';
-            
-            const bountiesUrl = `https://api.torn.com/torn/?selections=bounties&key=${apiKey}`;
-            const bountiesResponse = await fetch(bountiesUrl);
-            const bountiesData = await bountiesResponse.json();
-            
-            if (bountiesData.error) {
-                bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
-                return;
-            }
-            
-            let bounties = [];
-            if (bountiesData.bounties) {
-                bounties = Object.values(bountiesData.bounties);
-            }
-
-            const limitedBounties = bounties.slice(0, 50);
-
-            const bountyPromises = limitedBounties.map(async (bounty) => {
-                const userUrl = `https://api.torn.com/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
-                try {
-                    const userResponse = await fetch(userUrl);
-                    const userData = await userResponse.json();
-                    if (userData.error) {
-                        return { ...bounty, status: { description: 'Error' } };
-                    }
-                    return { ...bounty, status: userData.status };
-                } catch {
-                    return { ...bounty, status: { description: 'Fetch Failed' } };
-                }
-            });
-            
-            const enrichedBounties = await Promise.all(bountyPromises);
-            
-            allBounties = enrichedBounties;
-            totalBountiesSpan.textContent = allBounties.length;
-
-        } catch (error) {
-            console.error('Error fetching bounties:', error);
-            bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+   async function fetchBounties(apiKey) {
+    try {
+        bountyTableBody.innerHTML = '<tr><td colspan="6">Fetching bounties from Torn...</td></tr>';
+        
+        // FINAL CORRECTION: Restored the exact /v2/ URL.
+        const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
+        
+        const bountiesResponse = await fetch(bountiesUrl);
+        const bountiesData = await bountiesResponse.json();
+        
+        if (bountiesData.error) {
+            bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+            return;
         }
-    }
+        
+        let bounties = [];
+        if (bountiesData.bounties) {
+            bounties = Object.values(bountiesData.bounties);
+        }
 
+        const limitedBounties = bounties.slice(0, 50);
+
+        const bountyPromises = limitedBounties.map(async (bounty) => {
+            const userUrl = `https://api.torn.com/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
+            try {
+                const userResponse = await fetch(userUrl);
+                const userData = await userResponse.json();
+                if (userData.error) {
+                    return { ...bounty, status: { description: 'Error' } };
+                }
+                return { ...bounty, status: userData.status };
+            } catch {
+                return { ...bounty, status: { description: 'Fetch Failed' } };
+            }
+        });
+        
+        const enrichedBounties = await Promise.all(bountyPromises);
+        
+        allBounties = enrichedBounties;
+        totalBountiesSpan.textContent = allBounties.length;
+
+    } catch (error) {
+        console.error('Error fetching bounties:', error);
+        bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+    }
+}
     function displayBounties(bountiesToShow) {
         bountyTableBody.innerHTML = '';
         currentBountiesSpan.textContent = bountiesToShow.length;
