@@ -1648,6 +1648,92 @@ input:checked + .slider:before {
     margin-top: 20px;
 }
 
+/* --- Faction Overview Panel Styles (Corrected with Table Layout) --- */
+
+#faction-overview-content {
+    overflow-y: auto; /* Make the entire panel scrollable */
+    flex-grow: 1;
+}
+
+.overview-table {
+    width: 100%;
+    border-collapse: collapse; /* Makes borders connect cleanly */
+    font-size: 13px;
+}
+
+.overview-table thead {
+    position: sticky; /* Makes the header stick to the top when scrolling */
+    top: 0;
+    background-color: #0d1b2a; /* Dark background for sticky header */
+    z-index: 1;
+}
+
+.overview-table th {
+    font-weight: bold;
+    color: #bdc3c7;
+    padding: 8px 5px;
+    text-align: center;
+}
+
+.overview-table th,
+.overview-table td {
+    border-bottom: 1px solid #2c3e50;
+    border-right: 1px solid #2c3e50;
+    padding: 8px 5px;
+    white-space: nowrap;
+}
+
+.overview-table th:last-child,
+.overview-table td:last-child {
+    border-right: none; /* Remove border from the last column */
+}
+
+.overview-table .energy-text {
+    color: #2ecc71; /* This is the same green as your 'status-okay' text */
+    font-weight: bold;
+}
+
+.overview-table .overview-name { text-align: left; }
+.overview-table .overview-status {
+    white-space: normal; /* Allow the status column to wrap text */
+    word-break: break-word;
+}
+
+
+/* --- Revive Circle Styles (Unchanged) --- */
+.rev-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto;
+}
+.rev-circle-green { background-color: #2ecc71; }
+.rev-circle-orange { background-color: #f39c12; }
+.rev-circle-red { background-color: #e74c3c; }
+
+
+/* --- Status Text Color Styles (Unchanged) --- */
+.status-okay { color: #2ecc71; }
+.status-hospital { color: #e74c3c; }
+.status-other { color: #f39c12; }
+
+/* --- Scrollbar Styling --- */
+#faction-overview-content::-webkit-scrollbar {
+    width: 8px;
+}
+#faction-overview-content::-webkit-scrollbar-track {
+    background: #1b263b;
+}
+#faction-overview-content::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+#faction-overview-content::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
 
 /* --- Custom Confirmation Box CSS --- */
 .custom-confirm-overlay {
