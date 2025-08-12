@@ -1050,7 +1050,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-.overview-table th, 
+.overview-table th,
 .overview-table td {
     border-bottom: 1px solid #2c3e50;
     border-right: 1px solid #2c3e50;
@@ -1063,24 +1063,13 @@ input:checked + .slider:before {
     border-right: none; /* Remove border from the last column */
 }
 
-.overview-table .overview-name a.overview-name-link {
-    color: #5bc0de !important; /* The nice blue color you asked for, forced to apply */
-    text-decoration: none !important; /* Removes the underline, forced to apply */
-    transition: color 0.2s; /* Smooth color change on hover */
-}
-
-.overview-table .overview-name a.overview-name-link:hover {
-    color: #88d7ff !important; /* A slightly lighter blue on hover */
-    text-decoration: underline !important; /* Add underline on hover for better user feedback */
-}
-
 .overview-table .energy-text {
     color: #2ecc71; /* This is the same green as your 'status-okay' text */
     font-weight: bold;
 }
 
 .overview-table .overview-name { text-align: left; }
-.overview-table .overview-status { 
+.overview-table .overview-status {
     white-space: normal; /* Allow the status column to wrap text */
     word-break: break-word;
 }
