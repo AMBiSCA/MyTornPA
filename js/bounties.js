@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
-   // REPLACE your displayBounties function in bounties.js with this FINAL version
+   // The FINAL version of the displayBounties function
 function displayBounties(bountiesToShow) {
     bountyTableBody.innerHTML = '';
     currentBountiesSpan.textContent = bountiesToShow.length;
@@ -161,12 +161,10 @@ function displayBounties(bountiesToShow) {
     bountiesToShow.forEach(bounty => {
         const row = document.createElement('tr');
         
-        // UPDATED: Use 'None' if the reason is blank
         const reasonText = bounty.reason || 'None'; 
         const status = bounty.status || {};
         const statusText = status.description || 'Loading...';
 
-        // NEW: Determine the CSS class based on the target's status state
         let statusClass = '';
         switch (status.state) {
             case 'Hospital':
@@ -183,7 +181,11 @@ function displayBounties(bountiesToShow) {
                 break;
         }
 
-        // UPDATED: Added the statusClass to the <td>
+        // UPDATED: One last check for being in another country
+        if (status.state === 'Okay' && status.description.startsWith('In ')) {
+            statusClass = 'status-blue'; // Re-use the blue color
+        }
+
         row.innerHTML = `
             <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
             <td>${bounty.target_level}</td>
