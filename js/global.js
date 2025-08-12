@@ -532,13 +532,11 @@ async function populateFactionOverview(overviewContent) {
             const memberId = tornData.id;
             const energy = `${firebaseData.energy?.current || 'N/A'} / ${firebaseData.energy?.maximum || 'N/A'}`;
             const drugCooldown = firebaseData.cooldowns?.drug || 0;
+			const isRevivable = (tornData.revive_setting || '').trim();
             const energyRefillUsed = firebaseData.energyRefillUsed ? 'Yes' : 'No';
             const status = tornData.status.description;
 
-            // --- THIS IS THE CRITICAL FIX ---
-            // We now get the revive setting from the Firebase data, just like your working page.
-            const reviveSetting = firebaseData.revive_setting || 'No one';
-            // --- END FIX ---
+        
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
