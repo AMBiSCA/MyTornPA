@@ -68,23 +68,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`https://api.torn.com/user/?selections=inventory&key=${apiKey}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error.error);
-            // Reformat inventory for easy lookup
+            
             userInventory = {};
             if (data.inventory) {
-                data.inventory.forEach(item => {
+                // -- FIX 1: The API returns an object, so we use Object.values() to get an array --
+                Object.values(data.inventory).forEach(item => {
                     userInventory[item.ID] = item.quantity;
                 });
             }
         } catch (error) {
             console.error("Could not fetch user inventory:", error.message);
-            // Non-critical error, so we don't show a blocking message
         }
     }
 
     async function fetchWatchlistPrices(apiKey, itemIds) {
         if (itemIds.length === 0) return {};
         try {
-            const response = await fetch(`https://api.torn.com/market/${itemIds.join(',')}?selections=itemmarket,bazaar&key=${apiKey}`);
+            // -- FIX 2: Added the missing '/v2/' to the API URL --
+            const response = await fetch(`https://api.torn.com/market/v2/${itemIds.join(',')}?selections=itemmarket,bazaar&key=${apiKey}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error.error);
             return data;
