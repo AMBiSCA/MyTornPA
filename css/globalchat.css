@@ -301,7 +301,6 @@
     font-size: 0.9em; /* Slightly smaller font size */
     flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
     min-height: 30px; /* Ensure a minimum height for consistency */
-	position: relative;
 }
 
 .friends-panel-content .member-item:last-child {
@@ -1122,35 +1121,17 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
-.has-new-message::after {
-    content: '';
-    display: block;
-    width: 8px;
-    height: 8px;
-    background-color: #e74c3c; /* Red color for the notification */
-    border-radius: 50%;
-    position: absolute;
-    top: 5px; /* Adjust positioning as needed */
-    right: 5px; /* Adjust positioning as needed */
-    border: 1px solid #1b263b; /* Border to stand out against the background */
+/* Style for a recent chat item that has an unread message */
+.recent-chat-item.has-new-message {
+    background-color: #1c3d24; /* A darker green background */
+    border: 1px solid #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
+    border-radius: 5px; /* Make sure this matches your existing style */
 }
 
-/* Add a glowing effect to the bell icon when there's a notification */
-#open-notifications-icon.has-notification {
-    animation: pulse-bell 1.5s infinite;
-    color: #e74c3c; /* Change the icon color to red */
-}
-
-@keyframes pulse-bell {
-    0% {
-        box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
-    }
-    100% {
-        box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
-    }
+/* Optional: Add a transition for a smooth effect */
+.recent-chat-item {
+    transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
 }
 
 /* Specific Mobile Styles for Chat System */
