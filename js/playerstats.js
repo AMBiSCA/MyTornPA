@@ -1,4 +1,7 @@
-// Rest of your main JavaScript file (the one you sent me)
+// This file is a customized version of your main Faction Peeper script,
+// adapted for a single-player lookup tool.
+
+// Stat selection logic and other functions copied from your main file.
 const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
 const statCategories = [
     { name: "⭐ Most Popular.", stats: popularPresetStats },
@@ -111,6 +114,9 @@ function getValueForStat(statDisplayName, userData) {
         case 'Bounties Collected': value = personalstats.bountiescollected; break;
         case 'Money Spent on Bounties': value = personalstats.totalbountyspent; break;
         case 'Money From Bounties Collected': value = personalstats.totalbountyreward; break;
+        case 'Revives Made': value = personalstats.revives; break;
+        case 'Revives Received': value = personalstats.revivesreceived; break;
+        case 'Revive Skill': value = personalstats.reviveskill; break;
         case 'Businesses Owned': value = personalstats.companiesowned; break;
         case 'Properties Owned': value = personalstats.propertiesowned; break;
         default: value = 'N/A';
@@ -138,6 +144,7 @@ function getValueForStat(statDisplayName, userData) {
         'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded',
         'Races Won', 'Racing Skill', 'Total Bounties', 'Bounties Placed', 'Bounties Collected',
         'Money Spent on Bounties', 'Money From Bounties Collected',
+        'Revives Made', 'Revives Received', 'Revive Skill',
         'Businesses Owned', 'Properties Owned'
     ];
 
@@ -161,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (checkStatsBtn) checkStatsBtn.disabled = true;
 
-    // Populate the dropdown with categories and stats from the template file
+    // Populate the dropdown with categories and stats
     if (statCategorySelect) {
         statCategories.forEach(category => {
             const optgroup = document.createElement('optgroup');
@@ -228,19 +235,23 @@ document.addEventListener('DOMContentLoaded', () => {
             statsTableBody.innerHTML = '<tr><td colspan="2">Fetching player stats...</td></tr>';
             
             const selectionMapping = {
-                'Level': 'basic', 'Age': 'basic', 'Last Action': 'basic', 'Status': 'basic', 'Networth': 'personalstats', 'Businesses Owned': 'personalstats', 'Properties Owned': 'personalstats',
+                'Level': 'basic', 'Age': 'basic', 'Last Action': 'basic', 'Status': 'basic',
+                'Networth': 'personalstats', 'Businesses Owned': 'personalstats', 'Properties Owned': 'personalstats',
                 'Respect': 'personalstats', 'Xanax Taken': 'personalstats', 'Refills': 'personalstats', 'Total War Hits': 'personalstats', 'Total War Assists': 'personalstats',
-                'Attacks Won': 'personalstats', 'Attacks Lost': 'Attacks Lost', 'Attacks Draw': 'personalstats', 'Defends Won': 'personalstats', 'Defends Lost': 'personalstats',
+                'Attacks Won': 'personalstats', 'Attacks Lost': 'personalstats', 'Attacks Draw': 'personalstats', 'Defends Won': 'personalstats', 'Defends Lost': 'personalstats',
                 'Total Attack Hits': 'personalstats', 'Attack Damage Dealt': 'personalstats', 'Best Single Hit Damage': 'personalstats', 'Critical Hits': 'personalstats', 'One-Hit Kills': 'personalstats', 'Best Kill Streak': 'personalstats',
                 'ELO Rating': 'personalstats', 'Stealth Attacks': 'personalstats', 'Highest Level Beaten': 'personalstats', 'Unarmed Fights Won': 'personalstats', 'Times You Ran Away': 'personalstats', 'Opponent Ran Away': 'personalstats',
                 'Money Mugged': 'personalstats', 'Largest Mug': 'personalstats', 'Bazaar Profit ($)': 'personalstats', 'Bazaar Sales (#)': 'personalstats', 'Bazaar Customers': 'personalstats', 'Points Bought': 'personalstats',
                 'Points Sold': 'personalstats', 'Items Bought (Market/Shops)': 'personalstats', 'City Items Bought': 'personalstats', 'Items Bought Abroad': 'personalstats', 'Items Sent': 'personalstats', 'Items Looted': 'personalstats',
-                'Items Dumped': 'personalstats', 'Trades Made': 'personalstats', 'Criminal Record (Total)': 'personalstats', 'Times Jailed': 'personalstats', 'People Busted': 'personalstats', 'Failed Busts': 'personalstats', 'Arrests Made': 'personalstats',
-                'Medical Items Used': 'personalstats', 'Times Hospitalized': 'personalstats', 'Drugs Used (Times)': 'personalstats', 'Times Overdosed': 'personalstats', 'Times Rehabbed': 'personalstats', 'Boosters Used': 'personalstats', 'Energy Drinks Used': 'personalstats',
-                'Alcohol Used': 'personalstats', 'Candy Used': 'personalstats', 'Nerve Refills Used': 'personalstats', 'Daily Login Streak': 'personalstats', 'Best Active Streak': 'personalstats', 'User Activity': 'personalstats', 'Awards': 'personalstats',
-                'Donator Days': 'personalstats', 'Missions Completed': 'personalstats', 'Contracts Completed': 'personalstats', 'Mission Credits Earned': 'personalstats', 'Job Points Used': 'personalstats', 'Stat Trains Received': 'personalstats',
+                'Items Dumped': 'personalstats', 'Trades Made': 'personalstats',
+                'Criminal Record (Total)': 'personalstats', 'Times Jailed': 'personalstats', 'People Busted': 'personalstats', 'Failed Busts': 'personalstats', 'Arrests Made': 'personalstats',
+                'Medical Items Used': 'personalstats', 'Times Hospitalized': 'personalstats', 'Drugs Used (Times)': 'personalstats', 'Times Overdosed': 'personalstats', 'Times Rehabbed': 'personalstats', 'Boosters Used': 'personalstats',
+                'Energy Drinks Used': 'personalstats', 'Alcohol Used': 'personalstats', 'Candy Used': 'personalstats', 'Nerve Refills Used': 'personalstats',
+                'Daily Login Streak': 'personalstats', 'Best Active Streak': 'personalstats', 'User Activity': 'personalstats', 'Awards': 'personalstats', 'Donator Days': 'personalstats',
+                'Missions Completed': 'personalstats', 'Contracts Completed': 'personalstats', 'Mission Credits Earned': 'personalstats', 'Job Points Used': 'personalstats', 'Stat Trains Received': 'personalstats',
                 'Travels Made': 'personalstats', 'City Finds': 'personalstats', 'Dump Finds': 'personalstats', 'Items Dumped': 'personalstats', 'Books Read': 'personalstats', 'Viruses Coded': 'personalstats', 'Races Won': 'personalstats',
                 'Racing Skill': 'personalstats', 'Total Bounties': 'personalstats', 'Bounties Placed': 'personalstats', 'Bounties Collected': 'personalstats', 'Money Spent on Bounties': 'personalstats', 'Money From Bounties Collected': 'personalstats',
+                'Revives Made': 'personalstats', 'Revives Received': 'personalstats', 'Revive Skill': 'personalstats',
             };
             const selection = selectionMapping[statName] || 'basic';
             const selections = `basic,${selection}`;
