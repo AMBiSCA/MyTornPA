@@ -4464,7 +4464,7 @@ tabButtons.forEach(button => {
 
                 // Initial calls to update UI
                 displayWarRoster(); // This now expects data from Firebase
-                setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
+ 
                 setupWarClaimsListener(); // Listens for claims
 
                 userEnergyDisplay = document.getElementById('userEnergyDisplay');
