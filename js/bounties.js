@@ -73,54 +73,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Function to fetch data directly from the Torn API
-    async function fetchBounties(apiKey) {
-        try {
-            bountyTableBody.innerHTML = '<tr><td colspan="5">Fetching bounties from Torn...</td></tr>';
-            
-            const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
-            const bountiesResponse = await fetch(bountiesUrl);
-            const bountiesData = await bountiesResponse.json();
-            
-            if (bountiesData.error) {
-                bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
-                return;
-            }
-            
-            let bounties = [];
-            if (bountiesData.bounties) {
-                if (Array.isArray(bountiesData.bounties)) {
-                    bounties = bountiesData.bounties;
-                } else if (typeof bountiesData.bounties === 'object') {
-                    bounties = Object.values(bountiesData.bounties);
-                }
-            }
-
-            const bountyPromises = bounties.map(async (bounty) => {
-                const userUrl = `https://api.torn.com/v2/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
-                const userResponse = await fetch(userUrl);
-                const userData = await userResponse.json();
-                
-                if (userData.error) {
-                    return { ...bounty, target_name: 'Error', target_level: 0, error: userData.error.error };
-                }
-                
-                return {
-                    ...bounty,
-                    target_name: userData.basic.name,
-                    target_level: userData.basic.level,
-                };
-            });
-            
-            const enrichedBounties = await Promise.all(bountyPromises);
-            allBounties = enrichedBounties.filter(bounty => !bounty.error);
-            totalBountiesSpan.textContent = allBounties.length;
-
-        } catch (error) {
-            console.error('Error fetching bounties:', error);
-            bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+   async function fetchBounties(apiKey) {
+    try {
+        bountyTableBody.innerHTML = '<tr><td colspan="5">Fetching bounties from Torn...</td></tr>';
+        
+        const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
+        const bountiesResponse = await fetch(bountiesUrl);
+        const bountiesData = await bountiesResponse.json();
+        
+        if (bountiesData.error) {
+            bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+            return;
         }
-    }
+        
+        let bounties = [];
+        if (bountiesData.bounties) {
+            // This handles cases where the API returns an array or an object.
+            if (Array.isArray(bountiesData.bounties)) {
+                bounties = bountiesData.bounties;
+            } else if (typeof bountiesData.bounties === 'object') {
+                bounties = Object.values(bountiesData.bounties);
+            }
+        }
 
+        // The 'bounties' data already has everything we need.
+        // We assign it directly to allBounties without making extra calls.
+        allBounties = bounties;
+        totalBountiesSpan.textContent = allBounties.length;
+
+    } catch (error) {
+        console.error('Error fetching bounties:', error);
+        bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+    }
+}
     // Function to apply filters and sort
     function applyFiltersAndSort() {
         if (!allBounties || allBounties.length === 0) {
