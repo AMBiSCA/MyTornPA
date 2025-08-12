@@ -710,6 +710,7 @@ function openPrivateChatWindow(userId, userName) {
 }
 
 // Corrected and Final Working Version of populateFriendListTab
+// Corrected and Final Working Version of populateFriendListTab
 async function populateFriendListTab(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Friend List tab.");
@@ -748,7 +749,6 @@ async function populateFriendListTab(targetDisplayElement) {
 
         let cardsHtml = '';
         friendDetails.forEach(friend => {
-            // This is the CRITICAL line that has been updated
             cardsHtml += `
                 <div class="member-item" id="friend-${friend.id}">
                     <div class="member-identity">
@@ -791,7 +791,6 @@ async function populateFriendListTab(targetDisplayElement) {
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
     }
 }
-
     async function populateFriendListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
             console.error("HTML Error: Target display element not provided for Friend List tab.");

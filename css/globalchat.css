@@ -301,6 +301,7 @@
     font-size: 0.9em; /* Slightly smaller font size */
     flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
     min-height: 30px; /* Ensure a minimum height for consistency */
+	position: relative;
 }
 
 .friends-panel-content .member-item:last-child {
