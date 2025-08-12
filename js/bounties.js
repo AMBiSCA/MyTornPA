@@ -1,5 +1,3 @@
-// mysite/js/bounties.js
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements for the bounty page
@@ -14,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bountyApiKeyErrorDiv = document.getElementById('bountyApiKeyError');
 
     let allBounties = []; // To store all fetched bounty data
+    let tornApiKey = null;
 
     // Initial state: disable button and show loading message
     if (applyFiltersBtn) applyFiltersBtn.disabled = true;
@@ -23,33 +22,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(async function(user) {
             if (user) {
-                console.log("User is signed in on bounties.js:", user.uid);
                 try {
                     const userDocRef = db.collection('userProfiles').doc(user.uid);
                     const userDoc = await userDocRef.get();
 
                     if (userDoc.exists) {
                         const userData = userDoc.data();
-                        const tornApiKey = userData.tornApiKey;
-
-                        console.log("DEBUG BOUNTIES: Torn API Key retrieved from Firestore.");
+                        tornApiKey = userData.tornApiKey;
 
                         if (tornApiKey) {
                             if (bountyApiKeyErrorDiv) bountyApiKeyErrorDiv.textContent = '';
                             if (applyFiltersBtn) {
                                 applyFiltersBtn.disabled = false;
-                                applyFiltersBtn.onclick = () => applyFiltersAndSort();
                             }
-                            // Automatically fetch bounties once the key is available
-                            fetchBounties(tornApiKey);
+                            await fetchBounties(tornApiKey);
+                            applyFiltersAndSort(); // Run initial sort after fetching
+                            applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
+
                         } else {
-                            const message = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid key.';
+                            const message = 'Your Torn API Key is not set in your profile.';
                             if (bountyApiKeyErrorDiv) bountyApiKeyErrorDiv.textContent = message;
                             if (applyFiltersBtn) applyFiltersBtn.disabled = true;
                             bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">${message}</td></tr>`;
                         }
                     } else {
-                        const message = 'User profile not found in database. Please ensure your profile is set up.';
+                        const message = 'User profile not found in database.';
                         if (bountyApiKeyErrorDiv) bountyApiKeyErrorDiv.textContent = message;
                         if (applyFiltersBtn) applyFiltersBtn.disabled = true;
                         bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">${message}</td></tr>`;
@@ -63,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // User is signed out
-                console.log("No user is signed in on bounties.js.");
                 if (bountyApiKeyErrorDiv) bountyApiKeyErrorDiv.textContent = 'Please sign in to use this feature.';
                 if (applyFiltersBtn) applyFiltersBtn.disabled = true;
                 bountyTableBody.innerHTML = '<tr><td colspan="5">Please sign in to view bounties.</td></tr>';
@@ -76,32 +72,48 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">${message}</td></tr>`;
     }
 
-    // Function to fetch data from the server-side endpoint
-    // This is the secure approach, using a server function to call the Torn API
-    async function fetchBounties(tornApiKey) {
+    // Function to fetch data directly from the Torn API
+    async function fetchBounties(apiKey) {
         try {
             bountyTableBody.innerHTML = '<tr><td colspan="5">Fetching bounties from Torn...</td></tr>';
             
-            // Your server-side function endpoint that handles the API call
-            // This function takes the API key and returns processed bounty data
-            const functionUrl = `/.netlify/functions/get-bounties`; 
-            const response = await fetch(functionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey: tornApiKey })
-            });
-
-            const data = await response.json();
+            const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
+            const bountiesResponse = await fetch(bountiesUrl);
+            const bountiesData = await bountiesResponse.json();
             
-            if (!response.ok || data.error) {
-                const errorMessage = data.error || `Netlify Function Error: ${response.status}`;
-                bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${errorMessage}</td></tr>`;
+            if (bountiesData.error) {
+                bountyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
                 return;
             }
+            
+            let bounties = [];
+            if (bountiesData.bounties) {
+                if (Array.isArray(bountiesData.bounties)) {
+                    bounties = bountiesData.bounties;
+                } else if (typeof bountiesData.bounties === 'object') {
+                    bounties = Object.values(bountiesData.bounties);
+                }
+            }
 
-            allBounties = data.bounties;
+            const bountyPromises = bounties.map(async (bounty) => {
+                const userUrl = `https://api.torn.com/v2/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
+                const userResponse = await fetch(userUrl);
+                const userData = await userResponse.json();
+                
+                if (userData.error) {
+                    return { ...bounty, target_name: 'Error', target_level: 0, error: userData.error.error };
+                }
+                
+                return {
+                    ...bounty,
+                    target_name: userData.basic.name,
+                    target_level: userData.basic.level,
+                };
+            });
+            
+            const enrichedBounties = await Promise.all(bountyPromises);
+            allBounties = enrichedBounties.filter(bounty => !bounty.error);
             totalBountiesSpan.textContent = allBounties.length;
-            displayBounties(allBounties);
 
         } catch (error) {
             console.error('Error fetching bounties:', error);
@@ -109,8 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to apply filters and sorting
+    // Function to apply filters and sort
     function applyFiltersAndSort() {
+        if (!allBounties || allBounties.length === 0) {
+            bountyTableBody.innerHTML = '<tr><td colspan="5">No bounties match your criteria.</td></tr>';
+            currentBountiesSpan.textContent = 0;
+            return;
+        }
+
         let filteredBounties = [...allBounties];
 
         // 1. Filter by Level Range
@@ -126,15 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const minBounty = parseInt(minBountyInput.value, 10);
         if (minBounty >= 1000) {
             filteredBounties = filteredBounties.filter(bounty => 
-                bounty.amount >= minBounty
+                bounty.reward >= minBounty
             );
         }
         
         // 3. Sort the results
         const sortBy = sortBySelect.value;
         filteredBounties.sort((a, b) => {
-            if (sortBy === 'amount-desc') return b.amount - a.amount;
-            if (sortBy === 'amount-asc') return a.amount - b.amount;
+            if (sortBy === 'amount-desc') return b.reward - a.reward;
+            if (sortBy === 'amount-asc') return a.reward - b.reward;
             if (sortBy === 'level-desc') return b.target_level - a.target_level;
             if (sortBy === 'level-asc') return a.target_level - b.target_level;
         });
@@ -155,11 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bountiesToShow.forEach(bounty => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_player_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_player_id}]</a></td>
+                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
                 <td>${bounty.target_level}</td>
-                <td>$${bounty.amount.toLocaleString('en-US')}</td>
+                <td>$${bounty.reward.toLocaleString('en-US')}</td>
                 <td>${bounty.reason}</td>
-                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_player_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
+                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
             `;
             bountyTableBody.appendChild(row);
         });
