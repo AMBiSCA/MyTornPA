@@ -44,7 +44,6 @@
     font-weight: bold;
 }
 
-/* UPDATED: Removed general width property */
 .filters-panel select, .filters-panel input {
     height: 38px;
     padding: 6px 12px;
@@ -56,7 +55,6 @@
     box-sizing: border-box;
 }
 
-/* NEW: Added specific widths for each input for better control */
 #sort-by {
     width: 250px;
 }
@@ -71,9 +69,8 @@
     gap: 5px;
 }
 
-/* UPDATED: Increased width to prevent numbers being cut off */
 .filters-panel .level-inputs input {
-    width: 80px; /* Was 65px */
+    width: 80px;
     text-align: center;
 }
 
@@ -100,11 +97,36 @@
     transform: translateY(-2px);
 }
 
+/* UPDATED: Added max-height and overflow-y for a scrollable table body */
 .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-height: 410px; /* Limits the height to show ~8-9 rows */
+    overflow-y: auto;  /* Adds a vertical scrollbar when content exceeds max-height */
 }
+
+/* NEW: Custom scrollbar styling to match the site theme */
+.table-wrapper::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background-color: #007acc;
+    border-radius: 10px;
+    border: 3px solid #2a2a2a;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+
 
 .bounty-table {
     width: 100%;
@@ -119,7 +141,7 @@
     padding: 12px 15px;
     text-align: left;
     border: 1px solid #005f99;
-    position: sticky;
+    position: sticky; /* This makes the header stick to the top of the .table-wrapper */
     top: 0;
     z-index: 10;
     font-size: 0.95rem;
@@ -187,8 +209,7 @@
         width: 100%;
         align-items: center;
     }
-
-    /* UPDATED: Set width to auto to respect the new specific ID widths */
+    
     .filters-panel select, .filters-panel input {
         width: 100%;
         text-align: center;
