@@ -2457,3 +2457,169 @@ footer.footer {
         transform: rotate(180deg); /* Flips the arrow to point down */
     }
 }
+
+/* ======================================= */
+/* ======== EYE-SOOTHING THEME =========== */
+/* ======================================= */
+
+/* This theme activates when the body has the .eye-soothing-mode class */
+body.eye-soothing-mode {
+    /* Main background: A soft, warm paper tone */
+    background: #f4f1ea;
+    /* Main text color: A dark, soft brown instead of bright white */
+    color: #5b4636;
+}
+
+/* Fades the background image to a very faint sepia tone */
+body.eye-soothing-mode::before {
+    filter: grayscale(100%) sepia(40%) opacity(50%);
+    opacity: 0.08;
+}
+
+/* Header, Footer, and Main Content Box */
+body.eye-soothing-mode header,
+body.eye-soothing-mode footer.footer {
+    background-color: #e9e2d9; /* Slightly darker paper tone for contrast */
+    border-color: #a58e6f; /* Muted gold/brown accent */
+    color: #5b4636;
+}
+
+body.eye-soothing-mode main {
+    background-color: rgba(253, 246, 227, 0.9); /* A translucent light cream */
+    box-shadow: 0 0 15px rgba(139, 69, 19, 0.15); /* Soft brown shadow */
+    border: 1px solid #e9e2d9;
+}
+
+/* Headings & Links */
+body.eye-soothing-mode .header-left h1,
+body.eye-soothing-mode h2,
+body.eye-soothing-mode footer.footer .footer-links a,
+body.eye-soothing-mode .modal-content .modal-close-btn {
+    color: #8b4513; /* A rich, readable brown */
+}
+body.eye-soothing-mode a:hover,
+body.eye-soothing-mode footer.footer .footer-links a:hover {
+    color: #a0522d; /* Lighter brown for hover */
+}
+body.eye-soothing-mode .overview-table .overview-name a,
+body.eye-soothing-mode .overview-table .overview-name a:visited {
+    color: #8b4513 !important;
+}
+
+/* Buttons */
+body.eye-soothing-mode .btn {
+    background-color: #f0e9e0; /* Light paper color */
+    border-color: #8b4513; /* Brown border */
+    color: #5b4636; /* Dark brown text */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+body.eye-soothing-mode .btn:not(:disabled):hover,
+body.eye-soothing-mode .btn:not(:disabled):focus {
+    border-color: #a0522d;
+    box-shadow: 0 1px 2px 0 rgba(139, 69, 19, .30), 0 1px 3px 1px rgba(139, 69, 19, .15);
+}
+
+/* Glow effects */
+body.eye-soothing-mode .image-glow,
+body.eye-soothing-mode .image-glow-flipped {
+    filter: drop-shadow(0px 0px 12px #b99d6b);
+}
+
+/* Dropdowns & Modals */
+body.eye-soothing-mode .dropdown-content,
+body.eye-soothing-mode .modal-content,
+body.eye-soothing-mode .modal-content-box,
+body.eye-soothing-mode .custom-confirm-box {
+    background-color: #fdf6e3;
+    color: #5b4636;
+    border-color: #a58e6f;
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
+}
+
+body.eye-soothing-mode .dropdown-content a {
+    color: #5b4636;
+}
+
+body.eye-soothing-mode .dropdown-content a:hover {
+    background-color: #f4f1ea;
+    color: #8b4513;
+}
+
+/* Chat System */
+body.eye-soothing-mode #chat-window,
+body.eye-soothing-mode .private-chat-window,
+body.eye-soothing-mode #friends-panel,
+body.eye-soothing-mode #notifications-panel,
+body.eye-soothing-mode #settings-panel {
+    background-color: #e9e2d9;
+    border-color: #a58e6f;
+}
+
+body.eye-soothing-mode .chat-header,
+body.eye-soothing-mode .pcw-header,
+body.eye-soothing-mode .friends-panel-search,
+body.eye-soothing-mode .chat-input-area,
+body.eye-soothing-mode .pcw-input-area,
+body.eye-soothing-mode .friends-panel-subtabs {
+    background-color: #d8cbb7;
+    border-color: #a58e6f;
+}
+
+body.eye-soothing-mode .chat-tab,
+body.eye-soothing-mode .friends-panel-subtabs .sub-tab-button,
+body.eye-soothing-mode .notification-section,
+body.eye-soothing-mode .settings-section,
+body.eye-soothing-mode .friends-panel-content .member-item {
+    background-color: #f0e9e0;
+    border-color: #d8cbb7;
+}
+
+body.eye-soothing-mode .chat-tab:hover,
+body.eye-soothing-mode .friends-panel-subtabs .sub-tab-button:hover {
+    background-color: #d8cbb7;
+}
+
+body.eye-soothing-mode .chat-tab.active,
+body.eye-soothing-mode .friends-panel-subtabs .sub-tab-button.active {
+    background-color: #c9b8a1;
+    border-color: #8b4513;
+}
+
+body.eye-soothing-mode .chat-text-input,
+body.eye-soothing-mode .pcw-input,
+body.eye-soothing-mode .custom-input,
+body.eye-soothing-mode .friends-panel-search .search-input {
+    background-color: #ffffff;
+    color: #3c3c3c;
+    border-color: #b99d6b;
+}
+
+body.eye-soothing-mode .chat-text-input:focus,
+body.eye-soothing-mode .custom-input:focus {
+    border-color: #8b4513;
+}
+
+body.eye-soothing-mode .chat-send-btn,
+body.eye-soothing-mode .pcw-send-btn,
+body.eye-soothing-mode .action-button,
+body.eye-soothing-mode .btn-alert-ok {
+    background-color: #8b4513;
+    color: #f4f1ea;
+    border: none;
+}
+body.eye-soothing-mode .chat-send-btn:hover,
+body.eye-soothing-mode .pcw-send-btn:hover,
+body.eye-soothing-mode .action-button:hover,
+body.eye-soothing-mode .btn-alert-ok:hover {
+    background-color: #a0522d;
+}
+
+body.eye-soothing-mode .chat-message,
+body.eye-soothing-mode .chat-text {
+    color: #5b4636;
+}
+
+body.eye-soothing-mode .chat-sender {
+    color: #8b4513;
+}
