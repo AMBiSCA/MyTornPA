@@ -130,14 +130,15 @@
 
 .bounty-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate; /* Changed from 'collapse' */
+    border-spacing: 0; /* Added this to remove gaps */
     background-color: #1c1c1c;
     min-width: 700px;
 }
 
 .bounty-table thead th {
     background-color: #007acc;
-    color: black;
+    color: #ffffff; /* Changed from 'black' for better contrast */
     padding: 12px 15px;
     text-align: left;
     border: 1px solid #005f99;
