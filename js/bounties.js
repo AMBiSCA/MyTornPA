@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const until = parseInt(cell.dataset.until, 10);
             if (isNaN(until) || until === 0) {
                 // If there's no 'until' time, we don't need to process it.
-                // We also remove the attribute to prevent re-checking.
                 if (cell.hasAttribute('data-until')) {
                     cell.removeAttribute('data-until');
                 }
@@ -82,10 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">${message}</td></tr>`;
                         }
                     } else {
-                        // ... (error handling as before)
+                        bountyApiKeyErrorDiv.textContent = 'User profile not found.';
                     }
                 } catch (error) {
-                    // ... (error handling as before)
+                    console.error("Error fetching user profile:", error);
+                    bountyApiKeyErrorDiv.textContent = 'Error fetching user profile.';
                 }
             } else {
                 // User is signed out
@@ -95,112 +95,119 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else {
-        // ... (error handling as before)
+        bountyApiKeyErrorDiv.textContent = 'Firebase is not initialized correctly.';
     }
 
-   async function fetchBounties(apiKey) {
-    try {
-        bountyTableBody.innerHTML = '<tr><td colspan="6">Fetching bounties from Torn...</td></tr>';
-        
-        // FINAL CORRECTION: Restored the exact /v2/ URL.
-        const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
-        
-        const bountiesResponse = await fetch(bountiesUrl);
-        const bountiesData = await bountiesResponse.json();
-        
-        if (bountiesData.error) {
-            bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+    async function fetchBounties(apiKey) {
+        try {
+            bountyTableBody.innerHTML = '<tr><td colspan="6">Fetching bounties from Torn...</td></tr>';
+            
+            const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
+            
+            const bountiesResponse = await fetch(bountiesUrl);
+            const bountiesData = await bountiesResponse.json();
+            
+            if (bountiesData.error) {
+                bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+                return;
+            }
+            
+            let bounties = [];
+            if (bountiesData.bounties) {
+                bounties = Object.values(bountiesData.bounties);
+            }
+
+            // Get a unique list of bounties (one per target)
+            const uniqueBounties = [];
+            const processedTargetIds = new Set();
+            for (const bounty of bounties) {
+                if (!processedTargetIds.has(bounty.target_id)) {
+                    uniqueBounties.push(bounty);
+                    processedTargetIds.add(bounty.target_id);
+                }
+            }
+
+            const limitedBounties = uniqueBounties.slice(0, 50);
+            
+            const bountyPromises = limitedBounties.map(async (bounty) => {
+                const userUrl = `https://api.torn.com/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
+                try {
+                    const userResponse = await fetch(userUrl);
+                    const userData = await userResponse.json();
+                    if (userData.error) {
+                        return { ...bounty, status: { description: 'Error' } };
+                    }
+                    return { ...bounty, status: userData.status };
+                } catch {
+                    return { ...bounty, status: { description: 'Fetch Failed' } };
+                }
+            });
+            
+            const enrichedBounties = await Promise.all(bountyPromises);
+            
+            allBounties = enrichedBounties;
+            totalBountiesSpan.textContent = uniqueBounties.length;
+
+        } catch (error) {
+            console.error('Error fetching bounties:', error);
+            bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+        }
+    }
+
+    function displayBounties(bountiesToShow) {
+        bountyTableBody.innerHTML = '';
+        currentBountiesSpan.textContent = bountiesToShow.length;
+
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+
+        if (bountiesToShow.length === 0) {
+            bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
             return;
         }
-        
-        let bounties = [];
-        if (bountiesData.bounties) {
-            bounties = Object.values(bountiesData.bounties);
-        }
 
-        const limitedBounties = bounties.slice(0, 50);
+        bountiesToShow.forEach(bounty => {
+            const row = document.createElement('tr');
+            
+            const reasonText = bounty.reason || 'None';
+            const status = bounty.status || {};
+            const statusText = status.description || 'Loading...';
 
-        const bountyPromises = limitedBounties.map(async (bounty) => {
-            const userUrl = `https://api.torn.com/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
-            try {
-                const userResponse = await fetch(userUrl);
-                const userData = await userResponse.json();
-                if (userData.error) {
-                    return { ...bounty, status: { description: 'Error' } };
-                }
-                return { ...bounty, status: userData.status };
-            } catch {
-                return { ...bounty, status: { description: 'Fetch Failed' } };
+            let statusClass = '';
+            
+            switch (status.state) {
+                case 'Hospital':
+                    statusClass = 'status-red';
+                    break;
+                case 'Jail':
+                    statusClass = 'status-orange';
+                    break;
+                case 'Traveling':
+                case 'Abroad':
+                    statusClass = 'status-blue';
+                    break;
+                case 'Okay':
+                    statusClass = 'status-green';
+                    break;
             }
+
+            row.innerHTML = `
+                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
+                <td>${bounty.target_level}</td>
+                <td>$${bounty.reward.toLocaleString('en-US')}</td>
+                <td>${reasonText}</td>
+                <td class="${statusClass}" data-until="${status.until || 0}" data-state="${status.state || ''}">
+                    ${statusText}
+                </td>
+                <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
+            `;
+            bountyTableBody.appendChild(row);
         });
-        
-        const enrichedBounties = await Promise.all(bountyPromises);
-        
-        allBounties = enrichedBounties;
-        totalBountiesSpan.textContent = allBounties.length;
 
-    } catch (error) {
-        console.error('Error fetching bounties:', error);
-        bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+        timerInterval = setInterval(updateTimers, 1000);
     }
-}
-   // The FINAL, DEFINITIVE version of the displayBounties function
-function displayBounties(bountiesToShow) {
-    bountyTableBody.innerHTML = '';
-    currentBountiesSpan.textContent = bountiesToShow.length;
-
-    if (timerInterval) {
-        clearInterval(timerInterval);
-    }
-
-    if (bountiesToShow.length === 0) {
-        bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
-        return;
-    }
-
-    bountiesToShow.forEach(bounty => {
-        const row = document.createElement('tr');
-        
-        const reasonText = bounty.reason || 'None'; 
-        const status = bounty.status || {};
-        const statusText = status.description || 'Loading...';
-
-        let statusClass = '';
-        
-        // CORRECTED: Added the 'Abroad' state to the list.
-        switch (status.state) {
-            case 'Hospital':
-                statusClass = 'status-red';
-                break;
-            case 'Jail':
-                statusClass = 'status-orange';
-                break;
-            case 'Traveling':
-            case 'Abroad': // Grouping 'Abroad' with 'Traveling'
-                statusClass = 'status-blue';
-                break;
-            case 'Okay':
-                statusClass = 'status-green';
-                break;
-        }
-
-        // The previous extra 'if' statement is no longer needed and has been removed.
-
-        row.innerHTML = `
-            <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
-            <td>${bounty.target_level}</td>
-            <td>$${bounty.reward.toLocaleString('en-US')}</td>
-            <td>${reasonText}</td>
-            <td class="${statusClass}" data-until="${status.until || 0}" data-state="${status.state || ''}">
-                ${statusText}
-            </td>
-            <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="fetch-btn action-btn">Attack</a></td>
-        `;
-        bountyTableBody.appendChild(row);
-    });
-
-    timerInterval = setInterval(updateTimers, 1000);
-}
+    
     function applyFiltersAndSort() {
         if (!allBounties || allBounties.length === 0) {
             bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
@@ -210,7 +217,7 @@ function displayBounties(bountiesToShow) {
 
         let filteredBounties = [...allBounties];
 
-        // Filtering logic (as before)
+        // Filtering logic
         const minLevel = parseInt(minLevelInput.value, 10);
         const maxLevel = parseInt(maxLevelInput.value, 10);
         if (!isNaN(minLevel) && !isNaN(maxLevel)) {
@@ -226,7 +233,7 @@ function displayBounties(bountiesToShow) {
             );
         }
         
-        // Sorting logic (as before)
+        // Sorting logic
         const sortBy = sortBySelect.value;
         filteredBounties.sort((a, b) => {
             if (sortBy === 'amount-desc') return b.reward - a.reward;
