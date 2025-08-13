@@ -1,4 +1,4 @@
-// mysite/js/broker.js
+console.log("--- LATEST BROKER.JS FILE LOADED ---"); 
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
