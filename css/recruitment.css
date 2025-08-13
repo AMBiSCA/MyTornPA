@@ -210,7 +210,7 @@
 .action-button.remove {
     background-color: #d93025; /* A strong red color */
     border-color: #a52714;
-    color: white; /* Ensures the text is readable */
+    color: black; /* Ensures the text is readable */
 }
 
 /* Changes the hover color for the red remove buttons */
@@ -219,12 +219,12 @@
     border-color: #a52714;
 }
 
+/* --- Styles for Apply Button --- */
 
 /* Targets only the Apply button to make it black */
 .action-button.apply-link {
-    background-color: #222; /* A dark black/grey color */
     border-color: #000;
-    color: white; /* Ensures the text is readable */
+    color: black; /* Ensures the text is readable */
 }
 
 /* Changes the hover color for the black apply button */
@@ -232,6 +232,7 @@
     background-color: #444; /* A lighter grey on hover */
     border-color: #000;
 }
+
 
 /* ... (rest of your CSS code below this) ... */
 
