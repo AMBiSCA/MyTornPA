@@ -79,50 +79,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- UI Rendering ---
-    async function refreshWatchlistDisplay() {
-        if (watchlist.length === 0) {
-            itemTableBody.innerHTML = '<tr><td colspan="5">Add an item to your watchlist to begin...</td></tr>';
-            currentItemsSpan.textContent = '0';
-            return;
-        }
+   // mysite/js/broker.js (Final Corrected Function)
 
-        itemTableBody.innerHTML = `<tr><td colspan="5">Fetching prices for ${watchlist.length} item(s)...</td></tr>`;
-        currentItemsSpan.textContent = watchlist.length;
-
-        const promises = [];
-        watchlist.forEach(itemId => {
-            // YOUR FIX: Create two separate promises for each item, one for itemmarket and one for bazaar.
-            promises.push(fetch(`https://api.torn.com/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json()));
-            promises.push(fetch(`https://api.torn.com/market/${itemId}?selections=bazaar&key=${tornApiKey}`).then(res => res.json()));
-        });
-
-        const results = await Promise.all(promises);
-        itemTableBody.innerHTML = ''; // Clear table for new rows
-
-        for (let i = 0; i < watchlist.length; i++) {
-            const itemId = watchlist[i];
-            const itemInfo = allItems[itemId];
-
-            // The results array will have market data at index 2*i and bazaar data at 2*i + 1
-            const marketData = results[i * 2];
-            const bazaarData = results[i * 2 + 1];
-
-            const marketPrice = marketData && marketData.itemmarket && marketData.itemmarket[0] ? '$' + marketData.itemmarket[0].cost.toLocaleString() : 'N/A';
-            const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
-            const userStock = userInventory[itemId] || 0;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
-                <td>${marketPrice}</td>
-                <td>${bazaarPrice}</td>
-                <td>${userStock.toLocaleString()}</td>
-                <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
-            `;
-            itemTableBody.appendChild(row);
-        }
+async function refreshWatchlistDisplay() {
+    if (watchlist.length === 0) {
+        itemTableBody.innerHTML = '<tr><td colspan="5">Add an item to your watchlist to begin...</td></tr>';
+        currentItemsSpan.textContent = '0';
+        return;
     }
 
+    itemTableBody.innerHTML = `<tr><td colspan="5">Fetching prices for ${watchlist.length} item(s)...</td></tr>`;
+    currentItemsSpan.textContent = watchlist.length;
+
+    const promises = [];
+    watchlist.forEach(itemId => {
+        // FINAL FIX: Re-added the /v2/ to the URL path for both separate calls.
+        promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json()));
+        promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar&key=${tornApiKey}`).then(res => res.json()));
+    });
+
+    const results = await Promise.all(promises);
+    itemTableBody.innerHTML = ''; // Clear table for new rows
+
+    for (let i = 0; i < watchlist.length; i++) {
+        const itemId = watchlist[i];
+        const itemInfo = allItems[itemId];
+
+        // The results array will have market data at index 2*i and bazaar data at 2*i + 1
+        const marketData = results[i * 2];
+        const bazaarData = results[i * 2 + 1];
+
+        const marketPrice = marketData && marketData.itemmarket && marketData.itemmarket[0] ? '$' + marketData.itemmarket[0].cost.toLocaleString() : 'N/A';
+        const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
+        const userStock = userInventory[itemId] || 0;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
+            <td>${marketPrice}</td>
+            <td>${bazaarPrice}</td>
+            <td>${userStock.toLocaleString()}</td>
+            <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
+        `;
+        itemTableBody.appendChild(row);
+    }
+}
     // --- Event Listeners ---
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.toLowerCase();
