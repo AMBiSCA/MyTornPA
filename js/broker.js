@@ -1,4 +1,4 @@
-// mysite/js/broker.js (Final Corrected Version)
+// mysite/js/broker.js (Final Version Using Your Correct Logic)
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -77,20 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Could not fetch user inventory:", error.message);
         }
     }
-    
-    // This function now only fetches the price for a SINGLE item.
-   async function fetchItemPrice(apiKey, itemId) {
-    try {
-        // CORRECTED: 'v2' is not part of the path. It's a parameter at the end, '&version=2'.
-        const response = await fetch(`https://api.torn.com/market/${itemId}?selections=itemmarket,bazaar&key=${apiKey}&version=2`);
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.error);
-        return data;
-    } catch (error) {
-        console.error(`Could not fetch price for item ${itemId}:`, error.message);
-        return null; // Return null on failure
-    }
-}
 
     // --- UI Rendering ---
     async function refreshWatchlistDisplay() {
@@ -103,26 +89,26 @@ document.addEventListener('DOMContentLoaded', () => {
         itemTableBody.innerHTML = `<tr><td colspan="5">Fetching prices for ${watchlist.length} item(s)...</td></tr>`;
         currentItemsSpan.textContent = watchlist.length;
 
-        // Create an array of promises, one for each API call
-        const pricePromises = watchlist.map(itemId => fetchItemPrice(tornApiKey, itemId));
-        
-        // Wait for all API calls to complete
-        const priceResults = await Promise.all(pricePromises);
+        const promises = [];
+        watchlist.forEach(itemId => {
+            // YOUR FIX: Create two separate promises for each item, one for itemmarket and one for bazaar.
+            promises.push(fetch(`https://api.torn.com/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json()));
+            promises.push(fetch(`https://api.torn.com/market/${itemId}?selections=bazaar&key=${tornApiKey}`).then(res => res.json()));
+        });
 
+        const results = await Promise.all(promises);
         itemTableBody.innerHTML = ''; // Clear table for new rows
 
-        watchlist.forEach((itemId, index) => {
+        for (let i = 0; i < watchlist.length; i++) {
+            const itemId = watchlist[i];
             const itemInfo = allItems[itemId];
-            const priceData = priceResults[index];
-            
-            let bazaarPrice = 'N/A';
-            let marketPrice = 'N/A';
 
-            if (priceData) {
-                 bazaarPrice = priceData.bazaar && priceData.bazaar[0] ? '$' + priceData.bazaar[0].cost.toLocaleString() : 'N/A';
-                 marketPrice = priceData.itemmarket && priceData.itemmarket[0] ? '$' + priceData.itemmarket[0].cost.toLocaleString() : 'N/A';
-            }
-            
+            // The results array will have market data at index 2*i and bazaar data at 2*i + 1
+            const marketData = results[i * 2];
+            const bazaarData = results[i * 2 + 1];
+
+            const marketPrice = marketData && marketData.itemmarket && marketData.itemmarket[0] ? '$' + marketData.itemmarket[0].cost.toLocaleString() : 'N/A';
+            const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
             const userStock = userInventory[itemId] || 0;
 
             const row = document.createElement('tr');
@@ -134,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
             `;
             itemTableBody.appendChild(row);
-        });
+        }
     }
 
     // --- Event Listeners ---
