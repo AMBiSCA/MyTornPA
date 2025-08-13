@@ -1,4 +1,4 @@
-// Stat selection logic (remains the same as before)
+// Stat selection logic
 const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
 const statCategories = [
     { name: "⭐ Most Popular.", stats: popularPresetStats },
@@ -12,7 +12,7 @@ const statCategories = [
 const statDropdownsParentContainer = document.getElementById('statDropdownsParentContainer');
 const selectedStatsDisplay = document.getElementById('selectedStatsDisplay');
 const chkMostPopular = document.getElementById('chkMostPopular');
-const maxSelection = 6;
+const maxSelection = 10; // <<<<<<< CHANGED FROM 6 TO 10
 let selected = new Set();
 
 function renderSelectedStats() {
@@ -271,7 +271,6 @@ function getValueForStat(statDisplayName, userData) {
         return value.toLocaleString();
     }
     
-    // Handle cases like "22 hours ago" -> "22 Hours Ago"
     if (typeof value === 'string' && value.includes(' ago')) {
         return value.charAt(0).toUpperCase() + value.slice(1).replace(' ago', ' Ago');
     }
@@ -279,13 +278,11 @@ function getValueForStat(statDisplayName, userData) {
     return String(value);
 }
 
-// *** THIS IS THE MAIN MODIFIED FUNCTION ***
 async function fetchData(user) {
     showLoadingSpinner();
     const userIdError = document.getElementById('userIdError');
     const statsError = document.getElementById('statsError');
 
-    // Clear previous errors
     if (userIdError) userIdError.textContent = '';
     if (statsError) statsError.textContent = '';
     document.querySelector('.main-input-error-feedback')?.remove();
@@ -327,7 +324,7 @@ async function fetchData(user) {
     }
 
     try {
-        const selections = ['profile', 'personalstats']; // Always fetch these
+        const selections = ['profile', 'personalstats'];
         const apiUrl = `https://api.torn.com/user/${userId}?selections=${selections.join(',')}&key=${currentApiKey}`;
         
         const response = await fetch(apiUrl);
@@ -341,7 +338,6 @@ async function fetchData(user) {
             throw new Error(`Torn API Error: ${userData.error.error}`);
         }
 
-        // --- Populate the modal ---
         const modalUserName = document.getElementById('modal-user-name');
         const modalUserId = document.getElementById('modal-user-id');
         const modalTableBody = document.getElementById('modal-results-table-body');
@@ -387,7 +383,6 @@ function showMainError(message) {
     setTimeout(() => mainPageStatus.remove(), 7000);
 }
 
-// Auth and other initial setup logic (largely unchanged)
 document.addEventListener('DOMContentLoaded', function() {
     const fetchDataButton = document.getElementById('fetchData');
     const userIdErrorDiv = document.getElementById('userIdError');
@@ -397,7 +392,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof auth !== 'undefined' && auth) {
         auth.onAuthStateChanged(function(user) {
             if (user) {
-                // User is signed in
                 if (fetchDataButton) {
                     fetchDataButton.disabled = false;
                     if (userIdErrorDiv) userIdErrorDiv.textContent = '';
@@ -412,7 +406,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     fetchDataButton._authClickListener = newListener;
                 }
             } else {
-                // No user is signed in
                 if (fetchDataButton) {
                     fetchDataButton.disabled = true;
                     showMainError('Please sign in to fetch data.');
@@ -425,7 +418,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     } else {
-        // Firebase auth script not loaded
         if (fetchDataButton) {
             fetchDataButton.disabled = true;
             showMainError('Firebase is not ready. Cannot fetch data.');
