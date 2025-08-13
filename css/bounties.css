@@ -97,14 +97,20 @@
     transform: translateY(-2px);
 }
 
+/* ------------------------------------- */
+/* --- UPDATED CSS FOR STICKY HEADER --- */
+/* ------------------------------------- */
+
 .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
     max-height: 410px;
     overflow-y: auto;
+    position: relative; /* This is needed for the header's absolute position */
 }
 
+/* NEW: Custom scrollbar styling to match the site theme */
 .table-wrapper::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -125,7 +131,6 @@
     background-color: #00a8ff;
 }
 
-
 .bounty-table {
     width: 100%;
     border-collapse: collapse;
@@ -133,13 +138,7 @@
     min-width: 700px;
 }
 
-/* *** START OF CORRECTED CODE ***
-    The sticky position should be on the thead element, not the individual th cells. 
-    This is what makes the entire header row stick and fixes the stacking issue.
-*/
 .bounty-table thead {
-    position: sticky;
-    top: 0;
     z-index: 10;
 }
 .bounty-table thead th {
@@ -150,8 +149,17 @@
     border: 1px solid #005f99;
     font-size: 0.95rem;
 }
-/* *** END OF CORRECTED CODE ***
-*/
+
+/* This new class will be added/removed by the JavaScript */
+.bounty-table thead.is-stuck {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 20;
+}
+/* ----------------------------------- */
+/* --- END OF UPDATED CSS FOR STICKY HEADER --- */
+/* ----------------------------------- */
 
 .bounty-table tbody tr:nth-child(even) { background-color: #2a2a2a; }
 .bounty-table tbody tr:nth-child(odd) { background-color: #333; }
