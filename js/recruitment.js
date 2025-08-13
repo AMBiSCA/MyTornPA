@@ -6,8 +6,8 @@ let currentUserTornId = null;
 let currentUserTornApiKey = null;
 let currentUserData = null; // To store the currently logged-in user's fetched Torn data
 let currentUserIsLeader = false; // Flag to check if current user is a leader
-let isCurrentlyListed = false; // NEW: To track if the user is already listed
-let isFactionCurrentlyAdvertised = false; // NEW: To track if the user's faction is advertised
+let isCurrentlyListed = false; // To track if the user is already listed
+let isFactionCurrentlyAdvertised = false; // To track if the user's faction is advertised
 
 // DOM Elements for this page (from recruitment.html)
 const factionsSeekingMembersTbody = document.getElementById('factions-seeking-members-tbody');
@@ -57,7 +57,6 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
-// NEW: Helper function to open internal private chat
 function openInternalPrivateChat(tornId, tornName, firebaseUid) {
     if (window.openPrivateChatWindow) {
         window.openPrivateChatWindow(tornId, tornName);
@@ -69,30 +68,27 @@ function openInternalPrivateChat(tornId, tornName, firebaseUid) {
 
 // --- Core Functions for this page ---
 
+// ## FIX 1, STEP 1 ##
+// Added data-faction-id attribute to the <tr> tag
 async function displayFactionsSeekingMembers() {
     if (!factionsSeekingMembersTbody) return;
-    factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Loading recruiting factions...</td></tr>'; // Adjusted colspan
+    factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Loading recruiting factions...</td></tr>';
     try {
         const snapshot = await db.collection('recruitingFactions').where('isActive', '==', true).orderBy('listingTimestamp', 'desc').get();
         if (snapshot.empty) {
-            factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">No factions currently seeking members.</td></tr>'; // Adjusted colspan
+            factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">No factions currently seeking members.</td></tr>';
             return;
         }
         let tableHtml = '';
         snapshot.docs.forEach(doc => {
             const faction = doc.data();
             const profileUrl = `https://www.torn.com/factions.php?step=profile&ID=${faction.factionId}`;
-
-            // Format respect to be more readable (e.g., 1,234,567)
             const formattedRespect = (faction.factionRespect || 0).toLocaleString();
-
-            // Ensure rank tier is capitalized for display
             const displayedRankTier = faction.factionRankTier ?
-                                      faction.factionRankTier.charAt(0).toUpperCase() + faction.factionRankTier.slice(1) :
-                                      'N/A';
-
+                faction.factionRankTier.charAt(0).toUpperCase() + faction.factionRankTier.slice(1) :
+                'N/A';
             tableHtml += `
-                <tr>
+                <tr data-faction-id="${faction.factionId}">
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${faction.factionName} [${faction.factionId}]</a></td>
                     <td>${formattedRespect}</td>
                     <td>${displayedRankTier}</td>
@@ -104,9 +100,10 @@ async function displayFactionsSeekingMembers() {
         factionsSeekingMembersTbody.innerHTML = tableHtml;
     } catch (error) {
         console.error("Error displaying factions seeking members:", error);
-        factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Error loading factions.</td></tr>'; // Adjusted colspan
+        factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Error loading factions.</td></tr>';
     }
 }
+
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
@@ -157,6 +154,8 @@ async function listSelfForRecruitment() {
     }
 }
 
+// ## FIX 2, STEP 2 ##
+// Updated to directly manipulate the DOM for instant feedback.
 async function removeSelfFromRecruitment() {
     console.log("Attempting to remove player from recruitment.");
     if (!auth.currentUser) {
@@ -164,37 +163,45 @@ async function removeSelfFromRecruitment() {
         return;
     }
 
-    // Disable the button to prevent multiple clicks
     listSelfButton.disabled = true;
     listSelfButton.textContent = 'Removing...';
 
     try {
-        // The document ID is the user's Firebase UID, so we know exactly which one to delete.
-        const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
-
+        const userUid = auth.currentUser.uid;
+        const listingDocRef = db.collection('playersSeekingFactions').doc(userUid);
         await listingDocRef.delete();
+        console.log("Player self-listing removed for UID:", userUid);
 
+        isCurrentlyListed = false;
+        listSelfButton.textContent = 'List Myself';
+        listSelfButton.classList.remove('remove');
+        listSelfButton.disabled = false;
 
-        // Refresh the player list to show the change
-        displayPlayersSeekingFactions();
+        const rowToRemove = playersSeekingFactionsTbody.querySelector(`tr[data-player-uid="${userUid}"]`);
+        if (rowToRemove) {
+            rowToRemove.remove();
+        }
+
+        if (playersSeekingFactionsTbody.children.length === 0) {
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">No players currently seeking factions.</td></tr>';
+        }
 
     } catch (error) {
         console.error("Error removing self from listing:", error);
         alert(`Failed to remove your listing: ${error.message}`);
+        listSelfButton.disabled = false;
+        listSelfButton.textContent = 'Remove Listing';
+        listSelfButton.classList.add('remove');
     }
-    // We don't need a 'finally' block to re-enable the button,
-    // because the next step will handle setting its text and state correctly.
 }
 
-// THIS IS THE FUNCTION WITH ALL THE DEBUG LOGS.
+// ## FIX 2, STEP 1 ##
+// Added data-player-uid attribute to the <tr> tag
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) {
-        console.log("DEBUG: Cannot find the table body element 'players-seeking-factions-tbody'.");
         return;
     }
-
-    console.log("1. Starting to display players."); // DEBUG
-    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">Loading player listings...</td></tr>'; // Adjusted colspan to 8
+    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">Loading player listings...</td></tr>';
 
     try {
         const snapshot = await db.collection('playersSeekingFactions')
@@ -203,26 +210,18 @@ async function displayPlayersSeekingFactions() {
             .limit(50)
             .get();
 
-        console.log("2. Fetch successful. Found " + snapshot.size + " documents."); // DEBUG
-
         if (snapshot.empty) {
-            console.log("3. Snapshot is empty, showing 'No players' message."); // DEBUG
-            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">No players currently seeking factions.</td></tr>'; // Adjusted colspan to 8
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">No players currently seeking factions.</td></tr>';
             return;
         }
 
-        console.log("4. Snapshot has data, building table rows..."); // DEBUG
         let tableHtml = '';
         snapshot.docs.forEach(doc => {
             const player = doc.data();
-            console.log("5. Adding row for player: ", player.playerName); // DEBUG
             const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
 
-            // --- MODIFIED LINE FOR INTERNAL CHAT ---
-            // Use player.firebaseUid and player.playerName for the openInternalPrivateChat function
-            // The Torn ID (player.playerId) is passed too, as your openPrivateChatWindow might still use it or display it.
             tableHtml += `
-                <tr>
+                <tr data-player-uid="${player.firebaseUid}">
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
                     <td>${player.playerLevel}</td>
                     <td>${formatNumber(player.totalStats)}</td>
@@ -235,23 +234,20 @@ async function displayPlayersSeekingFactions() {
             `;
         });
 
-        console.log("6. Finished building HTML. Final content length:", tableHtml.length); // DEBUG
         playersSeekingFactionsTbody.innerHTML = tableHtml;
 
-        // --- NEW: Add event listener for the internal message buttons ---
         playersSeekingFactionsTbody.querySelectorAll('.message-internal-button').forEach(button => {
             button.addEventListener('click', (event) => {
                 const tornId = event.target.dataset.tornId;
                 const tornName = event.target.dataset.tornName;
-                const firebaseUid = event.target.dataset.firebaseUid; // Though not directly used by openPrivateChatWindow, it's good to keep
+                const firebaseUid = event.target.dataset.firebaseUid;
                 openInternalPrivateChat(tornId, tornName, firebaseUid);
             });
         });
 
-
     } catch (error) {
-        console.error("7. Error fetching players:", error); // DEBUG
-        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="8">Error loading player listings.</td></tr>`; // Adjusted colspan to 8
+        console.error("Error fetching players:", error);
+        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="8">Error loading player listings.</td></tr>`;
     }
 }
 
@@ -271,7 +267,6 @@ async function advertiseFaction() {
         return;
     }
 
-    // Disable button and change text immediately
     advertiseFactionButton.disabled = true;
     advertiseFactionButton.textContent = 'Advertising...';
 
@@ -284,33 +279,26 @@ async function advertiseFaction() {
 
         const selections = 'basic,members';
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
-
-        console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
-
         if (!response.ok) {
             const errorText = await response.text().catch(() => "Could not read error text");
             throw new Error(`Torn API HTTP error: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 100)}`);
         }
-
         const data = await response.json();
-
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        // CORRECTED: Access properties from 'data.basic' object
         const factionName = data.basic?.name || 'Unknown Faction';
         const totalMembers = data.members ? Object.keys(data.members).length : 0;
         const factionRespect = data.basic?.respect || 0;
-        const factionRankTier = data.basic?.rank?.name || 'N/A'; // Access rank.name from data.basic.rank
-
-        const contactInfo = ''; // Temporarily empty, will be added via a UI later
+        const factionRankTier = data.basic?.rank?.name || 'N/A';
+        const contactInfo = '';
 
         const factionListingData = {
-            factionId: String(userTornFactionId), // Faction ID is at top-level data.ID, but also in data.basic.ID
+            factionId: String(userTornFactionId),
             factionName: factionName,
             totalMembers: totalMembers,
             factionRespect: factionRespect,
@@ -329,23 +317,23 @@ async function advertiseFaction() {
         alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
 
-        // Update state and button for immediate feedback
         isFactionCurrentlyAdvertised = true;
         advertiseFactionButton.textContent = 'Remove My Faction';
         advertiseFactionButton.classList.add('remove');
-        advertiseFactionButton.disabled = false; // Re-enable for removal
+        advertiseFactionButton.disabled = false;
 
-        displayFactionsSeekingMembers(); // Refresh the display
+        displayFactionsSeekingMembers();
     } catch (error) {
         console.error("Error during faction advertisement:", error);
         alert(`Failed to advertise faction: ${error.message}`);
-        advertiseFactionButton.disabled = false; // Re-enable if an error occurred
-        advertiseFactionButton.textContent = 'Advertise My Faction'; // Revert text
+        advertiseFactionButton.disabled = false;
+        advertiseFactionButton.textContent = 'Advertise My Faction';
         advertiseFactionButton.classList.remove('remove');
     }
 }
 
-// NEW FUNCTION: Remove faction advertisement
+// ## FIX 1, STEP 2 ##
+// Updated to directly manipulate the DOM for instant feedback.
 async function removeFactionAdvertisement() {
     console.log("Attempting to remove faction advertisement.");
     if (!auth.currentUser) {
@@ -362,35 +350,41 @@ async function removeFactionAdvertisement() {
         return;
     }
 
-    // Disable button and change text immediately
     advertiseFactionButton.disabled = true;
     advertiseFactionButton.textContent = 'Removing...';
 
     try {
         const docRef = db.collection('recruitingFactions').doc(String(userTornFactionId));
         await docRef.delete();
-
-        alert(`Successfully removed your faction's advertisement.`);
         console.log("Faction advertisement removed for ID:", userTornFactionId);
 
-        // Update state and button for immediate feedback
         isFactionCurrentlyAdvertised = false;
         advertiseFactionButton.textContent = 'Advertise My Faction';
         advertiseFactionButton.classList.remove('remove');
-        advertiseFactionButton.disabled = false; // Re-enable for new advertisement
+        advertiseFactionButton.disabled = false;
 
-        displayFactionsSeekingMembers(); // Refresh the display
+        const rowToRemove = factionsSeekingMembersTbody.querySelector(`tr[data-faction-id="${userTornFactionId}"]`);
+        if (rowToRemove) {
+            rowToRemove.remove();
+        }
+
+        if (factionsSeekingMembersTbody.children.length === 0) {
+            factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">No factions currently seeking members.</td></tr>';
+        }
+
+        alert(`Successfully removed your faction's advertisement.`);
+
     } catch (error) {
         console.error("Error removing faction advertisement:", error);
         alert(`Failed to remove faction advertisement: ${error.message}`);
-        advertiseFactionButton.disabled = false; // Re-enable if an error occurred
-        advertiseFactionButton.textContent = 'Remove My Faction'; // Revert text if failed to remove
+        advertiseFactionButton.disabled = false;
+        advertiseFactionButton.textContent = 'Remove My Faction';
         advertiseFactionButton.classList.add('remove');
     }
 }
 
 
-// --- Main Initialization for Page (UPDATED with User ID Exemption) ---
+// --- Main Initialization for Page ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -402,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornApiKey = userData.tornApiKey || null;
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
 
-            // --- Check Faction Advertisement Status on load ---
             if (advertiseFactionButton && currentUserData?.faction_id) {
                 const factionListingDocRef = db.collection('recruitingFactions').doc(String(currentUserData.faction_id));
                 const factionListingDoc = await factionListingDocRef.get();
@@ -417,35 +410,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         advertiseFactionButton.textContent = 'Advertise My Faction';
                         advertiseFactionButton.classList.remove('remove');
                     }
-                    advertiseFactionButton.disabled = false; // Enable if leader, then specific conditions might disable it below
+                    advertiseFactionButton.disabled = false;
                 } else {
-                    advertiseFactionButton.style.display = 'none'; // Hide if not a leader
+                    advertiseFactionButton.style.display = 'none';
                     advertiseFactionButton.disabled = true;
                 }
             } else if (advertiseFactionButton) {
-                advertiseFactionButton.style.display = 'none'; // Hide if no faction ID for current user
+                advertiseFactionButton.style.display = 'none';
                 advertiseFactionButton.disabled = true;
             }
-            // --- END Faction Advertisement Status Check ---
 
-
-            // --- NEW EXEMPTION LOGIC ---
             const hasFaction = userData.faction_id && userData.faction_id != 0;
-            // Check if the current user's ID is in our exemption list
             const isExemptUser = EXEMPT_USER_IDS.includes(String(currentUserTornId));
-
-            // A user is in a 'disallowed' faction if they have a faction AND they are NOT an exempt user.
             const isInDisallowedFaction = hasFaction && !isExemptUser;
 
             if (listSelfButton) {
                 if (isInDisallowedFaction) {
-                    // If user is in a non-exempt faction, disable the button
                     listSelfButton.disabled = true;
                     listSelfButton.textContent = 'In a Faction';
                     listSelfButton.title = 'You cannot list yourself for recruitment while in a faction.';
                     listSelfButton.classList.remove('remove');
                 } else {
-                    // If user is NOT in a faction, OR they ARE an exempt user, proceed normally
                     listSelfButton.disabled = false;
                     listSelfButton.title = '';
 
@@ -462,25 +447,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // --- END NEW EXEMPTION LOGIC ---
 
             if (!currentUserTornId || !currentUserTornApiKey) {
-                // Also check isInDisallowedFaction here to avoid re-enabling a disabled button
                 if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = true;
-                // No need to disable advertiseFactionButton here based on API key, as it's already handled above
             } else {
                 if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = false;
-                // The advertiseFactionButton's disabled state is now handled by the isFactionCurrentlyAdvertised check and currentUserIsLeader.
             }
 
         } else {
-            // Reset everything if user is not logged in
             currentUserTornId = null;
             currentUserTornApiKey = null;
             currentUserData = null;
             currentUserIsLeader = false;
             isCurrentlyListed = false;
-            isFactionCurrentlyAdvertised = false; // Reset on logout
+            isFactionCurrentlyAdvertised = false;
             if (listSelfButton) {
                 listSelfButton.textContent = 'List Myself';
                 listSelfButton.disabled = true;
@@ -489,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = 'none';
                 advertiseFactionButton.disabled = true;
-                advertiseFactionButton.textContent = 'Advertise My Faction'; // Reset text
+                advertiseFactionButton.textContent = 'Advertise My Faction';
                 advertiseFactionButton.classList.remove('remove');
             }
         }
@@ -498,35 +478,16 @@ document.addEventListener('DOMContentLoaded', () => {
         displayPlayersSeekingFactions();
     });
 
-    // Event listener for "Enlist" buttons (if you add them to factionsSeekingMembersTbody)
-    if (factionsSeekingMembersTbody) {
-        factionsSeekingMembersTbody.addEventListener('click', (event) => {
-            const button = event.target.closest('.enlist-button');
-            if (button && !button.disabled) {
-                const factionId = button.dataset.factionId;
-                // enlistPlayer(factionId); // Assuming enlistPlayer is defined elsewhere if needed
-            }
-        });
-    }
-
-    // "List/Remove" BUTTON EVENT LISTENER
     if (listSelfButton) {
         listSelfButton.addEventListener('click', () => {
             if (isCurrentlyListed) {
-                removeSelfFromRecruitment().then(() => {
-                    // isCurrentlyListed state updated within removeSelfFromRecruitment's finally block or after displayPlayersSeekingFactions.
-                    // The onAuthStateChanged listener also re-evaluates the button state, ensuring consistency.
-                });
+                removeSelfFromRecruitment();
             } else {
-                listSelfForRecruitment().then(() => {
-                    // isCurrentlyListed state updated within listSelfForRecruitment's finally block or after displayPlayersSeekingFactions.
-                    // The onAuthStateChanged listener also re-evaluates the button state, ensuring consistency.
-                });
+                listSelfForRecruitment();
             }
         });
     }
 
-    // NEW: Event listener for "Advertise/Remove My Faction" button
     if (advertiseFactionButton) {
         advertiseFactionButton.addEventListener('click', () => {
             if (isFactionCurrentlyAdvertised) {
@@ -538,18 +499,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Orientation handler code (unchanged)...
 // --- START: Complete and Unified Orientation Handler ---
-
-// This single script handles all orientation logic for both phones and tablets without conflict.
-
 let portraitBlocker = null;
 let landscapeBlocker = null;
-
-/**
- * Creates the two overlay elements with the new, requested style.
- */
 function createOverlays() {
-    // Shared styles for the overlays, based on your example
     const overlayStyles = {
         display: 'none',
         flexDirection: 'column',
@@ -567,8 +521,6 @@ function createOverlays() {
         fontSize: '1.5em',
         zIndex: '99999'
     };
-
-    // Shared styles for the new "Return to Home" button
     const buttonStyles = {
         backgroundColor: '#007bff',
         color: 'black',
@@ -579,14 +531,12 @@ function createOverlays() {
         fontWeight: 'bold',
         marginTop: '20px',
         textDecoration: 'none',
-        fontSize: '16px' // A readable font size for the button
+        fontSize: '16px'
     };
-
-    // --- Create the "Rotate to Portrait" overlay for TABLETS ---
     if (!document.getElementById('tablet-portrait-blocker')) {
         portraitBlocker = document.createElement('div');
         portraitBlocker.id = 'tablet-portrait-blocker';
-        Object.assign(portraitBlocker.style, overlayStyles); // Apply new styles
+        Object.assign(portraitBlocker.style, overlayStyles);
         portraitBlocker.innerHTML = `
             <div>
                 <h2>Please Rotate Your Device</h2>
@@ -594,19 +544,16 @@ function createOverlays() {
                 <button id="return-home-btn-tablet">Return to Home</button>
             </div>`;
         document.body.appendChild(portraitBlocker);
-
         const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
         if (tabletReturnBtn) {
-            Object.assign(tabletReturnBtn.style, buttonStyles); // Style the button
+            Object.assign(tabletReturnBtn.style, buttonStyles);
             tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
         }
     }
-
-    // --- Create the "Rotate to Landscape" overlay for PHONES ---
     if (!document.getElementById('mobile-landscape-blocker')) {
         landscapeBlocker = document.createElement('div');
         landscapeBlocker.id = 'mobile-landscape-blocker';
-        Object.assign(landscapeBlocker.style, overlayStyles); // Apply new styles
+        Object.assign(landscapeBlocker.style, overlayStyles);
         landscapeBlocker.innerHTML = `
             <div>
                 <h2>Please Rotate Your Device</h2>
@@ -614,59 +561,34 @@ function createOverlays() {
                 <button id="return-home-btn-mobile">Return to Home</button>
             </div>`;
         document.body.appendChild(landscapeBlocker);
-        
         const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
         if (mobileReturnBtn) {
-            Object.assign(mobileReturnBtn.style, buttonStyles); // Style the button
+            Object.assign(mobileReturnBtn.style, buttonStyles);
             mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
         }
     }
 }
-
-/**
- * This is the main function that checks the device and orientation, and shows the correct overlay.
- */
 function handleOrientation() {
     if (!portraitBlocker || !landscapeBlocker) {
-        // Ensure the overlays exist before trying to control them
-        createOverlays(); 
+        createOverlays();
         portraitBlocker = document.getElementById('tablet-portrait-blocker');
         landscapeBlocker = document.getElementById('mobile-landscape-blocker');
         if (!portraitBlocker || !landscapeBlocker) return;
     }
-
-    // First, hide both overlays so we start fresh.
     portraitBlocker.style.display = 'none';
     landscapeBlocker.style.display = 'none';
-
-    // Get screen properties
     const isPortrait = window.matchMedia("(orientation: portrait)").matches;
     const isLandscape = !isPortrait;
-    
-    // Use the SHORTEST side of the screen to guess the device type. This is more reliable.
     const shortestSide = Math.min(window.screen.width, window.screen.height);
-
     const isPhone = shortestSide < 600;
     const isTablet = shortestSide >= 600 && shortestSide < 1024;
-
-    // Now apply the rules based on our findings
     if (isPhone && isPortrait) {
-        // It's a phone in portrait mode. Show the "Rotate to Landscape" message.
         landscapeBlocker.style.display = 'flex';
     } else if (isTablet && isLandscape) {
-        // It's a tablet in landscape mode. Show the "Rotate to Portrait" message.
         portraitBlocker.style.display = 'flex';
     }
 }
-
-// --- SCRIPT INITIALIZATION ---
-
-// 1. Run the main handler function once when the page first loads.
-// The handler will create the overlays if they don't exist.
 document.addEventListener('DOMContentLoaded', handleOrientation);
-
-// 2. Add listeners that will re-run the check whenever the screen changes.
 window.addEventListener('resize', handleOrientation);
 window.addEventListener('orientationchange', handleOrientation);
-
 // --- END: Complete and Unified Orientation Handler ---
