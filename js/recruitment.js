@@ -7,7 +7,7 @@ let currentUserTornApiKey = null;
 let currentUserData = null; // To store the currently logged-in user's fetched Torn data
 let currentUserIsLeader = false; // Flag to check if current user is a leader
 let isCurrentlyListed = false; // To track if the user is already listed
-let isFactionCurrentlyAdvertised = false; // To track if the user's faction  advertised
+let isFactionCurrentlyAdvertised = false; // To track if the user's faction is advertised
 
 // DOM Elements for this page (from recruitment.html)
 const factionsSeekingMembersTbody = document.getElementById('factions-seeking-members-tbody');
@@ -202,6 +202,7 @@ async function removeSelfFromRecruitment() {
 
 
 async function displayPlayersSeekingFactions() {
+	alert("TESTING: The new recruitment.js file is running!");
     if (!playersSeekingFactionsTbody) {
         return;
     }
