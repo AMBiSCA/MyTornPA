@@ -5,7 +5,7 @@
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
     margin-top: 15px; /* Reverted to 15px as requested earlier */
-    margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
+    margin-bottom: -560px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
