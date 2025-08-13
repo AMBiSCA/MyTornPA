@@ -97,16 +97,14 @@
     transform: translateY(-2px);
 }
 
-/* UPDATED: Added max-height and overflow-y for a scrollable table body */
 .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
-    max-height: 410px; /* Limits the height to show ~8-9 rows */
-    overflow-y: auto;  /* Adds a vertical scrollbar when content exceeds max-height */
+    max-height: 410px;
+    overflow-y: auto;
 }
 
-/* NEW: Custom scrollbar styling to match the site theme */
 .table-wrapper::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -135,17 +133,25 @@
     min-width: 700px;
 }
 
+/* *** START OF CORRECTED CODE ***
+    The sticky position should be on the thead element, not the individual th cells. 
+    This is what makes the entire header row stick and fixes the stacking issue.
+*/
+.bounty-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 .bounty-table thead th {
     background-color: #007acc;
     color: black;
     padding: 12px 15px;
     text-align: left;
     border: 1px solid #005f99;
-    position: sticky; /* This makes the header stick to the top of the .table-wrapper */
-    top: 0;
-    z-index: 10;
     font-size: 0.95rem;
 }
+/* *** END OF CORRECTED CODE ***
+*/
 
 .bounty-table tbody tr:nth-child(even) { background-color: #2a2a2a; }
 .bounty-table tbody tr:nth-child(odd) { background-color: #333; }
@@ -175,6 +181,7 @@
     border: 1px solid #00a8ff;
     border-radius: 6px;
     text-decoration: none;
+    cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
 }
 
@@ -192,28 +199,24 @@
     text-decoration: underline;
 }
 
-/* Add this to the end of your bounties.css file */
-
-/* Makes all text in the table body slightly bolder for readability */
 .bounty-table tbody td {
     font-weight: 600;
 }
 
-/* New Status Color Classes */
 .status-red {
-    color: #FF4136 !important; /* A bright red for hospital/offline */
+    color: #FF4136 !important;
 }
 
 .status-green {
-    color: #2ECC40 !important; /* A nice green for 'Okay' */
+    color: #2ECC40 !important;
 }
 
 .status-orange {
-    color: #FF851B !important; /* An orange for jail */
+    color: #FF851B !important;
 }
 
 .status-blue {
-    color: #7FDBFF !important; /* A light blue for traveling */
+    color: #7FDBFF !important;
 }
 
 @media (max-width: 768px) {
