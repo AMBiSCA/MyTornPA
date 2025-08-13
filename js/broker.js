@@ -79,17 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // This function now only fetches the price for a SINGLE item.
-    async function fetchItemPrice(apiKey, itemId) {
-        try {
-            const response = await fetch(`https://api.torn.com/market/v2/${itemId}?selections=itemmarket,bazaar&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.error);
-            return data;
-        } catch (error) {
-            console.error(`Could not fetch price for item ${itemId}:`, error.message);
-            return null; // Return null on failure
-        }
+   async function fetchItemPrice(apiKey, itemId) {
+    try {
+        // CORRECTED: 'v2' is not part of the path. It's a parameter at the end, '&version=2'.
+        const response = await fetch(`https://api.torn.com/market/${itemId}?selections=itemmarket,bazaar&key=${apiKey}&version=2`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.error);
+        return data;
+    } catch (error) {
+        console.error(`Could not fetch price for item ${itemId}:`, error.message);
+        return null; // Return null on failure
     }
+}
 
     // --- UI Rendering ---
     async function refreshWatchlistDisplay() {
