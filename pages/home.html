@@ -20,37 +20,37 @@
         <div id="global-header-placeholder"></div>
 
     <div class="homepage-content-wrapper" id="mainHomepageContent">
-        <div class="welcome-block-area styled-container">
+        <div class="welcome-block-area styled-container themed-container">
             <h2 id="welcomeMessage">Welcome!</h2>
             <p id="factionHuddleMessage">Looking for a Faction? Try out Faction Recruitment!</p>
         </div>
 
         <div class="stats-tools-flex-container">
-            <div class="stats-column home-section styled-container" id="quickStatsSection">
+            <div class="stats-column home-section styled-container themed-container" id="quickStatsSection">
                 <h3 class="section-title">
                     📊👤 Your Quick Stats. 👤📊
                     <span class="collapse-toggle-icon" id="quickStatsToggle"></span> </h3>
                 <div id="quickStatsCollapsibleContent" class="collapsible-content"> <div id="quickStatsContainerBox" class="quick-stats-inner-box">
                         <div class="dashboard-grid">
                             <div class="dash-item non-essential-stat"><span class="dash-item-label">Nerve:🧠</span> <span class="value" id="nerveStat">--/--</span></div>
-                           
+                            
                             <div class="dash-item essential-stat"><span class="dash-item-label">Energy:🔋</span> <span class="value" id="energyStat">--/--</span></div>
-                           
+                            
                             <div class="dash-item non-essential-stat"><span class="dash-item-label">Happy:😄</span> <span class="value" id="happyStat">--/--</span></div>
-                           
+                            
                             <div class="dash-item non-essential-stat"><span class="dash-item-label">Life:❤️</span> <span class="value" id="lifeStat">--/--</span></div>
-                           
+                            
                             <div class="dash-item essential-stat"><span class="dash-item-label">Drug C/D:🍁</span> <span class="value" id="drugCooldownStat">OK</span></div>
-                           
+                            
                             <div class="dash-item non-essential-stat"><span class="dash-item-label">Booster C/D:⏱️</span> <span class="value" id="boosterCooldownStat">OK</span></div>
-                           
+                            
                             <div class="dash-item essential-stat"><span class="dash-item-label">Travelling?✈️</span> <span class="value" id="travelStatus">No Data</span></div>
-                           
+                            
                             <div class="dash-item essential-stat"> 
                                 <span class="dash-item-label">Hospital?:🏥</span>
                                 <span class="value" id="hospitalStat">No Data.</span>
                             </div>
-                           
+                            
                             <div class="dash-item non-essential-stat">
                                 <div class="dashboard-feature-toggle share-faction-stats-toggle">
                                     <label for="togglePersonalStatsCheckbox" class="dash-item" id="personalStatsLabel" style="cursor:pointer;">
@@ -67,7 +67,7 @@
                         <div id="quickStatsError" class="error-message-centered non-essential-stat"></div>
                         <p id="apiKeyMessage" class="api-key-message-centered non-essential-stat">(Full dashboard functionality requires API key integration from your profile setup)</p>
                     </div>
-                </div> </div> <section class="tools-column home-section styled-container" id="exploreToolsSection">
+                </div> </div> <section class="tools-column home-section styled-container themed-container" id="exploreToolsSection">
                 <h2 class="section-title">
                     🧰🧭 Explore Your Tools.️🧭🧰
                     <span class="collapse-toggle-icon" id="exploreToolsToggle"></span> </h2>
@@ -89,7 +89,7 @@
 							<a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets</a>
                             <a href="bounties.html" class="btn tool-item-button member-only">Bounty Hunter</a>
 							<a href="merits.html" class="btn tool-item-button">Merit/Honor Tracker</a>
-							                 
+                                 
                         </div>
                     </div>
                     <div class="tool-category-section non-essential-tool-category">
@@ -107,54 +107,54 @@
                         <h4 class="tool-category-header">⚖️ General Utilities & Market. ⚖️ </h4>
                         <div class="tool-buttons-grid">
                             <a href="travel.html" class="btn tool-item-button">Travel Helper</a>
-							  <a href="profilepeeper.html" class="btn tool-item-button">User Overview</a>
-							  	  <a href="broker.html" class="btn tool-item-button">Eagle Eye</a>
+							 <a href="profilepeeper.html" class="btn tool-item-button">User Overview</a>
+							 	 <a href="broker.html" class="btn tool-item-button">Eagle Eye</a>
                             <a href="market-pulse.html" class="btn tool-item-button member-only">Item Market Watcher</a>
                             <a href="eventcalendar.html" class="btn tool-item-button">Event Calendar</a>
                         </div>
                     </div>
                 </div> </section> </div> <div class="modal-overlay-profile" id="profileSetupModal">
-                <div class="modal-profile-setup">
-                <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
-                <h3>Complete Your Profile!</h3>
-                <p class="modal-subtitle">Help us personalize your MyTornPA experience!</p>
+            <div class="modal-profile-setup">
+            <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
+            <h3>Complete Your Profile!</h3>
+            <p class="modal-subtitle">Help us personalize your MyTornPA experience!</p>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="preferredName">Preferred Display Name:</label>
-                        <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
-                        <span class="helper-text name-warning">(Requiered - Max 10 characters. Preferably Torn Name.)</span>
-                        <div class="modal-error-message" id="nameError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="profileSetupProfileId">Your Torn Profile ID:</label>
-                        <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID (e.g., 436324)" autocomplete="off">
-                        <span class="helper-text">(Requiered - Helps Personalize Features - Numeric characters only.)</span>
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="preferredName">Preferred Display Name:</label>
+                    <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
+                    <span class="helper-text name-warning">(Requiered - Max 10 characters. Preferably Torn Name.)</span>
+                    <div class="modal-error-message" id="nameError"></div>
                 </div>
-
-                <div class="form-row single-column"> <div class="form-group">
-                    <label for="profileSetupApiKey">Torn API Key (Limited Access Requiered.):</label>
-                    <input type="password" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
-                    <span class="helper-text">(Requiered - Enables Richer Data in Tools. <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">How to get?</a>)</span>
+                <div class="form-group">
+                    <label for="profileSetupProfileId">Your Torn Profile ID:</label>
+                    <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID (e.g., 436324)" autocomplete="off">
+                    <span class="helper-text">(Requiered - Helps Personalize Features - Numeric characters only.)</span>
                 </div>
             </div>
 
-                <div class="form-group checkbox-group">
-                    <label for="termsAgreementProfileModal" class="checkbox-label-inline">
-                        I have read and agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
-                        <input type="checkbox" id="termsAgreementProfileModal" name="termsAgreementProfileModal">
-                    </label>
-                </div>
-
-                <div class="modal-error-message" id="profileSetupError"></div>
-
-                <div class="modal-actions">
-                    <button id="deleteAccountBtn" class="btn delete-account-btn">Delete Account 🗑️ </button>
-                    <button id="upgradeMembershipBtn" class="btn upgrade-membership-btn">Upgrade Membership! ✨ </button>
-                    <button id="saveProfileBtn" class="btn">Save Profile ✔️ </button>
-                </div>
+            <div class="form-row single-column"> <div class="form-group">
+                <label for="profileSetupApiKey">Torn API Key (Limited Access Requiered.):</label>
+                <input type="password" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
+                <span class="helper-text">(Requiered - Enables Richer Data in Tools. <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">How to get?</a>)</span>
             </div>
+        </div>
+
+            <div class="form-group checkbox-group">
+                <label for="termsAgreementProfileModal" class="checkbox-label-inline">
+                    I have read and agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                    <input type="checkbox" id="termsAgreementProfileModal" name="termsAgreementProfileModal">
+                </label>
+            </div>
+
+            <div class="modal-error-message" id="profileSetupError"></div>
+
+            <div class="modal-actions">
+                <button id="deleteAccountBtn" class="btn delete-account-btn">Delete Account 🗑️ </button>
+                <button id="upgradeMembershipBtn" class="btn upgrade-membership-btn">Upgrade Membership! ✨ </button>
+                <button id="saveProfileBtn" class="btn">Save Profile ✔️ </button>
+            </div>
+        </div>
         </div>
 
         <div id="personalStatsModal" class="modal-overlay">
