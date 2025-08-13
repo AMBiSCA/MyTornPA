@@ -227,7 +227,7 @@
     /* Mimics .config-section .action-btn and .quick-ff-target-btn */
     display: inline-block;
     background-color: #007bff; /* Blue */
-    color: white;
+    color: black;
     padding: 8px 15px;
     border: 2px solid black; /* Consistent border */
     border-radius: 5px;
