@@ -97,8 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         // ... (error handling as before)
     }
-
-  async function fetchBounties(apiKey) {
+async function fetchBounties(apiKey) {
     try {
         bountyTableBody.innerHTML = '<tr><td colspan="7">Fetching bounties from Torn...</td></tr>';
         
@@ -162,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         bountyTableBody.innerHTML = `<tr><td colspan="7" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
-   // The FINAL, DEFINITIVE version of the displayBounties function
+  
+ // The FINAL, DEFINITIVE version of the displayBounties function
 function displayBounties(bountiesToShow) {
     bountyTableBody.innerHTML = '';
     currentBountiesSpan.textContent = bountiesToShow.length;
@@ -172,14 +172,15 @@ function displayBounties(bountiesToShow) {
     }
 
     if (bountiesToShow.length === 0) {
-        bountyTableBody.innerHTML = '<tr><td colspan="6">No bounties match your criteria.</td></tr>';
+        // Updated colspan to 7 for the new Total Bounties column
+        bountyTableBody.innerHTML = '<tr><td colspan="7">No bounties match your criteria.</td></tr>';
         return;
     }
 
     bountiesToShow.forEach(bounty => {
         const row = document.createElement('tr');
         
-        const reasonText = bounty.reason || 'None'; 
+        const reasonText = bounty.reason || 'None';
         const status = bounty.status || {};
         const statusText = status.description || 'Loading...';
 
@@ -202,12 +203,10 @@ function displayBounties(bountiesToShow) {
                 break;
         }
 
-        // The previous extra 'if' statement is no longer needed and has been removed.
-
         row.innerHTML = `
             <td><a href="https://www.torn.com/profiles.php?XID=${bounty.target_id}" target="_blank" class="bounty-link">${bounty.target_name} [${bounty.target_id}]</a></td>
             <td>${bounty.target_level}</td>
-            <td>$${bounty.reward.toLocaleString('en-US')}</td>
+            <td>$${bounty.totalReward.toLocaleString('en-US')}</td>
             <td>${reasonText}</td>
             <td class="${statusClass}" data-until="${status.until || 0}" data-state="${status.state || ''}">
                 ${statusText}
