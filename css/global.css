@@ -2464,10 +2464,10 @@ footer.footer {
 /* ================================================== */
 
 body.eye-soothing-mode {
-    /* -- This creates a sharp, black-and-white look -- */
-    --soothing-accent: #EAEAEA; /* A clean, slightly off-white */
-    --soothing-accent-hover: #FFFFFF; /* Pure white for hover */
-	--soothing-accent-glow: rgba(234, 234, 234, 0.4); /* A soft white glow */
+    /* -- WARNING: This will make accents invisible on your dark theme -- */
+    --soothing-accent: #000000; /* True black */
+    --soothing-accent-hover: #111111; /* Slightly off-black for hover */
+    --soothing-accent-glow: rgba(0, 0, 0, 0); /* Glow is not possible with black */
 }
 
 /* --- 1. UNIVERSAL CONTAINER & TITLE RULES --- */
