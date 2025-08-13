@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTornPA - Torn Arcade</title>
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+
+    <!-- Arcade-specific CSS -->
+    <link rel="stylesheet" href="arcade.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-init.js"></script>
+</head>
+<body>
+
+    <!-- Global Header -->
+    <div id="global-header-placeholder"></div>
+
+    <!-- Arcade Content -->
+    <main class="arcade-container">
+
+        <!-- Main Menu -->
+        <section id="arcade-menu">
+            <h2>Torn Arcade</h2>
+            <div class="game-grid">
+                <div class="game-card" data-game="safecracker">
+                    <img src="images/safecracker-thumb.png" alt="Safecracker">
+                    <h3>Safecracker</h3>
+                    <p>Crack as many safes as you can before time runs out!</p>
+                    <button class="play-btn">Play</button>
+                </div>
+                <div class="game-card" data-game="chainrush">
+                    <img src="images/chainrush-thumb.png" alt="Chain Rush">
+                    <h3>Chain Rush</h3>
+                    <p>Click the targets fast to keep your chain alive!</p>
+                    <button class="play-btn">Play</button>
+                </div>
+                <div class="game-card" data-game="hitmanmemory">
+                    <img src="images/hitmanmemory-thumb.png" alt="Hitman Memory">
+                    <h3>Hitman Memory</h3>
+                    <p>Match weapons to targets before time runs out!</p>
+                    <button class="play-btn">Play</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Display -->
+        <section id="game-screen" style="display:none;">
+            <button id="back-to-menu">← Back to Arcade Menu</button>
+            <div id="game-container"></div>
+        </section>
+
+    </main>
+
+    <!-- Global Footer -->
+    <div id="globalfooterplaceholder"></div>
+
+    <!-- Global Scripts -->
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/globalfooter.js"></script>
+
+    <!-- Arcade Scripts -->
+    <script src="arcade.js"></script>
+    <script src="games/safecracker.js"></script>
+    <script src="games/chainrush.js"></script>
+    <script src="games/hitmanmemory.js"></script>
+
+</body>
+</html>
