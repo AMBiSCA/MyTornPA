@@ -81,19 +81,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchWatchlistPrices(apiKey, itemIds) {
-        if (itemIds.length === 0) return {};
-        try {
-            // -- FIX 2: Added the missing '/v2/' to the API URL --
-            const response = await fetch(`https://api.torn.com/market/v2/${itemIds.join(',')}?selections=itemmarket,bazaar&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.error);
-            return data;
-        } catch (error) {
-            console.error("Could not fetch watchlist prices:", error.message);
-            return {};
+    // mysite/js/broker.js (Corrected Function)
+
+async function fetchWatchlistPrices(apiKey, itemIds) {
+    if (itemIds.length === 0) return {};
+    try {
+        // CORRECTED: The URL now includes /v2/ as it should.
+        const response = await fetch(`https://api.torn.com/market/v2/${itemIds.join(',')}?selections=itemmarket,bazaar&key=${apiKey}`);
+        const data = await response.json();
+        if (data.error) {
+            // This is where the error in your screenshot is coming from.
+            throw new Error(data.error.error);
         }
+        return data;
+    } catch (error) {
+        console.error("Could not fetch watchlist prices:", error.message);
+        // Display the specific error in the table
+        itemTableBody.innerHTML = `<tr><td colspan="5" class="error-message">API Error: ${error.message}</td></tr>`;
+        return {};
     }
+}
 
     // --- UI Rendering ---
     async function refreshWatchlistDisplay() {
