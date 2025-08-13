@@ -98,18 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (error handling as before)
     }
 
-   async function fetchBounties(apiKey) {
+  async function fetchBounties(apiKey) {
     try {
-        bountyTableBody.innerHTML = '<tr><td colspan="6">Fetching bounties from Torn...</td></tr>';
+        bountyTableBody.innerHTML = '<tr><td colspan="7">Fetching bounties from Torn...</td></tr>';
         
-        // FINAL CORRECTION: Restored the exact /v2/ URL.
         const bountiesUrl = `https://api.torn.com/v2/torn/bounties?key=${apiKey}`;
         
         const bountiesResponse = await fetch(bountiesUrl);
         const bountiesData = await bountiesResponse.json();
         
         if (bountiesData.error) {
-            bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
+            bountyTableBody.innerHTML = `<tr><td colspan="7" class="error-message">Error fetching data: ${bountiesData.error.error}</td></tr>`;
             return;
         }
         
@@ -118,8 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
             bounties = Object.values(bountiesData.bounties);
         }
 
-        const limitedBounties = bounties.slice(0, 50);
+        // Aggregate bounties by target user ID
+        const aggregatedBountiesMap = bounties.reduce((acc, bounty) => {
+            if (!acc[bounty.target_id]) {
+                acc[bounty.target_id] = {
+                    target_id: bounty.target_id,
+                    target_name: bounty.target_name,
+                    target_level: bounty.target_level,
+                    reason: bounty.reason, // Keep the reason from the first bounty
+                    totalReward: 0,
+                    count: 0
+                };
+            }
+            acc[bounty.target_id].totalReward += bounty.reward;
+            acc[bounty.target_id].count++;
+            return acc;
+        }, {});
 
+        const aggregatedBounties = Object.values(aggregatedBountiesMap);
+
+        const limitedBounties = aggregatedBounties.slice(0, 50);
+        
         const bountyPromises = limitedBounties.map(async (bounty) => {
             const userUrl = `https://api.torn.com/user/${bounty.target_id}?selections=basic&key=${apiKey}`;
             try {
@@ -137,11 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const enrichedBounties = await Promise.all(bountyPromises);
         
         allBounties = enrichedBounties;
-        totalBountiesSpan.textContent = allBounties.length;
+        totalBountiesSpan.textContent = aggregatedBounties.length;
 
     } catch (error) {
         console.error('Error fetching bounties:', error);
-        bountyTableBody.innerHTML = `<tr><td colspan="6" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
+        bountyTableBody.innerHTML = `<tr><td colspan="7" class="error-message">Failed to load bounties. Please try again later.</td></tr>`;
     }
 }
    // The FINAL, DEFINITIVE version of the displayBounties function
