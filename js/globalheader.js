@@ -56,6 +56,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+// --- Theme Switcher Logic ---
+// Find the button and the body element in the document.
+const themeToggleButton = document.getElementById('theme-toggle-btn');
+const body = document.body;
+
+// Check for a saved theme when the page loads
+if (localStorage.getItem('theme') === 'eye-soothing') {
+    body.classList.add('eye-soothing-mode');
+}
+
+// Make sure the button actually exists on the page before adding a listener.
+if (themeToggleButton) {
+    // This function will run every time the theme toggle button is clicked.
+    themeToggleButton.addEventListener('click', () => {
+        // Add or remove the class to toggle the theme
+        body.classList.toggle('eye-soothing-mode');
+
+        // Save the user's choice to local storage
+        if (body.classList.contains('eye-soothing-mode')) {
+            localStorage.setItem('theme', 'eye-soothing');
+        } else {
+            localStorage.removeItem('theme');
+        }
+    });
+}
+
     function initializeHeaderLogicAfterLoad() {
         console.log("globalheader.js: Initializing header and modal specific JavaScript logic.");
 	
