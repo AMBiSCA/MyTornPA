@@ -210,7 +210,7 @@
 .action-button.remove {
     background-color: #d93025; /* A strong red color */
     border-color: #a52714;
-    color: black; /* Ensures the text is readable */
+    color: white; /* Ensures the text is readable */
 }
 
 /* Changes the hover color for the red remove buttons */
