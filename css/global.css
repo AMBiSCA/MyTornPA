@@ -2460,38 +2460,54 @@ footer.footer {
 
 
 /* ================================================== */
-/* == EYE-SOOTHING THEME (ACCENT COLOR SWAP) == */
+/* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V2) == */
 /* ================================================== */
 
 body.eye-soothing-mode {
-    /* -- We define the new accent color here. Change this one line to change the accent everywhere! -- */
+    /* -- We define the new accent color here for easy changes -- */
     --soothing-accent: #E5A00D; /* A warm, soft gold/orange */
     --soothing-accent-hover: #ffb822; /* A slightly brighter version for hover */
     --soothing-accent-glow: rgba(229, 160, 13, 0.5); /* The color for glow effects */
 }
 
-/* Change the border on the header and footer */
+/* --- 1. NEW UNIVERSAL CONTAINER & TITLE RULES --- */
+
+/* This is the NEW key rule. It will style ANY element you give the class "themed-container". */
+body.eye-soothing-mode .themed-container {
+    border-color: var(--soothing-accent) !important; /* Use !important to override any specific panel styles */
+    box-shadow: 0 0 15px var(--soothing-accent-glow) !important;
+}
+
+/* This NEW rule targets all common heading levels INSIDE a themed container. */
+body.eye-soothing-mode .themed-container h2,
+body.eye-soothing-mode .themed-container h3,
+body.eye-soothing-mode .themed-container h4,
+body.eye-soothing-mode .themed-container .panel-title { /* A fallback class */
+    color: var(--soothing-accent);
+}
+
+/* --- 2. GLOBAL STYLES (Header, Footer, Buttons, etc.) --- */
+
+/* Header and footer borders */
 body.eye-soothing-mode header,
 body.eye-soothing-mode footer.footer {
     border-color: var(--soothing-accent);
 }
 
-/* Change the glow on the main content panels, but NOT their background */
-body.eye-soothing-mode main {
-    box-shadow: 0 0 15px var(--soothing-accent-glow);
+/* General text links and modal close buttons */
+body.eye-soothing-mode .header-left h1,
+body.eye-soothing-mode footer.footer .footer-links a,
+body.eye-soothing-mode .modal-content .modal-close-btn {
+    color: var(--soothing-accent);
 }
 
-/* Change the color of important text and links */
-body.eye-soothing-mode .header-left h1,
-body.eye-soothing-mode h2,
-body.eye-soothing-mode footer.footer .footer-links a,
-body.eye-soothing-mode .modal-content .modal-close-btn,
+/* Table links, etc. */
 body.eye-soothing-mode .overview-table .overview-name a, 
 body.eye-soothing-mode .overview-table .overview-name a:visited {
     color: var(--soothing-accent) !important;
 }
 
-/* Change button borders and hover effects */
+/* General buttons and inputs */
 body.eye-soothing-mode .btn,
 body.eye-soothing-mode .custom-input:focus,
 body.eye-soothing-mode .dropdown-content,
@@ -2506,7 +2522,7 @@ body.eye-soothing-mode .btn:not(:disabled):focus {
     box-shadow: 0 1px 2px 0 var(--soothing-accent-glow), 0 1px 3px 1px var(--soothing-accent-glow);
 }
 
-/* Change the glow of the side images and header logo */
+/* Glow effects */
 body.eye-soothing-mode .image-glow,
 body.eye-soothing-mode .image-glow-flipped {
     filter: drop-shadow(0px 0px 12px var(--soothing-accent));
