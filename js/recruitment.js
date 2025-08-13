@@ -102,7 +102,6 @@ async function displayFactionsSeekingMembers() {
     }
 }
 
-// ## THIS FUNCTION IS NOW FIXED ##
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
@@ -142,20 +141,18 @@ async function listSelfForRecruitment() {
         const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
         await listingDocRef.set(playerListingData, { merge: true });
 
-        // On success, correctly update the button state
         isCurrentlyListed = true;
         listSelfButton.textContent = 'Remove Listing';
         listSelfButton.classList.add('remove');
         listSelfButton.disabled = false;
 
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions(); // Refresh the display
+        displayPlayersSeekingFactions();
 
     } catch (error) {
         console.error("Error during self-listing:", error);
         alert(`Failed to list yourself: ${error.message}`);
 
-        // On failure, revert the button to its original state
         isCurrentlyListed = false;
         listSelfButton.disabled = false;
         listSelfButton.textContent = 'List Myself';
@@ -321,7 +318,6 @@ async function advertiseFaction() {
             merge: true
         });
 
-        alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
 
         isFactionCurrentlyAdvertised = true;
@@ -377,8 +373,6 @@ async function removeFactionAdvertisement() {
         if (factionsSeekingMembersTbody.children.length === 0) {
             factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">No factions currently seeking members.</td></tr>';
         }
-
-        alert(`Successfully removed your faction's advertisement.`);
 
     } catch (error) {
         console.error("Error removing faction advertisement:", error);
