@@ -202,7 +202,6 @@ async function removeSelfFromRecruitment() {
 
 
 async function displayPlayersSeekingFactions() {
-	alert("TESTING: The new recruitment.js file is running!");
     if (!playersSeekingFactionsTbody) {
         return;
     }
