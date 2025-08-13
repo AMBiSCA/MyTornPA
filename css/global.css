@@ -2460,7 +2460,7 @@ footer.footer {
 
 
 /* ================================================== */
-/* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V2) == */
+/* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V3) == */
 /* ================================================== */
 
 body.eye-soothing-mode {
@@ -2470,15 +2470,15 @@ body.eye-soothing-mode {
     --soothing-accent-glow: rgba(229, 160, 13, 0.5); /* The color for glow effects */
 }
 
-/* --- 1. NEW UNIVERSAL CONTAINER & TITLE RULES --- */
+/* --- 1. UNIVERSAL CONTAINER & TITLE RULES --- */
 
-/* This is the NEW key rule. It will style ANY element you give the class "themed-container". */
+/* This styles ANY element you give the class "themed-container". */
 body.eye-soothing-mode .themed-container {
     border-color: var(--soothing-accent) !important; /* Use !important to override any specific panel styles */
     box-shadow: 0 0 15px var(--soothing-accent-glow) !important;
 }
 
-/* This NEW rule targets all common heading levels INSIDE a themed container. */
+/* This targets all common heading levels INSIDE a themed container. */
 body.eye-soothing-mode .themed-container h2,
 body.eye-soothing-mode .themed-container h3,
 body.eye-soothing-mode .themed-container h4,
@@ -2529,4 +2529,16 @@ body.eye-soothing-mode .image-glow-flipped {
 }
 body.eye-soothing-mode #headerMainLogo {
     filter: drop-shadow(0px 0px 8px var(--soothing-accent-glow));
+}
+
+/* --- 3. SPECIFIC ELEMENT STYLES (NEWLY ADDED) --- */
+
+/* This targets the sub-headings in the "Explore Your Tools" panel */
+body.eye-soothing-mode .tool-category-header {
+    color: var(--soothing-accent);
+}
+
+/* This targets the "TornCityTime" text */
+body.eye-soothing-mode #tornTimeContainer {
+    color: var(--soothing-accent);
 }
