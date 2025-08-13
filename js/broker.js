@@ -1,4 +1,4 @@
-console.log("--- LATEST BROKER.JS FILE LOADED ---"); 
+// mysite/js/broker.js (Final Corrected Version)
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         tornApiKey = userDoc.data().tornApiKey;
                         if (tornApiKey) {
                             brokerApiKeyErrorDiv.textContent = '';
-                            // Initialize the page data
                             await Promise.all([
                                 fetchAllItems(tornApiKey),
                                 fetchUserInventory(tornApiKey)
@@ -68,10 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`https://api.torn.com/user/?selections=inventory&key=${apiKey}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error.error);
-            
             userInventory = {};
             if (data.inventory) {
-                // -- FIX 1: The API returns an object, so we use Object.values() to get an array --
                 Object.values(data.inventory).forEach(item => {
                     userInventory[item.ID] = item.quantity;
                 });
@@ -80,27 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Could not fetch user inventory:", error.message);
         }
     }
-
-    // mysite/js/broker.js (Corrected Function)
-
-async function fetchWatchlistPrices(apiKey, itemIds) {
-    if (itemIds.length === 0) return {};
-    try {
-        // CORRECTED: The URL now includes /v2/ as it should.
-        const response = await fetch(`https://api.torn.com/market/v2/${itemIds.join(',')}?selections=itemmarket,bazaar&key=${apiKey}`);
-        const data = await response.json();
-        if (data.error) {
-            // This is where the error in your screenshot is coming from.
-            throw new Error(data.error.error);
+    
+    // This function now only fetches the price for a SINGLE item.
+    async function fetchItemPrice(apiKey, itemId) {
+        try {
+            const response = await fetch(`https://api.torn.com/market/v2/${itemId}?selections=itemmarket,bazaar&key=${apiKey}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.error);
+            return data;
+        } catch (error) {
+            console.error(`Could not fetch price for item ${itemId}:`, error.message);
+            return null; // Return null on failure
         }
-        return data;
-    } catch (error) {
-        console.error("Could not fetch watchlist prices:", error.message);
-        // Display the specific error in the table
-        itemTableBody.innerHTML = `<tr><td colspan="5" class="error-message">API Error: ${error.message}</td></tr>`;
-        return {};
     }
-}
 
     // --- UI Rendering ---
     async function refreshWatchlistDisplay() {
@@ -113,23 +102,33 @@ async function fetchWatchlistPrices(apiKey, itemIds) {
         itemTableBody.innerHTML = `<tr><td colspan="5">Fetching prices for ${watchlist.length} item(s)...</td></tr>`;
         currentItemsSpan.textContent = watchlist.length;
 
-        const priceData = await fetchWatchlistPrices(tornApiKey, watchlist);
+        // Create an array of promises, one for each API call
+        const pricePromises = watchlist.map(itemId => fetchItemPrice(tornApiKey, itemId));
+        
+        // Wait for all API calls to complete
+        const priceResults = await Promise.all(pricePromises);
+
         itemTableBody.innerHTML = ''; // Clear table for new rows
 
-        watchlist.forEach(itemId => {
+        watchlist.forEach((itemId, index) => {
             const itemInfo = allItems[itemId];
-            const bazaarListings = priceData.bazaar ? priceData.bazaar[itemId] : null;
-            const marketListings = priceData.itemmarket ? priceData.itemmarket[itemId] : null;
+            const priceData = priceResults[index];
+            
+            let bazaarPrice = 'N/A';
+            let marketPrice = 'N/A';
 
-            const bazaarPrice = bazaarListings ? bazaarListings[0].cost.toLocaleString() : 'N/A';
-            const marketPrice = marketListings ? marketListings[0].cost.toLocaleString() : 'N/A';
+            if (priceData) {
+                 bazaarPrice = priceData.bazaar && priceData.bazaar[0] ? '$' + priceData.bazaar[0].cost.toLocaleString() : 'N/A';
+                 marketPrice = priceData.itemmarket && priceData.itemmarket[0] ? '$' + priceData.itemmarket[0].cost.toLocaleString() : 'N/A';
+            }
+            
             const userStock = userInventory[itemId] || 0;
 
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
-                <td>$${marketPrice}</td>
-                <td>$${bazaarPrice}</td>
+                <td>${marketPrice}</td>
+                <td>${bazaarPrice}</td>
                 <td>${userStock.toLocaleString()}</td>
                 <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
             `;
