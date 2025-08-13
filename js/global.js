@@ -1794,9 +1794,13 @@ initializeGlobals();
 // Wait until the HTML document is fully loaded before running the script.
 document.addEventListener('DOMContentLoaded', () => {
 
+    console.log("Theme switcher script has started."); // <-- ADDED FOR DEBUGGING
+
     // Find the button and the body element in the document.
     const themeToggleButton = document.getElementById('theme-toggle-btn');
     const body = document.body;
+
+    console.log("Found theme button:", themeToggleButton); // <-- ADDED FOR DEBUGGING
 
     // --- 1. Check for a saved theme when the page loads ---
     // Look in the browser's local storage for a key named 'theme'.
