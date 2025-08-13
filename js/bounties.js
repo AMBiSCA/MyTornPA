@@ -15,6 +15,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let tornApiKey = null;
     let timerInterval = null; // To hold our timer
 
+// Add this new function to handle the sticky header
+    function handleStickyHeader() {
+        const tableWrapper = document.querySelector('.table-wrapper');
+        const tableHeader = document.querySelector('.bounty-table thead');
+        
+        if (!tableWrapper || !tableHeader) return;
+
+        // Add or remove the 'is-stuck' class based on scroll position
+        if (tableWrapper.scrollTop > 0) {
+            tableHeader.classList.add('is-stuck');
+        } else {
+            tableHeader.classList.remove('is-stuck');
+        }
+    }
+
+    // Attach the scroll event listener to the table's scrolling container
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (tableWrapper) {
+        tableWrapper.addEventListener('scroll', handleStickyHeader);
+    }
+
+}); // This is the closing of your D.O.M.ContentLoaded event listener
+
     // Function to update all active timers every second
     function updateTimers() {
         const now = Math.floor(Date.now() / 1000);
@@ -208,28 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerInterval = setInterval(updateTimers, 1000);
     }
 	
-	// Add this new function to handle the sticky header
-    function handleStickyHeader() {
-        const tableWrapper = document.querySelector('.table-wrapper');
-        const tableHeader = document.querySelector('.bounty-table thead');
-        
-        if (!tableWrapper || !tableHeader) return;
-
-        // Add or remove the 'is-stuck' class based on scroll position
-        if (tableWrapper.scrollTop > 0) {
-            tableHeader.classList.add('is-stuck');
-        } else {
-            tableHeader.classList.remove('is-stuck');
-        }
-    }
-
-    // Attach the scroll event listener to the table's scrolling container
-    const tableWrapper = document.querySelector('.table-wrapper');
-    if (tableWrapper) {
-        tableWrapper.addEventListener('scroll', handleStickyHeader);
-    }
-
-}); // This is the closing of your D.O.M.ContentLoaded event listener
+	
     
     function applyFiltersAndSort() {
         if (!allBounties || allBounties.length === 0) {
