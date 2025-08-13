@@ -68,8 +68,6 @@ function openInternalPrivateChat(tornId, tornName, firebaseUid) {
 
 // --- Core Functions for this page ---
 
-// ## FIX 1, STEP 1 ##
-// Added data-faction-id attribute to the <tr> tag
 async function displayFactionsSeekingMembers() {
     if (!factionsSeekingMembersTbody) return;
     factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Loading recruiting factions...</td></tr>';
@@ -104,6 +102,7 @@ async function displayFactionsSeekingMembers() {
     }
 }
 
+// ## THIS FUNCTION IS NOW FIXED ##
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
@@ -114,8 +113,10 @@ async function listSelfForRecruitment() {
         alert("Your Torn ID is missing. Please ensure your profile is set up correctly.");
         return;
     }
+
     listSelfButton.disabled = true;
     listSelfButton.textContent = 'Listing...';
+
     try {
         const userDocRef = db.collection('users').doc(String(currentUserTornId));
         const userDoc = await userDocRef.get();
@@ -139,23 +140,30 @@ async function listSelfForRecruitment() {
             isActive: true
         };
         const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
-        await listingDocRef.set(playerListingData, {
-            merge: true
-        });
+        await listingDocRef.set(playerListingData, { merge: true });
+
+        // On success, correctly update the button state
+        isCurrentlyListed = true;
+        listSelfButton.textContent = 'Remove Listing';
+        listSelfButton.classList.add('remove');
+        listSelfButton.disabled = false;
+
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions();
+        displayPlayersSeekingFactions(); // Refresh the display
 
     } catch (error) {
         console.error("Error during self-listing:", error);
         alert(`Failed to list yourself: ${error.message}`);
-    } finally {
+
+        // On failure, revert the button to its original state
+        isCurrentlyListed = false;
         listSelfButton.disabled = false;
         listSelfButton.textContent = 'List Myself';
+        listSelfButton.classList.remove('remove');
     }
 }
 
-// ## FIX 2, STEP 2 ##
-// Updated to directly manipulate the DOM for instant feedback.
+
 async function removeSelfFromRecruitment() {
     console.log("Attempting to remove player from recruitment.");
     if (!auth.currentUser) {
@@ -195,8 +203,7 @@ async function removeSelfFromRecruitment() {
     }
 }
 
-// ## FIX 2, STEP 1 ##
-// Added data-player-uid attribute to the <tr> tag
+
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) {
         return;
@@ -332,8 +339,7 @@ async function advertiseFaction() {
     }
 }
 
-// ## FIX 1, STEP 2 ##
-// Updated to directly manipulate the DOM for instant feedback.
+
 async function removeFactionAdvertisement() {
     console.log("Attempting to remove faction advertisement.");
     if (!auth.currentUser) {
