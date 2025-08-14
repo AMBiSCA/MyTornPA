@@ -1817,8 +1817,12 @@ async function sendAvailabilityReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 discordWebhookUrl: discordWebhookUrl,
-                // We send a generic 'content' payload instead of the reminder-specific one
-                content: reportString, 
+                // --- THIS IS THE FIX ---
+                // We make the payload look like a reminder message.
+                // The backend function expects `reminderMessage` and `nonResponders`.
+                reminderMessage: reportString, // We put our whole report here.
+                nonResponders: [], // We send an empty list of people.
+                // --- END OF FIX ---
                 factionName: factionApiFullData.basic.name,
                 factionId: globalYourFactionID
             })
