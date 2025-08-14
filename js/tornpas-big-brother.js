@@ -489,133 +489,134 @@ window.addEventListener('resize', managePortraitBlocker); window.addEventListene
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    const currentStatsTabContainer = document.querySelector('#current-stats-tab .table-container');
-    if (currentStatsTabContainer) {
-        loadingMessageElement = document.createElement('p');
-        loadingMessageElement.id = 'loading-message-container';
-        Object.assign(loadingMessageElement.style, { textAlign: 'center', padding: '20px', color: '#bbb' });
-        loadingMessageElement.textContent = 'Loading faction member data...';
-        currentStatsTabContainer.prepend(loadingMessageElement);
-    }
-    const tabButtons = document.querySelectorAll('.tab-button-bb');
-    const tabPanes = document.querySelectorAll('.tab-pane-bb');
-    const startTrackingBtn = document.getElementById('startTrackingBtn');
-    const stopTrackingBtn = document.getElementById('stopTrackingBtn');
-    const downloadButton = document.getElementById('downloadTableDataBtn');
+    const currentStatsTabContainer = document.querySelector('#current-stats-tab .table-container');
+    if (currentStatsTabContainer) {
+        loadingMessageElement = document.createElement('p');
+        loadingMessageElement.id = 'loading-message-container';
+        Object.assign(loadingMessageElement.style, { textAlign: 'center', padding: '20px', color: '#bbb' });
+        loadingMessageElement.textContent = 'Loading faction member data...';
+        currentStatsTabContainer.prepend(loadingMessageElement);
+    }
+    const tabButtons = document.querySelectorAll('.tab-button-bb');
+    const tabPanes = document.querySelectorAll('.tab-pane-bb');
+    const startTrackingBtn = document.getElementById('startTrackingBtn');
+    const stopTrackingBtn = document.getElementById('stopTrackingBtn');
+    const downloadButton = document.getElementById('downloadTableDataBtn');
 
-    if (downloadButton) downloadButton.addEventListener('click', downloadCurrentTabAsImage);
+    if (downloadButton) downloadButton.addEventListener('click', downloadCurrentTabAsImage);
 
-    // Setup sorting functionality
-    dynamicallySetSortKeys();
-    initializeTableSorting();
+    // Setup sorting functionality
+    dynamicallySetSortKeys();
+    initializeTableSorting();
 
-    function showTab(tabId) {
-        tabPanes.forEach(p => p.classList.toggle('active', p.id === tabId));
-        tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab + '-tab' === tabId));
-        if (unsubscribeFromTrackingStatus) { unsubscribeFromTrackingStatus(); unsubscribeFromTrackingStatus = null; }
-        if (unsubscribeFromGainsData) { unsubscribeFromGainsData(); unsubscribeFromGainsData = null; }
-        if (tabId === 'current-stats-tab') {
-            if (userApiKey && auth.currentUser) updateFriendlyMembersTable(userApiKey, auth.currentUser.uid);
-            if (loadingMessageElement) loadingMessageElement.style.display = 'block';
-        } else if (tabId === 'gains-tracking-tab') {
-            hideLoadingMessage();
-            if (auth.currentUser && userFactionIdFromProfile) setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-            else { updateGainTrackingUI(); displayGainsTable(); }
-            displayGainsTable();
-        }
-    }
-    tabButtons.forEach(button => button.addEventListener('click', () => showTab(button.dataset.tab + '-tab')));
-    auth.onAuthStateChanged(async (user) => {
-        currentFirebaseUserUid = user ? user.uid : null;
-        if (user) {
-            try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (userProfileDoc.exists) {
-                    const userData = userProfileDoc.data();
-                    userApiKey = userData.tornApiKey || null;
-                    userTornProfileId = userData.tornProfileId || null;
-                    userFactionIdFromProfile = userData.faction_id || null;
-                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
-                    if (userFactionIdFromProfile) setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
-                    else { updateGainTrackingUI(); console.warn("User has no faction ID."); }
-                    if (userApiKey && userTornProfileId) {
-                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
-                            await updateFriendlyMembersTable(userApiKey, user.uid);
-                        }
-                    } else {
-                        hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                        if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
-                        updateGainTrackingUI();
-                    }
-                } else {
-                    hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
-                    updateGainTrackingUI();
-                }
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-                hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
-                updateGainTrackingUI();
-            }
-        } else {
-            hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
-            const trackingStatusDisplay = document.getElementById('trackingStatus');
-            startTrackingBtn.classList.add('hidden'); stopTrackingBtn.classList.add('hidden'); if(trackingStatusDisplay) trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromTrackingStatus) { unsubscribeFromTrackingStatus(); unsubscribeFromTrackingStatus = null; }
-            if (unsubscribeFromGainsData) { unsubscribeFromGainsData(); unsubscribeFromGainsData = null; }
-        }
-    });
-    startTrackingBtn.addEventListener('click', startTrackingGains);
-    stopTrackingBtn.addEventListener('click', stopTrackingGains);
+    function showTab(tabId) {
+        tabPanes.forEach(p => p.classList.toggle('active', p.id === tabId));
+        tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab + '-tab' === tabId));
+        if (unsubscribeFromTrackingStatus) { unsubscribeFromTrackingStatus(); unsubscribeFromTrackingStatus = null; }
+        if (unsubscribeFromGainsData) { unsubscribeFromGainsData(); unsubscribeFromGainsData = null; }
+        if (tabId === 'current-stats-tab') {
+            if (userApiKey && auth.currentUser) updateFriendlyMembersTable(userApiKey, auth.currentUser.uid);
+            if (loadingMessageElement) loadingMessageElement.style.display = 'block';
+        } else if (tabId === 'gains-tracking-tab') {
+            hideLoadingMessage();
+            if (auth.currentUser && userFactionIdFromProfile) setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+            else { updateGainTrackingUI(); displayGainsTable(); }
+            displayGainsTable();
+        }
+    }
+    tabButtons.forEach(button => button.addEventListener('click', () => showTab(button.dataset.tab + '-tab')));
+    auth.onAuthStateChanged(async (user) => {
+        currentFirebaseUserUid = user ? user.uid : null;
+        if (user) {
+            try {
+                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                if (userProfileDoc.exists) {
+                    const userData = userProfileDoc.data();
+                    userApiKey = userData.tornApiKey || null;
+                    userTornProfileId = userData.tornProfileId || null;
+                    userFactionIdFromProfile = userData.faction_id || null;
+                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
+                    if (userFactionIdFromProfile) setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+                    else { updateGainTrackingUI(); console.warn("User has no faction ID."); }
+                    if (userApiKey && userTornProfileId) {
+                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
+                            await updateFriendlyMembersTable(userApiKey, user.uid);
+                        }
+                    } else {
+                        hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
+                        updateGainTrackingUI();
+                    }
+                } else {
+                    hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
+                    updateGainTrackingUI();
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+                updateGainTrackingUI();
+            }
+        } else {
+            hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
+            const trackingStatusDisplay = document.getElementById('trackingStatus');
+            startTrackingBtn.classList.add('hidden'); stopTrackingBtn.classList.add('hidden'); if(trackingStatusDisplay) trackingStatusDisplay.textContent = 'Please log in.';
+            if (unsubscribeFromTrackingStatus) { unsubscribeFromTrackingStatus(); unsubscribeFromTrackingStatus = null; }
+            if (unsubscribeFromGainsData) { unsubscribeFromGainsData(); unsubscribeFromGainsData = null; }
+        }
+    });
+    startTrackingBtn.addEventListener('click', startTrackingGains);
+    stopTrackingBtn.addEventListener('click', stopTrackingGains);
 });
 
 function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
-    let blocker = document.getElementById('landscape-blocker');
+    const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
+    let blocker = document.getElementById('landscape-blocker');
 
-    if (isMobileLandscape) {
-        // If the blocker doesn't exist, create and show it.
-        if (!blocker) {
-            blocker = document.createElement('div');
-            blocker.id = 'landscape-blocker';
-            blocker.innerHTML = `
-                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
-                <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
-                <p>This page is best viewed in portrait mode.</p>
-            `;
-            // These styles will make it cover the entire screen.
-            Object.assign(blocker.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100vw',  // Use viewport width
-                height: '100vh', // Use viewport height
-                backgroundColor: '#1c1c1c', // A solid, dark color
-                color: '#eee',
-                textAlign: 'center',
-                zIndex: '99999' // A very high number to ensure it's on top of everything
-            });
-            document.body.appendChild(blocker);
-        }
-        // Also, prevent the page from scrolling underneath the blocker.
-        document.body.style.overflow = 'hidden';
+    if (isMobileLandscape) {
+        // If the blocker doesn't exist, create and show it.
+        if (!blocker) {
+            blocker = document.createElement('div');
+            blocker.id = 'landscape-blocker';
+            blocker.innerHTML = `
+                <div style="transform: rotate(0deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+                <h2 style="color: #00a8ff;">Please Rotate Your Device</h2>
+                <p>This page is best viewed in portrait mode.</p>
+            `;
+            // These styles will make it cover the entire screen.
+            Object.assign(blocker.style, {
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '100vw',  // Use viewport width
+                height: '100vh', // Use viewport height
+                backgroundColor: '#1c1c1c', // A solid, dark color
+                color: '#eee',
+                textAlign: 'center',
+                zIndex: '99999' // A very high number to ensure it's on top of everything
+            });
+            document.body.appendChild(blocker);
+        }
+        // Also, prevent the page from scrolling underneath the blocker.
+        document.body.style.overflow = 'hidden';
 
-    } else {
-        // If we are in portrait, remove the blocker if it exists.
-        if (blocker) {
-            blocker.remove();
-        }
-        // And restore the ability to scroll the page.
-        document.body.style.overflow = '';
-    }
+    } else {
+        // If we are in portrait, remove the blocker if it exists.
+        if (blocker) {
+            blocker.remove();
+        }
+        // And restore the ability to scroll the page.
+        document.body.style.overflow = '';
+    }
 }
 
-// Run the function when the page first loads and whenever it's resized.
-window.addEventListener('load', toggleLandscapeBlocker);
+// Run the function on initial load and whenever orientation or size changes.
+window.addEventListener('DOMContentLoaded', toggleLandscapeBlocker);
 window.addEventListener('resize', toggleLandscapeBlocker);
+window.addEventListener('orientationchange', toggleLandscapeBlocker);
