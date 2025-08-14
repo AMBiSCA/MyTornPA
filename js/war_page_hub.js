@@ -4333,193 +4333,129 @@ tabButtons.forEach(button => {
 });
 
 
-   // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
-    const availabilityTab = document.getElementById('war-availability-tab');
-    if (availabilityTab) {
-        availabilityTab.addEventListener('click', async (event) => {
-            const button = event.target.closest('.action-btn');
-            if (!button) {
-                return; // Exit if the click wasn't on an action button
+  // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
+const availabilityTab = document.getElementById('war-availability-tab');
+if (availabilityTab) {
+    // The "async" keyword is the only change needed to fix the error
+    availabilityTab.addEventListener('click', async (event) => {
+        const button = event.target.closest('.action-btn');
+        if (!button) {
+            return; // Exit if the click wasn't on an action button
+        }
+
+        // Handle the "Update Day X" buttons inside the form
+        if (button.textContent.includes('Update Day')) {
+            event.preventDefault();
+            const dayForm = button.closest('.availability-day-form');
+            const dayNumber = parseInt(dayForm.dataset.day, 10);
+            const user = auth.currentUser;
+            if (!user) {
+                return alert("You must be logged in.");
             }
 
-            // Handle the "Update Day X" buttons inside the form
-            if (button.textContent.includes('Update Day')) {
-                event.preventDefault();
-                const dayForm = button.closest('.availability-day-form');
-                const dayNumber = parseInt(dayForm.dataset.day, 10);
-                const user = auth.currentUser;
-                if (!user) {
-                    return alert("You must be logged in.");
-                }
+            const status = dayForm.querySelector('.availability-status').value;
+            const reason = dayForm.querySelector('input[id^="reason-day-"]').value.trim();
+            if (status === 'no' && reason === '') {
+                return showCustomAlert("Please provide a reason for being unavailable.", "Reason Required");
+            }
 
-                const status = dayForm.querySelector('.availability-status').value;
-                const reason = dayForm.querySelector('input[id^="reason-day-"]').value.trim();
-                if (status === 'no' && reason === '') {
-                    return showCustomAlert("Please provide a reason for being unavailable.", "Reason Required");
-                }
+            const originalText = button.textContent;
+            button.textContent = "Saving...";
+            button.disabled = true;
 
-                const originalText = button.textContent;
-                button.textContent = "Saving...";
-                button.disabled = true;
+            const availabilityData = {
+                status: status,
+                reason: reason,
+                timeRange: dayForm.querySelector('input[id^="time-from-day-"]').value.trim(),
+                role: dayForm.querySelector('select[id^="role-day-"]').value,
+                isAvailableForStart: dayForm.querySelector('input[id^="war-start-day-"]').checked,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
-                const availabilityData = {
-                    status: status,
-                    reason: reason,
-                    timeRange: dayForm.querySelector('input[id^="time-from-day-"]').value.trim(),
-                    role: dayForm.querySelector('select[id^="role-day-"]').value,
-                    isAvailableForStart: dayForm.querySelector('input[id^="war-start-day-"]').checked,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                };
+            try {
+                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                const tornUserId = userProfileDoc.data().tornProfileId;
+                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+                await availabilityDocRef.set({
+                    [`day_${dayNumber}`]: availabilityData
+                }, {
+                    merge: true
+                });
+                await displayWarRoster(); // Refresh the roster and summary
+                button.textContent = "Saved! ✅";
+            } catch (error) {
+                console.error("Error saving availability:", error);
+                showCustomAlert(`Failed to save availability: ${error.message}`, "Save Error");
+                button.textContent = "Error! ❌";
+            } finally {
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
 
+        // Handle the "Edit Day X" buttons in the summary view
+        if (button.classList.contains('edit-day-btn')) {
+            const dayToEdit = button.dataset.dayToEdit;
+            if (dayToEdit) {
+                showDayForm(parseInt(dayToEdit, 10));
+            }
+        }
+
+        // Handle the "Send Reminders" button
+        if (button.id === 'notify-members-btn') {
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = "Sending...";
+            try {
+                await sendReminderNotifications();
+                button.textContent = "Sent! ✅";
+            } catch (error) {
+                console.error("Error sending reminders:", error);
+                button.textContent = "Error! ❌";
+                showCustomAlert(`Failed to send reminders: ${error.message}`, "Send Error");
+            } finally {
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
+        
+        // Handle the "Send Availability" button
+        if (button.id === 'send-availability-report-btn') {
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = "Sending...";
+            try {
+                await sendAvailabilityReport();
+                button.textContent = "Sent! ✅";
+                showCustomAlert("Availability report sent to Discord successfully!", "Report Sent");
+            } catch (error) {
+                console.error("Error sending availability report:", error);
+                button.textContent = "Error! ❌";
+            } finally {
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
+
+        // Handle the "Reset All" button
+        if (button.id === 'reset-availability-btn') {
+            const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
+            if (confirmed) {
                 try {
-                    const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                    const tornUserId = userProfileDoc.data().tornProfileId;
-                    const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-                    await availabilityDocRef.set({
-                        [`day_${dayNumber}`]: availabilityData
-                    }, {
-                        merge: true
-                    });
-                    await displayWarRoster(); // Refresh the roster and summary
-                    button.textContent = "Saved! ✅";
+                    await resetAllAvailability();
                 } catch (error) {
-                    console.error("Error saving availability:", error);
-                    showCustomAlert(`Failed to save availability: ${error.message}`, "Save Error");
-                    button.textContent = "Error! ❌";
-                } finally {
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 2000);
+                    console.error("Reset All button failed:", error);
                 }
             }
-
-            // Handle the "Edit Day X" buttons in the summary view
-            if (button.classList.contains('edit-day-btn')) {
-                const dayToEdit = button.dataset.dayToEdit;
-                if (dayToEdit) {
-                    showDayForm(parseInt(dayToEdit, 10));
-                }
-            }
-
-            // Handle the "Send Reminders" button
-            if (button.id === 'notify-members-btn') {
-                const originalText = button.textContent;
-                button.disabled = true;
-                button.textContent = "Sending...";
-                try {
-                    await sendReminderNotifications(); // This function already shows alerts on success/failure
-                    button.textContent = "Sent! ✅";
-                } catch (error) {
-                    console.error("Error sending reminders:", error);
-                    button.textContent = "Error! ❌";
-                    showCustomAlert(`Failed to send reminders: ${error.message}`, "Send Error");
-                } finally {
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 2000);
-                }
-            }
-			
-			if (button.id === 'send-availability-report-btn') {
-                const originalText = button.textContent;
-                button.disabled = true;
-                button.textContent = "Sending...";
-                try {
-                    await sendAvailabilityReport();
-                    button.textContent = "Sent! ✅";
-                    showCustomAlert("Availability report sent to Discord successfully!", "Report Sent");
-                } catch (error) {
-                    console.error("Error sending availability report:", error);
-                    button.textContent = "Error! ❌";
-                    // The sendAvailabilityReport function already shows a specific alert on failure
-                } finally {
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 2000);
-                }
-            }
-
-            // Handle the "Reset All" button
-            if (button.id === 'reset-availability-btn') {
-                const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
-                if (confirmed) {
-                    // --- THIS IS THE ONLY CHANGE ---
-                    // It now calls the real function instead of the placeholder alert.
-                    try {
-                        await resetAllAvailability();
-                    } catch (error) {
-                        console.error("Reset All button failed:", error);
-                        // The resetAllAvailability function already shows its own error alert,
-                        // so we don't need another one here.
-                    }
-                }
-            }
-        });
-    }
-
-            // Handle the "Edit Day X" buttons in the summary view
-            if (button.classList.contains('edit-day-btn')) {
-                const dayToEdit = button.dataset.dayToEdit;
-                if (dayToEdit) {
-                    showDayForm(parseInt(dayToEdit, 10));
-                }
-            }
-
-            // Handle the "Send Reminders" button
-            if (button.id === 'notify-members-btn') {
-                const originalText = button.textContent;
-                button.disabled = true;
-                button.textContent = "Sending...";
-                try {
-                    await sendReminderNotifications(); // This function already shows alerts on success/failure
-                    button.textContent = "Sent! ✅";
-                } catch (error) {
-                    console.error("Error sending reminders:", error);
-                    button.textContent = "Error! ❌";
-                    showCustomAlert(`Failed to send reminders: ${error.message}`, "Send Error");
-                } finally {
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 2000);
-                }
-            }
-			
-			if (button.id === 'send-availability-report-btn') {
-                const originalText = button.textContent;
-                button.disabled = true;
-                button.textContent = "Sending...";
-                try {
-                    await sendAvailabilityReport();
-                    button.textContent = "Sent! ✅";
-                    showCustomAlert("Availability report sent to Discord successfully!", "Report Sent");
-                } catch (error) {
-                    console.error("Error sending availability report:", error);
-                    button.textContent = "Error! ❌";
-                    // The sendAvailabilityReport function already shows a specific alert on failure
-                } finally {
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 2000);
-                }
-            }
-
-            // Handle the "Reset All" button
-            if (button.id === 'reset-availability-btn') {
-                const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
-                if (confirmed) {
-                    // NOTE: You will need to write the function `resetAllAvailability()` that
-                    // goes through the database and deletes all documents in the subcollection.
-                    // This is a placeholder for that future function.
-                    alert("Reset functionality is not fully implemented yet.");
-                }
-            }
-        });
-    }
+        }
+    });
+}
     // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
     // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
@@ -4624,7 +4560,7 @@ tabButtons.forEach(button => {
                 } catch (error) {
                     console.error("Error clearing war data:", error);
                     clearAllWarDataBtn.textContent = "Error! ❌";
-                    showCustomAlert("Failed to clear data. Please check the console.", "Error");
+     
                 } finally {
                     setTimeout(() => {
                         clearAllWarDataBtn.disabled = false;
@@ -4796,7 +4732,7 @@ tabButtons.forEach(button => {
             } catch (error) {
                 console.error("Error saving admins:", error);
                 saveAdminsBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save admins. Check console.", "Save Error");
+              
             } finally {
                 setTimeout(() => {
                     saveAdminsBtn.disabled = false;
