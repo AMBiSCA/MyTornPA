@@ -214,20 +214,16 @@ function renderFriendlyMembersTable() {
     }
     tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
     
-    // --- NEW: Make table container scrollable if it has more than 16 rows ---
     const tableContainer = document.querySelector('#current-stats-tab .table-container');
     if (tableContainer) {
         if (friendlyMembersDataCache.length > 16) {
-            // This value is an estimate, you can adjust '75vh' to make the box taller or shorter
             tableContainer.style.maxHeight = '75vh';
             tableContainer.style.overflowY = 'auto';
         } else {
-            // Reset styles if the table is short
             tableContainer.style.maxHeight = '';
             tableContainer.style.overflowY = '';
         }
     }
-    // --- END NEW ---
 
     applyStatColorCoding();
 }
@@ -329,7 +325,7 @@ function initializeTableSorting() {
 }
 
 
-// --- GAIN TRACKING AND OTHER FUNCTIONS (UNCHANGED) ---
+// --- GAIN TRACKING FUNCTIONS ---
 
 function formatGainValue(gain) {
     if (typeof gain !== 'number') return '<span class="gain-neutral">N/A</span>';
@@ -491,21 +487,16 @@ async function displayGainsTable() {
         let gainsRowsHtml = membersWithGains.map(member => `<tr class="${member.isNew ? 'new-member-gain' : ''}"><td><a href="https://www.torn.com/profiles.php?XID=${member.memberId}" target="_blank">${member.name}${member.isNew ? ' (New)' : ''}</a></td><td>${formatGainValue(member.strengthGain)}</td><td>${formatGainValue(member.dexterityGain)}</td><td>${formatGainValue(member.speedGain)}</td><td>${formatGainValue(member.defenseGain)}</td><td>${formatGainValue(member.totalGain)}</td></tr>`).join('');
         gainsTbody.innerHTML = gainsRowsHtml.length > 0 ? gainsRowsHtml : '<tr><td colspan="6" style="text-align:center;">No members with tracked gains.</td></tr>';
 
-        // --- NEW: Make table container scrollable if it has more than 13 rows ---
         const gainsTableContainer = document.querySelector('#gains-tracking-tab .gains-table-container');
         if (gainsTableContainer) {
             if (membersWithGains.length > 13) {
-                // This value is an estimate, you can adjust '70vh' to make the box taller or shorter
                 gainsTableContainer.style.maxHeight = '70vh';
                 gainsTableContainer.style.overflowY = 'auto';
             } else {
-                // Reset styles if the table is short
                 gainsTableContainer.style.maxHeight = '';
                 gainsTableContainer.style.overflowY = '';
             }
         }
-        // --- END NEW ---
-
         gainsMessageContainer.classList.add('hidden');
     } catch (error) { console.error("Error displaying gains table:", error); gainsMessageContainer.textContent = `Error loading gains: ${error.message}`; }
 }
@@ -517,8 +508,28 @@ function managePortraitBlocker() {
 }
 window.addEventListener('resize', managePortraitBlocker); window.addEventListener('orientationchange', managePortraitBlocker); window.addEventListener('DOMContentLoaded', managePortraitBlocker);
 
+// --- NEW: Function to inject CSS for sticky headers ---
+function injectStickyHeaderStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        #current-stats-tab .table-container table th,
+        #gains-tracking-tab .gains-table-container table th {
+            position: -webkit-sticky; /* For Safari */
+            position: sticky;
+            top: -1px; /* Prevents a small gap from sometimes appearing */
+            z-index: 2;
+            /* This background color should match your table header's background */
+            background: #18191c; 
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
+    // --- NEW: Call the function to inject CSS ---
+    injectStickyHeaderStyles();
+
     const currentStatsTabContainer = document.querySelector('#current-stats-tab .table-container');
     if (currentStatsTabContainer) {
         loadingMessageElement = document.createElement('p');
