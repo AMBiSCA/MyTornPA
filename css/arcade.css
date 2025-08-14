@@ -7,6 +7,7 @@
     color: #eee;
 	border: 2px solid #ff4500;
     font-family: "Arial", sans-serif;
+	box-shadow: 0 0 15px 5px #ff4500;
 }
 
 /* --- Main Menu --- */
