@@ -3771,48 +3771,6 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         displayEnemyTargetsTable(null); // Clear the enemy targets table
     }
 }
-
-if (factionAnnouncementsDisplay) {
-    // Check if a saved image URL exists
-    if (warData.announcementsImageUrl) {
-        factionAnnouncementsDisplay.innerHTML = `<img src="${warData.announcementsImageUrl}" alt="Faction Announcement">`;
-    } else {
-        // Otherwise, show the text content
-        factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
-    }
-}
-
-if (gamePlanEditArea) {
-    gamePlanEditArea.value = warData.gamePlan || '';
-}
-
-    populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData);      // Uses warData (Firebase)
-
-    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
-    let determinedEnemyFactionID = null;
-    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
-        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
-        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
-        if (opponentFactionInfo) {
-            determinedEnemyFactionID = opponentFactionInfo.id;
-            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
-        }
-    }
-    // Fallback to manually saved enemy ID if no active ranked war opponent detected
-    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
-
-    // Display enemy targets table using the determined ID
-    if (globalEnemyFactionID) {
-        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-        displayEnemyTargetsTable(null); // Clear the enemy targets table
-    }
-}
-
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
