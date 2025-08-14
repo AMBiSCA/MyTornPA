@@ -1997,23 +1997,18 @@ async function showFactionSummary(summaryCounts) {
 
     if (user) {
         try {
-            // --- THIS IS THE FIX ---
-            // 1. Fetch the user's full profile, which includes their Torn ID
             const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
             const userProfile = userProfileDoc.exists ? userProfileDoc.data() : {};
             const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
-            const userTornId = userProfile.tornProfileId || ''; // Get the user's Torn ID
+            const userTornId = userProfile.tornProfileId || ''; 
 
-            // 2. Fetch the list of admin Torn IDs saved from the checklist
             const warDoc = await db.collection('factionWars').doc('currentWar').get();
             const tab4Admins = warDoc.exists ? warDoc.data().tab4Admins || [] : [];
             
-            // 3. Compare the user's Torn ID to the list of admin Torn IDs
             if (userPosition === 'leader' || userPosition === 'co-leader' || tab4Admins.includes(userTornId)) {
                 isAdmin = true;
                 adminDisplayStyle = 'display: block;';
             }
-            // --- END OF FIX ---
 
         } catch (error) {
             console.error("Error checking admin status within showFactionSummary:", error);
@@ -2057,6 +2052,8 @@ async function showFactionSummary(summaryCounts) {
                     <div id="discordWebhookUnifiedControl" class="action-btn discord-webhook-unified-control">
                         <span id="discordWebhookStatusText">Set Webhook</span>
                     </div>
+                    // --- NEW BUTTON ADDED HERE ---
+                    <button id="send-availability-report-btn" class="action-btn">Send Availability</button> 
                 </div>
                 <div id="reminder-list-container"></div>
             </div>
@@ -4424,6 +4421,26 @@ tabButtons.forEach(button => {
                     }, 2000);
                 }
             }
+			
+			if (button.id === 'send-availability-report-btn') {
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = "Sending...";
+                try {
+                    await sendAvailabilityReport();
+                    button.textContent = "Sent! ✅";
+                    showCustomAlert("Availability report sent to Discord successfully!", "Report Sent");
+                } catch (error) {
+                    console.error("Error sending availability report:", error);
+                    button.textContent = "Error! ❌";
+                    // The sendAvailabilityReport function already shows a specific alert on failure
+                } finally {
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            }
 
             // Handle the "Reset All" button
             if (button.id === 'reset-availability-btn') {
@@ -4722,6 +4739,8 @@ tabButtons.forEach(button => {
             }
         });
     }
+	
+	
 
     // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
     if (saveEnergyTrackMembersBtn) {
