@@ -494,35 +494,46 @@ const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
     input.value = input.value.replace(/\D/g, '');
     }
     
-    async function isFactionComped(profile, db) {
-        if (!profile || !profile.faction_id) {
-            return false;
-        }
-        const usersRef = db.collection('userProfiles');
-        const leaderQuery = usersRef
-            .where('faction_id', '==', profile.faction_id)
-            .where('position', '==', 'Leader')
-            .limit(1);
-        try {
-            const leaderSnapshot = await leaderQuery.get();
-            if (leaderSnapshot.empty) {
-                console.warn(`isFactionComped check: No leader found for faction ID: ${profile.faction_id}`);
-                return false;
-            }
-            const leaderProfile = leaderSnapshot.docs[0].data();
-            const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
-            // --- THIS LINE IS CORRECTED ---
-            const leaderHasFreeAccess = String(leaderProfile.hasFreeAccess) === 'true';
-            if (leaderHasMembership || leaderHasFreeAccess) {
-                console.log(`isFactionComped check: Access granted via faction leader's membership.`);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error("Error during isFactionComped check:", error);
-            return false;
-        }
+async function isFactionComped(profile, db) {
+    // This function now ONLY checks if the user is in the site creator's faction.
+    // All other paid memberships (solo or faction) are handled by the 'membershipEndTime'
+    // field, which is set by your payment.js script.
+
+    // If the current user has no profile or faction_id, they can't get access this way.
+    if (!profile || !profile.faction_id) {
+        return false;
     }
+
+    // Your specific Firebase User ID, which ties the perk to your account.
+    const SITE_CREATOR_UID = "48CQkfJqz2YrXrHfmOO0y1zeci93"; 
+
+    try {
+        // Get the creator's profile from the database.
+        const creatorDocRef = db.collection('userProfiles').doc(SITE_CREATOR_UID);
+        const creatorDoc = await creatorDocRef.get();
+
+        // Check if the creator's profile exists and has a faction ID.
+        if (!creatorDoc.exists || !creatorDoc.data().faction_id) {
+            console.error("Site Creator's profile not found or has no faction_id. Faction perk is disabled.");
+            return false;
+        }
+
+        const creatorFactionId = creatorDoc.data().faction_id;
+
+        // Compare the current user's faction ID to the creator's faction ID.
+        if (profile.faction_id === creatorFactionId) {
+            console.log(`User granted access via Creator's Faction Perk (Faction ID: ${creatorFactionId}).`);
+            return true; // Grant access if they match.
+        }
+
+        // If they don't match, this perk doesn't apply to them.
+        return false;
+
+    } catch (error) {
+        console.error("Error during isFactionComped (Creator Perk) check:", error);
+        return false; // Fail safely if there's a database error.
+    }
+}
     
     
     function startMembershipCountdown(membershipInfo) {
