@@ -4686,3 +4686,63 @@ margin-right: auto !important;
 #friendly-members-table tbody tr:hover {
     background-color: #38383e;
 }
+
+/* ==========================================================================
+   Mobile Footer Styles
+   ========================================================================== */
+
+/* By default, hide the new mobile footer on desktop screens. */
+.mobile-footer {
+    display: none;
+}
+
+/* This media query targets screens 768px wide or smaller (like tablets and phones).
+   It will NOT affect your desktop view. */
+@media (max-width: 768px) {
+
+  /* 1. Hide your original PC footer placeholder on mobile. */
+  #globalfooterplaceholder {
+    display: none;
+  }
+
+  /* 2. Show and style the new mobile-specific footer. */
+  .mobile-footer {
+    display: block; /* This makes it visible on mobile */
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #0c1014; /* A dark background matching your theme */
+    border-top: 1px solid #00a8ff; /* The blue accent line from your design */
+    padding: 10px 0;
+    text-align: center;
+    z-index: 1000; /* Keeps it on top of other content */
+    box-sizing: border-box;
+  }
+
+  .mobile-footer .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 8px;
+  }
+
+  .mobile-footer .footer-links a {
+    color: #00a8ff;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+
+  .mobile-footer p {
+    margin: 0;
+    font-size: 0.8em;
+    color: #ccc;
+  }
+
+  /* 3. IMPORTANT: Add space at the bottom of the page.
+     This stops the new fixed footer from covering up your page content.
+     You can adjust the 75px value if needed. */
+  body {
+    padding-bottom: 75px !important;
+  }
+}
