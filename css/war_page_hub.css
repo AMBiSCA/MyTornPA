@@ -1190,11 +1190,6 @@ transition: background-color 0.2s ease;
     border-color: black;
 }
 
-/* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
-#postAnnouncementBtn {
-    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
-}
-
 /* ==========================================================================
    Enemy Targets Table Styles (Fixed Header Version)
    ========================================================================== */
