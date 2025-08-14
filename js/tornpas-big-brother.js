@@ -571,6 +571,76 @@ document.addEventListener('DOMContentLoaded', () => {
     stopTrackingBtn.addEventListener('click', stopTrackingGains);
 });
 
+
+// Orientation handler code (unchanged)...
+// --- START: Complete and Unified Orientation Handler ---
+let portraitBlocker = null;
+let landscapeBlocker = null;
+function createOverlays() {
+    const overlayStyles = {
+        display: 'none',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#1e1e1e',
+        color: '#f0f0f0',
+        textAlign: 'center',
+        fontFamily: 'sans-serif',
+        fontSize: '1.5em',
+        zIndex: '99999'
+    };
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
+    if (!document.getElementById('tablet-portrait-blocker')) {
+        portraitBlocker = document.createElement('div');
+        portraitBlocker.id = 'tablet-portrait-blocker';
+        Object.assign(portraitBlocker.style, overlayStyles);
+        portraitBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">This page is best viewed in portrait mode.</p>
+                <button id="return-home-btn-tablet">Return to Home</button>
+            </div>`;
+        document.body.appendChild(portraitBlocker);
+        const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
+        if (tabletReturnBtn) {
+            Object.assign(tabletReturnBtn.style, buttonStyles);
+            tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+    if (!document.getElementById('mobile-landscape-blocker')) {
+        landscapeBlocker = document.createElement('div');
+        landscapeBlocker.id = 'mobile-landscape-blocker';
+        Object.assign(landscapeBlocker.style, overlayStyles);
+        landscapeBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-btn-mobile">Return to Home</button>
+            </div>`;
+        document.body.appendChild(landscapeBlocker);
+        const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
+        if (mobileReturnBtn) {
+            Object.assign(mobileReturnBtn.style, buttonStyles);
+            mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+}
 function handleOrientation() {
     if (!portraitBlocker || !landscapeBlocker) {
         createOverlays();
