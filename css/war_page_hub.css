@@ -1651,9 +1651,6 @@ transition: background-color 0.2s ease;
     text-align: center; /* Center the text content within this block-level label */
     box-sizing: border-box;
 }
-#postAnnouncementBtn {
-    margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
-}
 
 /* Style for the input field itself */
 #nextChainTimeInput, #enemyFactionIDInputLeaderConfig { /* ADDED: Enemy Faction ID input */
