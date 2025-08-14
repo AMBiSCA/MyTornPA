@@ -120,7 +120,7 @@ function renderFriendlyMembersTable() {
             case 'lastAction':
                 valA = a.tornData.last_action?.timestamp || 0;
                 valB = b.tornData.last_action?.timestamp || 0;
-                return valB - valA; // Higher timestamp is more recent
+                return valB - valA;
             case 'strength': return getStat(b, 'strength') - getStat(a, 'strength');
             case 'dexterity': return getStat(b, 'dexterity') - getStat(a, 'dexterity');
             case 'speed': return getStat(b, 'speed') - getStat(a, 'speed');
@@ -141,7 +141,7 @@ function renderFriendlyMembersTable() {
                 valA = a.firebaseData.cooldowns?.drug || 0;
                 valB = b.firebaseData.cooldowns?.drug || 0;
                 return valB - valA;
-            default: // 'totalStats'
+            default:
                 return b.totalStats - a.totalStats;
         }
     });
@@ -153,7 +153,7 @@ function renderFriendlyMembersTable() {
     // Update header icons
     tableHeaders.forEach(th => {
         const sortKey = th.dataset.sortKey;
-        th.innerHTML = th.textContent.replace(/ [▼▲↕]/, ''); // Use textContent to avoid issues with other HTML
+        th.innerHTML = th.textContent.replace(/ [▼▲↕]/, '');
         th.style.cursor = 'pointer';
         if (sortKey === currentSort.column) {
             th.innerHTML += currentSort.direction === 'desc' ? ' ▼' : ' ▲';
@@ -214,17 +214,6 @@ function renderFriendlyMembersTable() {
     }
     tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
     
-    const tableContainer = document.querySelector('#current-stats-tab .table-container');
-    if (tableContainer) {
-        if (friendlyMembersDataCache.length > 16) {
-            tableContainer.style.maxHeight = '75vh';
-            tableContainer.style.overflowY = 'auto';
-        } else {
-            tableContainer.style.maxHeight = '';
-            tableContainer.style.overflowY = '';
-        }
-    }
-
     applyStatColorCoding();
 }
 
@@ -487,16 +476,6 @@ async function displayGainsTable() {
         let gainsRowsHtml = membersWithGains.map(member => `<tr class="${member.isNew ? 'new-member-gain' : ''}"><td><a href="https://www.torn.com/profiles.php?XID=${member.memberId}" target="_blank">${member.name}${member.isNew ? ' (New)' : ''}</a></td><td>${formatGainValue(member.strengthGain)}</td><td>${formatGainValue(member.dexterityGain)}</td><td>${formatGainValue(member.speedGain)}</td><td>${formatGainValue(member.defenseGain)}</td><td>${formatGainValue(member.totalGain)}</td></tr>`).join('');
         gainsTbody.innerHTML = gainsRowsHtml.length > 0 ? gainsRowsHtml : '<tr><td colspan="6" style="text-align:center;">No members with tracked gains.</td></tr>';
 
-        const gainsTableContainer = document.querySelector('#gains-tracking-tab .gains-table-container');
-        if (gainsTableContainer) {
-            if (membersWithGains.length > 13) {
-                gainsTableContainer.style.maxHeight = '70vh';
-                gainsTableContainer.style.overflowY = 'auto';
-            } else {
-                gainsTableContainer.style.maxHeight = '';
-                gainsTableContainer.style.overflowY = '';
-            }
-        }
         gainsMessageContainer.classList.add('hidden');
     } catch (error) { console.error("Error displaying gains table:", error); gainsMessageContainer.textContent = `Error loading gains: ${error.message}`; }
 }
@@ -508,17 +487,40 @@ function managePortraitBlocker() {
 }
 window.addEventListener('resize', managePortraitBlocker); window.addEventListener('orientationchange', managePortraitBlocker); window.addEventListener('DOMContentLoaded', managePortraitBlocker);
 
-// --- NEW: Function to inject CSS for sticky headers ---
-function injectStickyHeaderStyles() {
+// --- NEW/UPDATED: Function to inject CSS for sticky headers and scrolling ---
+function injectTableStyles() {
+    const styleId = 'tornpas-table-styles';
+    if (document.getElementById(styleId)) return; // Don't inject more than once
+
     const style = document.createElement('style');
+    style.id = styleId;
     style.textContent = `
-        #current-stats-tab .table-container table th,
-        #gains-tracking-tab .gains-table-container table th {
+        /* Define the scrolling container for the stats table */
+        #current-stats-tab .table-container {
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        /* Define the scrolling container for the gains table */
+        #gains-tracking-tab .gains-table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Force table to collapse borders to prevent spacing issues with sticky headers */
+        #friendly-members-table, 
+        #gains-tracking-tab .table-container table {
+            border-collapse: collapse;
+        }
+
+        /* The sticky header styles for BOTH tables */
+        #friendly-members-table th,
+        #gains-tracking-tab .table-container table th {
             position: -webkit-sticky; /* For Safari */
             position: sticky;
-            top: -1px; /* Prevents a small gap from sometimes appearing */
+            top: 0; /* Stick to the top of the scrolling container */
             z-index: 2;
-            /* This background color should match your table header's background */
+            /* This background should match your table header's background */
             background: #18191c; 
         }
     `;
@@ -527,8 +529,8 @@ function injectStickyHeaderStyles() {
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    // --- NEW: Call the function to inject CSS ---
-    injectStickyHeaderStyles();
+    // --- Call the function to inject CSS ---
+    injectTableStyles();
 
     const currentStatsTabContainer = document.querySelector('#current-stats-tab .table-container');
     if (currentStatsTabContainer) {
@@ -583,31 +585,4 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (document.getElementById('current-stats-tab').classList.contains('active')) {
                             await updateFriendlyMembersTable(userApiKey, user.uid);
                         }
-                    } else {
-                        hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                        if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
-                        updateGainTrackingUI();
-                    }
-                } else {
-                    hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
-                    updateGainTrackingUI();
-                }
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-                hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
-                updateGainTrackingUI();
-            }
-        } else {
-            hideLoadingMessage(); const tbody = document.getElementById('friendly-members-tbody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
-            const trackingStatusDisplay = document.getElementById('trackingStatus');
-            startTrackingBtn.classList.add('hidden'); stopTrackingBtn.classList.add('hidden'); if(trackingStatusDisplay) trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromTrackingStatus) { unsubscribeFromTrackingStatus(); unsubscribeFromTrackingStatus = null; }
-            if (unsubscribeFromGainsData) { unsubscribeFromGainsData(); unsubscribeFromGainsData = null; }
-        }
-    });
-    startTrackingBtn.addEventListener('click', startTrackingGains);
-    stopTrackingBtn.addEventListener('click', stopTrackingGains);
-});
+        _BUMP_TOKEN_
