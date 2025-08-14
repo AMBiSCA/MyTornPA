@@ -33,8 +33,6 @@ let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 let orientationOverlay = null;
-let friendlyMembersDataCache = [];
-let friendlyMembersSort = { column: 'totalStats', direction: 'desc' };
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -2654,7 +2652,9 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         console.error("HTML Error: Friendly members table body (tbody) not found!");
         return;
     }
+
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
+
     try {
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
         const userProfileDoc = await userProfileDocRef.get();
@@ -2663,166 +2663,135 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
         const userFactionId = userProfileDoc.data().faction_id;
+
         if (!userFactionId) {
             tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">Not in a faction or Faction ID not stored.</td></tr>';
             return;
         }
+
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers`;
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
+
         if (!factionResponse.ok || factionData.error) {
             tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'API Error'}.</td></tr>`;
             return;
         }
+
         const membersArray = Object.values(factionData.members || {});
         if (membersArray.length === 0) {
             tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No members found.</td></tr>';
             return;
         }
+
+        // --- START OF MODIFIED LOGIC ---
         const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
-        const CHUNK_SIZE = 10;
+        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
         const firestoreFetchPromises = [];
-        const allMemberFirebaseData = {};
+        const allMemberFirebaseData = {}; // To store all fetched Firebase data indexed by Torn ID
+
+        // Divide member IDs into chunks and create a fetch promise for each chunk
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
             const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
             firestoreFetchPromises.push(query.get());
         }
+
+        // Wait for all Firestore queries to complete
         const snapshots = await Promise.all(firestoreFetchPromises);
+
+        // Process all snapshots and populate allMemberFirebaseData
         snapshots.forEach(snapshot => {
             snapshot.forEach(doc => {
                 allMemberFirebaseData[doc.id] = doc.data();
             });
         });
+        // --- END OF MODIFIED LOGIC ---
 
+        // Step 1: Process all members to get their data and calculated stats
         const processedMembers = membersArray.map((memberTornData) => {
-            const memberId = String(memberTornData.user_id || memberTornData.id);
+            const memberId = String(memberTornData.user_id || memberTornData.id); // Ensure memberId is string for lookup
             if (!memberId) return null;
-            const memberFirebaseData = allMemberFirebaseData[memberId] || {};
-            const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || '0');
-            const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || '0');
-            const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || '0');
-            const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || '0');
+
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {}; // Get data from our new combined object
+            
+            const strengthNum = parseFloat(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
+            const speedNum = parseFloat(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
+            const dexterityNum = parseFloat(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
+            const defenseNum = parseFloat(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+
             return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        }).filter(m => m !== null);
+        }).filter(m => m !== null); // Filter out any null entries if IDs were missing
 
-        // --- THIS IS THE MAIN CHANGE ---
-        friendlyMembersDataCache = processedMembers; // Save data to the cache
-        renderFriendlyMembersTable(); // Call the new render function
-        // --- END OF CHANGE ---
+        // Step 2: Sort the processed members by totalStats in descending order
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
 
+        // Step 3: Build the HTML from the sorted data
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+			console.log('WORKING PAGE - Firebase Data:', member.firebaseData);
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action?.relative || 'N/A';
+            const strength = firebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
+            const dexterity = firebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
+            const speed = firebaseData.battlestats?.speed?.toLocaleString() || 'N/A';
+            const defense = firebaseData.battlestats?.defense?.toLocaleString() || 'N/A';
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+            const energy = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            const isRevivable = (tornData.revive_setting || '').trim();
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital'; else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other'; else drugCooldownClass = 'status-okay';
+            } else {
+                drugCooldown = 'None 🍁'; drugCooldownClass = 'status-okay';
+            }
+
+            let revivableClass = '';
+            if (isRevivable === 'Everyone') { revivableClass = 'revivable-text-green'; }
+            else if (isRevivable === 'Friends & faction') { revivableClass = 'revivable-text-orange'; }
+            else if (isRevivable === 'No one') { revivableClass = 'revivable-text-red'; }
+
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <td>${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass}">${formattedStatus}</td>
+                    <td class="nerve-text">${nerve}</td>
+                    <td class="energy-text">${energy}</td>
+                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${revivableClass}">${isRevivable}</td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
+
+        applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
-
-function renderFriendlyMembersTable() {
-    const tbody = document.getElementById('friendly-members-tbody');
-    if (!tbody) return;
-
-    // --- SORTING LOGIC ---
-    friendlyMembersDataCache.sort((a, b) => {
-        const getStat = (member, stat) => parseStatValue(member.firebaseData.battlestats?.[stat] || '0');
-        switch (friendlyMembersSort.column) {
-            case 'name':
-                return (a.tornData.name || '').localeCompare(b.tornData.name || '');
-            case 'lastAction':
-                return (b.tornData.last_action?.timestamp || 0) - (a.tornData.last_action?.timestamp || 0);
-            case 'strength':
-                return getStat(b, 'strength') - getStat(a, 'strength');
-            case 'dexterity':
-                return getStat(b, 'dexterity') - getStat(a, 'dexterity');
-            case 'speed':
-                return getStat(b, 'speed') - getStat(a, 'speed');
-            case 'defense':
-                return getStat(b, 'defense') - getStat(a, 'defense');
-            case 'status':
-                return (a.tornData.status?.description || '').localeCompare(b.tornData.status?.description || '');
-            case 'totalStats':
-            default:
-                return (b.totalStats || 0) - (a.totalStats || 0);
-        }
-    });
-
-    if (friendlyMembersSort.direction === 'asc') {
-        friendlyMembersDataCache.reverse();
-    }
-    // --- END SORTING LOGIC ---
-
-    let allRowsHtml = '';
-    for (const member of friendlyMembersDataCache) {
-        const { tornData, firebaseData, totalStats } = member;
-        const memberId = tornData.user_id || tornData.id;
-        const name = tornData.name || 'Unknown';
-        const lastAction = tornData.last_action?.relative || 'N/A';
-        const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || '0'));
-        const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || '0'));
-        const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || '0'));
-        const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || '0'));
-        const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-        const energy = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
-        const isRevivable = (tornData.revive_setting || '').trim();
-        const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-        const statusState = tornData.status?.state || '';
-        const originalDescription = tornData.status?.description || 'N/A';
-        let formattedStatus = originalDescription;
-        let statusClass = 'status-okay';
-        if (statusState === 'Hospital') statusClass = 'status-hospital';
-        else if (statusState === 'Abroad') statusClass = 'status-abroad';
-        else if (statusState !== 'Okay') statusClass = 'status-other';
-
-        let drugCooldown, drugCooldownClass = '';
-        if (drugCooldownValue > 0) {
-            const hours = Math.floor(drugCooldownValue / 3600);
-            const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-            drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-            if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital'; else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other'; else drugCooldownClass = 'status-okay';
-        } else {
-            drugCooldown = 'None 🍁'; drugCooldownClass = 'status-okay';
-        }
-
-        let revivableClass = '';
-        if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
-        else if (isRevivable === 'Friends & faction') revivableClass = 'revivable-text-orange';
-        else if (isRevivable === 'No one') revivableClass = 'revivable-text-red';
-
-        allRowsHtml += `
-            <tr data-id="${memberId}">
-                <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-                <td>${lastAction}</td>
-                <td>${strength}</td>
-                <td>${dexterity}</td>
-                <td>${speed}</td>
-                <td>${defense}</td>
-                <td>${formatBattleStats(totalStats)}</td>
-                <td class="${statusClass}">${formattedStatus}</td>
-                <td class="nerve-text">${nerve}</td>
-                <td class="energy-text">${energy}</td>
-                <td class="${drugCooldownClass}">${drugCooldown}</td>
-                <td class="${revivableClass}">${isRevivable}</td>
-            </tr>
-        `;
-    }
-
-    tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-    applyStatColorCoding(); // This is your existing function to color the stats
-
-    // --- UPDATE HEADER ICONS ---
-    const tableHeaders = document.querySelectorAll('#friendly-members-table th[data-sort-key]');
-    tableHeaders.forEach(th => {
-        const sortKey = th.dataset.sortKey;
-        th.innerHTML = th.textContent.replace(/ [▼▲↕]/, '');
-        th.style.cursor = 'pointer';
-        if (sortKey === friendlyMembersSort.column) {
-            th.innerHTML += friendlyMembersSort.direction === 'desc' ? ' ▼' : ' ▲';
-        } else {
-            th.innerHTML += ' ↕';
-        }
-    });
-}
-
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");

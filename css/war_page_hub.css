@@ -247,11 +247,22 @@
     width: 100%; /* Ensures it spans the full width of its parent */
     align-items: flex-start; /* Aligns content to the top within the row */
     flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
-    justify-content: center; /* ADDED: This centers the items horizontally */
 }
 
+.chat-tab:hover {
+background-color: #555;
+color: #00a8ff; /* Highlight on hover */
+}
 
+.chat-tab:last-child {
+border-right: none; /* No border on the very last tab */
+}
 
+.chat-tab.active {
+    background-color: #00a8ff; /* This makes the tab blue */
+    color: #1e1e1e; /* This makes the text dark for contrast */
+    border-color: #00a8ff; /* Adds a blue border to match */
+}
 .active-ops-left-panel {
 display: flex;
 flex-direction: column;
@@ -261,27 +272,36 @@ min-width: 450px;
 }
 
 
-.enemy-targets-list-section {
-    max-width: 900px;
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    overflow: hidden;
-    height: 475px; /* This makes it match the chat box height */
-    display: flex; /* Add flex to help center the placeholder text */
-    flex-direction: column; /* Stack content vertically */
-    margin-left: 430px; /* Centers the container */
-    margin-right: auto; /* Centers the container */
+/* Right Panel: Holds the chatbox */
+.active-ops-right-panel {
+display: flex;
+flex-direction: column; /* Stack chat elements vertically */
+flex: 1; /* Allows it to grow and shrink */
+min-width: 300px; /* Minimum width for the chatbox side */
+
 }
 
-.chat-message.system-notification {
-background-color: #4a5568; /* A neutral grey-blue */
-color: #ff5c5c; /* CHANGED: Switched to red for high visibility */
-font-weight: bold; /* ADDED: Makes the text bold */
-align-self: center; /* Center align system messages */
-font-style: italic;
-max-width: 90%;
-text-align: center;
+.chat-container {
+ 
+background-color: #222;
+border: 1px solid black;
+border-radius: 8px;
+display: flex;
+flex-direction: column; /* Stack tabs, display, inpvertically */
+height: 100%; /* MODIFIED: Fill the parent panel's new height */
+overflow: hidden; /* Ensures content stays within rounded borders */
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+}
+
+.enemy-targets-list-section {
+  max-width: 900px; 
+  background-color: #222;
+  border: 1px solid black;
+  border-radius: 8px;
+  overflow: hidden; 
+  height: 475px; /* This makes it match the chat box height */
+  display: flex; /* Add flex to help center the placeholder text */
+  flex-direction: column; /* Stack content vertically */
 }
 
 /* ==================================================================
@@ -543,6 +563,203 @@ text-align: center;
     color: #ccc;
 }
 
+.chat-tab {
+ padding: 8px 10px; /* MODIFIED PADDING */
+ background-color: #333;
+ color: #f0f0f0;
+ font-weight: bold;
+ font-size: 0.9em; /* ADDED FONT-SIZE TO MATCH TABLE HEADER */
+ text-align: center;
+ cursor: pointer;
+ flex-grow: 1;
+ white-space: nowrap;
+ border-bottom: none; /* Remove bottom border to blend with container */
+ border-right-width: 0; /* Temporarily remove right border */
+ border-radius: 5px 5px 0 0;
+ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Top row of smaller buttons (siren, blank) */
+.chat-input-buttons-top {
+display: flex;
+justify-content: flex-start; /* Align buttons to the left */
+gap: 5px; /* Space between buttons */ 
+margin-top: 5px; /* This will pull the circular buttons up. Adjust the value (e.g., -5px for less, -15px for more) as needed. */
+padding-bottom: 0; /* Ensures no extra padding pushes them down */
+}
+
+
+/* Small action buttons (siren, blank) */
+.chat-action-btn {
+width: 35px; /* Small fixed width */
+height: 35px; /* Small fixed height */
+line-height: 35px;
+padding: 0; /* Remove default padding */
+border: 1px solid #00a8ff;
+border-radius: 50%; /* Make them circular */
+background-color: #1e1e1e;
+color: #f0f0f0;
+font-size: 1.2em; /* Adjust icon size */
+cursor: pointer;
+display: flex;
+justify-content: center;
+align-items: center;
+transition: background-color 0.2s ease, border-color 0.2s ease;
+flex-shrink: 0; /* Prevent shrinking */
+}
+
+.chat-action-btn.siren-btn {
+    color: #ff0000; /* Red for siren */
+}
+
+.chat-action-btn:hover {
+    background-color: #00a8ff;
+    border-color: #00e0ff;
+    color: #1e1e1e; /* Darken icon on hover */
+}
+
+.chat-input-text-send {
+display: flex;
+gap: 10px; /* Space between input and send button */
+width: 100%;
+padding-top: 0;
+margin-top: 15px; 
+}
+
+.chat-text-input {
+flex-grow: 1; /* Input field takes up available space */
+padding: 8px 10px;
+border: 1px solid #555;
+border-radius: 4px;
+background-color: #1e1e1e;
+color: #f0f0f0;
+font-size: 0.9em;
+box-sizing: border-box;
+}
+
+
+.chat-send-btn {
+flex-shrink: 0; /* Prevent button from shrinking */
+padding: 8px 15px;
+border: 2px solid black;
+border-radius: 4px;
+background-color: #007bff; /* Blue send button */
+color: black;
+font-size: 0.9em;
+font-weight: bold;
+cursor: pointer;
+transition: background-color 0.2s ease;
+}
+
+.chat-send-btn:hover {
+  background-color: #00a8ff;
+}
+
+.chat-message {
+    color: #f0f0f0; /* A light, visible color for the main message text */
+    font-size: 0.9em; /* Adjust font size as needed for readability */
+    word-wrap: break-word; /* Ensures long words break and wrap */
+    overflow-wrap: break-word; /* Modern equivalent */
+	white-space: normal;
+}
+
+.chat-timestamp {
+    color: #a0a0a0; /* Slightly lighter gray for timestamps */
+    font-size: 0.75em;
+    margin-right: 5px;
+    white-space: nowrap; /* Prevent timestamp from wrapping */
+}
+
+.chat-sender {
+    color: #00a8ff; /* Your theme's blue for sender names */
+    font-weight: bold;
+    margin-right: 5px;
+    white-space: nowrap; /* Prevent sender name from wrapping */
+}
+/* Optional: Add some padding to chat display area if messages look too cramped */
+.chat-display-area {
+    padding: 5px; /* Adds a little breathing room inside the chat box */
+}
+
+/* Ensure the main chat text also picks up the color if not inherited */
+.chat-text {
+    color: #f0f0f0; /* Explicitly set main text color */
+	word-break: break-word; /* NEW: Forces long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* NEW: Modern equivalent for better browser compatibility */
+    white-space: normal; /* NEW: Ensures normal text wrapping (should already be there or inherited) */
+}
+
+#warChatBox {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    flex-grow: 1; /* Allows it to fill the height of its parent (.active-ops-chat-panel) */
+    height: 100%; /* Explicitly take 100% of its parent's height */
+    overflow: hidden; /* CRUCIAL: Ensures content stays within its rounded borders and clips children */
+    box-sizing: border-box; /* Include padding/border in total dimensions */
+
+    /* Keep existing visual styles for #warChatBox frame if they were here */
+    background-color: #222; /* Example: Dark background */
+    border: 1px solid black; /* Example: Border */
+    border-radius: 8px; /* Example: Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Example: Shadow */
+}
+
+/* Container for chat tabs (e.g., Faction Chat, Private Chat) */
+.chat-tabs-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+    flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
+    border-bottom: 2px black; /* Separator below tabs */
+    background-color: #333; /* Slightly lighter background for tabs bar */
+    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
+    overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
+    white-space: nowrap; /* Keep tabs in a single line if overflowing */
+    box-sizing: border-box; /* Include padding/border */
+}
+
+
+/* Styles for the actual chat messages display area, *inside* the scroll wrapper */
+/* This div should NOT control its own height or overflow; its parent wrapper does. */
+.chat-display-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+   
+}
+
+/* Chat Input Area (bottom section with buttons and text input) */
+/* Chat Input Area (bottom section with buttons and text input) */
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 110px; /* Reduced from 110px to make it shorter */
+    background-color: #333;
+    padding: 5px 10px 8px;
+    border-top: 1px solid #1e1e1e;
+    gap: 8px;
+    box-sizing: border-box;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
+/* (Ensure these are present and only for .chat-messages-scroll-wrapper) */
+.chat-messages-scroll-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.chat-messages-scroll-wrapper::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+.chat-messages-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+.chat-messages-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
+}
 
 .status-summary-two-col {
     display: flex; /* Use flexbox to arrange items horizontally */
@@ -615,6 +832,57 @@ text-align: center;
     }
 }
 
+
+
+/* Scrollbar styling for a cleaner look */
+#chat-display-area::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-display-area::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
+}
+
+/* Base style for dynamically added chat messages */
+.chat-message {
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%; /* Messages won't take full width */
+    word-wrap: break-word; /* Crucial: breaks long words to fit container */
+    overflow-wrap: break-word; /* Modern alternative */
+    white-space: normal; /* Ensures normal text wrapping */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Animation properties */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for user's own messages */
+.chat-message.user-message {
+    background-color: #3182ce; /* Distinct blue for user messages */
+    color: #ffffff;
+    align-self: flex-end; /* Align to the right */
+    border-bottom-right-radius: 5px; /* Slightly different corner for visual distinction */
+}
+
+/* Style for bot/other messages */
+.chat-message.bot-message {
+    background-color: #63b3ed; /* Lighter blue for bot messages */
+    color: #1a202c; /* Darker text for contrast on light background */
+    align-self: flex-start; /* Align to the left */
+    border-bottom-left-radius: 5px; /* Slightly different corner */
+}
+
+/* Animation class for messages that are about to disappear */
+.chat-message.fade-out {
+    opacity: 0;
+    transform: translateY(-20px); /* Moves the message up as it fades */
+}
 
 /* --- Status-Specific Colors --- */
 .enemy-targets-table .status-hospital {
@@ -1207,6 +1475,41 @@ text-align: center;
     flex-grow: 1;
 }
 
+/* --- Placeholder for Member Details (Right Panel) --- */
+.detail-panel-placeholder { /* Using the new professional name */
+    padding: 20px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.detail-panel-placeholder h4 {
+    color: #e0a71a;
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.detail-panel-icon { /* Using the new professional name */
+    font-size: 6em;
+    color: rgba(240, 240, 240, 0.05);
+    margin: 20px 0;
+}
+
+.detail-panel-placeholder p {
+    color: #888;
+    margin: 0;
+}
+.alert-btn:hover {
+    background-color: #c9302c;
+}
+
 /* Faction Stats Summary (Tab 2) */
 .faction-stats-summary {
     padding: 10px; /* NEW: Reduced padding */
@@ -1485,7 +1788,7 @@ select[multiple] {
 #designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
     background-color: #c82333;
 }
-.autocomplete-items {
+autocomplete-items {
     position: absolute; /* Position the list directly below the input */
     border: 1px solid #00a8ff; /* Blue border */
     border-bottom: none;
@@ -1503,6 +1806,177 @@ select[multiple] {
     border-radius: 0 0 5px 5px; /* Rounded bottom corners */
 }
 
+
+
+
+/* Only display the currently active chat panel */
+.chat-panel.active {
+    display: flex; /* Or 'flex' or 'grid' depending on the internal layout you want for each panel */
+    height: 100%; /* Important: Make sure the active panel takes up available height */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+/* Styles for the Faction Members list items to make them look good */
+.members-list-display-area {
+    /* Adjust padding/margin as needed for this specific area */
+    padding: 10px;
+}
+
+
+
+
+.members-list-container {
+    display: grid;          /* CRITICAL: Use CSS Grid for two columns */
+    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    gap: 15px;              /* Space between grid items (both rows and columns) */
+    flex-grow: 1;           /* Allows it to stretch vertically within its parent (.members-list-display-area) */
+    box-sizing: border-box; /* Include padding/border */
+}
+
+/* --- Faction Members List Item Styling --- */
+
+/* This is the main container for each member row */
+.member-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.member-item:hover {
+    background-color: #3a3a3a;
+}
+
+/* NEW: This is the wrapper for the Pic and Name */
+.member-identity {
+    flex-grow: 1; /* This makes it take all available middle space */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* This centers the pic and name within the middle space */
+    gap: 8px; /* The space between the picture and the name */
+    min-width: 0; /* Prevents overflow issues */
+}
+
+/* The member's rank on the far left */
+.member-rank {
+    font-size: 0.8em;
+    color: #e0a71a;
+    font-weight: bold;
+    margin-right: 10px; /* Space between rank and the identity group */
+    flex-shrink: 0;
+}
+
+.member-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #555;
+}
+
+/* UPDATED: The member's name (text-align is no longer needed here) */
+.member-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+/* NEW: This is the wrapper for the buttons on the right */
+.member-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between the two buttons */
+    margin-left: 10px; /* Space between the identity group and the buttons */
+}
+
+
+
+
+
+/* Styles for loading and error messages within the tab */
+.loading-message, .error-message {
+    text-align: center;
+    padding: 20px;
+    color: #bbb;
+}
+.error-message {
+    color: #ff4d4d; /* Red for errors */
+}
+
+/* You might also need to ensure your .chat-messages-scroll-wrapper has a defined height
+   and overflow-y: auto for scrolling within the chat box. Example: */
+.chat-messages-scroll-wrapper {
+    flex-grow: 1;
+    height: 270px; /* MODIFIED: Fixed height in pixels */
+    overflow-y: scroll; /* Keep this to allow internal scrolling if messages exceed 270px */
+    padding: 2px 10px 10px;
+    background-color: #222;
+    border-radius: 8px;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+/* Optional: Styles for chat tabs to make them clickable and active */
+.chat-tabs-container {
+    display: flex;
+    overflow-x: auto; /* Allow horizontal scrolling if many tabs */
+    white-space: nowrap;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+#chat-content-panels-wrapper {
+    flex-grow: 1; 
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #2d3748;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+	scrollbar-gutter: stable;
+}
+
+.chat-tab {
+    padding: 7px 10px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    flex-grow: 1;
+    white-space: nowrap;  
+
+    border-bottom: none;
+    border-right-width: 0; 
+    border-radius: 5px 5px 0 0;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.chat-tab:not(:last-child) {
+    border-right: 1px solid #1e1e1e;
+}
+
+/* Style for when you hover over a non-active chat tab */
+.chat-tab:hover {
+    background-color: #555;
+    color: #f0f0f0; /* Text color stays light on hover */
+    border-color: #00a8ff; /* Blue border on hover, like main tabs */
+}
+
+/* Style for the currently active chat tab */
+.chat-tab.active {
+    background-color: #00a8ff; /* Blue background */
+    color: black; /* White text for better contrast */
+    border-color: #00a8ff;
+    
+}
 .autocomplete-items div {
     padding: 10px;
     cursor: pointer;
@@ -1532,6 +2006,11 @@ select[multiple] {
     /* ... other existing rules for toggle-control ... */
 }
 
+/* Class to hide the chat display and input when specific chat tabs are active */
+.chat-container .chat-display-area,
+.chat-container .chat-input-area {
+    display: block; /* Default to block, JavaScript will override for specific tabs */
+}
 
 /* Responsive Media Queries for the War Hub Container */
 @media (max-width: 992px) {
@@ -1553,6 +2032,11 @@ select[multiple] {
     }
 }
 
+/* Class to hide the chat display and input when specific chat tabs are active */
+.chat-container.chat-content-hidden .chat-display-area,
+.chat-container.chat-content-hidden .chat-input-area {
+    display: none;
+}
     .ops-controls-grid {
     align-items: start; /* Forces all direct children in the grid to align their tops */
     margin-top: 5px; /* Adjust this value to move the whole box closer to the tabs */
@@ -1591,7 +2075,10 @@ select[multiple] {
         max-height: 400px; /* NEW: Adjusted max height */
     }
 	
+	/* --- Positioning for the Active Ops Tab Panels --- */
+/* This block ensures your left (targets) and right (chat) panels are positioned correctly. */
 
+/* The row containing both targets and chat panels */
 .active-ops-layout-row {
     display: flex;
 	align-items: stretch;
@@ -1612,6 +2099,20 @@ select[multiple] {
   height: 100%; 
   overflow: hidden; 
   box-sizing: border-box;
+}
+
+/* Responsive adjustments for Active Ops tab layout */
+@media (max-width: 992px) {
+    .active-ops-layout-row {
+        flex-direction: column; /* Stack panels vertically on smaller screens */
+        gap: 10px; /* Reduce gap when stacked */
+    }
+
+    .active-ops-targets-panel,
+    .active-ops-chat-panel {
+        min-width: unset; /* Remove min-width to allow full width stacking */
+        width: 100%; /* Take full width when stacked vertically */
+    }
 }
 
 /* Layout for the Friendly Status tab: Members List and Member Details */
@@ -1766,6 +2267,25 @@ min-width: 320px;
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
+/* NEW: Styles for chat content panels */
+.chat-content-panels {
+    flex-grow: 1; /* Allows this container to take up remaining vertical space */
+    position: relative; /* Needed for absolute positioning of inner panels if desired */
+    overflow: hidden; /* Ensures content stays within bounds */
+	border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.chat-panel {
+    display: none; /* Hides all chat panels by default */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    flex-direction: column; /* Ensure inner display area is stacked vertically */
+}
+
+
 
 .war-status-toggles-grid .toggle-control {
     display: flex;           /* Make each control a flex container */
@@ -1793,6 +2313,365 @@ min-width: 320px;
     margin-right: auto !important;
     margin-top: 3px !important;
 }
+
+
+
+ /*friends and enemies*/
+ 
+ .blockedPeopleContainer {
+  display: flex;
+  width: 100%; /* Fills the width of its container */
+  height: 100%; /* Fills the height of its container */
+}
+
+.friendsListContainer,
+.ignoresListContainer {
+  flex: 1; /* Each takes up 50% of the container */
+  border: 1px solid #ccc; /* Example border */
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+}
+
+.headerBox {
+  background-color: #f0f0f0; /* Example header background */
+  padding: 10px;
+  text-align: center;
+}
+
+.searchBar {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.searchBar input[type="text"] {
+  flex: 1; /* Input takes up available space */
+  padding: 5px;
+}
+
+.searchIcon {
+  margin-left: 5px;
+}
+
+.scrollableList {
+  overflow-y: auto; /* Enables vertical scrolling */
+  flex: 1; /* Takes up remaining space */
+}
+
+.friendEntry,
+.ignoreEntry {
+  padding: 10px;
+  border-bottom: 1px solid #eee; /* Separates entries */
+  display: flex;
+  align-items: center;
+}
+
+.profilePic {
+  width: 30px; /* Example profile pic size */
+  height: 30px;
+  border-radius: 50%; /* Makes it circular */
+  margin-right: 10px;
+}
+
+.factionIcon {
+    font-size: 2em; /* Adjust as needed */
+    margin-right: 10px;
+}
+
+.letterButton,
+.trashButton {
+  margin-left: 5px;
+}
+
+.blocked-people-layout {
+    display: flex;          /* Make it a flex container */
+    flex-direction: row;    /* Arrange children (Friends/Ignores sections) horizontally */
+    flex-grow: 1;           /* CRITICAL: Make it grow to fill available vertical space in its parent (chatDisplayArea) */
+    gap: 15px;              /* Space between the Friends and Ignores sections */
+    height: 100%;           /* CRITICAL: Make it explicitly take 100% height of chatDisplayArea */
+    box-sizing: border-box; /* Include padding/border in its dimensions */
+    padding: 10px;          /* Add some internal padding */
+    background-color: #2a2a2a; /* Slightly different background for visual separation */
+    border-radius: 8px;     /* Match other rounded corners */
+}
+
+.friends-list-section,
+.ignores-list-section {
+    flex: 1;                /* CRITICAL: Each takes up equal horizontal space */
+    display: flex;          /* Make them flex containers for their own content */
+    flex-direction: column; /* Stack their children (header, search, list) vertically */
+    min-width: 250px;       /* Ensure a minimum width before shrinking too much */
+    background-color: #222; /* Darker background for the inner boxes */
+    border: 1px solid black; /* Subtle border */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-sizing: border-box;
+    overflow: hidden;       /* Ensure rounded corners and prevent internal overflow of static content */
+}
+
+.header-box {
+    background-color: #00a8ff; /* Your theme blue for headers */
+    color: #1e1e1e;          /* Dark text on blue */
+    padding: 8px 10px;       /* Padding for the header */
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0;          /* Prevent header from shrinking */
+    border-bottom: 2px solid black; /* Separator below header */
+}
+
+.search-bar {
+    display: flex;          /* Make it a flex container */
+    align-items: center;    /* Vertically align input and icon */
+    padding: 8px 10px;       /* Padding around search elements */
+    background-color: #1e1e1e; /* Dark background for search bar */
+    border-bottom: 1px solid #333; /* Separator below search bar */
+    flex-shrink: 0;          /* Prevent search bar from shrinking */
+}
+
+.search-bar input[type="text"] {
+    flex-grow: 1;           /* Input takes up remaining space */
+    padding: 6px 8px;       /* Padding inside input */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;         /* Light text for input */
+    font-size: 0.9em;
+    box-sizing: border-box;
+}
+
+.search-bar .search-icon {
+    color: #f0f0f0;         /* Light color for search icon */
+    margin-left: 8px;       /* Space between input and icon */
+    flex-shrink: 0;
+}
+
+.scrollable-list {
+    flex-grow: 1;           /* CRITICAL: Allows list to take up all remaining vertical space in its parent section */
+    overflow-y: auto;       /* Enables vertical scrolling for the list content */
+    padding: 8px;           /* Padding inside the list area */
+    box-sizing: border-box;
+    /* Optional: custom scrollbar styling if you have it from other parts of your CSS */
+    scrollbar-gutter: stable; /* Consistent scrollbar behavior */
+}
+
+.list-item {
+    display: flex;          /* Make each list item a flex container */
+    align-items: center;    /* Vertically align content (pic, name, buttons) */
+    padding: 8px 0;         /* Padding for each list item */
+    border-bottom: 1px solid #3a3a40; /* Separator between list items */
+    color: #f0f0f0;         /* Default text color for list items */
+    font-size: 0.9em;
+}
+
+.list-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+/* Specific styles for elements within the list item */
+.list-item .profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.list-item .faction-icon {
+    font-size: 1.8em; /* Adjust icon size */
+    color: #e0a71a;   /* Example color for faction icon */
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.list-item .item-name {
+    flex-grow: 1;           /* Name takes up available space */
+    white-space: nowrap;    /* Prevent name from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if name is too long */
+    font-weight: bold;
+}
+
+.list-item .item-button {
+    background-color: #007bff; /* Example button color */
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px; /* Space between name and buttons, or between buttons */
+    flex-shrink: 0;
+}
+
+.list-item .item-button.trash-button {
+    background-color: #dc3545; /* Red for trash button */
+}
+
+.list-item .item-button:hover {
+    filter: brightness(1.2); /* Slightly brighten on hover */
+}
+
+/* Style for the initial "Loading..." message within lists */
+.scrollable-list p {
+    text-align: center;
+    margin: auto; /* Center vertically and horizontally */
+    color: #bbb;
+}
+
+/* --- Styles for the Settings Tab (Dynamically Injected Content) --- */
+
+/* The main container for all settings content, injected into settingsDisplayArea */
+.chat-settings-panel {
+    display: flex;          /* Make it a flex container to stack sections */
+    flex-direction: column; /* Stack sections vertically */
+    flex-grow: 1;           /* CRITICAL: Allows it to fill available vertical space within chatDisplayArea */
+    box-sizing: border-box; /* Include padding/border */
+    padding: 10px;          /* Overall padding for the settings content */
+    background-color: #2a2a2a; /* Main background for settings content */
+    border-radius: 8px;     /* Rounded corners */
+    gap: 15px;              /* Space between major settings sections */
+}
+
+/* Individual sections within the settings panel (e.g., Display, Sound) */
+.settings-section {
+    display: flex;          /* Make it a flex container to stack its header and list */
+    flex-direction: column; /* Stack header and settings items list vertically */
+    background-color: #222; /* Slightly darker background for individual sections */
+    border: 1px solid #3a3a40; /* Subtle border, matching ignores/friends boxes */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    overflow: hidden;       /* Ensures content stays within rounded borders */
+}
+
+/* Header for each settings section */
+.settings-section .header-box {
+    background-color: #00a8ff; /* Theme blue for section headers */
+    color: #1e1e1e;          /* Dark text on blue */
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0;          /* Prevents header from shrinking */
+    border-bottom: 1px solid black; /* Separator below header */
+}
+
+/* List container for individual setting items within a section */
+.settings-items-list {
+    display: flex;          /* Make it a flex container */
+    flex-direction: column; /* Stack setting items vertically */
+    padding: 10px 15px;      /* Internal padding for the list of items */
+    flex-grow: 1;           /* Allow it to grow and fill available height within its section */
+    color: #f0f0f0;         /* Default text color for settings labels */
+}
+
+/* Individual setting item (label + control) */
+.setting-item {
+    display: flex;
+    align-items: center;    /* Vertically align label and control */
+    justify-content: space-between; /* Push label to left, control to right */
+    padding: 8px 0;
+    border-bottom: 1px solid #333; /* Separator between setting items */
+    font-size: 0.95em;
+}
+
+.setting-item.checkbox-item {
+    /* Specific styles if needed for checkbox items */
+    /* Example: adjust vertical alignment if checkbox is smaller */
+    align-items: flex-start; /* Align checkbox to top of its line if label wraps */
+    padding-bottom: 10px; /* More space for checkbox lines */
+    padding-top: 10px;
+}
+
+
+.setting-item:last-child {
+    border-bottom: none; /* No border for the last item in a list */
+}
+
+.setting-item label {
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for labels */
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-right: 10px; /* Space between label and control */
+}
+
+/* Styles for dropdown selects */
+.setting-item select {
+    background-color: #333;
+    color: #f0f0f0;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    flex-grow: 1; /* Allow select to grow if space allows */
+    max-width: 180px; /* Limit width */
+    box-sizing: border-box;
+}
+
+/* Styles for checkboxes */
+.setting-item input[type="checkbox"] {
+    transform: scale(1.1); /* Slightly larger checkbox */
+    accent-color: #00a8ff; /* Theme color for checkbox */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-left: 10px; /* Space from label */
+}
+
+/* Style for action buttons (like Clear History, Save Settings) */
+.setting-item.action-item {
+    justify-content: center; /* Center the button within its item */
+    padding: 15px 0;
+}
+
+.setting-item.action-item .action-button {
+    /* Reuse .action-button styles but adjust for settings context if needed */
+    width: auto; /* Shrink to content */
+    min-width: 150px;
+    padding: 8px 15px;
+    font-size: 1em;
+    /* Inherit background, color, border, etc. from .action-button */
+}
+
+/* Specific styling for the Save Settings section button if needed */
+.settings-section.save-settings-section {
+    flex-shrink: 0; /* Ensures save section stays at bottom and doesn't get compressed */
+    border-top: 1px solid #3a3a40; /* Separator from section above */
+    border-bottom: none; /* No bottom border for the last section */
+    border-radius: 0 0 8px 8px; /* Match outer container's bottom radius */
+}
+
+.settings-section.save-settings-section .header-box {
+    display: none; /* Hide the header for the Save section, as it's just one button */
+}
+
+.settings-section.save-settings-section .settings-items-list {
+    padding: 10px;
+    align-items: center; /* Center content within save section */
+}
+
+.settings-section.save-settings-section .action-button {
+    background-color: #00a8ff; /* Use primary theme color for save button */
+    color: #1e1e1e;
+    font-weight: bold;
+}
+.settings-section.save-settings-section .action-button:hover {
+    background-color: #007bff; /* Darker blue on hover */
+    color: white;
+}
+
+/* Style for the new message button on Faction Members tab */
+.member-item .message-button {
+    background-color: #e0a71a; /* Gold color for message button, matching other gold elements */
+    color: #1e1e1e;             /* Dark text/icon on gold */
+    margin-left: 8px;           /* Space from the add-member-button */
+}
+
+.member-item .message-button:hover {
+    filter: brightness(1.2); /* Slightly brighten on hover */
+}
+
+/* --- CSS for Action Buttons in the Ops Control Bar --- */
 
 /* This is the container for the buttons - the "box" you wanted. */
 .action-buttons-container {
@@ -2406,6 +3285,518 @@ min-width: 320px;
     color: #d32f2f !important; /* A strong red */
 }
 
+/* --- NEW/MODIFIED: Styles for Faction Members Chat Tab Content --- */
+
+/* This targets the new main container for the Faction Members tab content */
+/* It acts like a regular chat-panel, occupying the full space */
+#factionMembersChatContent {
+    display: flex; /* Initially display as flex to show the list */
+    flex-direction: column; /* Stack its children (list or details) vertically */
+    flex-grow: 1; /* Allow it to fill the available height */
+    overflow-y: auto; /* Allow scrolling for its content if it overflows */
+    padding: 10px; /* Add some padding inside this content area */
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+    /* background-color: #2d3748; /* Optional: A slightly different background for this specific tab content area */
+    /* border-radius: 8px; /* Optional: Match other rounded corners */
+}
+
+/* This is the container for the list of members (inside factionMembersChatContent) */
+#factionMembersListContainer {
+    display: block; /* Ensure it's visible by default when the tab is active */
+    flex-grow: 1; /* Allow it to take available space */
+    /* Inherits styles from .members-list-container if defined globally */
+    /* Add specific padding/margin for this context if needed */
+}
+
+/* This is the container for the Member Details view within the Faction Members tab */
+#factionMemberDetailsView {
+    display: none; /* Crucial: Initially hide the details view */
+    flex-direction: column; /* Stack content vertically */
+    flex-grow: 1; /* Allow it to take available space */
+    padding: 15px; /* Add padding for the details content */
+    background-color: #2a2a2a; /* A slightly different background for the details box */
+    border-radius: 8px; /* Rounded corners for the details box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling within the details panel */
+    color: #f0f0f0; /* Default text color */
+}
+
+/* Styles for the "Back to List" button */
+.back-to-list-button {
+    background-color: #007bff; /* Blue, matching other action buttons */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px; /* Space below the button */
+    align-self: flex-start; /* Align to the left/start of the flex container */
+    transition: background-color 0.2s ease;
+}
+
+.back-to-list-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Re-apply some specific styles for member details elements
+   that were originally designed for the old 'detail-panel-placeholder' */
+.member-detail-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.member-header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.member-detail-profile-image {
+    width: 64px; /* Larger profile image for details */
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00a8ff; /* Blue border */
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Blue glow */
+}
+
+.member-detail-name-id {
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for name */
+    text-align: center;
+}
+
+.member-detail-info-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #444;
+}
+
+.member-detail-info-paragraph {
+    margin: 0;
+    color: #f0f0f0;
+    font-size: 0.95em;
+}
+
+.member-stats-group-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid for stat blocks */
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.member-stat-block {
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensure blocks take full height in grid */
+}
+
+.member-stat-block h5 {
+    color: #00a8ff; /* Blue for stat block headers */
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.member-stats-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label then value */
+    gap: 5px 10px;
+    font-size: 0.9em;
+    flex-grow: 1; /* Allow grid to fill space within block */
+}
+
+.member-stats-grid span:nth-child(odd) {
+    font-weight: bold;
+    color: #e0a71a; /* Gold for labels */
+    text-align: right;
+}
+
+.member-stats-grid span:nth-child(even) {
+    color: #f0f0f0;
+    text-align: left;
+}
+
+.sub-detail {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+.member-cooldowns-block {
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin-top: 15px; /* Space from stats blocks */
+}
+
+.member-cooldowns-block h5 {
+    color: #00a8ff;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.member-cooldowns-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid; /* Use grid for cooldowns list */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Try 2-3 columns */
+    gap: 8px 15px; /* Vertical and horizontal gap */
+}
+
+.member-cooldowns-list li {
+    background-color: #1a1a1a;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-cooldowns-list li strong {
+    color: #e0a71a; /* Gold for cooldown names */
+}
+
+.member-detail-error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Adjustments for smaller screens (media queries) */
+@media (max-width: 768px) {
+    .member-header-top-row {
+        flex-direction: column; /* Stack elements in header on small screens */
+        gap: 5px;
+    }
+    .member-stat-block.member-stat-block-small {
+        margin-top: 10px; /* Add some space when stacked */
+    }
+    .member-stats-group-row {
+        grid-template-columns: 1fr; /* Stack stat blocks vertically */
+    }
+    .member-cooldowns-list {
+        grid-template-columns: 1fr; /* Stack cooldowns vertically */
+    }
+}
+.quick-links-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the space between the label and buttons */
+}
+
+@media (min-width: 993px) {
+    html, body {
+        overflow-y: hidden;
+    }
+}
+
+
+/* Main container for the entire Private Chat tab content */
+.private-chat-tab-content {
+    display: flex; /* Enables flexbox for its direct children (panels) */
+    flex-direction: column; /* Stacks children vertically if needed, but layout-panels will handle horizontal */
+    height: 100%; /* Ensures it takes up the full height of its parent (.chat-display-area) */
+    box-sizing: border-box;
+    padding: 10px; /* Internal padding for the entire private chat tab area */
+    background-color: #2a2a2a; /* Background color for the tab's content area */
+    border-radius: 8px; /* Matches rounded corners of the main chat container */
+}
+
+/* Container for the two side-by-side panels (Recent Chats and Selected Chat) */
+.private-chat-layout-panels {
+    display: flex; /* Arranges the two main panels side-by-side */
+    flex-grow: 1; /* Allows this container to take up remaining vertical space */
+    gap: 15px; /* Space between the two panels */
+    height: 100%; /* Ensures panels fill the height of their parent */
+    box-sizing: border-box;
+}
+
+/* Styles for the "Recent Chats" panel on the left */
+.recent-chats-panel {
+    display: flex;
+    flex-direction: column; /* Stacks header and list vertically inside this panel */
+    width: 28%; /* Sets its width to be narrower (approx 28% of available width) */
+    min-width: 200px; /* Ensures it doesn't become too small on narrower views */
+    background-color: #222; /* Dark background for the panel */
+    border: 1px solid black; /* Border matching other elements */
+    border-radius: 8px; /* Rounded corners */
+    overflow: hidden; /* Hides content that overflows and helps with scrollbar */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-sizing: border-box;
+}
+
+/* Styles for the "Selected Chat" panel on the right (the main conversation area) */
+.selected-chat-panel {
+    display: flex;
+    flex-direction: column; /* Stacks header, messages, and input vertically inside this panel */
+    flex-grow: 1; /* Allows it to take up all remaining horizontal width */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden; /* Hides content that overflows and helps with scrollbar */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+/* Styling for the headers within both panels (Recent Chats, Select a Chat) */
+.private-chat-tab-content .panel-header {
+    background-color: #00a8ff; /* Blue background matching other headers */
+    color: #1e1e1e; /* Dark text on blue */
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0; /* Prevents header from shrinking when content grows */
+    border-bottom: 2px solid black; /* Separator below the header */
+}
+
+/* Scrollable wrapper for the "Recent Chats" list */
+.recent-chats-list-scroll-wrapper {
+    flex-grow: 1; /* Allows the list to take up all remaining vertical space in its panel */
+    overflow-y: auto; /* Enables vertical scrolling if the list is too long */
+    padding: 8px; /* Internal padding for the list area */
+    box-sizing: border-box;
+    scrollbar-gutter: stable; /* Keeps scrollbar space consistent even when not scrolling */
+}
+
+/* Base style for the unordered list of recent chats */
+.recent-chats-list {
+    list-style: none; /* Removes default bullet points */
+    padding: 0;
+    margin: 0;
+}
+
+/* Style for each individual chat item in the Recent Chats list */
+.recent-chats-list .chat-item {
+    display: flex;
+    align-items: center; /* Vertically aligns profile pic, name, and X button */
+    justify-content: space-between; /* Pushes chat info to left, delete button to right */
+    padding: 8px 5px;
+    border-bottom: 1px solid #3a3a40; /* Separator between chat items */
+    color: #f0f0f0; /* Light text color */
+    cursor: pointer; /* Indicates it's clickable */
+    transition: background-color 0.2s ease; /* Smooth hover effect */
+}
+
+.recent-chats-list .chat-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.recent-chats-list .chat-item:hover {
+    background-color: #38383e; /* Darker background on hover */
+}
+
+/* Style for the currently active/selected chat in the list */
+.recent-chats-list .chat-item.active-chat {
+    background-color: #007bff; /* Highlight color for active chat */
+    color: white;
+}
+
+/* Container for the profile picture and name within a chat item */
+.recent-chats-list .chat-item .chat-info {
+    display: flex;
+    align-items: center;
+    flex-grow: 1; /* Allows it to take up available space */
+    min-width: 0; /* Prevents content overflow within flex item */
+    margin-right: 5px; /* Small space before the delete button */
+}
+
+/* Style for the small profile picture in the Recent Chats list */
+.recent-chats-list .chat-item .profile-pic-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%; /* Makes it circular */
+    object-fit: cover; /* Ensures image covers the area without distortion */
+    margin-right: 8px;
+    flex-shrink: 0; /* Prevents it from shrinking */
+}
+
+/* Style for the chat name in the Recent Chats list */
+.recent-chats-list .chat-item .chat-name {
+    white-space: nowrap; /* Prevents the name from wrapping */
+    overflow: hidden; /* Hides overflowing text */
+    text-overflow: ellipsis; /* Adds "..." for overflowing text */
+    font-weight: bold;
+}
+
+/* Style for the delete/close button ('x') in Recent Chats list */
+.recent-chats-list .chat-item .delete-chat-btn {
+    background-color: #dc3545; /* Red background for delete */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevents shrinking */
+    opacity: 0.7; /* Slightly transparent when not hovered */
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.recent-chats-list .chat-item .delete-chat-btn:hover {
+    opacity: 1; /* Fully opaque on hover */
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Scrollable wrapper for the messages in the Selected Chat panel */
+.selected-chat-messages-scroll-wrapper {
+    flex-grow: 1; /* Keep this to allow it to fill space if smaller than max-height */
+    height: 280px; /* NEW/MODIFIED: Set a fixed height for the message display area */
+    overflow-y: auto; /* This ensures a scrollbar appears if messages exceed 300px */
+    padding: 10px;
+    box-sizing: border-box;
+    scrollbar-gutter: stable;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Reusing existing .chat-message styles for individual messages within private chat */
+/* If you need specific overrides for private chat messages, add them here */
+.selected-chat-messages-scroll-wrapper .chat-message {
+    margin-bottom: 8px; /* Space between messages */
+}
+
+/* Style for placeholder messages (e.g., "Click a chat...") */
+.selected-chat-messages-scroll-wrapper .message-placeholder {
+    text-align: center;
+    color: #bbb;
+    margin-top: 20px;
+}
+
+/* Input area for the Selected Chat panel (bottom of the right panel) */
+.selected-chat-input-area {
+    display: flex;
+    gap: 10px; /* Space between input field and send button */
+    padding: 10px; /* Padding around the input and button */
+    border-top: 1px solid #3a3a40; /* Separator from messages above */
+    background-color: #333; /* Slightly darker background for the input area */
+    flex-shrink: 0; /* Prevents this area from shrinking */
+}
+
+/* Reuse existing chat-text-input styles for the private chat input */
+.selected-chat-input-area .chat-text-input {
+    flex-grow: 1; /* Allows the input field to take up available space */
+    margin-right: 0 !important; /* Overrides any global margin-right that might interfere */
+}
+
+/* Reuse existing chat-send-btn styles for the private chat send button */
+.selected-chat-input-area .chat-send-btn {
+    flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.ops-controls-grid {
+  display: flex;
+  justify-content: space-between; /* This spaces the 3 main items out */
+  align-items: center;
+  gap: 15px; /* Adjusts the space between items */
+}
+
+.ops-left-group {
+  margin-top: -65px;
+  display: flex;
+  align-items: center;
+  gap: 15px; /* This spaces out the two boxes within the left group */
+}
+/* --- Faction Member Button Colors --- */
+
+/* This makes the message button blue */
+.member-item .message-button {
+    background-color: #3d84b8;  /* A nice blue from your theme */
+    color: #ffffff;             /* White icon */
+}
+.member-item .message-button:hover {
+    background-color: #4a9dcf;  /* A lighter blue on hover */
+}
+
+/* --- Faction Member Button Styles (Corrected Final) --- */
+
+/* This is the MAIN button style. It is ALWAYS grey. */
+.add-member-button,
+.remove-friend-button {
+    background-color: #555;
+    color: #f0f0f0;
+    border: 1px solid #444;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-left: 10px;
+    flex-shrink: 0;
+    position: relative; /* This is crucial for the overlay */
+    transition: background-color 0.2s ease;
+}
+
+/* A simple hover effect for the main grey button */
+.add-member-button:hover,
+.remove-friend-button:hover {
+    background-color: #6a6a6a; 
+}
+
+/* This is the small OVERLAY circle style. It is ALWAYS the same size and position. */
+.plus-sign {
+    font-size: 0.8em;
+    font-weight: bold;
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    text-align: center;
+    display: block;
+    color: white;
+}
+
+/* This rule makes the overlay BLUE when it's an add button. */
+.add-member-button .plus-sign {
+    background-color: #00a8ff; /* Blue */
+}
+
+/* This rule makes the overlay RED when it's a remove button. */
+.remove-friend-button .plus-sign {
+    background-color: #dc3545; /* Red */
+}
+
+/* This makes the message button blue */
+.member-item .message-button {
+    background-color: #3d84b8;
+    color: #ffffff;
+}
+
+.member-item .message-button:hover {
+    background-color: #4a9dcf;
+}
 
 /* ==============================================
    FORCE SCOREBOARD LEFT - FINAL CSS OVERRIDE
@@ -2426,7 +3817,7 @@ min-width: 320px;
 /* 4. Reset the scoreboard container just in case */
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
-	margin-left: 155px;
+	margin-left: 140px;
 	width: 425px;
 }
 #friendly-status-tab .friendly-members-panel {
@@ -2459,6 +3850,9 @@ min-width: 320px;
 .table-title-centered {
     position: relative;
     left: -25px; 
+}
+#saveAdminSelectionsBtn {
+    margin-top: -35.5px !important; 
 }
 
 #leader-config-tab {
@@ -2564,15 +3958,7 @@ min-width: 320px;
     /* CRITICAL ADDITION: Force content alignment to the left within this div */
     text-align: left !important; /* THIS IS THE KEY TO FIX CENTERING PROPAGATION */
 }
-
-.ops-left-group {
-margin-top: -65px;
-display: flex;
-flex-direction: row; /* This forces the boxes into a horizontal row */
-align-items: flex-start; /* This aligns them all to the top */
-justify-content: flex-start; /* This starts them from the left */
-gap: 15px;
-}
+/* Update: l */
 
 
 /* Rule for equal width children */
@@ -3308,62 +4694,3 @@ margin-right: auto !important;
 #friendly-members-table tbody tr:hover {
     background-color: #38383e;
 }
-
-@media (max-width: 411px) {
-  #factionWarHubTitle {
-    display: none;
-  }
-  
-  #warPageHubContainer {
-    margin-top: 100px !important; /* You can change this value to move it up or down */
-  }
-}
-
-
-@media screen and (orientation: landscape) and (max-height: 600px) {
-
-    /* Hide the main title */
-    #factionWarHubTitle {
-        display: none;
-    }
-
-    /* Hide the "Live Faction Activity" tab button from the navigation bar */
-    .tab-button[data-tab="friendly-status"] {
-        display: none;
-    }
-
-    /* Hide the "Your Availability" title */
-    .user-status-panel h4 {
-        display: none;
-    }
-
-    /* --- Chat System Rules --- */
-    /* First, hide the chat system by default in mobile landscape */
-    #chat-system-placeholder {
-        display: none;
-    }
-
-    /* Then, show the chat system ONLY if the "Active Operation" tab is the one that's active */
-    body:has(#active-ops-tab.active) #chat-system-placeholder {
-        display: block;
-    }
-
-}
-
-
-@media (max-width: 992px) {
-  .enemy-targets-list-section {
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-    max-width: 100%; /* Ensure it doesn't exceed screen width */
-  }
-}
-
-@media (max-width: 768px) {
-  /* Hides the top control bars on mobile */
-  #active-ops-tab .ops-controls-grid {
-    display: none !important;
-  }
-}
- 
