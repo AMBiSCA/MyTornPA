@@ -3714,7 +3714,6 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            // The broken line that called the non-existent function has been removed from here.
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -3725,14 +3724,51 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
-  
-if (gamePlanDisplay) {
-    // Check if a saved image URL exists
-    if (warData.gamePlanImageUrl) {
-        gamePlanDisplay.innerHTML = `<img src="${warData.gamePlanImageUrl}" alt="Game Plan">`;
-    } else {
-        // Otherwise, show the text content
+
+    // --- THIS SECTION IS SIMPLIFIED ---
+    if (gamePlanDisplay) {
+        // It now only shows text content, ignoring any old image URLs.
         gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    }
+
+    if (factionAnnouncementsDisplay) {
+        // Check if a saved image URL exists
+        if (warData.announcementsImageUrl) {
+            factionAnnouncementsDisplay.innerHTML = `<img src="${warData.announcementsImageUrl}" alt="Faction Announcement">`;
+        } else {
+            // Otherwise, show the text content
+            factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+        }
+    }
+
+    if (gamePlanEditArea) {
+        gamePlanEditArea.value = warData.gamePlan || '';
+    }
+
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
+
+    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
+
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
     }
 }
 
