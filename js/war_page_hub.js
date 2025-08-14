@@ -2048,8 +2048,6 @@ async function showFactionSummary(summaryCounts) {
                 <div class="summary-edit-buttons leader-controls-row">
                     <button id="reset-availability-btn" class="action-btn">Reset All</button>
                     <button id="notify-members-btn" class="action-btn">Send Reminders</button>
-                    
-                    // --- BUTTON ORDER SWAPPED HERE ---
                     <button id="send-availability-report-btn" class="action-btn">Send Availability</button> 
                     <div id="discordWebhookUnifiedControl" class="action-btn discord-webhook-unified-control">
                         <span id="discordWebhookStatusText">Set Webhook</span>
