@@ -359,47 +359,50 @@ const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
         const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
     async function updateToolLinksAccess(profile) {
-        console.log('[DEBUG] Running updateToolLinksAccess...');
-        const toolLinks = document.querySelectorAll('.tool-item-button');
-        
-        if (!profile) {
-            console.log('[DEBUG] No profile found. Disabling all member links.');
-            toolLinks.forEach(link => {
-                if (link.classList.contains('member-only')) {
-                    link.classList.add('disabled-link');
-                }
-            });
-            return;
-        }
-        
-        // THE MOBILE TAB LOGIC HAS BEEN MOVED OUT OF THIS FUNCTION
+    console.log('[DEBUG] Running updateToolLinksAccess...');
+    const toolLinks = document.querySelectorAll('.tool-item-button');
+    
+    // --- NEW: Clear any old session pass before checking ---
+    sessionStorage.removeItem('isMember');
 
-        const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
-        // --- THIS LINE IS CORRECTED ---
-        const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
-        const hasFactionComp = await isFactionComped(profile, db);
+    if (!profile) {
+        console.log('[DEBUG] No profile found. Disabling all member links.');
+        toolLinks.forEach(link => {
+            if (link.classList.contains('member-only')) {
+                link.classList.add('disabled-link');
+            }
+        });
+        return;
+    }
+    
+    const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+    const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
+    const hasFactionComp = await isFactionComped(profile, db);
 
-        console.log('[DEBUG] hasPaidMembership check:', hasPaidMembership);
-        console.log('[DEBUG] hasPersonalComp check:', hasPersonalComp);
-        console.log('[DEBUG] hasFactionComp check:', hasFactionComp);
-        
-        const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
-        console.log('[DEBUG] Final isMember result:', isMember);
+    const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+    console.log('[DEBUG] Final isMember result:', isMember);
 
-        const hasAgreedToTerms = profile.termsAgreed === true;
+    // --- NEW: If user is a member, save the "pass" to the browser session ---
+    if (isMember) {
+        sessionStorage.setItem('isMember', 'true');
+        console.log('User is a member. Session pass has been set.');
+    }
+    // --- End of new code ---
 
-        toolLinks.forEach(link => {
-            const isRestrictedByTerms = !hasAgreedToTerms;
-            const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
+    const hasAgreedToTerms = profile.termsAgreed === true;
 
-            if (isRestrictedByTerms || isRestrictedByMembership) {
-                link.classList.add('disabled-link');
-            } else {
-                link.classList.remove('disabled-link');
-            }
-        });
-        console.log('[DEBUG] Finished updateToolLinksAccess.');
-    }
+    toolLinks.forEach(link => {
+        const isRestrictedByTerms = !hasAgreedToTerms;
+        const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
+
+        if (isRestrictedByTerms || isRestrictedByMembership) {
+            link.classList.add('disabled-link');
+        } else {
+            link.classList.remove('disabled-link');
+        }
+    });
+    console.log('[DEBUG] Finished updateToolLinksAccess.');
+}
 
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
