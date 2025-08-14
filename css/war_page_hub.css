@@ -4688,61 +4688,64 @@ margin-right: auto !important;
 }
 
 /* ==========================================================================
-   Mobile Footer Styles
+   CORRECTED Mobile Footer Styles
    ========================================================================== */
 
-/* By default, hide the new mobile footer on desktop screens. */
+/* By default, hide the mobile-footer on larger (desktop) screens. */
 .mobile-footer {
     display: none;
 }
 
-/* This media query targets screens 768px wide or smaller (like tablets and phones).
-   It will NOT affect your desktop view. */
+/* This media query applies the styles ONLY to screens 768px wide or smaller. */
 @media (max-width: 768px) {
 
-  /* 1. Hide your original PC footer placeholder on mobile. */
+  /* 1. Hide your PC footer placeholder on mobile. */
   #globalfooterplaceholder {
     display: none;
   }
 
-  /* 2. Show and style the new mobile-specific footer. */
+  /* 2. Show and style the mobile footer with the correct styles from your login page. */
   .mobile-footer {
-    display: block; /* This makes it visible on mobile */
+    display: block; /* Make it visible */
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    background-color: #0c1014; /* A dark background matching your theme */
-    border-top: 1px solid #00a8ff; /* The blue accent line from your design */
-    padding: 10px 0;
-    text-align: center;
-    z-index: 1000; /* Keeps it on top of other content */
+    z-index: 1000; /* Keeps it on top */
     box-sizing: border-box;
+
+    /* --- YOUR CORRECT STYLES --- */
+    padding: 20px 0;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #aaa;
+    font-size: 0.9rem;
   }
 
   .mobile-footer .footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .mobile-footer .footer-links a {
     color: #00a8ff;
     text-decoration: none;
-    font-size: 0.9em;
+    margin: 0 10px;
+    transition: color 0.3s ease;
   }
+
+   .mobile-footer .footer-links a:hover {
+     color: #4dc4ff;
+     text-decoration: underline;
+   }
 
   .mobile-footer p {
     margin: 0;
-    font-size: 0.8em;
-    color: #ccc;
+    font-size: 0.85em;
   }
 
-  /* 3. IMPORTANT: Add space at the bottom of the page.
-     This stops the new fixed footer from covering up your page content.
-     You can adjust the 75px value if needed. */
+  /* 3. Add space at the bottom of the page to prevent content from being covered.
+     I've increased this to 90px to account for the larger padding in your footer. */
   body {
-    padding-bottom: 75px !important;
+    padding-bottom: 90px !important;
   }
 }
