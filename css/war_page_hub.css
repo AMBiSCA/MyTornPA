@@ -2460,9 +2460,6 @@ min-width: 320px;
     position: relative;
     left: -25px; 
 }
-#saveAdminSelectionsBtn {
-    margin-top: -35.5px !important; 
-}
 
 #leader-config-tab {
     padding-bottom: -60px !important;/* Adjust this value as needed to "shave off" the bottom */
