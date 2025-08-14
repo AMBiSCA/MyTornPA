@@ -3,69 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTornPA - Torn Arcade</title>
+    <title>MyTornPA Arcade (All-in-One)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+    <style>
+        /* Base Styling */
+        body {
+            background: linear-gradient(145deg, #0a0a0a 0%, #1a0033 100%);
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            color: #ff4d94;
+            text-shadow: 0 0 8px #ff4d94, 0 0 16px #ff4d94, 0 0 2px #fff;
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 16px;
+            color: #00eaff;
+            text-shadow: 0 0 6px #00eaff;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        p { font-size: 12px; line-height: 1.6; color: #eee; }
 
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/globalheader.css">
-    <link rel="stylesheet" href="../css/arcade.css">
+        /* Page Section Control */
+        .page-section { display: none; }
+        .page-section.active { display: block; }
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="../js/firebase-init.js"></script>
+        /* Neon Button */
+        .arcade-btn {
+            background: #ff4d94; color: white; border: none; padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive; font-size: 14px; text-transform: uppercase;
+            text-decoration: none; box-shadow: 0 0 8px #ff4d94, 0 0 16px #ff4d94;
+            transition: all 0.3s; display: inline-block; margin-top: 20px; cursor: pointer;
+        }
+        .arcade-btn:hover {
+            background: #ff6fb5; box-shadow: 0 0 12px #ff4d94, 0 0 24px #ff4d94, 0 0 2px #fff;
+            transform: translateY(-2px);
+        }
+
+        /* Hub Page Styles */
+        #arcade-hub .arcade-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px; padding: 20px; max-width: 1200px; margin: 0 auto;
+        }
+        #arcade-hub .game-card {
+            background: rgba(15, 15, 15, 0.85); border: 2px solid #00eaff;
+            border-radius: 12px; padding: 20px; text-align: center;
+            box-shadow: 0 0 12px rgba(0, 234, 255, 0.5); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #arcade-hub .game-card:hover { transform: scale(1.05); box-shadow: 0 0 20px #00eaff; }
+        #arcade-hub .game-card img {
+            width: 100%; height: 160px; object-fit: cover; border-radius: 8px;
+            margin-bottom: 15px; background-color: #0a0a0a; border: 1px solid #00eaff;
+        }
+        
+        /* Game-Specific Styles */
+        .game-container {
+            margin: 20px auto; max-width: 600px; padding: 20px; background: rgba(15, 15, 15, 0.85);
+            border: 2px solid #00eaff; border-radius: 12px; box-shadow: 0 0 12px #00eaff;
+        }
+        #target-area { height: 400px; position: relative; background: rgba(0,0,0,0.3); margin-bottom: 15px; overflow: hidden; }
+        .target { position: absolute; width: 45px; height: 45px; background: #ffe600; border-radius: 50%; box-shadow: 0 0 10px #ffe600; cursor: pointer; }
+        #card-grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 10px; margin: 20px 0; justify-content: center;}
+        .memory-card { background: #ff4d94; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; }
+        .memory-card.matched { background: #00eaff; color: #0a0a0a; cursor: default; }
+        #safe-input { padding: 12px; font-size: 18px; margin-right: 10px; background-color: #111; border: 2px solid #00eaff; color: #fff; font-family: 'Press Start 2P', cursive; width: 150px; }
+    </style>
 </head>
 <body>
 
-    <div id="global-header-placeholder"></div>
-
-    <main class="arcade-container">
-
-        <!-- Main Menu -->
-        <section id="arcade-menu">
-            <h2>Torn Arcade</h2>
-            <div class="game-grid">
-                <div class="game-card" data-game="safecracker">
-                    <img src="../images/safecracker.png" alt="Safecracker">
-                    <h3>Safecracker</h3>
-                    <p>Crack as many safes as you can before time runs out!</p>
-                    <button class="play-btn">Play</button>
-                </div>
-                <div class="game-card" data-game="chainrush">
-                    <img src="../images/chainrush.png" alt="Chain Rush">
-                    <h3>Chain Rush</h3>
-                    <p>Click the targets fast to keep your chain alive!</p>
-                    <button class="play-btn">Play</button>
-                </div>
-                <div class="game-card" data-game="hitmanmemory">
-                    <img src="../images/hitman-memory.png" alt="Hitman Memory">
-                    <h3>Hitman Memory</h3>
-                    <p>Match weapons to targets before time runs out!</p>
-                    <button class="play-btn">Play</button>
-                </div>
+    <div id="arcade-hub" class="page-section active">
+        <h1>🎮 MyTornPA Arcade</h1>
+        <div class="arcade-grid">
+            <div class="game-card">
+                <img src="images/chainrush.png" alt="Chain Rush"><h2>Chain Rush</h2>
+                <p>Click targets fast to build your score chain!</p>
+                <button class="arcade-btn" onclick="Arcade.startGame('chainrush')">Play Now</button>
             </div>
-        </section>
+            <div class="game-card">
+                <img src="images/hitman-memory.png" alt="Hitman Memory"><h2>Hitman Memory</h2>
+                <p>Match weapons to targets before time runs out.</p>
+                <button class="arcade-btn" onclick="Arcade.startGame('hitmanmemory')">Play Now</button>
+            </div>
+            <div class="game-card">
+                <img src="images/safecracker.png" alt="Safecracker"><h2>Safecracker</h2>
+                <p>Crack the 3-digit safe code as fast as you can!</p>
+                <button class="arcade-btn" onclick="Arcade.startGame('safecracker')">Play Now</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- Game Display -->
-        <section id="game-screen" style="display:none;">
-            <button id="back-to-menu">← Back to Arcade Menu</button>
-            <div id="game-container"></div>
-        </section>
+    <div id="chainrush-page" class="page-section">
+        <h1>Chain Rush</h1>
+        <div class="game-container">
+            <p>Click the targets fast to keep your chain alive! 30 seconds countdown.</p>
+            <div id="target-area"></div>
+            <p>Score: <span id="chainrush-score">0</span> | Time Left: <span id="chainrush-time">30</span>s</p>
+            <p id="chainrush-feedback"></p>
+        </div>
+        <button class="arcade-btn" onclick="Arcade.showPage('arcade-hub')">Back to Arcade</button>
+    </div>
 
-    </main>
+    <div id="hitmanmemory-page" class="page-section">
+        <h1>Hitman Memory</h1>
+        <div class="game-container">
+            <p>Match weapons to targets! 60 seconds countdown.</p>
+            <div id="card-grid"></div>
+            <p>Score: <span id="hitmanmemory-score">0</span> | Time Left: <span id="hitmanmemory-time">60</span>s</p>
+            <p id="hitmanmemory-feedback"></p>
+        </div>
+        <button class="arcade-btn" onclick="Arcade.showPage('arcade-hub')">Back to Arcade</button>
+    </div>
 
+    <div id="safecracker-page" class="page-section">
+        <h1>Safecracker</h1>
+        <div class="game-container">
+            <p>Crack the 3-digit safe code! You have 60 seconds.</p>
+            <input type="number" id="safe-input" placeholder="???" min="100" max="999">
+            <button id="submit-code" class="arcade-btn" style="vertical-align: bottom;">Try!</button>
+            <p id="safecracker-feedback"></p>
+            <p>Score: <span id="safecracker-score">0</span> | Time Left: <span id="safecracker-time">60</span>s</p>
+        </div>
+        <button class="arcade-btn" onclick="Arcade.showPage('arcade-hub')">Back to Arcade</button>
+    </div>
 
-    <div id="globalfooterplaceholder"></div>
-
-    <script src="../js/globalheader.js"></script>
-    <script src="../js/globalfooter.js"></script>
-
-
-
-    <script src="../games/safecracker.js"></script>
-    <script src="../games/chainrush.js"></script>
-    <script src="../games/hitmanmemory.js"></script>
-	<script src="../js/arcade.js"></script>
-
-</body>
-</html>
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw",
+            authDomain: "mytornpa.com",
+            projectId: "mytorn-d03ae",
+            storageBucket: "mytorn-d03ae.appspot.com",
+            messagingSender
