@@ -45,6 +45,7 @@
 	object-fit: cover;
 	border-radius: 8px;
 	margin-bottom: 10px;
+	border: 1px solid #ff4500;
 }
 
 .game-card h3 {
