@@ -2052,7 +2052,6 @@ async function showFactionSummary(summaryCounts) {
                     <div id="discordWebhookUnifiedControl" class="action-btn discord-webhook-unified-control">
                         <span id="discordWebhookStatusText">Set Webhook</span>
                     </div>
-                    // --- NEW BUTTON ADDED HERE ---
                     <button id="send-availability-report-btn" class="action-btn">Send Availability</button> 
                 </div>
                 <div id="reminder-list-container"></div>
