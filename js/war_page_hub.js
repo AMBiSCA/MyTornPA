@@ -67,6 +67,7 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
+const currentTeamLeadInput = document.getElementById('currentTeamLeadInput'); 
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
 const FETCH_DELAY_MS = 500;
@@ -3319,6 +3320,7 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
     if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
+    if (currentTeamLeadDisplay) currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A'; // <-- ADD THIS LINE
 }
 
 function loadWarStatusForEdit(warData = {}) {
@@ -3329,9 +3331,9 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleNoFlying) toggleNoFlying.checked = warData.toggleNoFlying || false;
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
+    if (currentTeamLeadInput) currentTeamLeadInput.value = warData.currentTeamLead || ''; // <-- ADD THIS LINE
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
-
 
 
 // NEW: Autocomplete setup for the Current Team Lead input
@@ -3653,6 +3655,7 @@ function setupEventListeners(apiKey) {
                 toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
                 toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
                 nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+				currentTeamLead: currentTeamLeadInput ? currentTeamLeadInput.value : '', 
                 enemyFactionID: enemyId
             };
             try {
