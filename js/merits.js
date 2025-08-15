@@ -756,73 +756,6 @@ function clearAllLists() {
     awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
-// Function to handle the landscape blocker logic
-function toggleLandscapeBlocker() {
-    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerWidth <= 1024;
-    let blocker = document.getElementById('landscape-blocker');
-
-    if (isMobileLandscape) {
-        // Only create the blocker if it doesn't already exist
-        if (!blocker) {
-            blocker = document.createElement('div');
-            blocker.id = 'landscape-blocker';
-            blocker.innerHTML = `
-                <h2>Please Rotate Your Device</h2>
-                <p>For the best experience, please use this page in portrait mode.</p>
-            `;
-            // Apply all the necessary styles directly with JavaScript
-            Object.assign(blocker.style, {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#222',
-                color: '#eee',
-                textAlign: 'center',
-                padding: '20px',
-                zIndex: '99999'
-            });
-            document.body.appendChild(blocker);
-        }
-
-        // Hide main page content
-        document.body.style.overflow = 'hidden';
-        const header = document.querySelector('header');
-        if (header) header.style.display = 'none';
-        const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = 'none';
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = 'none';
-
-    } else {
-        // Remove the blocker if it exists
-        if (blocker) {
-            blocker.remove();
-        }
-
-        // Re-show main page content
-        document.body.style.overflow = '';
-        const header = document.querySelector('header');
-        if (header) header.style.display = '';
-        const mainContent = document.getElementById('mainHomepageContent');
-        if (mainContent) mainContent.style.display = '';
-        const footer = document.querySelector('footer');
-        if (footer) footer.style.display = '';
-    }
-}
-
-// Run the function on page load and window resize
-window.addEventListener('load', toggleLandscapeBlocker);
-window.addEventListener('resize', toggleLandscapeBlocker);
-
-
-// --- Main Data Handling Functions (Modified) ---
-
 /**
  * Fetches Torn player data directly from the Torn API.
  * This function assumes the API key is retrieved from Firestore.
@@ -1280,143 +1213,102 @@ async function initializeMeritsPage() {
 // Run initialization when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeMeritsPage);
 
-let orientationOverlay = null;
-
-function checkAndEnforceLandscape() {
-    if (!orientationOverlay) return; // Safety check
-
-    // Realistic sizing for tablets
-    const TABLET_MIN_WIDTH = 768;
-    const TABLET_MAX_WIDTH = 1280;
-
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-
-    const isPossiblyTablet = screenWidth >= TABLET_MIN_WIDTH && screenWidth <= TABLET_MAX_WIDTH;
-    const isPortrait = screenHeight > screenWidth;
-
-    if (isPossiblyTablet && isPortrait) {
-        orientationOverlay.style.display = 'flex'; // Show the overlay
-    } else {
-        orientationOverlay.style.display = 'none'; // Hide the overlay
+// --- START: Desktop-Only Device Blocker ---
+function initializeDeviceBlocker() {
+    // This function will only run once
+    if (document.getElementById('device-blocker')) {
+        return;
     }
+
+    // 1. --- Define the Button Styles ---
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
+
+    // 2. --- Create the Blocker Elements ---
+    const blocker = document.createElement('div');
+    blocker.id = 'device-blocker';
+
+    const contentWrapper = document.createElement('div');
+    
+    const heading = document.createElement('h2');
+    heading.textContent = 'Desktop View Required';
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'For the best experience, this tool is designed for desktop computers. Please switch to a larger device.';
+
+    const homeButton = document.createElement('a');
+    homeButton.href = 'home.html';
+    homeButton.textContent = 'Return to Home';
+    
+    // Apply the styles from your object to the button
+    Object.assign(homeButton.style, buttonStyles);
+    
+    // Add a simple hover effect
+    homeButton.addEventListener('mouseover', () => homeButton.style.backgroundColor = '#0056b3');
+    homeButton.addEventListener('mouseout', () => homeButton.style.backgroundColor = '#007bff');
+
+    // Put all the content together
+    contentWrapper.appendChild(heading);
+    contentWrapper.appendChild(paragraph);
+    contentWrapper.appendChild(homeButton);
+    blocker.appendChild(contentWrapper);
+    document.body.appendChild(blocker);
+
+    // 3. --- Add CSS for the Blocker Overlay ---
+    const style = document.createElement('style');
+    style.textContent = `
+        #device-blocker {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #222;
+            color: #eee;
+            text-align: center;
+            z-index: 99999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Hide main content when blocker is active */
+        body.blocked-device #mainHomepageContent,
+        body.blocked-device header,
+        body.blocked-device footer {
+            display: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 4. --- Logic to Show/Hide the Blocker ---
+    function checkScreenSize() {
+        // Blocks any screen 1024px wide or smaller
+        if (window.innerWidth <= 1024) {
+            blocker.style.display = 'flex';
+            document.body.classList.add('blocked-device');
+        } else {
+            blocker.style.display = 'none';
+            document.body.classList.remove('blocked-device');
+        }
+    }
+
+    // 5. --- Run the Blocker ---
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
 }
 
-// 1. Create the overlay element once the page structure is ready.
-createOrientationOverlay();
+// Call the function to set everything up
+initializeDeviceBlocker();
+// --- END: Desktop-Only Device Blocker ---
 
-// 2. Add listeners to run our check whenever the screen might change.
-window.addEventListener('resize', checkAndEnforceLandscape);
-window.addEventListener('orientationchange', checkAndEnforceLandscape);
-
-// 3. Run an initial check when the page first loads.
-checkAndEnforceLandscape();
-
-function initializeMobileBlocker() {
-  // === HTML Creation ===
-  const blockerDiv = document.createElement('div');
-  blockerDiv.id = 'mobile-blocker';
-
-  const heading = document.createElement('h2');
-  heading.textContent = 'Feature Unavailable on Mobile';
-
-  const paragraph = document.createElement('p');
-  paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
-
-  const homeButton = document.createElement('a');
-  homeButton.href = 'home.html';
-  homeButton.textContent = 'Go to Homepage';
-  homeButton.classList.add('mobile-blocker-btn');
-
-  blockerDiv.appendChild(heading);
-  blockerDiv.appendChild(paragraph);
-  blockerDiv.appendChild(homeButton);
-  document.body.appendChild(blockerDiv);
-
-  // === CSS Styling Injection ===
-  const style = document.createElement('style');
-  style.textContent = `
-    /* By default, the mobile blocker is hidden */
-    #mobile-blocker {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: #222;
-      color: #eee;
-      text-align: center;
-      padding: 20px;
-      z-index: 9999;
-    }
-
-    /* Updated styles for the blocker's content to center it and add a better look */
-    #mobile-blocker h2 {
-        color: #00a8ff;
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-        text-align: center;
-    }
-
-    #mobile-blocker p {
-        font-size: 1rem;
-        line-height: 1.6;
-        word-wrap: break-word;
-        min-width: 0;
-        white-space: normal;
-        max-width: 90%;
-        margin: 0 0 20px 0;
-        text-align: center;
-    }
-
-    /* Styles for the new button */
-    .mobile-blocker-btn {
-        display: inline-block;
-        margin-top: 25px;
-        padding: 12px 25px;
-        background-color: #00a8ff;
-        color: #1a1a1a;
-        font-weight: bold;
-        text-decoration: none;
-        border-radius: 5px;
-        transition: background-color 0.2s ease;
-    }
-    .mobile-blocker-btn:hover {
-        background-color: #4dc4ff;
-    }
-
-    /* When the 'mobile-blocked' class is present on the body, hide the main content */
-    body.mobile-blocked #global-header-placeholder,
-    body.mobile-blocked .main-content-wrapper,
-    body.mobile-blocked #globalfooterplaceholder {
-      display: none;
-    }
-
-    /* When the 'mobile-blocked' class is present, show the blocker */
-    body.mobile-blocked #mobile-blocker {
-      display: flex;
-    }
-  `;
-  document.head.appendChild(style);
-
-  // === JavaScript Logic ===
-  function checkScreenSize() {
-    if (window.innerWidth <= 1366) {
-      document.body.classList.add('mobile-blocked');
-    } else {
-      document.body.classList.remove('mobile-blocked');
-    }
-  }
-
-  // Run the function on page load and window resize
-  checkScreenSize();
-  window.addEventListener('resize', checkScreenSize);
-}
-
-// Call the function to run everything
-initializeMobileBlocker();
