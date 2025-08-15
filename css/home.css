@@ -908,6 +908,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     .welcome-block-area {
         display: none !important;
     }
+	
+	footer {
+    display: none !important;
+}
+	
     /* Container for the tab buttons */
     #mobile-tab-buttons-container {
         display: flex;
