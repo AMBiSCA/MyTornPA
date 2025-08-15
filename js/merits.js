@@ -1282,49 +1282,6 @@ document.addEventListener('DOMContentLoaded', initializeMeritsPage);
 
 let orientationOverlay = null;
 
-/**
- * Creates and adds a hidden overlay to the page.
- * This overlay will be used to ask the user to rotate their tablet.
- * NEW: A "Go to Homepage" button has been added.
- */
-function createOrientationOverlay() {
-    orientationOverlay = document.createElement('div');
-    orientationOverlay.id = 'orientation-overlay';
-
-    // Apply the styles directly from your example
-    Object.assign(orientationOverlay.style, {
-        display: 'none', // Will be toggled to 'flex' to show
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#222',
-        color: '#eee',
-        textAlign: 'center',
-        padding: '20px',
-        zIndex: '99999'
-    });
-
-    // Use the same HTML structure for the message, now with a button
-    orientationOverlay.innerHTML = `
-        <div>
-            <h2 style="font-size: 28px; margin-bottom: 15px;">Please Rotate Your Device</h2>
-            <p style="font-size: 18px; margin: 0;">This page is best viewed in landscape mode.</p>
-            <a href="/" style="display: inline-block; margin-top: 30px; padding: 12px 25px; background-color: #00a8ff; color: black; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                Go to Homepage
-            </a>
-        </div>
-    `;
-    document.body.appendChild(orientationOverlay);
-}
-
-/**
- * Checks the screen size and orientation to decide if the overlay should be shown.
- */
 function checkAndEnforceLandscape() {
     if (!orientationOverlay) return; // Safety check
 
