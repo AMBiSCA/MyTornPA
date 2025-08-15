@@ -2435,7 +2435,13 @@ input:checked + .slider:before {
         /* It adds space at the very bottom of the page for the new, taller footer */
         padding-bottom: 85px !important;
     }
-
+	
+	
+@media (max-width: 1024px) and (orientation: landscape) {
+  footer.footer {
+    display: none;
+  }
+}
 
 /* ================================================== */
 /* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V3) == */
