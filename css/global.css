@@ -2430,14 +2430,14 @@ input:checked + .slider:before {
         display: block;
         transform: rotate(180deg); /* Flips the arrow to point down */
     }
-}
-
-  #homeButtonFooter,
+	
+#homeButtonFooter,
 #faqFooterLink,
 #reportFooterLink,
 #wikiFooterLink,
 #tornCityFooterLink {
     display: none;
+    }
 }
 
 
