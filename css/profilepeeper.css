@@ -222,7 +222,6 @@ label[for="userId"] { /* Updated for new input ID */
   display: flex;
   justify-content: center;
   gap: 15px;
-  margin: -15px auto;
   flex-wrap: wrap;
 }
 .action-btn {
