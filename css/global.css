@@ -2245,14 +2245,6 @@ input:checked + .slider:before {
   header .tagline {
     display: none !important;
   }
-  
-  #homeButtonFooter,
-#faqFooterLink,
-#reportFooterLink,
-#wikiFooterLink,
-#tornCityFooterLink {
-    display: none;
-}
 
   /* Make the main header a flexible container */
   header {
@@ -2430,14 +2422,6 @@ input:checked + .slider:before {
         display: block;
         transform: rotate(180deg); /* Flips the arrow to point down */
     }
-	
-#homeButtonFooter,
-#faqFooterLink,
-#reportFooterLink,
-#wikiFooterLink,
-#tornCityFooterLink {
-    display: none;
-    }
 }
 
 
@@ -2523,13 +2507,4 @@ body.eye-soothing-mode .tool-category-header {
 /* This targets the "TornCityTime" text */
 body.eye-soothing-mode #tornTimeContainer {
     color: var(--soothing-accent);
-}
-
-/* Hides extra footer links on all internal pages, on ANY screen size */
-body.page-internal #homeButtonFooter,
-body.page-internal #faqFooterLink,
-body.page-internal #reportFooterLink,
-body.page-internal #wikiFooterLink,
-body.page-internal #tornCityFooterLink {
-    display: none;
 }
