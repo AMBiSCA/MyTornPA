@@ -1282,6 +1282,10 @@ function initializeDeviceBlocker() {
             padding: 20px;
             box-sizing: border-box;
         }
+        /* --- NEW STYLE ADDED FOR THE HEADING --- */
+        #device-blocker h2 {
+            color: #00a8ff; /* This makes the heading text blue */
+        }
         /* Hide main content when blocker is active */
         body.blocked-device #mainHomepageContent,
         body.blocked-device header,
@@ -1311,4 +1315,3 @@ function initializeDeviceBlocker() {
 // Call the function to set everything up
 initializeDeviceBlocker();
 // --- END: Desktop-Only Device Blocker ---
-
