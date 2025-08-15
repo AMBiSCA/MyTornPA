@@ -1097,7 +1097,7 @@ function createRequiredOverlays() {
             margin-left: auto; /* Helps ensure centering */
             margin-right: auto; /* Helps ensure centering */
         }
-        const buttonStyles = {
+        .blocker-btn {
         backgroundColor: '#007bff',
         color: 'black',
         padding: '8px 15px',
@@ -1108,7 +1108,6 @@ function createRequiredOverlays() {
         marginTop: '20px',
         textDecoration: 'none',
         fontSize: '16px' // A readable font size for the button
-    
         }
         .blocker-btn:hover {
             background-color: #4dc4ff;
