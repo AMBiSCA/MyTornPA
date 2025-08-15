@@ -1092,6 +1092,7 @@ function createRequiredOverlays() {
     rotateBlocker.id = 'rotate-blocker';
     rotateBlocker.innerHTML = `
         <div>
+		    <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
             <h2>Please Rotate Your Device</h2>
             <p>This page is best viewed in landscape mode.</p>
         </div>
