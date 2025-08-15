@@ -2047,10 +2047,6 @@ input:checked + .slider:before {
         overflow: visible !important;
     }
 
-    /* Hide the global footer placeholder that might push content down */
-    #globalfooterplaceholder {
-        display: none !important;
-    }
 
     .main-content-wrapper::-webkit-scrollbar {
         display: none !important;
