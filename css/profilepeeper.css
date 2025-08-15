@@ -329,6 +329,11 @@ label[for="userId"] { /* Updated for new input ID */
         width: 95%;
 		margin-top: 115px;
 	}
+	
+	.action-buttons-container {
+        margin-top: 25px;
+    }
+	
     .modal-content {
         width: 95% !important;
         max-width: 100% !important;
