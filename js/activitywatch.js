@@ -1097,15 +1097,18 @@ function createRequiredOverlays() {
             margin-left: auto; /* Helps ensure centering */
             margin-right: auto; /* Helps ensure centering */
         }
-        .blocker-btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #00a8ff;
-            color: #1a1a1a;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s ease;
+        const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px' // A readable font size for the button
+    
         }
         .blocker-btn:hover {
             background-color: #4dc4ff;
