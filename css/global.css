@@ -2427,7 +2427,7 @@ input:checked + .slider:before {
  footer.footer {
         height: auto !important;         /* Let the footer's height be determined by its content */
         padding-top: 10px !important;     /* Adjust top padding for balance */
-        padding-bottom: 15px !important;  /* Increase bottom padding to push all content up and into view */
+        padding-bottom: 10px !important;  /* Increase bottom padding to push all content up and into view */
     }
 
     body {
