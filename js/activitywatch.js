@@ -1046,7 +1046,7 @@ function createRequiredOverlays() {
     unavailableBlocker.innerHTML = `
         <div>
             <h2>Feature Unavailable on Mobile</h2>
-            <p style="font-size: 0.8em; margin: 10px auto 20px; max-width: 90%;">For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
+            <p>For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
             <a href="home.html" class="blocker-btn">Go to Homepage</a>
         </div>
     `;
@@ -1058,7 +1058,7 @@ function createRequiredOverlays() {
     rotateBlocker.innerHTML = `
         <div>
             <h2>Please Rotate Your Device</h2>
-            <p style="font-size: 0.8em; margin-top: 10px;">This page is best viewed in landscape mode.</p>
+            <p>This page is best viewed in landscape mode.</p>
         </div>
     `;
     document.body.appendChild(rotateBlocker);
@@ -1069,8 +1069,8 @@ function createRequiredOverlays() {
         #unavailable-blocker, #rotate-blocker {
             display: none; /* Hidden by default */
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Vertical Center */
+            align-items: center;     /* Horizontal Center */
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1079,6 +1079,23 @@ function createRequiredOverlays() {
             text-align: center;
             z-index: 99999;
             padding: 20px;
+            box-sizing: border-box; /* Ensures padding doesn't affect dimensions */
+        }
+        /* Target the content inside the blocker for precise centering */
+        #unavailable-blocker > div, #rotate-blocker > div {
+            max-width: 95%;
+        }
+        #unavailable-blocker h2, #rotate-blocker h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        #unavailable-blocker p, #rotate-blocker p {
+            margin-top: 0;
+            margin-bottom: 25px; /* Added more space before button */
+            font-size: 0.8em;
+            max-width: 90%;
+            margin-left: auto; /* Helps ensure centering */
+            margin-right: auto; /* Helps ensure centering */
         }
         .blocker-btn {
             display: inline-block;
@@ -1096,7 +1113,6 @@ function createRequiredOverlays() {
     `;
     document.head.appendChild(style);
 }
-
 /**
  * The main logic to decide which blocker to show, if any.
  */
