@@ -2325,10 +2325,6 @@ input:checked + .slider:before {
 	
 }
 
-/* Force Footer to be Visible in All Views */
-footer.footer {
-    display: block !important;
-}
 
 @media (min-width: 769px) and (max-width: 1024px) {
 
