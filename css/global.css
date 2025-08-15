@@ -2245,6 +2245,14 @@ input:checked + .slider:before {
   header .tagline {
     display: none !important;
   }
+  
+  #homeButtonFooter,
+#faqFooterLink,
+#reportFooterLink,
+#wikiFooterLink,
+#tornCityFooterLink {
+    display: none;
+}
 
   /* Make the main header a flexible container */
   header {
