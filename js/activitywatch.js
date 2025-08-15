@@ -45,8 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let historicalData = [];
     const SKIP_CONFIRM_KEY = 'skipClearConfirmation';
 
-    // All functions related to mobile content reorganization have been removed.
-
     function saveSessionState(state) {
         localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(state));
     }
@@ -609,7 +607,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         closeReportOptionsModal();
 
-        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const blob = new Blob([reportContent], {
+            type: 'text/plain'
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -846,7 +846,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         reportContent += `\n`;
         closeReportOptionsModal();
-        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const blob = new Blob([reportContent], {
+            type: 'text/plain'
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1020,6 +1022,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    init();
+
+});
+
 // --- START: New Unified Device Blocker ---
 
 // Global variables to hold the two different blocker message elements
@@ -1128,5 +1134,4 @@ document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
 window.addEventListener('resize', manageDeviceOverlay);
 window.addEventListener('orientationchange', manageDeviceOverlay);
 
-// --- END: New Unified Device Blocker ---
-
+// --- END: New Unified Device Blocker --- it still dont work can you please look at my full code i have sent and see what the problem is please
