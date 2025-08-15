@@ -1020,238 +1020,113 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function initializeMobileBlocker() {
-        // === HTML Creation ===
-        const blockerDiv = document.createElement('div');
-        blockerDiv.id = 'mobile-blocker';
+// --- START: New Unified Device Blocker ---
 
-        const heading = document.createElement('h2');
-        heading.textContent = 'Feature Unavailable on Mobile';
-
-        const paragraph = document.createElement('p');
-        paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
-
-        const homeButton = document.createElement('a');
-        homeButton.href = 'home.html';
-        homeButton.textContent = 'Go to Homepage';
-        homeButton.classList.add('mobile-blocker-btn');
-
-        blockerDiv.appendChild(heading);
-        blockerDiv.appendChild(paragraph);
-        blockerDiv.appendChild(homeButton);
-        document.body.appendChild(blockerDiv);
-
-        // === CSS Styling Injection ===
-        const style = document.createElement('style');
-        style.textContent = `
-          /* By default, the mobile blocker is hidden */
-          #mobile-blocker {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #222;
-            color: #eee;
-            text-align: center;
-            padding: 20px;
-            z-index: 9999;
-          }
-
-          /* Updated styles for the blocker's content to center it and add a better look */
-          #mobile-blocker h2 {
-              color: #00a8ff;
-              font-size: 1.5rem;
-              margin-bottom: 10px;
-              text-align: center;
-          }
-
-          #mobile-blocker p {
-              font-size: 1rem;
-              line-height: 1.6;
-              word-wrap: break-word;
-              min-width: 0;
-              white-space: normal;
-              max-width: 90%;
-              margin: 0 0 20px 0;
-              text-align: center;
-          }
-
-          /* Styles for the new button */
-          .mobile-blocker-btn {
-              display: inline-block;
-              margin-top: 25px;
-              padding: 12px 25px;
-              background-color: #00a8ff;
-              color: #1a1a1a;
-              font-weight: bold;
-              text-decoration: none;
-              border-radius: 5px;
-              transition: background-color 0.2s ease;
-          }
-          .mobile-blocker-btn:hover {
-              background-color: #4dc4ff;
-          }
-
-          /* When the 'mobile-blocked' class is present on the body, hide the main content */
-          body.mobile-blocked #global-header-placeholder,
-          body.mobile-blocked .main-content-wrapper,
-          body.mobile-blocked #globalfooterplaceholder {
-            display: none;
-          }
-
-          /* When the 'mobile-blocked' class is present, show the blocker */
-          body.mobile-blocked #mobile-blocker {
-            display: flex;
-          }
-        `;
-        document.head.appendChild(style);
-
-        // === JavaScript Logic ===
-        function checkScreenSize() {
-            // UPDATED LOGIC: Block if width is <= 1024 AND it's in portrait mode.
-            if (window.innerWidth <= 1024 && window.innerHeight > window.innerWidth) {
-                document.body.classList.add('mobile-blocked');
-            } else {
-                document.body.classList.remove('mobile-blocked');
-            }
-        }
-
-        // Run the function on page load and window resize
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-    }
-
-    // Call the function to run everything
-    initializeMobileBlocker();
-    init();
-
-});
-
-// --- START: Complete and Unified Orientation Handler ---
-
-// Global variables to hold the blocker elements
-let portraitBlocker = null;
-let landscapeBlocker = null;
+// Global variables to hold the two different blocker message elements
+let unavailableBlocker = null;
+let rotateBlocker = null;
 
 /**
- * Creates the overlay elements and adds them to the page if they don't exist.
+ * Creates the two different overlay messages and adds them to the page.
+ * This function only runs once.
  */
-function createOverlays() {
-    // Common styles for the overlays
-    const overlayStyles = {
-        display: 'none',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#1e1e1e',
-        color: '#f0f0f0',
-        textAlign: 'center',
-        fontFamily: 'sans-serif',
-        fontSize: '1.5em',
-        zIndex: '99999'
-    };
-    // Common styles for the "Return Home" button
-    const buttonStyles = {
-        backgroundColor: '#007bff',
-        color: 'black',
-        padding: '8px 15px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        marginTop: '20px',
-        textDecoration: 'none',
-        fontSize: '16px'
-    };
+function createRequiredOverlays() {
+    // Return if overlays have already been created
+    if (document.getElementById('unavailable-blocker')) return;
 
-    // Create the blocker for tablets in landscape mode
-    if (!document.getElementById('tablet-portrait-blocker')) {
-        portraitBlocker = document.createElement('div');
-        portraitBlocker.id = 'tablet-portrait-blocker';
-        Object.assign(portraitBlocker.style, overlayStyles);
-        portraitBlocker.innerHTML = `
-            <div>
-                <h2>Please Rotate Your Device</h2>
-                <p style="font-size: 0.7em; margin-top: 5px;">This page is best viewed in portrait mode.</p>
-                <button id="return-home-btn-tablet">Return to Home</button>
-            </div>`;
-        document.body.appendChild(portraitBlocker);
-        const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
-        if (tabletReturnBtn) {
-            Object.assign(tabletReturnBtn.style, buttonStyles);
-            tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
-        }
-    }
+    // --- Create the "Feature Unavailable" Blocker ---
+    unavailableBlocker = document.createElement('div');
+    unavailableBlocker.id = 'unavailable-blocker';
+    unavailableBlocker.innerHTML = `
+        <div>
+            <h2>Feature Unavailable on Mobile</h2>
+            <p style="font-size: 0.8em; margin: 10px auto 20px; max-width: 90%;">For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
+            <a href="home.html" class="blocker-btn">Go to Homepage</a>
+        </div>
+    `;
+    document.body.appendChild(unavailableBlocker);
 
-    // Create the blocker for phones in portrait mode
-    if (!document.getElementById('mobile-landscape-blocker')) {
-        landscapeBlocker = document.createElement('div');
-        landscapeBlocker.id = 'mobile-landscape-blocker';
-        Object.assign(landscapeBlocker.style, overlayStyles);
-        landscapeBlocker.innerHTML = `
-            <div>
-                <h2>Please Rotate Your Device</h2>
-                <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
-                <button id="return-home-btn-mobile">Return to Home</button>
-            </div>`;
-        document.body.appendChild(landscapeBlocker);
-        const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
-        if (mobileReturnBtn) {
-            Object.assign(mobileReturnBtn.style, buttonStyles);
-            mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
-        }
-    }
+    // --- Create the "Please Rotate" Blocker ---
+    rotateBlocker = document.createElement('div');
+    rotateBlocker.id = 'rotate-blocker';
+    rotateBlocker.innerHTML = `
+        <div>
+            <h2>Please Rotate Your Device</h2>
+            <p style="font-size: 0.8em; margin-top: 10px;">This page is best viewed in landscape mode.</p>
+        </div>
+    `;
+    document.body.appendChild(rotateBlocker);
+
+    // --- Add CSS styles for both blockers ---
+    const style = document.createElement('style');
+    style.textContent = `
+        #unavailable-blocker, #rotate-blocker {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #222;
+            color: #eee;
+            text-align: center;
+            z-index: 99999;
+            padding: 20px;
+        }
+        .blocker-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #00a8ff;
+            color: #1a1a1a;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+        .blocker-btn:hover {
+            background-color: #4dc4ff;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 /**
- * Checks the device type and orientation, and shows the appropriate blocker.
+ * The main logic to decide which blocker to show, if any.
  */
-function handleOrientation() {
-    // Ensure the overlay elements are created before trying to use them
-    if (!portraitBlocker || !landscapeBlocker) {
-        createOverlays();
-        portraitBlocker = document.getElementById('tablet-portrait-blocker');
-        landscapeBlocker = document.getElementById('mobile-landscape-blocker');
-        if (!portraitBlocker || !landscapeBlocker) return; // Exit if creation failed
-    }
+function manageDeviceOverlay() {
+    // Make sure the overlay elements exist
+    createRequiredOverlays();
 
-    // Hide both blockers by default
-    portraitBlocker.style.display = 'none';
-    landscapeBlocker.style.display = 'none';
+    // Hide both blockers to reset the state
+    unavailableBlocker.style.display = 'none';
+    rotateBlocker.style.display = 'none';
 
-    // Get orientation and screen size
-    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-    const isLandscape = !isPortrait;
-    const shortestSide = Math.min(window.screen.width, window.screen.height);
+    // --- Define Device Sizes (based on the shortest side of the screen) ---
+    const shortestSide = Math.min(window.screen.width, window.screen.height);
+    const isPhoneOrSmallTablet = shortestSide < 768; // Covers phones and small tablets like iPad Mini
+    const isBigTablet = shortestSide >= 768;      // Covers larger tablets like iPad Air/Pro
 
-    // Define device types based on the shortest screen side
-    const isPhone = shortestSide < 600;
-    const isTablet = shortestSide >= 600 && shortestSide < 1024;
+    // Get current orientation
+    const isPortrait = window.innerHeight > window.innerWidth;
 
-    // Apply the blocking logic
-    if (isPhone && isPortrait) {
-        // If it's a phone in portrait, show the "rotate to landscape" message
-        landscapeBlocker.style.display = 'flex';
-    } else if (isTablet && isLandscape) {
-        // If it's a tablet in landscape, show the "rotate to portrait" message
-        portraitBlocker.style.display = 'flex';
-    }
+    // --- Apply the Logic ---
+    if (isPhoneOrSmallTablet) {
+        // For phones and small tablets, ALWAYS show the "unavailable" message
+        unavailableBlocker.style.display = 'flex';
+    } else if (isBigTablet) {
+        // For big tablets, ONLY show the "rotate" message if they are in portrait mode
+        if (isPortrait) {
+            rotateBlocker.style.display = 'flex';
+        }
+        // If they are in landscape, nothing is shown and the page is usable.
+    }
 }
 
-// Add event listeners to run the handler on page load, resize, and orientation change
-document.addEventListener('DOMContentLoaded', handleOrientation);
-window.addEventListener('resize', handleOrientation);
-window.addEventListener('orientationchange', handleOrientation);
+// --- Event Listeners to run the logic ---
+document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
+window.addEventListener('resize', manageDeviceOverlay);
+window.addEventListener('orientationchange', manageDeviceOverlay);
 
-// --- END: Complete and Unified Orientation Handler ---
+// --- END: New Unified Device Blocker ---
+
