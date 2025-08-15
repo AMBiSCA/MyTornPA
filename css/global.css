@@ -2432,6 +2432,14 @@ input:checked + .slider:before {
     }
 }
 
+  #homeButtonFooter,
+#faqFooterLink,
+#reportFooterLink,
+#wikiFooterLink,
+#tornCityFooterLink {
+    display: none;
+}
+
 
 /* ================================================== */
 /* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V3) == */
