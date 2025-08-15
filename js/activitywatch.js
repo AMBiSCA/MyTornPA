@@ -1132,3 +1132,126 @@ document.addEventListener('DOMContentLoaded', function() {
     init();
 
 });
+
+// --- START: Complete and Unified Orientation Handler ---
+
+// Global variables to hold the blocker elements
+let portraitBlocker = null;
+let landscapeBlocker = null;
+
+/**
+ * Creates the overlay elements and adds them to the page if they don't exist.
+ */
+function createOverlays() {
+    // Common styles for the overlays
+    const overlayStyles = {
+        display: 'none',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#1e1e1e',
+        color: '#f0f0f0',
+        textAlign: 'center',
+        fontFamily: 'sans-serif',
+        fontSize: '1.5em',
+        zIndex: '99999'
+    };
+    // Common styles for the "Return Home" button
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
+
+    // Create the blocker for tablets in landscape mode
+    if (!document.getElementById('tablet-portrait-blocker')) {
+        portraitBlocker = document.createElement('div');
+        portraitBlocker.id = 'tablet-portrait-blocker';
+        Object.assign(portraitBlocker.style, overlayStyles);
+        portraitBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">This page is best viewed in portrait mode.</p>
+                <button id="return-home-btn-tablet">Return to Home</button>
+            </div>`;
+        document.body.appendChild(portraitBlocker);
+        const tabletReturnBtn = document.getElementById('return-home-btn-tablet');
+        if (tabletReturnBtn) {
+            Object.assign(tabletReturnBtn.style, buttonStyles);
+            tabletReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+
+    // Create the blocker for phones in portrait mode
+    if (!document.getElementById('mobile-landscape-blocker')) {
+        landscapeBlocker = document.createElement('div');
+        landscapeBlocker.id = 'mobile-landscape-blocker';
+        Object.assign(landscapeBlocker.style, overlayStyles);
+        landscapeBlocker.innerHTML = `
+            <div>
+                <h2>Please Rotate Your Device</h2>
+                <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
+                <button id="return-home-btn-mobile">Return to Home</button>
+            </div>`;
+        document.body.appendChild(landscapeBlocker);
+        const mobileReturnBtn = document.getElementById('return-home-btn-mobile');
+        if (mobileReturnBtn) {
+            Object.assign(mobileReturnBtn.style, buttonStyles);
+            mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
+        }
+    }
+}
+
+/**
+ * Checks the device type and orientation, and shows the appropriate blocker.
+ */
+function handleOrientation() {
+    // Ensure the overlay elements are created before trying to use them
+    if (!portraitBlocker || !landscapeBlocker) {
+        createOverlays();
+        portraitBlocker = document.getElementById('tablet-portrait-blocker');
+        landscapeBlocker = document.getElementById('mobile-landscape-blocker');
+        if (!portraitBlocker || !landscapeBlocker) return; // Exit if creation failed
+    }
+
+    // Hide both blockers by default
+    portraitBlocker.style.display = 'none';
+    landscapeBlocker.style.display = 'none';
+
+    // Get orientation and screen size
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    const isLandscape = !isPortrait;
+    const shortestSide = Math.min(window.screen.width, window.screen.height);
+
+    // Define device types based on the shortest screen side
+    const isPhone = shortestSide < 600;
+    const isTablet = shortestSide >= 600 && shortestSide < 1024;
+
+    // Apply the blocking logic
+    if (isPhone && isPortrait) {
+        // If it's a phone in portrait, show the "rotate to landscape" message
+        landscapeBlocker.style.display = 'flex';
+    } else if (isTablet && isLandscape) {
+        // If it's a tablet in landscape, show the "rotate to portrait" message
+        portraitBlocker.style.display = 'flex';
+    }
+}
+
+// Add event listeners to run the handler on page load, resize, and orientation change
+document.addEventListener('DOMContentLoaded', handleOrientation);
+window.addEventListener('resize', handleOrientation);
+window.addEventListener('orientationchange', handleOrientation);
+
+// --- END: Complete and Unified Orientation Handler ---
