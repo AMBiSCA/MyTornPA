@@ -1449,7 +1449,7 @@ function initializeMobileBlocker() {
 
   // === JavaScript Logic ===
   function checkScreenSize() {
-    if (window.innerWidth <= 1024) {
+    if (window.innerWidth <= 1366) {
       document.body.classList.add('mobile-blocked');
     } else {
       document.body.classList.remove('mobile-blocked');
