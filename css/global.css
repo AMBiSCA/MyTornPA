@@ -2258,13 +2258,6 @@ input:checked + .slider:before {
     .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
 }
 
-
-@media only screen and (max-width: 991px) {
-    body:not(.page-index) .footer {
-        display: none !important;
-    }
-}
-
 /* =================================== */
 /* === Tablet Header Customization === */
 /* =================================== */
