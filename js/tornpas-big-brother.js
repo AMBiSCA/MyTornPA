@@ -629,6 +629,7 @@ function createOverlays() {
         Object.assign(landscapeBlocker.style, overlayStyles);
         landscapeBlocker.innerHTML = `
             <div>
+			    <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
                 <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
                 <button id="return-home-btn-mobile">Return to Home</button>

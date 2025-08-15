@@ -2346,6 +2346,7 @@ function createOverlays() {
         Object.assign(landscapeBlocker.style, overlayStyles);
         landscapeBlocker.innerHTML = `
             <div>
+                <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
                 <h2>Please Rotate Your Device</h2>
                 <p style="font-size: 0.7em; margin-top: 5px;">For the best viewing experience, please use landscape mode.</p>
                 <button id="return-home-btn-mobile">Return to Home</button>
@@ -2356,6 +2357,20 @@ function createOverlays() {
             Object.assign(mobileReturnBtn.style, buttonStyles);
             mobileReturnBtn.addEventListener('click', () => { window.location.href = 'home.html'; });
         }
+    }
+
+    // --- NEW CODE ADDED TO STYLE THE HEADINGS ---
+    // This checks if the style already exists to avoid adding it multiple times.
+    if (!document.getElementById('blocker-heading-styles')) {
+        const style = document.createElement('style');
+        style.id = 'blocker-heading-styles';
+        style.textContent = `
+            #tablet-portrait-blocker h2,
+            #mobile-landscape-blocker h2 {
+                color: #00a8ff; /* The consistent blue color */
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 function handleOrientation() {
