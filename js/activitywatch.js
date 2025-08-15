@@ -1040,16 +1040,51 @@ function createRequiredOverlays() {
     // Return if overlays have already been created
     if (document.getElementById('unavailable-blocker')) return;
 
+    // Shared styles for the new "Return to Home" button
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
+
     // --- Create the "Feature Unavailable" Blocker ---
     unavailableBlocker = document.createElement('div');
     unavailableBlocker.id = 'unavailable-blocker';
-    unavailableBlocker.innerHTML = `
-        <div>
-            <h2>Feature Unavailable on Mobile</h2>
-            <p>For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
-            <a href="home.html" class="blocker-btn">Go to Homepage</a>
-        </div>
-    `;
+
+    // Create a container for the content
+    const contentWrapper = document.createElement('div');
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'Feature Unavailable on Mobile';
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers.';
+
+    // Create the button element programmatically
+    const homeButton = document.createElement('a');
+    homeButton.href = 'home.html';
+    homeButton.textContent = 'Go to Homepage';
+
+    // *** THIS IS THE KEY STEP ***
+    // Apply the styles from your object to the button element
+    Object.assign(homeButton.style, buttonStyles);
+
+    // Add a hover effect for the button
+    homeButton.addEventListener('mouseover', () => homeButton.style.backgroundColor = '#0056b3');
+    homeButton.addEventListener('mouseout', () => homeButton.style.backgroundColor = '#007bff');
+
+    // Append all the new elements
+    contentWrapper.appendChild(heading);
+    contentWrapper.appendChild(paragraph);
+    contentWrapper.appendChild(homeButton);
+    unavailableBlocker.appendChild(contentWrapper);
     document.body.appendChild(unavailableBlocker);
 
     // --- Create the "Please Rotate" Blocker ---
@@ -1063,14 +1098,14 @@ function createRequiredOverlays() {
     `;
     document.body.appendChild(rotateBlocker);
 
-    // --- Add CSS styles for both blockers ---
+    // --- Add CSS styles for the blockers (Note: .blocker-btn is removed) ---
     const style = document.createElement('style');
     style.textContent = `
         #unavailable-blocker, #rotate-blocker {
-            display: none; /* Hidden by default */
+            display: none;
             flex-direction: column;
-            justify-content: center; /* Vertical Center */
-            align-items: center;     /* Horizontal Center */
+            justify-content: center;
+            align-items: center;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1079,9 +1114,8 @@ function createRequiredOverlays() {
             text-align: center;
             z-index: 99999;
             padding: 20px;
-            box-sizing: border-box; /* Ensures padding doesn't affect dimensions */
+            box-sizing: border-box;
         }
-        /* Target the content inside the blocker for precise centering */
         #unavailable-blocker > div, #rotate-blocker > div {
             max-width: 95%;
         }
@@ -1091,26 +1125,11 @@ function createRequiredOverlays() {
         }
         #unavailable-blocker p, #rotate-blocker p {
             margin-top: 0;
-            margin-bottom: 25px; /* Added more space before button */
+            margin-bottom: 25px;
             font-size: 0.8em;
             max-width: 90%;
-            margin-left: auto; /* Helps ensure centering */
-            margin-right: auto; /* Helps ensure centering */
-        }
-        .blocker-btn {
-        backgroundColor: '#007bff',
-        color: 'black',
-        padding: '8px 15px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        marginTop: '20px',
-        textDecoration: 'none',
-        fontSize: '16px' // A readable font size for the button
-        }
-        .blocker-btn:hover {
-            background-color: #4dc4ff;
+            margin-left: auto;
+            margin-right: auto;
         }
     `;
     document.head.appendChild(style);
