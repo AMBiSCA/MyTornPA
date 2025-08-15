@@ -1,63 +1,24 @@
-// factionoverview.js - Comprehensive JavaScript for the Faction Overview Page
-
-// =====================================================================================================================
-// GLOBAL VARIABLES & FIREBASE INITIALIZATION
-// These variables store data, DOM references, and application state.
-// They are declared at the top of the file for easy identification and management.
-// =====================================================================================================================
-
-// Firebase (initialized in firebase-init.js, made globally available)
-// Ensure 'db' and 'auth' are accessible from 'firebase-init.js' or passed as arguments to relevant functions
-// const db = firebase.firestore(); // Assuming these are initialized globally from firebase-init.js
-// const auth = firebase.auth();    // If not, they'll need to be passed or re-initialized here.
 
 let factionOverviewUserApiKey = null; // Stores the logged-in user's Torn API key for this page
 let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
 let primaryFactionApiKey = null; // Stores the faction's shared primary API key
 let lastFetchTimestamps = {}; // NEW: Caches the last successful timestamp for each news category
-
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
 let factionApiFullData = null; 
 let factionBalancesData = null;
 let currentActiveSubTab = 'armory-withdrawals'; // Tracks which sub-tab is currently active (default to Armory Withdrawals)
-
-// Data storage for raw API responses (recent 100 items for each category)
-// These will be arrays of objects
 let armoryWithdrawalsData = [];
 let armoryDepositsData = [];
 let fundDepositsData = [];
 let fundWithdrawalsData = [];
 let crimeData = [];
-
-// Data storage for aggregated historical data (for Logistics and Oversight)
-// This will require persistent storage (e.g., Firebase Firestore collections)
-// For now, we'll conceptualize these, but the actual data fetching/processing will build them up.
 let historicalArmoryLogs = []; // Stores all historical armory actions (withdrawals/deposits)
 let historicalFundLogs = []; // Stores all historical fund movements (deposits/withdrawals)
-
-// Chart.js instances (if applicable for Logistics/Oversight)
 let logisticsUsageChartInstance = null;
 let oversightActivityChartInstance = null;
 let oversightFundTrendChartInstance = null;
-
-// Timers for automatic data refresh
 let factionOverviewRefreshInterval = null; // Main interval for API fetches
-
-// Access control related variables
 let designatedBankers = []; // Stores an array of Torn Player IDs for designated bankers
-
-
-// =====================================================================================================================
-// DOM ELEMENT GETTERS
-// Selectors for elements in factionoverview.html (or elements that JS will dynamically create)
-// =====================================================================================================================
-
-// Main content container (defined in factionoverview.html)
-// This will be assigned in DOMContentLoaded once the element is available
-// const factionOverviewPageContentContainer = document.getElementById('factionOverviewPageContentContainer');
-
-
-// These will be dynamically created by JavaScript:
 let factionOverviewSubTabsContainer = null;
 let factionOverviewSearchInput = null;
 let factionOverviewSearchButton = null;
@@ -68,11 +29,6 @@ let factionOverviewCurrentDataTable = null; // Reference to the active table bei
 let factionOverviewCogSettingsButton = null; // The gear icon for banker settings
 
 
-
-/**
- * Renders the main layout of the Faction Overview page, including sub-tabs and controls.
- * This function is called when the 'Faction Financials' tab (page) is loaded.
- */
 function renderFactionOverviewPageLayout() {
     // Ensure we have a container to inject into
     factionOverviewPageContentContainer = document.getElementById('factionOverviewPageContentContainer');
@@ -2434,7 +2390,7 @@ checkAndEnforceLandscape();
         });
     }
 	
-	// Orientation handler code (unchanged)...
+// Orientation handler code (unchanged)...
 // --- START: Complete and Unified Orientation Handler ---
 let portraitBlocker = null;
 let landscapeBlocker = null;
@@ -2527,6 +2483,3 @@ document.addEventListener('DOMContentLoaded', handleOrientation);
 window.addEventListener('resize', handleOrientation);
 window.addEventListener('orientationchange', handleOrientation);
 // --- END: Complete and Unified Orientation Handler ---
-
-
-
