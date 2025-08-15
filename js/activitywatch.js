@@ -1021,110 +1021,111 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initializeMobileBlocker() {
-        // === HTML Creation ===
-        const blockerDiv = document.createElement('div');
-        blockerDiv.id = 'mobile-blocker';
+        // === HTML Creation ===
+        const blockerDiv = document.createElement('div');
+        blockerDiv.id = 'mobile-blocker';
 
-        const heading = document.createElement('h2');
-        heading.textContent = 'Feature Unavailable on Mobile';
+        const heading = document.createElement('h2');
+        heading.textContent = 'Feature Unavailable on Mobile';
 
-        const paragraph = document.createElement('p');
-        paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
+        const paragraph = document.createElement('p');
+        paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers. Please switch to a larger device.';
 
-        const homeButton = document.createElement('a');
-        homeButton.href = 'home.html';
-        homeButton.textContent = 'Go to Homepage';
-        homeButton.classList.add('mobile-blocker-btn');
+        const homeButton = document.createElement('a');
+        homeButton.href = 'home.html';
+        homeButton.textContent = 'Go to Homepage';
+        homeButton.classList.add('mobile-blocker-btn');
 
-        blockerDiv.appendChild(heading);
-        blockerDiv.appendChild(paragraph);
-        blockerDiv.appendChild(homeButton);
-        document.body.appendChild(blockerDiv);
+        blockerDiv.appendChild(heading);
+        blockerDiv.appendChild(paragraph);
+        blockerDiv.appendChild(homeButton);
+        document.body.appendChild(blockerDiv);
 
-        // === CSS Styling Injection ===
-        const style = document.createElement('style');
-        style.textContent = `
-          /* By default, the mobile blocker is hidden */
-          #mobile-blocker {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #222;
-            color: #eee;
-            text-align: center;
-            padding: 20px;
-            z-index: 9999;
-          }
+        // === CSS Styling Injection ===
+        const style = document.createElement('style');
+        style.textContent = `
+          /* By default, the mobile blocker is hidden */
+          #mobile-blocker {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+            color: #eee;
+            text-align: center;
+            padding: 20px;
+            z-index: 9999;
+          }
 
-          /* Updated styles for the blocker's content to center it and add a better look */
-          #mobile-blocker h2 {
-              color: #00a8ff;
-              font-size: 1.5rem;
-              margin-bottom: 10px;
-              text-align: center;
-          }
+          /* Updated styles for the blocker's content to center it and add a better look */
+          #mobile-blocker h2 {
+              color: #00a8ff;
+              font-size: 1.5rem;
+              margin-bottom: 10px;
+              text-align: center;
+          }
 
-          #mobile-blocker p {
-              font-size: 1rem;
-              line-height: 1.6;
-              word-wrap: break-word;
-              min-width: 0;
-              white-space: normal;
-              max-width: 90%;
-              margin: 0 0 20px 0;
-              text-align: center;
-          }
+          #mobile-blocker p {
+              font-size: 1rem;
+              line-height: 1.6;
+              word-wrap: break-word;
+              min-width: 0;
+              white-space: normal;
+              max-width: 90%;
+              margin: 0 0 20px 0;
+              text-align: center;
+          }
 
-          /* Styles for the new button */
-          .mobile-blocker-btn {
-              display: inline-block;
-              margin-top: 25px;
-              padding: 12px 25px;
-              background-color: #00a8ff;
-              color: #1a1a1a;
-              font-weight: bold;
-              text-decoration: none;
-              border-radius: 5px;
-              transition: background-color 0.2s ease;
-          }
-          .mobile-blocker-btn:hover {
-              background-color: #4dc4ff;
-          }
+          /* Styles for the new button */
+          .mobile-blocker-btn {
+              display: inline-block;
+              margin-top: 25px;
+              padding: 12px 25px;
+              background-color: #00a8ff;
+              color: #1a1a1a;
+              font-weight: bold;
+              text-decoration: none;
+              border-radius: 5px;
+              transition: background-color 0.2s ease;
+          }
+          .mobile-blocker-btn:hover {
+              background-color: #4dc4ff;
+          }
 
-          /* When the 'mobile-blocked' class is present on the body, hide the main content */
-          body.mobile-blocked #global-header-placeholder,
-          body.mobile-blocked .main-content-wrapper,
-          body.mobile-blocked #globalfooterplaceholder {
-            display: none;
-          }
+          /* When the 'mobile-blocked' class is present on the body, hide the main content */
+          body.mobile-blocked #global-header-placeholder,
+          body.mobile-blocked .main-content-wrapper,
+          body.mobile-blocked #globalfooterplaceholder {
+            display: none;
+          }
 
-          /* When the 'mobile-blocked' class is present, show the blocker */
-          body.mobile-blocked #mobile-blocker {
-            display: flex;
-          }
-        `;
-        document.head.appendChild(style);
+          /* When the 'mobile-blocked' class is present, show the blocker */
+          body.mobile-blocked #mobile-blocker {
+            display: flex;
+          }
+        `;
+        document.head.appendChild(style);
 
-        // === JavaScript Logic ===
-        function checkScreenSize() {
-            if (window.innerWidth <= 1024) {
-                document.body.classList.add('mobile-blocked');
-            } else {
-                document.body.classList.remove('mobile-blocked');
-            }
-        }
+        // === JavaScript Logic ===
+        function checkScreenSize() {
+            // UPDATED LOGIC: Block if width is <= 1024 AND it's in portrait mode.
+            if (window.innerWidth <= 1024 && window.innerHeight > window.innerWidth) {
+                document.body.classList.add('mobile-blocked');
+            } else {
+                document.body.classList.remove('mobile-blocked');
+            }
+        }
 
-        // Run the function on page load and window resize
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-    }
+        // Run the function on page load and window resize
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+    }
 
     // Call the function to run everything
     initializeMobileBlocker();
