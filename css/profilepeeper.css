@@ -330,9 +330,7 @@ label[for="userId"] { /* Updated for new input ID */
 		margin-top: 115px;
 	}
 	
-	.action-buttons-container {
-        margin-top: 25px;
-    }
+	
 	
     .modal-content {
         width: 95% !important;
@@ -363,6 +361,7 @@ label[for="userId"] { /* Updated for new input ID */
     .action-buttons-container .action-btn {
         min-width: unset;
         width: 100%;
+		margin-bottom; 20px 
     }
     .modal-content {
         padding: 10px !important;
