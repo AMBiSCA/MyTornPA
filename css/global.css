@@ -2524,3 +2524,12 @@ body.eye-soothing-mode .tool-category-header {
 body.eye-soothing-mode #tornTimeContainer {
     color: var(--soothing-accent);
 }
+
+/* Hides extra footer links on all internal pages, on ANY screen size */
+body.page-internal #homeButtonFooter,
+body.page-internal #faqFooterLink,
+body.page-internal #reportFooterLink,
+body.page-internal #wikiFooterLink,
+body.page-internal #tornCityFooterLink {
+    display: none;
+}
