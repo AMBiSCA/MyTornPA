@@ -1212,7 +1212,19 @@ function manageDeviceOverlay() {
     }
 }
 
-// --- Event Listeners to run the logic ---
-document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
-window.addEventListener('resize', manageDeviceOverlay);
-window.addEventListener('orientationchange', manageDeviceOverlay);
+// --- Event Listeners to run the DEBUG logic ---
+
+let debugTimer;
+
+/**
+ * A debounced version of the debug display.
+ */
+function debouncedDebug() {
+    clearTimeout(debugTimer);
+    debugTimer = setTimeout(debugDeviceState, 150); // A slightly longer delay for stability
+}
+
+// Run the debug logic when the page first loads and on any resize/rotation
+document.addEventListener('DOMContentLoaded', debugDeviceState);
+window.addEventListener('resize', debouncedDebug);
+window.addEventListener('orientationchange', debouncedDebug);
