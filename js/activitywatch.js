@@ -1138,50 +1138,6 @@ function createRequiredOverlays() {
 /**
  * The main logic to decide which blocker to show, if any.
  */
-/**
- * A temporary function to display debug info on the screen.
- */
-function debugDeviceState() {
-    // Create a debug overlay if it doesn't exist
-    let debugOverlay = document.getElementById('debug-overlay');
-    if (!debugOverlay) {
-        debugOverlay = document.createElement('div');
-        debugOverlay.id = 'debug-overlay';
-        Object.assign(debugOverlay.style, {
-            position: 'fixed',
-            bottom: '10px',
-            left: '10px',
-            backgroundColor: 'rgba(0,0,0,0.85)',
-            color: 'white',
-            padding: '15px',
-            borderRadius: '8px',
-            zIndex: '100000',
-            fontFamily: 'monospace',
-            fontSize: '16px',
-            lineHeight: '1.5',
-            border: '2px solid white',
-            pointerEvents: 'none' // So it doesn't block clicks
-        });
-        document.body.appendChild(debugOverlay);
-    }
-
-    // Get the values
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const isPortrait = h > w;
-    const shortestSide = isPortrait ? w : h;
-    const isSmall = shortestSide < 768;
-
-    // Display the values in the overlay
-    debugOverlay.innerHTML = `
-        --- DEBUG INFO ---<br>
-        Width: <strong>${w}px</strong><br>
-        Height: <strong>${h}px</strong><br>
-        Shortest Side: <strong>${shortestSide}px</strong><br>
-        Breakpoint: &lt; 768px<br>
-        Is Small Device? <strong style="color: ${isSmall ? '#ff5555' : '#55ff55'};">${isSmall}</strong>
-    `;
-}
 
 function manageDeviceOverlay() {
     // Make sure the overlay elements exist
@@ -1191,40 +1147,44 @@ function manageDeviceOverlay() {
     unavailableBlocker.style.display = 'none';
     rotateBlocker.style.display = 'none';
 
-    // --- Define Device Sizes (based on the shortest side of the viewport) ---
-    // This is more reliable than window.screen as it uses the viewport's CSS pixels.
-    const isPortrait = window.innerHeight > window.innerWidth;
-    const shortestSide = isPortrait ? window.innerWidth : window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-    const isPhoneOrSmallTablet = shortestSide < 768; // Covers phones and small tablets
-    const isBigTablet = shortestSide >= 768;      // Covers larger tablets and desktops
+    // --- FINAL LOGIC ---
+    // A device is considered "tablet-class" if its longest dimension is over a certain threshold.
+    // 1000px is a safe value to distinguish large tablets from even the biggest phones ("phablets").
+    const longestSide = Math.max(viewportWidth, viewportHeight);
+    const isTabletClassDevice = longestSide >= 1000;
 
-    // --- Apply the Logic ---
-    if (isPhoneOrSmallTablet) {
-        // For devices/windows with a viewport shorter side < 768px, ALWAYS show the "unavailable" message.
-        unavailableBlocker.style.display = 'flex';
-    } else if (isBigTablet) {
-        // For big tablets/screens, ONLY show the "rotate" message if they are in portrait mode.
+    const isPortrait = viewportHeight > viewportWidth;
+
+    if (isTabletClassDevice) {
+        // It's a big tablet or desktop. Only show the blocker when in portrait mode.
         if (isPortrait) {
             rotateBlocker.style.display = 'flex';
         }
-        // If they are in landscape, nothing is shown and the page is usable.
+        // In landscape, the page is usable.
+    } else {
+        // It's a phone or a small, unsupported tablet. Always show the "unavailable" blocker.
+        unavailableBlocker.style.display = 'flex';
     }
 }
 
-// --- Event Listeners to run the DEBUG logic ---
-
-let debugTimer;
+let resizeTimer;
 
 /**
- * A debounced version of the debug display.
+ * A debounced version of the overlay logic that waits for the resize/rotation to finish.
  */
-function debouncedDebug() {
-    clearTimeout(debugTimer);
-    debugTimer = setTimeout(debugDeviceState, 150); // A slightly longer delay for stability
+function debouncedManageOverlay() {
+    // Clear the old timer to reset the delay
+    clearTimeout(resizeTimer);
+    // Set a new timer to run the function after 100ms
+    resizeTimer = setTimeout(manageDeviceOverlay, 100);
 }
 
-// Run the debug logic when the page first loads and on any resize/rotation
-document.addEventListener('DOMContentLoaded', debugDeviceState);
-window.addEventListener('resize', debouncedDebug);
-window.addEventListener('orientationchange', debouncedDebug);
+// Run the logic immediately when the page first loads
+document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
+
+// Run the debounced version on resize and orientation change
+window.addEventListener('resize', debouncedManageOverlay);
+window.addEventListener('orientationchange', debouncedManageOverlay);
