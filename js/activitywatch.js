@@ -1136,35 +1136,35 @@ function createRequiredOverlays() {
     document.head.appendChild(style);
 }
 /**
- * The main logic to decide which blocker to show, if any.
- */
+ * The main logic to decide which blocker to show, if any.
+ */
 function manageDeviceOverlay() {
-    // Make sure the overlay elements exist
-    createRequiredOverlays();
+    // Make sure the overlay elements exist
+    createRequiredOverlays();
 
-    // Hide both blockers to reset the state
-    unavailableBlocker.style.display = 'none';
-    rotateBlocker.style.display = 'none';
+    // Hide both blockers to reset the state
+    unavailableBlocker.style.display = 'none';
+    rotateBlocker.style.display = 'none';
 
-    // --- Define Device Sizes (based on the shortest side of the screen) ---
-    const shortestSide = Math.min(window.screen.width, window.screen.height);
-    const isPhoneOrSmallTablet = shortestSide < 768; // Covers phones and small tablets like iPad Mini
-    const isBigTablet = shortestSide >= 768;      // Covers larger tablets like iPad Air/Pro
+    // --- Define Device Sizes (based on the shortest side of the viewport) ---
+    // This is more reliable than window.screen as it uses the viewport's CSS pixels.
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const shortestSide = isPortrait ? window.innerWidth : window.innerHeight;
 
-    // Get current orientation
-    const isPortrait = window.innerHeight > window.innerWidth;
+    const isPhoneOrSmallTablet = shortestSide < 768; // Covers phones and small tablets
+    const isBigTablet = shortestSide >= 768;      // Covers larger tablets and desktops
 
-    // --- Apply the Logic ---
-    if (isPhoneOrSmallTablet) {
-        // For phones and small tablets, ALWAYS show the "unavailable" message
-        unavailableBlocker.style.display = 'flex';
-    } else if (isBigTablet) {
-        // For big tablets, ONLY show the "rotate" message if they are in portrait mode
-        if (isPortrait) {
-            rotateBlocker.style.display = 'flex';
-        }
-        // If they are in landscape, nothing is shown and the page is usable.
-    }
+    // --- Apply the Logic ---
+    if (isPhoneOrSmallTablet) {
+        // For devices/windows with a viewport shorter side < 768px, ALWAYS show the "unavailable" message.
+        unavailableBlocker.style.display = 'flex';
+    } else if (isBigTablet) {
+        // For big tablets/screens, ONLY show the "rotate" message if they are in portrait mode.
+        if (isPortrait) {
+            rotateBlocker.style.display = 'flex';
+        }
+        // If they are in landscape, nothing is shown and the page is usable.
+    }
 }
 
 // --- Event Listeners to run the logic ---
