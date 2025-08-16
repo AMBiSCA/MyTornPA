@@ -2437,12 +2437,12 @@ input:checked + .slider:before {
     }
 	
 	
-@media (max-width: 1024px) and (orientation: landscape) {
+/* Hide footer on touchscreen devices (phones/tablets) in landscape mode */
+@media (pointer: coarse) and (orientation: landscape) {
   footer.footer {
     display: none;
   }
 }
-
 /* ================================================== */
 /* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V3) == */
 /* ================================================== */
