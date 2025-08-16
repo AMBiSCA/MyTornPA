@@ -1149,7 +1149,7 @@ function manageDeviceOverlay() {
     // --- Define Device Sizes (based on the shortest side of the screen) ---
     const shortestSide = Math.min(window.screen.width, window.screen.height);
     const isPhoneOrSmallTablet = shortestSide < 768; // Covers phones and small tablets like iPad Mini
-    const isBigTablet = shortestSide >= 825;      // Covers larger tablets like iPad Air/Pro
+    const isBigTablet = shortestSide >= 768;      // Covers larger tablets like iPad Air/Pro
 
     // Get current orientation
     const isPortrait = window.innerHeight > window.innerWidth;
@@ -1171,5 +1171,3 @@ function manageDeviceOverlay() {
 document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
 window.addEventListener('resize', manageDeviceOverlay);
 window.addEventListener('orientationchange', manageDeviceOverlay);
-
-// --- END: New Unified Device Blocker --- it still dont work can you please look at my full code i have sent and see what the problem is please
