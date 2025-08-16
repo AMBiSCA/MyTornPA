@@ -1168,6 +1168,23 @@ function manageDeviceOverlay() {
 }
 
 // --- Event Listeners to run the logic ---
+// --- Event Listeners to run the logic ---
+
+let resizeTimer;
+
+/**
+ * A debounced version of the overlay logic that waits for the resize/rotation to finish.
+ */
+function debouncedManageOverlay() {
+    // Clear the old timer to reset the delay
+    clearTimeout(resizeTimer);
+    // Set a new timer to run the function after 100ms
+    resizeTimer = setTimeout(manageDeviceOverlay, 100);
+}
+
+// Run the logic immediately when the page first loads
 document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
-window.addEventListener('resize', manageDeviceOverlay);
-window.addEventListener('orientationchange', manageDeviceOverlay);
+
+// Run the debounced version on resize and orientation change
+window.addEventListener('resize', debouncedManageOverlay);
+window.addEventListener('orientationchange', debouncedManageOverlay);
