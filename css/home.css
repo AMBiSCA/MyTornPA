@@ -880,12 +880,19 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 /* =========== RESPONSIVE STYLES =========== */
 @media (max-width: 960px) {
-    .stats-tools-flex-container {
-        align-items: center;
-        flex-direction: column;
-        gap: 15px;
-	    align-self: auto;
-    }
+    /* This is the new rule for the Tab A (desktop layout, but stacked) */
+.layout-desktop .stats-tools-flex-container {
+    flex-direction: column;
+    align-items: flex-start; /* Aligns content to the LEFT */
+    gap: 15px;
+}
+
+/* This is the new rule for the Tab S8 and phones (mobile layout) */
+.layout-mobile-tabs .stats-tools-flex-container {
+    flex-direction: column;
+    align-items: center; /* Aligns content to the CENTER */
+    gap: 15px;
+}
     .stats-column,
     .tools-column {
         flex-basis: auto;
@@ -1099,15 +1106,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .landscape-active #chat-system-placeholder {
     display: none !important;
 }
-@media (orientation: landscape) and (max-width: 1024px) {
-    /* The JavaScript handles showing a blocker, so this aggressive CSS rule is not necessary */
-    /*
-    header, .homepage-content-wrapper, footer {
-        display: none !important;
-    }
-    */
-}
-
 
 @media (min-width: 801px) and (max-width: 960px) {
   .stats-column {
