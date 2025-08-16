@@ -1138,6 +1138,51 @@ function createRequiredOverlays() {
 /**
  * The main logic to decide which blocker to show, if any.
  */
+/**
+ * A temporary function to display debug info on the screen.
+ */
+function debugDeviceState() {
+    // Create a debug overlay if it doesn't exist
+    let debugOverlay = document.getElementById('debug-overlay');
+    if (!debugOverlay) {
+        debugOverlay = document.createElement('div');
+        debugOverlay.id = 'debug-overlay';
+        Object.assign(debugOverlay.style, {
+            position: 'fixed',
+            bottom: '10px',
+            left: '10px',
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            color: 'white',
+            padding: '15px',
+            borderRadius: '8px',
+            zIndex: '100000',
+            fontFamily: 'monospace',
+            fontSize: '16px',
+            lineHeight: '1.5',
+            border: '2px solid white',
+            pointerEvents: 'none' // So it doesn't block clicks
+        });
+        document.body.appendChild(debugOverlay);
+    }
+
+    // Get the values
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const isPortrait = h > w;
+    const shortestSide = isPortrait ? w : h;
+    const isSmall = shortestSide < 768;
+
+    // Display the values in the overlay
+    debugOverlay.innerHTML = `
+        --- DEBUG INFO ---<br>
+        Width: <strong>${w}px</strong><br>
+        Height: <strong>${h}px</strong><br>
+        Shortest Side: <strong>${shortestSide}px</strong><br>
+        Breakpoint: &lt; 768px<br>
+        Is Small Device? <strong style="color: ${isSmall ? '#ff5555' : '#55ff55'};">${isSmall}</strong>
+    `;
+}
+
 function manageDeviceOverlay() {
     // Make sure the overlay elements exist
     createRequiredOverlays();
@@ -1168,23 +1213,6 @@ function manageDeviceOverlay() {
 }
 
 // --- Event Listeners to run the logic ---
-// --- Event Listeners to run the logic ---
-
-let resizeTimer;
-
-/**
- * A debounced version of the overlay logic that waits for the resize/rotation to finish.
- */
-function debouncedManageOverlay() {
-    // Clear the old timer to reset the delay
-    clearTimeout(resizeTimer);
-    // Set a new timer to run the function after 100ms
-    resizeTimer = setTimeout(manageDeviceOverlay, 100);
-}
-
-// Run the logic immediately when the page first loads
 document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
-
-// Run the debounced version on resize and orientation change
-window.addEventListener('resize', debouncedManageOverlay);
-window.addEventListener('orientationchange', debouncedManageOverlay);
+window.addEventListener('resize', manageDeviceOverlay);
+window.addEventListener('orientationchange', manageDeviceOverlay);
