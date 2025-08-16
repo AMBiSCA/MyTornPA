@@ -880,17 +880,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 /* =========== RESPONSIVE STYLES =========== */
 @media (max-width: 960px) {
-    /* This is the new rule for the Tab A (desktop layout, but stacked) */
-.layout-desktop .stats-tools-flex-container {
+    .stats-tools-flex-container {
     flex-direction: column;
-    align-items: flex-start; /* Aligns content to the LEFT */
-    gap: 15px;
-}
-
-/* This is the new rule for the Tab S8 and phones (mobile layout) */
-.layout-mobile-tabs .stats-tools-flex-container {
-    flex-direction: column;
-    align-items: center; /* Aligns content to the CENTER */
+    align-items: center; /* This will center the content */
     gap: 15px;
 }
     .stats-column,
