@@ -158,12 +158,23 @@ function setupMobileTabs() {
 // --- End New: Dynamic Mobile Tab Logic with Favorite Feature ---
 
     // MOVED THE FUNCTION CALL HERE
-const mediaQueryMobile = window.matchMedia('(max-width: 768px)');
-    
-    // Call this function immediately if the screen is mobile-sized
-    if (mediaQueryMobile.matches) {
+// This checks the screen size to decide if the mobile tab layout should be activated.
+const mediaQueryMobile = window.matchMedia('(max-width: 720px)');
+    
+// A function to handle the setup based on the media query.
+function handleMobileLayout(e) {
+    if (e.matches) {
+        // If the screen is 720px or less, set up the mobile tabs.
         setupMobileTabs();
     }
+    // Note: We don't need an 'else' here, as the CSS handles showing/hiding elements on larger screens.
+}
+
+// Run the check once on page load.
+handleMobileLayout(mediaQueryMobile);
+
+// And add a listener to respond to future screen size changes (e.g., rotating the device).
+mediaQueryMobile.addEventListener('change', handleMobileLayout);
     // --- End New: Dynamic Mobile Tab Logic ---
 
 
