@@ -900,19 +900,17 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 @media (max-width: 780px) {
     /* This rule hides the inactive content section when tabbing */
+	
+	.stats-column {
+        align-self: center;
+    }
+	
     .mobile-hidden {
         display: none !important;
     }
     .welcome-block-area {
         display: none !important;
     }
-
-    footer {
-        display: none !important;
-    }
-
-    /* ... all other mobile styles remain the same inside this block ... */
-}
 
     /* Container for the tab buttons */
     #mobile-tab-buttons-container {
@@ -1019,6 +1017,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     .membership-options-grid {
         grid-template-columns: 1fr;
     }
+	
+	footer {
+        display: none !important;
+    }
+	
 }
 @media (max-width: 480px) {
     .dashboard-grid {
