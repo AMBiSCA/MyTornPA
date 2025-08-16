@@ -1129,17 +1129,14 @@ header {
         margin-bottom: 12px;
     }
     .btn-uniform {
-        height: auto; 
+        height: 38px;
         font-size: 13px;
         padding: 0 10px;
-		white-space: normal;
-		flex-wrap: wrap;
     }
     .btn-uniform .btn-icon.email-icon {
         width: 18px;
         height: 18px;
-        margin-right: 0px;
-		margin-bottom: 5px;
+        margin-right: 6px;
     }
     .gsi-material-button#googleSignInButtonLogin {
         height: 38px;

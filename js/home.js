@@ -159,7 +159,7 @@ function setupMobileTabs() {
 
     // MOVED THE FUNCTION CALL HERE
 // This checks the screen size to decide if the mobile tab layout should be activated.
-const mediaQueryMobile = window.matchMedia('(max-width: 720px)');
+const mediaQueryMobile = window.matchMedia('(max-width: 780px)');
     
 // A function to handle the setup based on the media query.
 function handleMobileLayout(e) {
