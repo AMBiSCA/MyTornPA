@@ -885,6 +885,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     align-items: center; /* This will center the content */
     gap: 15px;
 }
+.stats-column {
+        align-self: auto;
+    }
 
     .stats-column,
     .tools-column {
