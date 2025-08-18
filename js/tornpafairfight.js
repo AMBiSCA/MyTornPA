@@ -32,52 +32,18 @@ async function getTornApiKey(user) {
 
 // Fair Fight logic rewritten from the FF Scouter V2 script
 const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
-const ONE_HOUR = 60 * 60 * 1000;
+const ONE_HOUR = 60 * 60 * 1000; // This constant is no longer used but can be kept for future reference
 
-function getFairFightFromCache(playerId) {
-    const cachedData = localStorage.getItem(`tornpda-ff-${playerId}`);
-    if (!cachedData) return null;
+// REMOVED getFairFightFromCache function
+// REMOVED saveFairFightToCache function
 
-    try {
-        const parsed = JSON.parse(cachedData);
-        if (parsed && parsed.expiry && parsed.expiry > Date.now()) {
-            return parsed;
-        } else {
-            localStorage.removeItem(`tornpda-ff-${playerId}`);
-            return null;
-        }
-    } catch {
-        localStorage.removeItem(`tornpda-ff-${playerId}`);
-        return null;
-    }
-}
-
-function saveFairFightToCache(playerId, data) {
-    const expiry = Date.now() + ONE_HOUR;
-    let cacheObj;
-    if (data.fair_fight === null) {
-        cacheObj = { no_data: true, expiry: expiry };
-    } else {
-        cacheObj = {
-            value: data.fair_fight,
-            last_updated: data.last_updated,
-            expiry: expiry,
-            bs_estimate: data.bs_estimate,
-            bs_estimate_human: data.bs_estimate_human
-        };
-    }
-    localStorage.setItem(`tornpda-ff-${playerId}`, JSON.stringify(cacheObj));
-}
-
+// MODIFIED: This function no longer uses caching.
 async function fetchFairFightData(playerIds, apiKey) {
-    const cachedResults = playerIds.map(id => ({ id: id, data: getFairFightFromCache(id) }));
-    const uncachedIds = cachedResults.filter(r => !r.data).map(r => r.id);
-
-    if (uncachedIds.length === 0) {
-        return cachedResults.map(r => r.data);
+    if (playerIds.length === 0) {
+        return [];
     }
 
-    const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${uncachedIds.join(",")}`;
+    const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${playerIds.join(",")}`;
 
     try {
         const response = await fetch(url);
@@ -90,24 +56,33 @@ async function fetchFairFightData(playerIds, apiKey) {
             throw new Error(`FF Scouter API error: ${apiResponse.error}`);
         }
 
+        // The API might not return results in the same order or might miss some.
+        // We need to map the results back to the original playerIds array.
+        const resultsMap = new Map();
         apiResponse.forEach(result => {
             if (result.player_id) {
-                saveFairFightToCache(result.player_id, result);
+                // Format the result to match the structure the display functions expect.
+                const formattedResult = {
+                    value: result.fair_fight,
+                    last_updated: result.last_updated,
+                    bs_estimate: result.bs_estimate,
+                    bs_estimate_human: result.bs_estimate_human,
+                    no_data: result.fair_fight === null
+                };
+                resultsMap.set(result.player_id.toString(), formattedResult);
             }
         });
 
-        // Combine new and old data
-        return playerIds.map(id => getFairFightFromCache(id));
+        // Map the results back to the original player order, providing a default for any missing players.
+        return playerIds.map(id => resultsMap.get(id.toString()) || { no_data: true });
 
     } catch (error) {
         console.error("Error fetching Fair Fight data:", error);
-        return playerIds.map(id => {
-            const cached = getFairFightFromCache(id);
-            if (cached) return cached;
-            return { error: true, message: `Could not fetch FF data: ${error.message}` };
-        });
+        // If the fetch fails completely, return an array of error objects.
+        return playerIds.map(id => ({ error: true, message: `Could not fetch FF data: ${error.message}` }));
     }
 }
+
 
 // Fair Fight styling logic
 function getFairFightColor(value) {
@@ -135,7 +110,7 @@ function getContrastColor(hex) {
 }
 
 function getFFDisplayValue(ffResponse) {
-    if (!ffResponse || ffResponse.no_data) return "N/A";
+    if (!ffResponse || ffResponse.no_data || ffResponse.value === null) return "N/A";
     const ff = ffResponse.value.toFixed(2);
     const now = Date.now() / 1000;
     const age = now - ffResponse.last_updated;
@@ -144,7 +119,7 @@ function getFFDisplayValue(ffResponse) {
 }
 
 function getFFDisplayColor(ffResponse) {
-    if (!ffResponse || ffResponse.no_data) return { background: '#444', text: 'white' };
+    if (!ffResponse || ffResponse.no_data || ffResponse.value === null) return { background: '#444', text: 'white' };
     const bgColor = getFairFightColor(ffResponse.value);
     const textColor = getContrastColor(bgColor);
     return { background: bgColor, text: textColor };
