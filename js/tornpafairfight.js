@@ -3,7 +3,7 @@ function isFirebaseInitialized() {
     return typeof firebase !== 'undefined' && firebase.app;
 }
 
-// Function to fetch the user's Torn API key, faction role, and FF Scouter key from Firebase
+// Function to fetch the user's Torn API key and faction role from Firebase
 async function getUserProfileData(user) {
     if (!user || !isFirebaseInitialized()) {
         showMainError('Authentication error: Not signed in or Firebase not ready.');
@@ -15,22 +15,14 @@ async function getUserProfileData(user) {
         if (userDoc.exists) {
             const userData = userDoc.data();
             const tornApiKey = userData.tornApiKey;
-            const ffScouterApiKey = userData.ffScouterApiKey; 
             
             if (!tornApiKey) {
                 showMainError('Your Torn API Key is not set in your profile. Please update your profile settings.');
                 return null;
             }
 
-            // We now require the FF Scouter key only for the leader's baseline score.
-            if (!ffScouterApiKey) {
-                showMainError('Your FF Scouter API Key is not set in your profile. Please add it to see Fair Fight data.');
-                return null;
-            }
-
             return {
                 tornApiKey: tornApiKey,
-                ffScouterApiKey: ffScouterApiKey, 
                 factionRole: userData.factionRole || null,
                 discordWebhookUrl: userData.discordWebhookUrl || null
             };
@@ -83,6 +75,7 @@ function saveFairFightToCache(playerId, data) {
     localStorage.setItem(`tornpda-ff-${playerId}`, JSON.stringify(cacheObj));
 }
 
+// NEW: This function now takes the Torn API key
 async function fetchFairFightData(playerIds, apiKey) {
     const cachedResults = playerIds.map(id => ({ id: id, data: getFairFightFromCache(id) }));
     const uncachedIds = cachedResults.filter(r => !r.data).map(r => r.id);
@@ -110,7 +103,6 @@ async function fetchFairFightData(playerIds, apiKey) {
             }
         });
 
-        // Combine new and old data
         return playerIds.map(id => getFairFightFromCache(id));
 
     } catch (error) {
@@ -227,9 +219,8 @@ function calculateRelativeFairFight(leaderFairFight, leaderStats, targetStats) {
     const leaderTotalStats = leaderStats.strength + leaderStats.defense + leaderStats.speed + leaderStats.dexterity;
     const targetTotalStats = targetStats.strength + targetStats.defense + targetStats.speed + targetStats.dexterity;
 
-    if (leaderTotalStats === 0) return 1; // Avoid division by zero
+    if (leaderTotalStats === 0 || targetTotalStats === 0) return 1;
     
-    // Simple proportional calculation based on total stats ratio
     const ratio = targetTotalStats / leaderTotalStats;
     let newFairFight = leaderFairFight * ratio;
     
@@ -274,15 +265,14 @@ async function generateFairFightReport() {
         return;
     }
     const tornApiKey = userProfileData.tornApiKey;
-    const ffScouterApiKey = userProfileData.ffScouterApiKey;
 
     try {
         // Step 1: Get the current user's (leader's) Fair Fight score and stats
-        const leaderFairFightData = await fetchFairFightData([currentUser.uid], ffScouterApiKey);
+        const leaderFairFightData = await fetchFairFightData([currentUser.uid], tornApiKey);
         const leaderFairFight = leaderFairFightData[0]?.value;
 
         if (leaderFairFight === undefined || leaderFairFight === null) {
-            showMainError('Could not fetch your own Fair Fight score. Please ensure your FF Scouter API key is correct.');
+            showMainError('Could not fetch your own Fair Fight score. Please ensure your Torn API key is correct and publicly available on ffscouter.com.');
             hideLoadingSpinner();
             return;
         }
