@@ -342,7 +342,7 @@ async function generateFairFightReport() {
                     finalScore = 1.0;
                 } else {
                     // Rule for hard targets: stretch the score to make it more dramatic
-                    const difficultyMultiplier = 10;
+                    const difficultyMultiplier = 4; // Lowered from 10 to 4 for a more balanced score.
                     finalScore = 1 + (baseScore - 1) * difficultyMultiplier;
                 }
 
