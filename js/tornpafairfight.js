@@ -333,10 +333,20 @@ async function generateFairFightReport() {
                 if (targetData.error || targetData.no_data || !targetData.bs_estimate) {
                     return targetData;
                 }
-                // The CORRECTED formula: log(Target) / log(Me)
-                // Low score = easy (blue), High score = hard (red)
-                const newFFValue = Math.log(targetData.bs_estimate) / Math.log(visitorTotalStats);
-                return { ...targetData, value: newFFValue };
+                
+                const baseScore = Math.log(targetData.bs_estimate) / Math.log(visitorTotalStats);
+                let finalScore;
+
+                if (baseScore <= 1) {
+                    // Rule for easy/equal targets: clamp the score at 1.00
+                    finalScore = 1.0;
+                } else {
+                    // Rule for hard targets: stretch the score to make it more dramatic
+                    const difficultyMultiplier = 10;
+                    finalScore = 1 + (baseScore - 1) * difficultyMultiplier;
+                }
+
+                return { ...targetData, value: finalScore };
             });
         }
 
