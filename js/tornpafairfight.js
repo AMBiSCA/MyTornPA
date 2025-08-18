@@ -3,29 +3,34 @@ function isFirebaseInitialized() {
     return typeof firebase !== 'undefined' && firebase.app;
 }
 
-// Function to fetch the user's Torn API key from Firebase
-async function getTornApiKey(user) {
-    if (!user || !isFirebaseInitialized()) {
-        showMainError('Authentication error: Not signed in or Firebase not ready.');
+// Function to fetch the site's Torn API key from Firebase
+async function getTornApiKey() {
+    if (!isFirebaseInitialized()) {
+        showMainError('Firebase not ready. Please try again in a moment.');
         return null;
     }
     try {
-        const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
+        const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93'; // Hardcoded UID for the site's API key
+        const userDocRef = firebase.firestore().collection('userProfiles').doc(ownerUid);
         const userDoc = await userDocRef.get();
         if (userDoc.exists) {
             const userData = userDoc.data();
             const tornApiKey = userData.tornApiKey;
             if (!tornApiKey) {
-                showMainError('Your Torn API Key is not set in your profile. Please update your profile settings.');
+                // This error is for the site owner, not the user.
+                showMainError('A critical error occurred. The site API key is not configured.');
+                console.error('Master Torn API Key is not set in the specified user profile.');
                 return null;
             }
             return tornApiKey;
         } else {
-            showMainError('User profile not found in database. Please ensure your profile is set up.');
+            showMainError('A critical error occurred. Could not find the site API key profile.');
+            console.error('Master user profile not found in database.');
             return null;
         }
     } catch (error) {
-        showMainError(`Error fetching API Key: ${error.message}`);
+        showMainError(`Error fetching site API Key: ${error.message}`);
+        console.error('Error fetching master API Key:', error);
         return null;
     }
 }
@@ -208,12 +213,8 @@ async function generateFairFightReport() {
     let playerIdsToFetch = [];
     showLoadingSpinner();
 
-    // Determine API key and user info
-    let currentUser = null;
-    if (isFirebaseInitialized() && firebase.auth().currentUser) {
-        currentUser = firebase.auth().currentUser;
-    }
-    const tornApiKey = await getTornApiKey(currentUser);
+    // The API key is now fetched from a hardcoded profile, not the logged-in user.
+    const tornApiKey = await getTornApiKey();
     if (!tornApiKey) {
         hideLoadingSpinner();
         return;
