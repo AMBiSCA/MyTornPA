@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         firebase.auth().onAuthStateChanged(async function(user) {
             if (user) {
                 const userProfile = await getUserProfileData(user);
-                if (userProfile && (userProfile.factionRole === 'Leader' || userProfile.factionRole === 'Co-Leader')) {
+                if (userProfile && (userProfile.factionRole === 'Leader' || userProfile.factionRole === 'Co-leader')) {
                     if (discordSettingsButton) {
                         discordSettingsButton.style.display = 'inline-flex';
                         discordSettingsButton.onclick = showDiscordSettingsModal;
