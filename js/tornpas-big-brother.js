@@ -105,26 +105,6 @@ async function checkIfUserIsAdmin(userUid) {
 
 // Renders the friendly members table using cached data and current sort settings.
 function renderFriendlyMembersTable() {
-    // --- START: Added code for scrollable table ---
-    const table = document.getElementById('friendly-members-table');
-    // Check if the table exists and if it's not already inside our scroll wrapper
-    if (table && table.parentElement.id !== 'table-scroll-wrapper') {
-        // Create a new div element to act as the wrapper
-        const wrapper = document.createElement('div');
-        wrapper.id = 'table-scroll-wrapper'; // Give it an ID to find it later
-
-        // Apply styles directly with JS to make it scrollable
-        wrapper.style.maxHeight = '65vh'; // 65% of the viewport height
-        wrapper.style.overflowY = 'auto'; // Add vertical scrollbar only when needed
-
-        // Insert the wrapper into the DOM right before the table
-        table.parentNode.insertBefore(wrapper, table);
-
-        // Move the table inside our new scrollable wrapper
-        wrapper.appendChild(table);
-    }
-    // --- END: Added code for scrollable table ---
-
     const tbody = document.getElementById('friendly-members-tbody');
     const tableHeaders = document.querySelectorAll('#friendly-members-table th[data-sort-key]');
     if (!tbody || !tableHeaders.length) return;
