@@ -34,7 +34,7 @@ async function getTornApiKey() {
     }
 }
 
-// MODIFIED: Renamed and now returns an object with tornId and totalStats
+// Function to get the currently logged-in user's info (Torn ID and total stats)
 async function getLoggedInUserInfo() {
     if (!isFirebaseInitialized() || !firebase.auth().currentUser) {
         showMainError('You must be logged in to generate a personalized report.');
@@ -85,51 +85,14 @@ async function getLoggedInUserInfo() {
 
 // Fair Fight logic rewritten from the FF Scouter V2 script
 const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
-const ONE_HOUR = 60 * 60 * 1000;
-
-function getFairFightFromCache(playerId) {
-    const cachedData = localStorage.getItem(`tornpda-ff-${playerId}`);
-    if (!cachedData) return null;
-    try {
-        const parsed = JSON.parse(cachedData);
-        if (parsed && parsed.expiry && parsed.expiry > Date.now()) {
-            return parsed;
-        } else {
-            localStorage.removeItem(`tornpda-ff-${playerId}`);
-            return null;
-        }
-    } catch {
-        localStorage.removeItem(`tornpda-ff-${playerId}`);
-        return null;
-    }
-}
-
-function saveFairFightToCache(playerId, data) {
-    const expiry = Date.now() + ONE_HOUR;
-    let cacheObj;
-    if (data.fair_fight === null) {
-        cacheObj = { no_data: true, expiry: expiry };
-    } else {
-        cacheObj = {
-            value: data.fair_fight,
-            last_updated: data.last_updated,
-            expiry: expiry,
-            bs_estimate: data.bs_estimate,
-            bs_estimate_human: data.bs_estimate_human
-        };
-    }
-    localStorage.setItem(`tornpda-ff-${playerId}`, JSON.stringify(cacheObj));
-}
 
 async function fetchFairFightData(playerIds, apiKey) {
-    const cachedResults = playerIds.map(id => ({ id: id, data: getFairFightFromCache(id) }));
-    const uncachedIds = cachedResults.filter(r => !r.data).map(r => r.id);
-
-    if (uncachedIds.length === 0) {
-        return cachedResults.map(r => r.data);
+    // This tool now requires fresh data for personalization, so caching is removed.
+    if (playerIds.length === 0) {
+        return [];
     }
 
-    const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${uncachedIds.join(",")}`;
+    const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${playerIds.join(",")}`;
 
     try {
         const response = await fetch(url);
@@ -141,34 +104,41 @@ async function fetchFairFightData(playerIds, apiKey) {
         if (apiResponse.error) {
             throw new Error(`FF Scouter API error: ${apiResponse.error}`);
         }
+        
+        const resultsMap = new Map();
         apiResponse.forEach(result => {
             if (result.player_id) {
-                saveFairFightToCache(result.player_id, result);
+                const formattedResult = {
+                    value: result.fair_fight,
+                    last_updated: result.last_updated,
+                    bs_estimate: result.bs_estimate,
+                    bs_estimate_human: result.bs_estimate_human,
+                    no_data: result.fair_fight === null
+                };
+                resultsMap.set(result.player_id.toString(), formattedResult);
             }
         });
-        return playerIds.map(id => getFairFightFromCache(id));
+        
+        return playerIds.map(id => resultsMap.get(id.toString()) || { no_data: true });
+
     } catch (error) {
         console.error("Error fetching Fair Fight data:", error);
-        return playerIds.map(id => {
-            const cached = getFairFightFromCache(id);
-            if (cached) return cached;
-            return { error: true, message: `Could not fetch FF data: ${error.message}` };
-        });
+        return playerIds.map(id => ({ error: true, message: `Could not fetch FF data: ${error.message}` }));
     }
 }
 
 // Fair Fight styling logic
 function getFairFightColor(value) {
     let r, g, b;
-    if (value <= 1.25) { // Adjusted to match "Easy" tier
+    if (value <= 1.25) {
         r = 0x28; g = 0x28; b = 0xc6; // Blue
-    } else if (value <= 2.5) { // Adjusted for "Medium"
+    } else if (value <= 2.5) {
         const t = (value - 1.25) / 1.25;
         r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
-    } else if (value <= 4) { // Adjusted for "Hard"
+    } else if (value <= 4) {
         const t = (value - 2.5) / 1.5;
         r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
-    } else { // Impossible
+    } else {
         r = 0xc6; g = 0x28; b = 0x28; // Red
     }
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
@@ -182,7 +152,6 @@ function getContrastColor(hex) {
     return brightness > 126 ? "black" : "white";
 }
 
-// MODIFIED: This function now returns words based on the new tiers
 function getFFDisplayValue(ffResponse) {
     if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') {
         return "N/A";
@@ -190,14 +159,13 @@ function getFFDisplayValue(ffResponse) {
 
     const value = ffResponse.value;
 
-    // Final Word Tiers with expanded "Easy" category
     if (value <= 1.25) {
         return "Easy";
     } else if (value <= 2.50) {
         return "Medium";
     } else if (value <= 4.00) {
         return "Hard";
-    } else { // value > 4.00
+    } else {
         return "Impossible";
     }
 }
@@ -265,22 +233,16 @@ async function generateFairFightReport() {
 
     showLoadingSpinner();
 
-    // Get all necessary info about the logged-in user.
     const loggedInUserInfo = await getLoggedInUserInfo();
     if (!loggedInUserInfo) {
         hideLoadingSpinner();
-        return; // Error shown in helper
+        return;
     }
     
     const currentUser = firebase.auth().currentUser;
     const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93';
     const isOwnerViewing = currentUser.uid === ownerUid;
     
-    let visitorTotalStats = null;
-    if (!isOwnerViewing) {
-        visitorTotalStats = loggedInUserInfo.totalStats;
-    }
-
     const tornApiKey = await getTornApiKey();
     if (!tornApiKey) {
         hideLoadingSpinner();
@@ -299,11 +261,6 @@ async function generateFairFightReport() {
 
             reportTitle = `Faction: ${factionData.name}`;
             playerIdsToFetch = Object.keys(factionData.members);
-            if (playerIdsToFetch.length === 0) {
-                showMainError('No members found for this faction.');
-                hideLoadingSpinner();
-                return;
-            }
         } else if (userIdInput) {
             const userApiUrl = `https://api.torn.com/user/${userIdInput}?selections=basic&key=${tornApiKey}`;
             const userResponse = await fetch(userApiUrl);
@@ -312,6 +269,12 @@ async function generateFairFightReport() {
 
             reportTitle = `User: ${userData.name}`;
             playerIdsToFetch = [userIdInput];
+        }
+
+        if (playerIdsToFetch.length === 0) {
+            showMainError('No members found.');
+            hideLoadingSpinner();
+            return;
         }
 
         const ffResultsFromApi = await fetchFairFightData(playerIdsToFetch, tornApiKey);
@@ -326,19 +289,18 @@ async function generateFairFightReport() {
         if (isOwnerViewing) {
             finalResults = ffResultsFromApi;
         } else {
+            const visitorTotalStats = loggedInUserInfo.totalStats;
             finalResults = ffResultsFromApi.map(targetData => {
-                if (targetData.error || targetData.no_data || !targetData.bs_estimate) {
+                if (targetData.error || targetData.no_data || !targetData.bs_estimate || visitorTotalStats <= 0 || targetData.bs_estimate <= 0) {
                     return targetData;
                 }
                 
-                const baseScore = Math.log(targetData.bs_estimate) / Math.log(visitorTotalStats);
-                let finalScore;
+                // The definitive data-driven formula
+                let finalScore = 3.5 * Math.pow(3, Math.log10(targetData.bs_estimate / visitorTotalStats));
 
-                if (baseScore <= 1) {
-                    finalScore = 1.0;
-                } else {
-                    const difficultyMultiplier = 6;
-                    finalScore = 1 + (baseScore - 1) * difficultyMultiplier;
+                // Apply a "floor" for very easy targets, mimicking the real API's behavior
+                if (finalScore < 1.03) {
+                    finalScore = 1.03;
                 }
 
                 return { ...targetData, value: finalScore };
@@ -367,7 +329,6 @@ async function generateFairFightReport() {
             return { userId, ffData, name: userNames.get(userId) || `User ${userId}` };
         }).sort((a, b) => a.name.localeCompare(b.name));
 
-        // NEW: Filter the logged-in user out of the final results.
         const filteredResults = sortedResults.filter(item => item.userId !== loggedInUserInfo.tornId);
 
         displayReport(filteredResults, reportTitle);
@@ -396,7 +357,6 @@ function displayReport(results, title) {
     }
 
     reportTarget.textContent = title;
-    // MODIFIED: Update member count based on the filtered list
     memberCount.textContent = `Members: ${results.length}`;
     
     results.forEach(item => {
