@@ -3,84 +3,32 @@ function isFirebaseInitialized() {
     return typeof firebase !== 'undefined' && firebase.app;
 }
 
-// Function to fetch the site's Torn API key from Firebase
-async function getTornApiKey() {
-    if (!isFirebaseInitialized()) {
-        showMainError('Firebase not ready. Please try again in a moment.');
+// Function to fetch the user's Torn API key from Firebase
+async function getTornApiKey(user) {
+    if (!user || !isFirebaseInitialized()) {
+        showMainError('Authentication error: Not signed in or Firebase not ready.');
         return null;
     }
     try {
-        const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93'; // Hardcoded UID for the site's API key
-        const userDocRef = firebase.firestore().collection('userProfiles').doc(ownerUid);
+        const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
         const userDoc = await userDocRef.get();
         if (userDoc.exists) {
             const userData = userDoc.data();
             const tornApiKey = userData.tornApiKey;
             if (!tornApiKey) {
-                showMainError('A critical error occurred. The site API key is not configured.');
-                console.error('Master Torn API Key is not set in the specified user profile.');
+                showMainError('Your Torn API Key is not set in your profile. Please update your profile settings.');
                 return null;
             }
             return tornApiKey;
         } else {
-            showMainError('A critical error occurred. Could not find the site API key profile.');
-            console.error('Master user profile not found in database.');
+            showMainError('User profile not found in database. Please ensure your profile is set up.');
             return null;
         }
     } catch (error) {
-        showMainError(`Error fetching site API Key: ${error.message}`);
-        console.error('Error fetching master API Key:', error);
+        showMainError(`Error fetching API Key: ${error.message}`);
         return null;
     }
 }
-
-// Function to get the currently logged-in user's total battle stats
-async function getCurrentUserTotalStats() {
-    if (!isFirebaseInitialized() || !firebase.auth().currentUser) {
-        showMainError('You must be logged in to generate a personalized report.');
-        return null;
-    }
-    const currentUser = firebase.auth().currentUser;
-
-    try {
-        // Step 1: Get Firebase UID -> Torn Profile ID from 'userProfiles' collection
-        const userProfileRef = firebase.firestore().collection('userProfiles').doc(currentUser.uid);
-        const userProfileDoc = await userProfileRef.get();
-
-        if (!userProfileDoc.exists) {
-            showMainError('Your user profile was not found. Please ensure your profile is set up correctly.');
-            return null;
-        }
-        const tornProfileId = userProfileDoc.data().tornProfileId;
-        if (!tornProfileId) {
-            showMainError('Your Torn Profile ID is not set in your user profile.');
-            return null;
-        }
-
-        // Step 2: Get Torn Profile ID -> Battle Stats Total from 'users' collection
-        const userStatsRef = firebase.firestore().collection('users').doc(tornProfileId.toString());
-        const userStatsDoc = await userStatsRef.get();
-
-        if (!userStatsDoc.exists) {
-            showMainError('Your battle stats were not found in the database.');
-            return null;
-        }
-
-        const battleStats = userStatsDoc.data().battlestats;
-        if (!battleStats || typeof battleStats.total === 'undefined') {
-            showMainError('Your battle stats data is missing or incomplete in the database.');
-            return null;
-        }
-
-        return battleStats.total;
-
-    } catch (error) {
-        showMainError(`Error fetching your stats: ${error.message}`);
-        console.error('Error in getCurrentUserTotalStats:', error);
-        return null;
-    }
-}
-
 
 // Fair Fight logic rewritten from the FF Scouter V2 script
 const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
@@ -187,7 +135,7 @@ function getContrastColor(hex) {
 }
 
 function getFFDisplayValue(ffResponse) {
-    if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') return "N/A";
+    if (!ffResponse || ffResponse.no_data) return "N/A";
     const ff = ffResponse.value.toFixed(2);
     const now = Date.now() / 1000;
     const age = now - ffResponse.last_updated;
@@ -196,7 +144,7 @@ function getFFDisplayValue(ffResponse) {
 }
 
 function getFFDisplayColor(ffResponse) {
-    if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') return { background: '#444', text: 'white' };
+    if (!ffResponse || ffResponse.no_data) return { background: '#444', text: 'white' };
     const bgColor = getFairFightColor(ffResponse.value);
     const textColor = getContrastColor(bgColor);
     return { background: bgColor, text: textColor };
@@ -256,42 +204,24 @@ async function generateFairFightReport() {
         return;
     }
 
+    let reportTitle = "";
+    let playerIdsToFetch = [];
     showLoadingSpinner();
 
-    // The user must be logged in to proceed.
-    const currentUser = firebase.auth().currentUser;
-    if (!currentUser) {
-        showMainError('You must be logged in to view a report.');
-        hideLoadingSpinner();
-        return;
+    // Determine API key and user info
+    let currentUser = null;
+    if (isFirebaseInitialized() && firebase.auth().currentUser) {
+        currentUser = firebase.auth().currentUser;
     }
-
-    // Check if the logged-in user is the site owner.
-    const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93';
-    const isOwnerViewing = currentUser.uid === ownerUid;
-
-    // Visitors need their stats for the personalized calculation.
-    let visitorTotalStats = null;
-    if (!isOwnerViewing) {
-        visitorTotalStats = await getCurrentUserTotalStats();
-        if (visitorTotalStats === null) {
-            hideLoadingSpinner();
-            return; // Error is shown by the helper function.
-        }
-    }
-
-    // The site's API key is always used for the external API call.
-    const tornApiKey = await getTornApiKey();
+    const tornApiKey = await getTornApiKey(currentUser);
     if (!tornApiKey) {
         hideLoadingSpinner();
         return;
     }
 
-    let reportTitle = "";
-    let playerIdsToFetch = [];
-
     try {
         if (factionIdInput) {
+            // Faction search
             const factionApiUrl = `https://api.torn.com/faction/${factionIdInput}?selections=basic&key=${tornApiKey}`;
             const factionResponse = await fetch(factionApiUrl);
             const factionData = await factionResponse.json();
@@ -305,6 +235,7 @@ async function generateFairFightReport() {
                 return;
             }
         } else if (userIdInput) {
+            // Single user search
             const userApiUrl = `https://api.torn.com/user/${userIdInput}?selections=basic&key=${tornApiKey}`;
             const userResponse = await fetch(userApiUrl);
             const userData = await userResponse.json();
@@ -314,40 +245,11 @@ async function generateFairFightReport() {
             playerIdsToFetch = [userIdInput];
         }
 
-        const ffResultsFromApi = await fetchFairFightData(playerIdsToFetch, tornApiKey);
-        if (!ffResultsFromApi || ffResultsFromApi.length === 0) {
+        const ffResults = await fetchFairFightData(playerIdsToFetch, tornApiKey);
+        if (!ffResults || ffResults.length === 0) {
             showMainError('No fair fight data found.');
             hideLoadingSpinner();
             return;
-        }
-
-        let finalResults;
-
-        // THE TWO-RULE SYSTEM: Decide which scores to show.
-        if (isOwnerViewing) {
-            // Rule 1: The owner sees the original, unchanged data from the API.
-            finalResults = ffResultsFromApi;
-        } else {
-            // Rule 2: Visitors get the new, personalized calculation.
-            finalResults = ffResultsFromApi.map(targetData => {
-                if (targetData.error || targetData.no_data || !targetData.bs_estimate) {
-                    return targetData;
-                }
-                
-                const baseScore = Math.log(targetData.bs_estimate) / Math.log(visitorTotalStats);
-                let finalScore;
-
-                if (baseScore <= 1) {
-                    // Rule for easy/equal targets: clamp the score at 1.00
-                    finalScore = 1.0;
-                } else {
-                    // Rule for hard targets: stretch the score to make it more dramatic
-                    const difficultyMultiplier = 4; // Lowered from 10 to 4 for a more balanced score.
-                    finalScore = 1 + (baseScore - 1) * difficultyMultiplier;
-                }
-
-                return { ...targetData, value: finalScore };
-            });
         }
 
         // Fetch names for all players
@@ -369,7 +271,7 @@ async function generateFairFightReport() {
         }
 
         // Sort results alphabetically by name
-        const sortedResults = finalResults.map((ffData, index) => {
+        const sortedResults = ffResults.map((ffData, index) => {
             const userId = playerIdsToFetch[index];
             return { userId, ffData, name: userNames.get(userId) || `User ${userId}` };
         }).sort((a, b) => a.name.localeCompare(b.name));
@@ -388,11 +290,14 @@ async function generateFairFightReport() {
 function displayReport(results, title) {
     const tableBody = document.getElementById('modal-results-table-body');
     const tableHeader = document.getElementById('modal-results-table-header');
+    const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
     const reportTarget = document.getElementById('modal-report-target');
     const memberCount = document.getElementById('modal-member-count');
 
+    // Clear previous data
     tableBody.innerHTML = '';
     
+    // Update headers based on if it's a single user or faction
     if (results.length > 1) {
         tableHeader.innerHTML = '<tr><th>Name</th><th>User ID</th><th>Fair Fight</th><th>Last Updated</th></tr>';
     } else {
@@ -431,6 +336,7 @@ function displayReport(results, title) {
         updatedCell.textContent = fairFightData && fairFightData.last_updated ?
             new Date(fairFightData.last_updated * 1000).toLocaleString() : 'N/A';
 
+        // Only add Est. Stats for a single user report
         if (results.length === 1) {
             const statsCell = row.insertCell();
             statsCell.textContent = fairFightData && fairFightData.bs_estimate_human ? fairFightData.bs_estimate_human : 'N/A';
@@ -440,13 +346,15 @@ function displayReport(results, title) {
     showResultsModal();
 }
 
-// Download functionality
+// Download functionality from your example
 function downloadReport() {
     const modalContent = document.querySelector('.modal-content');
     const downloadBtn = document.getElementById('downloadReportBtn');
     
+    // Disable button to prevent double clicks during screenshot
     downloadBtn.disabled = true;
 
+    // Use a slight delay to ensure the modal is fully rendered before capturing
     setTimeout(() => {
         html2canvas(modalContent, {
             scale: 2,
@@ -464,6 +372,7 @@ function downloadReport() {
             link.click();
             document.body.removeChild(link);
             
+            // Re-enable the button after download attempt
             downloadBtn.disabled = false;
         }).catch(error => {
             console.error('Error generating image:', error);
@@ -479,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadButton = document.getElementById('downloadReportBtn');
     const factionIdInput = document.getElementById('factionId');
 
+    // Auto-fill faction ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const factionIdFromUrl = urlParams.get('faction_id');
     if (factionIdFromUrl) {
