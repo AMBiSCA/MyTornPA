@@ -3,8 +3,8 @@ function isFirebaseInitialized() {
     return typeof firebase !== 'undefined' && firebase.app;
 }
 
-// Function to fetch the user's Torn API key and faction role from Firebase
-async function getUserProfileData(user) {
+// Function to fetch the user's Torn API key from Firebase
+async function getTornApiKey(user) {
     if (!user || !isFirebaseInitialized()) {
         showMainError('Authentication error: Not signed in or Firebase not ready.');
         return null;
@@ -15,17 +15,11 @@ async function getUserProfileData(user) {
         if (userDoc.exists) {
             const userData = userDoc.data();
             const tornApiKey = userData.tornApiKey;
-            
             if (!tornApiKey) {
                 showMainError('Your Torn API Key is not set in your profile. Please update your profile settings.');
                 return null;
             }
-
-            return {
-                tornApiKey: tornApiKey,
-                factionRole: userData.factionRole || null,
-                discordWebhookUrl: userData.discordWebhookUrl || null
-            };
+            return tornApiKey;
         } else {
             showMainError('User profile not found in database. Please ensure your profile is set up.');
             return null;
@@ -75,7 +69,6 @@ function saveFairFightToCache(playerId, data) {
     localStorage.setItem(`tornpda-ff-${playerId}`, JSON.stringify(cacheObj));
 }
 
-// NEW: This function now takes the Torn API key
 async function fetchFairFightData(playerIds, apiKey) {
     const cachedResults = playerIds.map(id => ({ id: id, data: getFairFightFromCache(id) }));
     const uncachedIds = cachedResults.filter(r => !r.data).map(r => r.id);
@@ -103,6 +96,7 @@ async function fetchFairFightData(playerIds, apiKey) {
             }
         });
 
+        // Combine new and old data
         return playerIds.map(id => getFairFightFromCache(id));
 
     } catch (error) {
@@ -179,16 +173,6 @@ function closeResultsModal() {
     if (tableBody) tableBody.innerHTML = '';
 }
 
-function showDiscordSettingsModal() {
-    const overlay = document.getElementById('discordSettingsModal');
-    if (overlay) overlay.classList.add('visible');
-}
-
-function closeDiscordSettingsModal() {
-    const overlay = document.getElementById('discordSettingsModal');
-    if (overlay) overlay.classList.remove('visible');
-}
-
 function showMainError(message) {
     const errorDiv = document.getElementById('main-error-feedback');
     if (errorDiv) {
@@ -205,42 +189,11 @@ function hideMainError() {
     }
 }
 
-// NEW: Function to fetch a single user's stats from Torn API
-async function fetchUserBattleStats(userId, apiKey) {
-    const apiUrl = `https://api.torn.com/user/${userId}?selections=basic,personalstats&key=${apiKey}`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.error);
-    return data;
-}
-
-// NEW: Function to calculate relative Fair Fight score
-function calculateRelativeFairFight(leaderFairFight, leaderStats, targetStats) {
-    const leaderTotalStats = leaderStats.strength + leaderStats.defense + leaderStats.speed + leaderStats.dexterity;
-    const targetTotalStats = targetStats.strength + targetStats.defense + targetStats.speed + targetStats.dexterity;
-
-    if (leaderTotalStats === 0 || targetTotalStats === 0) return 1;
-    
-    const ratio = targetTotalStats / leaderTotalStats;
-    let newFairFight = leaderFairFight * ratio;
-    
-    // Cap the score to a reasonable max value to prevent extreme numbers
-    newFairFight = Math.min(newFairFight, 8);
-    
-    return {
-        value: newFairFight,
-        last_updated: Date.now() / 1000,
-        no_data: false
-    };
-}
-
-
 // Main logic to generate the report
 async function generateFairFightReport() {
     hideMainError();
     const factionIdInput = document.getElementById('factionId').value.trim();
     const userIdInput = document.getElementById('userId').value.trim();
-    const sendToDiscordBtn = document.getElementById('sendToDiscordBtn');
 
     if (!factionIdInput && !userIdInput) {
         showMainError('Please enter either a Faction ID or a User ID.');
@@ -255,36 +208,18 @@ async function generateFairFightReport() {
     let playerIdsToFetch = [];
     showLoadingSpinner();
 
+    // Determine API key and user info
     let currentUser = null;
     if (isFirebaseInitialized() && firebase.auth().currentUser) {
         currentUser = firebase.auth().currentUser;
     }
-    const userProfileData = await getUserProfileData(currentUser);
-    if (!userProfileData) {
+    const tornApiKey = await getTornApiKey(currentUser);
+    if (!tornApiKey) {
         hideLoadingSpinner();
         return;
     }
-    const tornApiKey = userProfileData.tornApiKey;
 
     try {
-        // Step 1: Get the current user's (leader's) Fair Fight score and stats
-        const leaderFairFightData = await fetchFairFightData([currentUser.uid], tornApiKey);
-        const leaderFairFight = leaderFairFightData[0]?.value;
-
-        if (leaderFairFight === undefined || leaderFairFight === null) {
-            showMainError('Could not fetch your own Fair Fight score. Please ensure your Torn API key is correct and publicly available on ffscouter.com.');
-            hideLoadingSpinner();
-            return;
-        }
-
-        const leaderStatsData = await fetchUserBattleStats(currentUser.uid, tornApiKey);
-        const leaderStats = {
-            strength: leaderStatsData.personalstats.strength,
-            defense: leaderStatsData.personalstats.defense,
-            speed: leaderStatsData.personalstats.speed,
-            dexterity: leaderStatsData.personalstats.dexterity
-        };
-
         if (factionIdInput) {
             // Faction search
             const factionApiUrl = `https://api.torn.com/faction/${factionIdInput}?selections=basic&key=${tornApiKey}`;
@@ -301,48 +236,47 @@ async function generateFairFightReport() {
             }
         } else if (userIdInput) {
             // Single user search
-            const userData = await fetchUserBattleStats(userIdInput, tornApiKey);
+            const userApiUrl = `https://api.torn.com/user/${userIdInput}?selections=basic&key=${tornApiKey}`;
+            const userResponse = await fetch(userApiUrl);
+            const userData = await userResponse.json();
+            if (userData.error) throw new Error(userData.error.error);
+
             reportTitle = `User: ${userData.name}`;
             playerIdsToFetch = [userIdInput];
         }
 
-        // Step 2 & 3: Fetch battle stats and calculate relative FF scores
-        const factionMembersData = await Promise.all(playerIdsToFetch.map(async id => {
-            let memberStats;
-            try {
-                memberStats = await fetchUserBattleStats(id, tornApiKey);
-            } catch (e) {
-                // Handle cases where stats can't be fetched (e.g., fedded players)
-                return { userId: id, name: `User ${id}`, ffData: { no_data: true } };
-            }
-
-            const targetStats = {
-                strength: memberStats.personalstats.strength,
-                defense: memberStats.personalstats.defense,
-                speed: memberStats.personalstats.speed,
-                dexterity: memberStats.personalstats.dexterity
-            };
-
-            const relativeFF = calculateRelativeFairFight(leaderFairFight, leaderStats, targetStats);
-            
-            return {
-                userId: id,
-                name: memberStats.name,
-                ffData: relativeFF
-            };
-        }));
-
-
-        // Sort results alphabetically by name
-        const sortedResults = factionMembersData.sort((a, b) => a.name.localeCompare(b.name));
-        
-        displayReport(sortedResults, reportTitle);
-
-        // Show the Discord button if it's a faction report
-        if (factionIdInput && sendToDiscordBtn) {
-            sendToDiscordBtn.style.display = 'inline-flex';
+        const ffResults = await fetchFairFightData(playerIdsToFetch, tornApiKey);
+        if (!ffResults || ffResults.length === 0) {
+            showMainError('No fair fight data found.');
+            hideLoadingSpinner();
+            return;
         }
 
+        // Fetch names for all players
+        const userNames = new Map();
+        if (factionIdInput) {
+            const factionApiUrl = `https://api.torn.com/faction/${factionIdInput}?selections=basic&key=${tornApiKey}`;
+            const factionResponse = await fetch(factionApiUrl);
+            const factionData = await factionResponse.json();
+            if (factionData.members) {
+                Object.entries(factionData.members).forEach(([id, member]) => {
+                    userNames.set(id, member.name);
+                });
+            }
+        } else {
+            const userApiUrl = `https://api.torn.com/user/${userIdInput}?selections=basic&key=${tornApiKey}`;
+            const userResponse = await fetch(userApiUrl);
+            const userData = await userResponse.json();
+            userNames.set(userIdInput, userData.name);
+        }
+
+        // Sort results alphabetically by name
+        const sortedResults = ffResults.map((ffData, index) => {
+            const userId = playerIdsToFetch[index];
+            return { userId, ffData, name: userNames.get(userId) || `User ${userId}` };
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
+        displayReport(sortedResults, reportTitle);
 
     } catch (error) {
         showMainError(`Error: ${error.message}`);
@@ -359,9 +293,11 @@ function displayReport(results, title) {
     const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
     const reportTarget = document.getElementById('modal-report-target');
     const memberCount = document.getElementById('modal-member-count');
-    
+
+    // Clear previous data
     tableBody.innerHTML = '';
     
+    // Update headers based on if it's a single user or faction
     if (results.length > 1) {
         tableHeader.innerHTML = '<tr><th>Name</th><th>User ID</th><th>Fair Fight</th><th>Last Updated</th></tr>';
     } else {
@@ -383,7 +319,7 @@ function displayReport(results, title) {
         row.insertCell().textContent = userId;
 
         const ffCell = row.insertCell();
-        if (fairFightData && !fairFightData.error && !fairFightData.no_data) {
+        if (fairFightData && !fairFightData.error) {
             const displayValue = getFFDisplayValue(fairFightData);
             const colors = getFFDisplayColor(fairFightData);
             ffCell.textContent = displayValue;
@@ -400,6 +336,7 @@ function displayReport(results, title) {
         updatedCell.textContent = fairFightData && fairFightData.last_updated ?
             new Date(fairFightData.last_updated * 1000).toLocaleString() : 'N/A';
 
+        // Only add Est. Stats for a single user report
         if (results.length === 1) {
             const statsCell = row.insertCell();
             statsCell.textContent = fairFightData && fairFightData.bs_estimate_human ? fairFightData.bs_estimate_human : 'N/A';
@@ -409,111 +346,15 @@ function displayReport(results, title) {
     showResultsModal();
 }
 
-// Function to save webhook URL to Firebase
-async function saveWebhookUrlToFirebase() {
-    const webhookUrl = document.getElementById('webhookUrlInput').value.trim();
-    if (!webhookUrl) {
-        alert('Please enter a valid webhook URL.');
-        return;
-    }
-    const currentUser = firebase.auth().currentUser;
-    if (!currentUser) {
-        alert('You must be signed in to save settings.');
-        return;
-    }
-
-    try {
-        await firebase.firestore().collection('userProfiles').doc(currentUser.uid).update({
-            discordWebhookUrl: webhookUrl
-        });
-        alert('Webhook URL saved successfully!');
-        closeDiscordSettingsModal();
-    } catch (error) {
-        console.error("Error saving webhook URL:", error);
-        alert(`Failed to save URL: ${error.message}`);
-    }
-}
-
-// Function to send the report to Discord via webhook
-async function sendDiscordReport() {
-    const factionIdInput = document.getElementById('factionId').value.trim();
-    if (!factionIdInput) {
-        alert('Please generate a faction report first before sending to Discord.');
-        return;
-    }
-
-    const currentUser = firebase.auth().currentUser;
-    const userProfileData = await getUserProfileData(currentUser);
-    if (!userProfileData || !userProfileData.discordWebhookUrl) {
-        alert('Please save your Discord webhook URL in the settings first.');
-        return;
-    }
-
-    const webhookUrl = userProfileData.discordWebhookUrl;
-    
-    // Get the data from the Fair Fight Report modal
-    const factionName = document.getElementById('modal-report-target').textContent.replace('Faction: ', '');
-    const tableBody = document.getElementById('modal-results-table-body');
-    const rows = tableBody.querySelectorAll('tr');
-
-    if (rows.length === 0) {
-        alert('No data to send. Please generate a report first.');
-        return;
-    }
-
-    const fields = [];
-    rows.forEach(row => {
-        const name = row.cells[0].textContent;
-        const ffScore = row.cells[2].textContent;
-        const lastUpdated = row.cells[3].textContent;
-        fields.push({
-            name: `${name}`,
-            value: `Fair Fight: **${ffScore}** | Last Update: ${lastUpdated}`,
-            inline: false
-        });
-    });
-
-    const payload = {
-        embeds: [{
-            title: `TornPDA's Faction Fair Fight Report`,
-            description: `A new Fair Fight report has been generated for **${factionName}**.`,
-            color: 3447003, // A nice blue color for Discord embeds
-            fields: fields,
-            footer: {
-                text: "Generated by TornPDA's Fair Fight Tool"
-            },
-            timestamp: new Date()
-        }]
-    };
-
-    try {
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (response.ok) {
-            alert('Fair Fight report sent to Discord successfully!');
-        } else {
-            const errorText = await response.text();
-            throw new Error(`Discord API returned an error: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-    } catch (error) {
-        console.error("Error sending Discord webhook:", error);
-        alert(`Failed to send Discord message: ${error.message}`);
-    }
-}
-
 // Download functionality from your example
 function downloadReport() {
     const modalContent = document.querySelector('.modal-content');
     const downloadBtn = document.getElementById('downloadReportBtn');
     
+    // Disable button to prevent double clicks during screenshot
     downloadBtn.disabled = true;
 
+    // Use a slight delay to ensure the modal is fully rendered before capturing
     setTimeout(() => {
         html2canvas(modalContent, {
             scale: 2,
@@ -531,6 +372,7 @@ function downloadReport() {
             link.click();
             document.body.removeChild(link);
             
+            // Re-enable the button after download attempt
             downloadBtn.disabled = false;
         }).catch(error => {
             console.error('Error generating image:', error);
@@ -544,10 +386,7 @@ function downloadReport() {
 document.addEventListener('DOMContentLoaded', () => {
     const fetchButton = document.getElementById('fetchFairFight');
     const downloadButton = document.getElementById('downloadReportBtn');
-    const discordSettingsButton = document.getElementById('showDiscordSettings');
-    const webhookSaveButton = document.getElementById('saveWebhookBtn');
     const factionIdInput = document.getElementById('factionId');
-    const sendToDiscordButton = document.getElementById('sendToDiscordBtn');
 
     // Auto-fill faction ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -556,46 +395,10 @@ document.addEventListener('DOMContentLoaded', () => {
         factionIdInput.value = factionIdFromUrl;
     }
 
-    // Check for user login status and leadership role
-    if (isFirebaseInitialized() && firebase.auth()) {
-        firebase.auth().onAuthStateChanged(async function(user) {
-            if (user) {
-                const userProfile = await getUserProfileData(user);
-                if (userProfile && (userProfile.factionRole === 'Leader' || userProfile.factionRole === 'Co-Leader')) {
-                    if (discordSettingsButton) {
-                        discordSettingsButton.style.display = 'inline-flex';
-                        discordSettingsButton.onclick = showDiscordSettingsModal;
-                    }
-                    if (sendToDiscordButton) {
-                        sendToDiscordButton.style.display = 'inline-flex';
-                        sendToDiscordButton.onclick = sendDiscordReport;
-                    }
-                } else {
-                    if (discordSettingsButton) {
-                        discordSettingsButton.style.display = 'none';
-                    }
-                    if (sendToDiscordButton) {
-                        sendToDiscordButton.style.display = 'none';
-                    }
-                }
-            } else {
-                if (discordSettingsButton) {
-                    discordSettingsButton.style.display = 'none';
-                }
-                if (sendToDiscordButton) {
-                    sendToDiscordButton.style.display = 'none';
-                }
-            }
-        });
-    }
-
     if (fetchButton) {
         fetchButton.addEventListener('click', generateFairFightReport);
     }
     if (downloadButton) {
         downloadButton.addEventListener('click', downloadReport);
-    }
-    if (webhookSaveButton) {
-        webhookSaveButton.addEventListener('click', saveWebhookUrlToFirebase);
     }
 });
