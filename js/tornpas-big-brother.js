@@ -457,6 +457,22 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
 async function displayGainsTable() {
     const gainsTbody = document.getElementById('gains-overview-tbody');
     const gainsMessageContainer = document.querySelector('#gains-tracking-tab .gains-table-container p');
+
+    // --- START: Added code for scrollable table ---
+    if (gainsTbody) { // Check if tbody exists
+        const table = gainsTbody.closest('table');
+        // Check if the table exists and if it's not already inside our scroll wrapper
+        if (table && table.parentElement.id !== 'gains-table-scroll-wrapper') {
+            const wrapper = document.createElement('div');
+            wrapper.id = 'gains-table-scroll-wrapper';
+            wrapper.style.maxHeight = '65vh';
+            wrapper.style.overflowY = 'auto';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    }
+    // --- END: Added code for scrollable table ---
+
     if (!gainsTbody || !gainsMessageContainer) return;
     gainsTbody.innerHTML = '';
     gainsMessageContainer.classList.remove('hidden');
