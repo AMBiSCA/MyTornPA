@@ -723,10 +723,3 @@ ul li:last-child { border-bottom: none; }
     .chart-panel { padding: 10px; }
     .chart-panel h3 { font-size: 1em; }
 }
-
-/* Hide footer on touchscreen devices (phones/tablets) in landscape mode */
-@media (pointer: coarse) and (orientation: landscape) {
-  footer.footer {
-    display: none;
-  }
-}
