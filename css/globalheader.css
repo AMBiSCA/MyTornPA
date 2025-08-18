@@ -118,20 +118,12 @@ header {
     background: none;
     border: none;
     box-shadow: none;
-	outline: none;
-   -webkit-tap-highlight-color: transparent;
 }
 .header-text-link:hover {
     text-decoration: underline;
     color: #00e0ff;
     transform: translateY(-1px);
-	
 }
-
-.header-text-link:focus {
-    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
-}
-
 .btn:not(:disabled):hover, .btn:not(:disabled):focus {
     border-color: #4dc4ff;
     box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
@@ -245,7 +237,6 @@ header {
         padding: 0 12px;
         border-radius: 22px;
         height: 40px;
-        background-color: rgba(0, 168, 255, 0.1);
         border: 1px solid #00a8ff;
         display: inline-flex;
         align-items: center;
