@@ -87,7 +87,6 @@ async function getLoggedInUserInfo() {
 const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
 
 async function fetchFairFightData(playerIds, apiKey) {
-    // This tool now requires fresh data for personalization, so caching is removed.
     if (playerIds.length === 0) {
         return [];
     }
@@ -152,22 +151,20 @@ function getContrastColor(hex) {
     return brightness > 126 ? "black" : "white";
 }
 
+// MODIFIED: Switched back to showing numbers instead of words.
 function getFFDisplayValue(ffResponse) {
     if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') {
         return "N/A";
     }
-
-    const value = ffResponse.value;
-
-    if (value <= 1.25) {
-        return "Easy";
-    } else if (value <= 2.50) {
-        return "Medium";
-    } else if (value <= 4.00) {
-        return "Hard";
-    } else {
-        return "Impossible";
-    }
+    
+    // Display the score formatted to two decimal places.
+    const ff = ffResponse.value.toFixed(2);
+    
+    // Optionally add a "?" if the data is old (e.g., more than 2 weeks)
+    const now = Date.now() / 1000;
+    const age = now - ffResponse.last_updated;
+    const suffix = age > (14 * 24 * 60 * 60) ? "?" : "";
+    return `${ff}${suffix}`;
 }
 
 function getFFDisplayColor(ffResponse) {
