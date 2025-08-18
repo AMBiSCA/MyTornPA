@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TornPDA's Faction Fair Fight</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/tornpafairfight.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="home.html" id="Header.jpg" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-user-display" id="logged-in-user-display" style="display: none;">
+            </div>
+
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
+
+            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+                    <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
+                </button>
+            </div>
+
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+                <button class="btn dropdown-toggle" id="usefulLinksBtn">
+                    <span class="btn-text">Useful Links</span><span class="btn-icon">🔗</span>
+                </button>
+                <div class="dropdown-content" id="usefulLinksDropdown">
+                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                </div>
+            </div>
+
+            <div class="dropdown" id="contactUsDropdownContainer">
+                <button class="btn dropdown-toggle" id="contactUsBtn">
+                    <span class="btn-text">Contact Us</span><span class="btn-icon">💬</span>
+                </button>
+                <div class="dropdown-content" id="contactUsDropdown">
+                    <a href="pages/report.html">Report an Issue</a>
+                    <a href="#">Live Chat (Soon™)</a>
+                    <a href="pages/FAQ.html">F.A.Q</a>
+                </div>
+            </div>
+
+            <button class="btn" id="logoutButtonHeader">
+                <span class="btn-text">Logout</span><span class="btn-icon">🚪</span>
+            </button>
+        </div>
+
+        <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
+
+    <div class="main-content-wrapper">
+        <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+        <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+        <div class="fairfight-tool-container">
+            <h2 class="script-title">TornPDA's Fair Fight</h2>
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="factionId">Faction ID:</label>
+                    <input type="text" id="factionId" placeholder="ID of faction to report:" />
+                </div>
+                <p class="input-divider">OR</p>
+                <div class="input-field">
+                    <label for="userId">Single User ID:</label>
+                    <input type="text" id="userId" placeholder="ID of a single user:" />
+                </div>
+            </div>
+
+            <div class="action-buttons-container">
+                <button id="fetchFairFight" class="action-btn fetch-btn">Generate Fair Fight Report</button>
+            </div>
+            <div id="main-error-feedback" class="error-message"></div>
+
+        </div>
+
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="resultsModalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+            <h3 class="modal-title">TornPDA's Faction Fair Fight</h3>
+            <div class="modal-summary">
+                <p>Report for: <span id="modal-report-target"></span></p>
+                <p id="modal-member-count"></p>
+            </div>
+            <div class="modal-table-container">
+                <table class="modal-table">
+                    <thead id="modal-results-table-header">
+                        <tr>
+                            <th>Name</th>
+                            <th>User ID</th>
+                            <th>Fair Fight</th>
+                            <th>Last Update</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-results-table-body">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-action-area">
+                <button id="downloadReportBtn" class="action-btn download-btn">Download Report</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/tornpafairfight.js"></script>
+</body>
+</html>
