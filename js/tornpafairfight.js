@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const discordSettingsButton = document.getElementById('showDiscordSettings');
     const webhookSaveButton = document.getElementById('saveWebhookBtn');
     const factionIdInput = document.getElementById('factionId');
-    const sendToDiscordButton = document.getElementById('sendToDiscordBtn'); // NEW: Send to Discord button
+    const sendToDiscordButton = document.getElementById('sendToDiscordBtn');
 
     // Auto-fill faction ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -508,22 +508,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for user login status and leadership role
     if (isFirebaseInitialized() && firebase.auth()) {
         firebase.auth().onAuthStateChanged(async function(user) {
-            const discordButton = document.getElementById('showDiscordSettings');
-            const sendDiscordButton = document.getElementById('sendToDiscordBtn');
             if (user) {
                 const userProfile = await getUserProfileData(user);
                 if (userProfile && (userProfile.factionRole === 'Leader' || userProfile.factionRole === 'Co-Leader')) {
-                    discordButton.style.display = 'inline-flex';
-                    discordButton.onclick = showDiscordSettingsModal;
-                    sendDiscordButton.style.display = 'inline-flex';
-                    sendDiscordButton.onclick = sendDiscordReport;
+                    if (discordSettingsButton) {
+                        discordSettingsButton.style.display = 'inline-flex';
+                        discordSettingsButton.onclick = showDiscordSettingsModal;
+                    }
+                    if (sendToDiscordButton) {
+                        sendToDiscordButton.style.display = 'inline-flex';
+                        sendToDiscordButton.onclick = sendDiscordReport;
+                    }
                 } else {
-                    discordButton.style.display = 'none';
-                    sendDiscordButton.style.display = 'none';
+                    if (discordSettingsButton) {
+                        discordSettingsButton.style.display = 'none';
+                    }
+                    if (sendToDiscordButton) {
+                        sendToDiscordButton.style.display = 'none';
+                    }
                 }
             } else {
-                discordButton.style.display = 'none';
-                sendDiscordButton.style.display = 'none';
+                if (discordSettingsButton) {
+                    discordSettingsButton.style.display = 'none';
+                }
+                if (sendToDiscordButton) {
+                    sendToDiscordButton.style.display = 'none';
+                }
             }
         });
     }
