@@ -168,6 +168,22 @@ body::before {
 .action-btn.fetch-btn:hover {
     background-color: #218838;
 }
+/* New style for the Discord button */
+.action-btn.discord-btn {
+    background-color: #5865F2; /* Discord's brand color */
+    color: #fff;
+}
+.action-btn.discord-btn:hover {
+    background-color: #4a54d6;
+}
+/* New style for the save button in the modal */
+.action-btn.save-btn {
+    background-color: #00a8ff;
+    color: #222;
+}
+.action-btn.save-btn:hover {
+    background-color: #0086d1;
+}
 
 .error-message {
     color: #ff4d4d;
@@ -217,6 +233,29 @@ body::before {
 .modal-action-area { text-align: center; padding-top: 20px; flex-shrink: 0; }
 .action-btn.download-btn { background-color: #00a8ff; color: #222; }
 .action-btn.download-btn:hover { background-color: #0086d1; }
+/* New styles for the settings modal */
+#discordSettingsModal .modal-content {
+    max-width: 500px;
+}
+#discordSettingsModal .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+#discordSettingsModal .modal-text {
+    font-size: 1rem;
+    color: #ccc;
+    text-align: center;
+}
+#discordSettingsModal .note {
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+    margin-top: -10px;
+}
+#discordSettingsModal .input-field {
+    max-width: unset;
+}
 
 /* Loading Spinner Styles */
 .loading-overlay {
@@ -251,7 +290,6 @@ body::before {
 ::-webkit-scrollbar-corner {
     background: #222;
 }
-
 
 /* --- Media Queries --- */
 @media (max-width: 920px) {

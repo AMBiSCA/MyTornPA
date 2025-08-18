@@ -91,6 +91,7 @@
 
             <div class="action-buttons-container">
                 <button id="fetchFairFight" class="action-btn fetch-btn">Generate Fair Fight Report</button>
+                <button id="showDiscordSettings" class="action-btn discord-btn" style="display: none;">Discord Reminders</button>
             </div>
             <div id="main-error-feedback" class="error-message"></div>
 
@@ -126,6 +127,24 @@
             </div>
             <div class="modal-action-area">
                 <button id="downloadReportBtn" class="action-btn download-btn">Download Report</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="discordSettingsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeDiscordSettingsModal()">&times;</button>
+            <h3 class="modal-title">Discord Reminder Settings</h3>
+            <div class="modal-body">
+                <p class="modal-text">Enter the webhook URL for your Discord channel to send automated reminders.</p>
+                <div class="input-field">
+                    <label for="webhookUrlInput">Discord Webhook URL:</label>
+                    <input type="text" id="webhookUrlInput" placeholder="https://discord.com/api/webhooks/..." />
+                </div>
+                <p class="modal-text note">Only leaders and co-leaders will see this option.</p>
+            </div>
+            <div class="modal-action-area">
+                <button id="saveWebhookBtn" class="action-btn save-btn">Save Webhook URL</button>
             </div>
         </div>
     </div>
