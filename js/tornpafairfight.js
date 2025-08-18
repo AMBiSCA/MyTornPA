@@ -34,8 +34,8 @@ async function getTornApiKey() {
     }
 }
 
-// Function to get the currently logged-in user's total battle stats
-async function getCurrentUserTotalStats() {
+// MODIFIED: Renamed and now returns an object with tornId and totalStats
+async function getLoggedInUserInfo() {
     if (!isFirebaseInitialized() || !firebase.auth().currentUser) {
         showMainError('You must be logged in to generate a personalized report.');
         return null;
@@ -43,7 +43,6 @@ async function getCurrentUserTotalStats() {
     const currentUser = firebase.auth().currentUser;
 
     try {
-        // Step 1: Get Firebase UID -> Torn Profile ID from 'userProfiles' collection
         const userProfileRef = firebase.firestore().collection('userProfiles').doc(currentUser.uid);
         const userProfileDoc = await userProfileRef.get();
 
@@ -57,7 +56,6 @@ async function getCurrentUserTotalStats() {
             return null;
         }
 
-        // Step 2: Get Torn Profile ID -> Battle Stats Total from 'users' collection
         const userStatsRef = firebase.firestore().collection('users').doc(tornProfileId.toString());
         const userStatsDoc = await userStatsRef.get();
 
@@ -72,11 +70,14 @@ async function getCurrentUserTotalStats() {
             return null;
         }
 
-        return battleStats.total;
+        return {
+            tornId: tornProfileId.toString(),
+            totalStats: battleStats.total
+        };
 
     } catch (error) {
         showMainError(`Error fetching your stats: ${error.message}`);
-        console.error('Error in getCurrentUserTotalStats:', error);
+        console.error('Error in getLoggedInUserInfo:', error);
         return null;
     }
 }
@@ -89,7 +90,6 @@ const ONE_HOUR = 60 * 60 * 1000;
 function getFairFightFromCache(playerId) {
     const cachedData = localStorage.getItem(`tornpda-ff-${playerId}`);
     if (!cachedData) return null;
-
     try {
         const parsed = JSON.parse(cachedData);
         if (parsed && parsed.expiry && parsed.expiry > Date.now()) {
@@ -141,16 +141,12 @@ async function fetchFairFightData(playerIds, apiKey) {
         if (apiResponse.error) {
             throw new Error(`FF Scouter API error: ${apiResponse.error}`);
         }
-
         apiResponse.forEach(result => {
             if (result.player_id) {
                 saveFairFightToCache(result.player_id, result);
             }
         });
-
-        // Combine new and old data
         return playerIds.map(id => getFairFightFromCache(id));
-
     } catch (error) {
         console.error("Error fetching Fair Fight data:", error);
         return playerIds.map(id => {
@@ -164,15 +160,15 @@ async function fetchFairFightData(playerIds, apiKey) {
 // Fair Fight styling logic
 function getFairFightColor(value) {
     let r, g, b;
-    if (value <= 1) {
+    if (value <= 1.25) { // Adjusted to match "Easy" tier
         r = 0x28; g = 0x28; b = 0xc6; // Blue
-    } else if (value <= 3) {
-        const t = (value - 1) / 2;
+    } else if (value <= 2.5) { // Adjusted for "Medium"
+        const t = (value - 1.25) / 1.25;
         r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
-    } else if (value <= 5) {
-        const t = (value - 3) / 2;
+    } else if (value <= 4) { // Adjusted for "Hard"
+        const t = (value - 2.5) / 1.5;
         r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
-    } else {
+    } else { // Impossible
         r = 0xc6; g = 0x28; b = 0x28; // Red
     }
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
@@ -186,7 +182,7 @@ function getContrastColor(hex) {
     return brightness > 126 ? "black" : "white";
 }
 
-// MODIFIED: This function now returns words instead of numbers
+// MODIFIED: This function now returns words based on the new tiers
 function getFFDisplayValue(ffResponse) {
     if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') {
         return "N/A";
@@ -194,14 +190,14 @@ function getFFDisplayValue(ffResponse) {
 
     const value = ffResponse.value;
 
-    // Final Word Tiers based on our discussion
-    if (value <= 1.0) {
+    // Final Word Tiers with expanded "Easy" category
+    if (value <= 1.25) {
         return "Easy";
-    } else if (value <= 2.25) {
+    } else if (value <= 2.50) {
         return "Medium";
-    } else if (value <= 3.50) {
+    } else if (value <= 4.00) {
         return "Hard";
-    } else { // value > 3.50
+    } else { // value > 4.00
         return "Impossible";
     }
 }
@@ -269,29 +265,22 @@ async function generateFairFightReport() {
 
     showLoadingSpinner();
 
-    // The user must be logged in to proceed.
-    const currentUser = firebase.auth().currentUser;
-    if (!currentUser) {
-        showMainError('You must be logged in to view a report.');
+    // Get all necessary info about the logged-in user.
+    const loggedInUserInfo = await getLoggedInUserInfo();
+    if (!loggedInUserInfo) {
         hideLoadingSpinner();
-        return;
+        return; // Error shown in helper
     }
-
-    // Check if the logged-in user is the site owner.
+    
+    const currentUser = firebase.auth().currentUser;
     const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93';
     const isOwnerViewing = currentUser.uid === ownerUid;
-
-    // Visitors need their stats for the personalized calculation.
+    
     let visitorTotalStats = null;
     if (!isOwnerViewing) {
-        visitorTotalStats = await getCurrentUserTotalStats();
-        if (visitorTotalStats === null) {
-            hideLoadingSpinner();
-            return; // Error is shown by the helper function.
-        }
+        visitorTotalStats = loggedInUserInfo.totalStats;
     }
 
-    // The site's API key is always used for the external API call.
     const tornApiKey = await getTornApiKey();
     if (!tornApiKey) {
         hideLoadingSpinner();
@@ -334,20 +323,9 @@ async function generateFairFightReport() {
 
         let finalResults;
 
-        // THE TWO-RULE SYSTEM: Decide which scores to show.
         if (isOwnerViewing) {
-            // Rule 1: The owner sees the original, unchanged data from the API.
-            // We need to convert the numbers to words for the owner, too.
-            finalResults = ffResultsFromApi.map(targetData => {
-                 if (targetData.error || targetData.no_data || !targetData.value) {
-                    return targetData;
-                }
-                // The owner sees the API's raw number, but we still need to convert it to words
-                // for the new display. We will use the same tiers.
-                return { ...targetData, value: targetData.value }; // No change to value needed before display
-            });
+            finalResults = ffResultsFromApi;
         } else {
-            // Rule 2: Visitors get the new, personalized calculation.
             finalResults = ffResultsFromApi.map(targetData => {
                 if (targetData.error || targetData.no_data || !targetData.bs_estimate) {
                     return targetData;
@@ -357,10 +335,8 @@ async function generateFairFightReport() {
                 let finalScore;
 
                 if (baseScore <= 1) {
-                    // Rule for easy/equal targets: clamp the score at 1.00
                     finalScore = 1.0;
                 } else {
-                    // Rule for hard targets: stretch the score to make it more dramatic
                     const difficultyMultiplier = 6;
                     finalScore = 1 + (baseScore - 1) * difficultyMultiplier;
                 }
@@ -369,7 +345,6 @@ async function generateFairFightReport() {
             });
         }
 
-        // Fetch names for all players
         const userNames = new Map();
         if (factionIdInput) {
             const factionApiUrl = `https://api.torn.com/faction/${factionIdInput}?selections=basic&key=${tornApiKey}`;
@@ -387,13 +362,15 @@ async function generateFairFightReport() {
             userNames.set(userIdInput, userData.name);
         }
 
-        // Sort results alphabetically by name
         const sortedResults = finalResults.map((ffData, index) => {
             const userId = playerIdsToFetch[index];
             return { userId, ffData, name: userNames.get(userId) || `User ${userId}` };
         }).sort((a, b) => a.name.localeCompare(b.name));
 
-        displayReport(sortedResults, reportTitle);
+        // NEW: Filter the logged-in user out of the final results.
+        const filteredResults = sortedResults.filter(item => item.userId !== loggedInUserInfo.tornId);
+
+        displayReport(filteredResults, reportTitle);
 
     } catch (error) {
         showMainError(`Error: ${error.message}`);
@@ -419,7 +396,8 @@ function displayReport(results, title) {
     }
 
     reportTarget.textContent = title;
-    memberCount.textContent = results.length > 1 ? `Members: ${results.length}` : '';
+    // MODIFIED: Update member count based on the filtered list
+    memberCount.textContent = `Members: ${results.length}`;
     
     results.forEach(item => {
         const row = tableBody.insertRow();
@@ -434,7 +412,6 @@ function displayReport(results, title) {
 
         const ffCell = row.insertCell();
         if (fairFightData && !fairFightData.error) {
-            // This function now returns a word, but the color is still based on the underlying number.
             const displayValue = getFFDisplayValue(fairFightData); 
             const colors = getFFDisplayColor(fairFightData);
             ffCell.textContent = displayValue;
