@@ -92,7 +92,6 @@ h2 {
     border-radius: 8px;
     padding: 15px;
     flex-grow: 1;
-    min-height: 400px;
     box-sizing: border-box;
     overflow: hidden;
     display: flex;
