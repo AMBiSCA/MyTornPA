@@ -95,7 +95,7 @@ exports.handler = async (event, context) => {
             const userBasicInfoRef = db.collection('users').doc(String(tornProfileId)); // Document ID is Torn Player ID
             const updateBasicInfoData = {
                 profile_image: profile_image !== undefined ? profile_image : null, // NEW: Add profile_image
-                name: name !== undefined ? name : null,                             // NEW: Add Torn name
+                name: name !== undefined ? name : null,                             // NEW: Add  name
                 lastUpdated: admin.firestore.FieldValue.serverTimestamp()          // To track freshness of this basic data
             };
             // Use 'set' with 'merge: true' to create/update the document
