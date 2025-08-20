@@ -10,7 +10,9 @@ html, body {
     color: #eee; /* Default text color for the whole site */
 }
 
-
+.body-hidden {
+  display: none !important;
+}
 
 
 body {
