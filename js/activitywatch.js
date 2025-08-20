@@ -1004,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function() {
             userDidConfirm = true;
         } else {
             closeReportModal();
-            userDidConfirm = await showGlobalConfirm("Are you sure you want to clear all historical data? This cannot be undone.");
+            const userDidConfirm = skipConfirmation || window.confirm("Are you sure you want to clear all historical data? This cannot be undone.");
         }
 
         if (userDidConfirm) {
