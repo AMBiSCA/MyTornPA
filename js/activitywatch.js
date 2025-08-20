@@ -31,11 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
     const factionNameDisplay = document.getElementById('factionNameDisplay');
     const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
-    
-    // Original page containers we need to reorganize
-    const activityPeeperContainer = document.getElementById('activityPeeperContainer');
-    const topControlPanel = document.getElementById('topControlPanel');
-    const chartsGridArea = document.getElementById('chartsGridArea');
 
     // --- 2. Global Variables & State ---
     let rawActivityChartInstance = null;
@@ -49,96 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOCAL_STORAGE_KEY = 'factionActivityData';
     let historicalData = [];
     const SKIP_CONFIRM_KEY = 'skipClearConfirmation';
-
-
-    // --- NEW: Dynamic Content Reorganization for Mobile ---
-    function reorganizeContentForMobile() {
-        if (!activityPeeperContainer || !topControlPanel || !chartsGridArea) {
-            console.error("Missing core container elements for reorganization.");
-            return;
-        }
-
-        // 1. Create the mobile tabs container and buttons
-        const tabButtonsContainer = document.createElement('div');
-        tabButtonsContainer.id = 'mobileTabs';
-        tabButtonsContainer.className = 'mobile-tabs-container';
-        activityPeeperContainer.prepend(tabButtonsContainer);
-
-        const setupButton = createTabButton('Setup', 'setup-tab');
-        const overallButton = createTabButton('Overall', 'overall-tab');
-        const individualsButton = createTabButton('Individuals', 'individuals-tab');
-        tabButtonsContainer.appendChild(setupButton);
-        tabButtonsContainer.appendChild(overallButton);
-        tabButtonsContainer.appendChild(individualsButton);
-
-        // 2. Create the tab content containers
-        const setupContent = createTabContent('setup-tab');
-        const overallContent = createTabContent('overall-tab');
-        const individualsContent = createTabContent('individuals-tab');
-        activityPeeperContainer.appendChild(setupContent);
-        activityPeeperContainer.appendChild(overallContent);
-        activityPeeperContainer.appendChild(individualsContent);
-        
-        // 3. Move the existing content into the new containers
-        setupContent.appendChild(topControlPanel);
-        
-        const overallCharts = [
-            document.getElementById('rawActivityChart').parentNode,
-            document.getElementById('activityDifferenceChart').parentNode
-        ];
-        overallCharts.forEach(chartPanel => overallContent.appendChild(chartPanel));
-        
-        const individualCharts = [
-            document.getElementById('myFactionIndividualsChart').parentNode,
-            document.getElementById('enemyFactionIndividualsChart').parentNode
-        ];
-        individualCharts.forEach(chartPanel => individualsContent.appendChild(chartPanel));
-
-        // 4. Add click handlers to the new tabs
-        const allButtons = tabButtonsContainer.querySelectorAll('.tab-button');
-        const allContents = activityPeeperContainer.querySelectorAll('.tab-content');
-        
-        allButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTabId = button.dataset.tab;
-                
-                allButtons.forEach(btn => btn.classList.remove('active'));
-                allContents.forEach(content => content.classList.remove('active'));
-                
-                button.classList.add('active');
-                const targetContent = document.getElementById(targetTabId);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-            });
-        });
-
-        // Set the initial active tab
-        setupButton.classList.add('active');
-        setupContent.classList.add('active');
-    }
-
-    function createTabButton(text, targetId) {
-        const button = document.createElement('button');
-        button.className = 'tab-button';
-        button.textContent = text;
-        button.dataset.tab = targetId;
-        return button;
-    }
-    
-    function createTabContent(id) {
-        const content = document.createElement('div');
-        content.id = id;
-        content.className = 'tab-content';
-        return content;
-    }
-
-    // Check if on a mobile screen to run the reorganization
-    if (window.innerWidth <= 768) {
-        reorganizeContentForMobile();
-    }
-    // --- END NEW: Dynamic Content Reorganization for Mobile ---
-
 
     function saveSessionState(state) {
         localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(state));
@@ -410,48 +315,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCharts() {
-        if (historicalData.length === 0) {
-            destroyCharts();
-            return;
-        }
-        const l = historicalData.map(r => r.formattedTime);
-        const my = historicalData.map(r => r.myFaction.activeMembers);
-        const en = historicalData.map(r => r.enemyFaction.activeMembers);
-        const d = historicalData.map(r => r.activityDifference);
+    if (historicalData.length === 0) {
         destroyCharts();
-        rawActivityChartInstance = initializeChart(rawActivityChartCanvas, 'line', {
-            labels: l,
-            datasets: [{
-                label: 'My Faction',
-                data: my,
-                borderColor: '#00a8ff',
-                backgroundColor: 'rgba(0,168,255,0.2)',
-                tension: 0.3,
-                fill: true
-            }, {
-                label: 'Enemy Faction',
-                data: en,
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220,53,69,0.2)',
-                tension: 0.3,
-                fill: true
-            }]
-        }, getChartOptions('Raw Activity Data'));
-        activityDifferenceChartInstance = initializeChart(activityDifferenceChartCanvas, 'bar', {
-            labels: l,
-            datasets: [{
-                label: 'Activity Difference',
-                data: d,
-                backgroundColor: d.map(v => v >= 0 ? 'rgba(0, 168, 255, 0.2)' : 'rgba(220, 53, 69, 0.2)'),
-                borderColor: d.map(v => v >= 0 ? '#00a8ff' : '#dc3545')
-            }]
-        }, getChartOptions('Activity Difference'));
-        myFactionIndividualsChartInstance = initializeChart(myFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('My Faction Individuals'));
-        enemyFactionIndividualsChartInstance = initializeChart(enemyFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('Enemy Faction Individuals'));
-        updateIndividualCharts();
+        return;
     }
+    const l = historicalData.map(r => r.formattedTime);
+    const my = historicalData.map(r => r.myFaction.activeMembers);
+    const en = historicalData.map(r => r.enemyFaction.activeMembers);
+    const d = historicalData.map(r => r.activityDifference);
+    destroyCharts();
+    rawActivityChartInstance = initializeChart(rawActivityChartCanvas, 'line', {
+        labels: l,
+        datasets: [{
+            label: 'My Faction',
+            data: my,
+            borderColor: '#00a8ff',
+            backgroundColor: 'rgba(0,168,255,0.2)',
+            tension: 0.3,
+            fill: false
+        }, {
+            label: 'Enemy Faction',
+            data: en,
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220,53,69,0.2)',
+            tension: 0.3,
+            fill: false
+        }]
+    }, getChartOptions('Raw Activity Data'));
+    activityDifferenceChartInstance = initializeChart(activityDifferenceChartCanvas, 'bar', {
+        labels: l,
+        datasets: [{
+            label: 'Activity Difference',
+            data: d,
+            backgroundColor: d.map(v => v >= 0 ? 'rgba(0, 168, 255, 0.2)' : 'rgba(220, 53, 69, 0.2)'),
+            borderColor: d.map(v => v >= 0 ? '#00a8ff' : '#dc3545')
+        }]
+    }, getChartOptions('Activity Difference'));
+    myFactionIndividualsChartInstance = initializeChart(myFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('My Faction Individuals'));
+    enemyFactionIndividualsChartInstance = initializeChart(enemyFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('Enemy Faction Individuals'));
+    updateIndividualCharts();
+}
 
-    // REPLACE your entire fetchAndProcessFactionActivity function with this one
     async function fetchAndProcessFactionActivity() {
         updateStatus("Running.", 'info', "Fetching data...");
         try {
@@ -541,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         stopAutoStopTimer();
         clearSessionState();
-        
+
         myFactionIDInput.value = '';
         enemyFactionIDInput.value = '';
 
@@ -679,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!memberDetails) return;
             const factionName = historicalData[0]?.[factionType].name || (factionType === 'myFaction' ? 'My Faction' : 'Enemy Faction');
             reportContent += `--- ${factionName}: ${memberDetails.name} [${memberDetails.id}] ---\n`;
-            
+
             let totalActiveIntervals = 0;
             let totalIntervalsTracked = 0;
             historicalData.forEach(record => {
@@ -700,10 +604,12 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         addMemberDataToReport(myMemberDetails, 'myFaction');
         addMemberDataToReport(enemyMemberDetails, 'enemyFaction');
-        
+
         closeReportOptionsModal();
 
-        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const blob = new Blob([reportContent], {
+            type: 'text/plain'
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -747,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const latestRecord = historicalData[historicalData.length - 1];
         const firstRecordTime = new Date(historicalData[0].timestamp);
         const lastRecordTime = new Date(latestRecord.timestamp);
-        
+
         // Calculate tracking duration
         const durationMs = lastRecordTime.getTime() - firstRecordTime.getTime();
         const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(1);
@@ -806,10 +712,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortedByAttackAdvantage = [...hourlyAverages].sort((a, b) => b.avgDifference - a.avgDifference);
         const sortedByTurtleAdvantage = [...hourlyAverages].sort((a, b) => a.avgDifference - b.avgDifference);
 
-        const topAttackHours = sortedByAttackAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        const topAttackHours = sortedByAttackAdvantage.slice(0, 3).map(h => h.hour).sort((a, b) => a - b);
         bestAttackWindows = getContiguousRanges(topAttackHours);
 
-        const topTurtleHours = sortedByTurtleAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        const topTurtleHours = sortedByTurtleAdvantage.slice(0, 3).map(h => h.hour).sort((a, b) => a - b);
         bestTurtleWindows = getContiguousRanges(topTurtleHours);
 
         function formatHour(hour) {
@@ -831,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let currentRange = [hours[0]];
 
             for (let i = 1; i < hours.length; i++) {
-                if (hours[i] === hours[i-1] + 1) {
+                if (hours[i] === hours[i - 1] + 1) {
                     currentRange.push(hours[i]);
                 } else {
                     ranges.push(currentRange);
@@ -848,7 +754,11 @@ document.addEventListener('DOMContentLoaded', function() {
         historicalData.forEach(record => {
             record.myFaction.individuals.forEach(member => {
                 if (!myFactionMembersActivity.has(member.id)) {
-                    myFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                    myFactionMembersActivity.set(member.id, {
+                        name: member.name,
+                        totalIntervals: 0,
+                        activeIntervals: 0
+                    });
                 }
                 const data = myFactionMembersActivity.get(member.id);
                 data.totalIntervals++;
@@ -859,7 +769,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             record.enemyFaction.individuals.forEach(member => {
                 if (!enemyFactionMembersActivity.has(member.id)) {
-                    enemyFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                    enemyFactionMembersActivity.set(member.id, {
+                        name: member.name,
+                        totalIntervals: 0,
+                        activeIntervals: 0
+                    });
                 }
                 const data = enemyFactionMembersActivity.get(member.id);
                 data.totalIntervals++;
@@ -932,7 +846,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         reportContent += `\n`;
         closeReportOptionsModal();
-        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const blob = new Blob([reportContent], {
+            type: 'text/plain'
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -991,7 +907,7 @@ document.addEventListener('DOMContentLoaded', function() {
         skipConfirmCheckbox.checked = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         updateStatus("Loading...", 'info', "Initializing application.");
     }
-    
+
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(async function(user) {
             if (user) {
@@ -1057,29 +973,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     stopButton.addEventListener('click', enterStoppedState);
-    
+
     clearDataButton.addEventListener('click', openReportModal);
 
     compareUser1Select.addEventListener('change', updateIndividualCharts);
     compareUser2Select.addEventListener('change', updateIndividualCharts);
 
     reportModalCloseBtn.addEventListener('click', closeReportModal);
-    
+
     downloadReportBtn.addEventListener('click', openReportOptionsModal);
 
     reportOptionsModalCloseBtn.addEventListener('click', closeReportOptionsModal);
 
     generateCustomReportBtn.addEventListener('click', generateAndDownloadFactionWideReport);
-    
+
     compareTwoIndividualsBtn.addEventListener('click', generateAndDownloadIndividualComparisonReport);
 
     reportMyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
     reportEnemyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
-    
+
     skipConfirmCheckbox.addEventListener('change', (e) => {
         localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
     });
-    
+
     confirmClearBtn.addEventListener('click', async () => {
         const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         let userDidConfirm = false;
@@ -1105,33 +1021,170 @@ document.addEventListener('DOMContentLoaded', function() {
             openReportModal();
         }
     });
-    
-    // Run Initial Setup
+
     init();
-
-    // NEW: Tab switching logic for mobile
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    if (tabButtons.length > 0 && tabContents.length > 0) {
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.dataset.tab;
-
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                button.classList.add('active');
-                const newContent = document.getElementById(tabName);
-                if (newContent) {
-                    newContent.classList.add('active');
-                }
-            });
-        });
-    }
 
 });
 
-// Please note that this version of the file does not include the functions that were commented out
-// in your previous provided file for brevity. It is assumed they are not necessary for the
-// functionality you are currently working on.
+// --- START: New Unified Device Blocker ---
+
+// Global variables to hold the two different blocker message elements
+let unavailableBlocker = null;
+let rotateBlocker = null;
+
+/**
+ * Creates the two different overlay messages and adds them to the page.
+ * This function only runs once.
+ */
+function createRequiredOverlays() {
+    // Return if overlays have already been created
+    if (document.getElementById('unavailable-blocker')) return;
+
+    // Shared styles for the new "Return to Home" button
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
+
+    // --- Create the "Feature Unavailable" Blocker ---
+    unavailableBlocker = document.createElement('div');
+    unavailableBlocker.id = 'unavailable-blocker';
+
+    // Create a container for the content
+    const contentWrapper = document.createElement('div');
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'Feature Unavailable on Mobile';
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'For the best experience, this tool is designed for full-size tablets and desktop computers.';
+
+    // Create the button element programmatically
+    const homeButton = document.createElement('a');
+    homeButton.href = 'home.html';
+    homeButton.textContent = 'Go to Homepage';
+
+    // *** THIS IS THE KEY STEP ***
+    // Apply the styles from your object to the button element
+    Object.assign(homeButton.style, buttonStyles);
+
+    // Add a hover effect for the button
+    homeButton.addEventListener('mouseover', () => homeButton.style.backgroundColor = '#0056b3');
+    homeButton.addEventListener('mouseout', () => homeButton.style.backgroundColor = '#007bff');
+
+    // Append all the new elements
+    contentWrapper.appendChild(heading);
+    contentWrapper.appendChild(paragraph);
+    contentWrapper.appendChild(homeButton);
+    unavailableBlocker.appendChild(contentWrapper);
+    document.body.appendChild(unavailableBlocker);
+
+    // --- Create the "Please Rotate" Blocker ---
+    rotateBlocker = document.createElement('div');
+    rotateBlocker.id = 'rotate-blocker';
+    rotateBlocker.innerHTML = `
+        <div>
+		    <div style="transform: rotate(90deg); font-size: 50px; margin-bottom: 20px;">📱</div>
+            <h2>Please Rotate Your Device</h2>
+            <p>This page is best viewed in landscape mode.</p>
+        </div>
+    `;
+    document.body.appendChild(rotateBlocker);
+
+    // --- Add CSS styles for the blockers (Note: .blocker-btn is removed) ---
+    const style = document.createElement('style');
+    style.textContent = `
+        #unavailable-blocker, #rotate-blocker {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #222;
+            color: #eee;
+            text-align: center;
+            z-index: 99999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #unavailable-blocker > div, #rotate-blocker > div {
+            max-width: 95%;
+        }
+        #unavailable-blocker h2, #rotate-blocker h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        #unavailable-blocker p, #rotate-blocker p {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 0.8em;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    `;
+    document.head.appendChild(style);
+}
+/**
+ * The main logic to decide which blocker to show, if any.
+ */
+
+function manageDeviceOverlay() {
+    // Make sure the overlay elements exist
+    createRequiredOverlays();
+
+    // Hide both blockers to reset the state
+    unavailableBlocker.style.display = 'none';
+    rotateBlocker.style.display = 'none';
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // --- FINAL LOGIC ---
+    // A device is considered "tablet-class" if its longest dimension is over a certain threshold.
+    // 1000px is a safe value to distinguish large tablets from even the biggest phones ("phablets").
+    const longestSide = Math.max(viewportWidth, viewportHeight);
+    const isTabletClassDevice = longestSide >= 1000;
+
+    const isPortrait = viewportHeight > viewportWidth;
+
+    if (isTabletClassDevice) {
+        // It's a big tablet or desktop. Only show the blocker when in portrait mode.
+        if (isPortrait) {
+            rotateBlocker.style.display = 'flex';
+        }
+        // In landscape, the page is usable.
+    } else {
+        // It's a phone or a small, unsupported tablet. Always show the "unavailable" blocker.
+        unavailableBlocker.style.display = 'flex';
+    }
+}
+
+let resizeTimer;
+
+/**
+ * A debounced version of the overlay logic that waits for the resize/rotation to finish.
+ */
+function debouncedManageOverlay() {
+    // Clear the old timer to reset the delay
+    clearTimeout(resizeTimer);
+    // Set a new timer to run the function after 100ms
+    resizeTimer = setTimeout(manageDeviceOverlay, 100);
+}
+
+// Run the logic immediately when the page first loads
+document.addEventListener('DOMContentLoaded', manageDeviceOverlay);
+
+// Run the debounced version on resize and orientation change
+window.addEventListener('resize', debouncedManageOverlay);
+window.addEventListener('orientationchange', debouncedManageOverlay);
