@@ -2217,8 +2217,12 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
+.main-content-wrapper.activity-peeper-page {
+    flex-grow: 1; /* Ensures it fills all available space */
+    padding-top: 0;
+    padding-bottom: 0;
 }
+
     /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
 /* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
