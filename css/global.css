@@ -10,9 +10,6 @@ html, body {
     color: #eee; /* Default text color for the whole site */
 }
 
-
-
-
 body {
     display: flex;
     flex-direction: column;
@@ -45,22 +42,24 @@ body::before {
     z-index: -1;
 }
 
-
-/* Hides scrollbar for Firefox and IE/Edge on ALL elements */
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) - Desktop */
+/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY ON DESKTOP */
+::-webkit-scrollbar {
+    width: 10px; height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #2b2b2b; border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+::-webkit-scrollbar-corner {
+    background: #222;
 }
 
-/* Hides scrollbar for Webkit browsers on ALL elements */
-*::-webkit-scrollbar {
-  display: none;
-}
-/* For Firefox */
-/* This hides the scrollbar */
-html {
-  scrollbar-width: none;
-}
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
@@ -200,7 +199,7 @@ header {
     overflow-y: auto; max-height: 300px; padding: 0;
 }
 .header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-track { background: white; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #00a8ff; border-radius: 0 8px 8px 0; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
 .dropdown-content.show { display: block; } /* This is what your JS toggles */
@@ -284,14 +283,11 @@ footer.footer > p {
     line-height: 1.2;
 }
 
-
 /* General Styles for common HTML elements inside main content sections */
 main { /* General main content area styling - might be used on home.html */
     max-width: 1500px; margin: 20px auto; padding: 20px;
     background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
     width: 90%;
-    box-sizing: border-box; /* ADDED: This ensures padding is included in the width, not added to it */
-}
 }
 h2 { color: #007acc; margin-bottom: 20px; font-weight: 600; text-align: center; }
 ul { list-style: none; padding-left: 0; }
@@ -461,7 +457,7 @@ ul li:last-child { border-bottom: none; }
     background-color: #0d1b2a;
     border: 1px solid #415a77;
     border-radius: 5px;
-	align-items: center;
+
     cursor: pointer;
 }
 
@@ -499,95 +495,6 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-/* Specific styling for Faction, Alliance, War, and Global chat panels */
-#faction-chat-panel,
-#alliance-chat-panel,
-#war-chat-panel,
-#global-chat-panel { /* NEW: Global Chat panel */
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-/* We need to make sure the chat-display-area and input are sized correctly now */
-#chat-display-area,
-#alliance-chat-display-area,
-#war-chat-display-area,
-#global-chat-display-area { /* NEW: Global chat display area */
-    flex-grow: 1;
-    padding: 10px;
-    overflow-y: auto;
-    color: #e0e1dd;
-}
-
-/* Styles for the chat display area scrollbar */
-#chat-display-area::-webkit-scrollbar,
-#alliance-chat-display-area::-webkit-scrollbar,
-#war-chat-display-area::-webkit-scrollbar,
-#global-chat-display-area::-webkit-scrollbar, /* NEW: Global chat scrollbar */
-.overview-list-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-#chat-display-area::-webkit-scrollbar-track,
-#alliance-chat-display-area::-webkit-scrollbar-track,
-#war-chat-display-area::-webkit-scrollbar-track,
-#global-chat-display-area::-webkit-scrollbar-track, /* NEW: Global chat scrollbar track */
-.overview-list-container::-webkit-scrollbar-track {
-    background: #1b263b;
-    border-radius: 10px;
-}
-
-#chat-display-area::-webkit-scrollbar-thumb,
-#alliance-chat-display-area::-webkit-scrollbar-thumb,
-#war-chat-display-area::-webkit-scrollbar-thumb,
-#global-chat-display-area::-webkit-scrollbar-thumb, /* NEW: Global chat scrollbar thumb */
-.overview-list-container::-webkit-scrollbar-thumb {
-    background-color: #415a77;
-    border-radius: 10px;
-    border: 2px solid #1b263b;
-}
-
-#chat-display-area::-webkit-scrollbar-thumb:hover,
-#alliance-chat-display-area::-webkit-scrollbar-thumb:hover,
-#war-chat-display-area::-webkit-scrollbar-thumb:hover,
-#global-chat-display-area::-webkit-scrollbar-thumb:hover, /* NEW: Global chat hover thumb */
-.overview-list-container::-webkit-scrollbar-thumb:hover {
-    background-color: #5bc0de;
-}
-
-.chat-input-area {
-    display: flex;
-    padding: 10px;
-    border-top: 1px solid #415a77;
-    flex-shrink: 0;
-}
-
-.chat-text-input {
-    flex-grow: 1;
-    border: 1px solid #778da9;
-    background-color: #e0e1dd;
-    color: #0d1b2a;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.chat-send-btn {
-    margin-left: 10px;
-    padding: 5px 10px;
-    cursor: pointer;
-    background-color: #5bc0de;
-    color: #0d1b2a;
-    border: none;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-    flex-shrink: 0; /* Prevents the button from shrinking */
-}
-
-.chat-send-btn:hover {
-    background-color: #4a9ecf;
 }
 
 /* A utility class to hide elements */
@@ -1693,18 +1600,7 @@ input:checked + .slider:before {
     font-weight: bold;
 }
 
-/* This new rule targets both regular and visited links with the same style */
-.overview-table .overview-name a,
-.overview-table .overview-name a:visited {
-    color: #5bc0de !important; /* The nice blue color you asked for, forced to apply */
-    text-decoration: none !important; /* Removes the underline, forced to apply */
-    transition: color 0.2s; /* Smooth color change on hover */
-}
-
-.overview-table .overview-name a:hover {
-    color: #88d7ff !important; /* A slightly lighter blue on hover */
-    text-decoration: underline !important; /* Add underline on hover for better user feedback */
-}
+.overview-table .overview-name { text-align: left; }
 .overview-table .overview-status {
     white-space: normal; /* Allow the status column to wrap text */
     word-break: break-word;
@@ -1895,12 +1791,16 @@ input:checked + .slider:before {
 #settings-panel .radio-group input[type="radio"] {
     display: none;
 }
-   
-        ;
-    }
-  {    
-        display: none;
+
+/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
+@media only screen and (max-width: 991px) {
+    #globalfooterplaceholder {
+        display: none !important;
     }
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
+        display: none !important;
+    }
+}
 
 
 /* CONSOLIDATED MOBILE MEDIA QUERIES - GLOBAL.CSS */
@@ -1923,6 +1823,13 @@ input:checked + .slider:before {
     body::-webkit-scrollbar,
     html::-webkit-scrollbar {
         display: none !important;
+    }
+
+    /* Set body padding-top equal to the header's height to prevent content from going under it */
+    /* Adjust '115px' (increased from 110px) as needed after testing for top cutoff */
+    body {
+        padding-top: 115px !important; /* INCREASED for more space from top to prevent cutoff */
+        padding-bottom: 0 !important; /* No bottom padding needed from body for fixed footer (if applicable) */
     }
 
     /* HEADER Styles for Mobile (Fixed and Responsive) */
@@ -2028,7 +1935,23 @@ input:checked + .slider:before {
         overflow: visible !important;
     }
 
+    /* Hide the global footer placeholder that might push content down */
+    #globalfooterplaceholder {
+        display: none !important;
+    }
 
+
+    /* Main content wrapper adjustments (to start below fixed header) */
+    .main-content-wrapper {
+        margin-top: 0px !important; /* This should now rely on body padding-top */
+        padding-top: 0px !important; /* Remove any padding that would push content down */
+        padding-left: 15px !important; /* Keep consistent side padding for content */
+        padding-right: 15px !important;
+        
+        /* Hide scrollbars for main content wrapper */
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+    }
     .main-content-wrapper::-webkit-scrollbar {
         display: none !important;
     }
@@ -2053,7 +1976,7 @@ input:checked + .slider:before {
 
     /* General main section styles */
     main {
-        
+        margin-top: 0px !important; /* This should start relative to its parent/body padding */
         margin-left: 15px !important;
         margin-right: 15px !important;
         padding: 25px 20px !important;
@@ -2085,7 +2008,6 @@ input:checked + .slider:before {
     margin: 0 !important;
     background-color: #1b263b !important;
     border-top: 2px solid black;
-	border-Bottom: 3px solid black;
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
@@ -2217,12 +2139,8 @@ input:checked + .slider:before {
         display: none !important;
     }
 
-.main-content-wrapper.activity-peeper-page {
-    flex-grow: 1; /* Ensures it fills all available space */
-    padding-top: 0;
-    padding-bottom: 0;
+    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
-
     /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
 }
 /* Specific Mobile Adjustments for Smaller Phones (if needed, keep separate) */
@@ -2239,294 +2157,9 @@ input:checked + .slider:before {
     .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
 }
 
-/* =================================== */
-/* === Tablet Header Customization === */
-/* =================================== */
-@media (min-width: 769px) and (max-width: 1024px) {
 
-  /* Hide the large center logo and the tagline text */
-  header .header-center,
-  header .tagline {
-    display: none !important;
-  }
-
-  /* Make the main header a flexible container */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-  }
-
-  /* Hide the text inside the header buttons */
-  header .header-btn .btn-text {
-    display: none;
-  }
-
-  /* General style for ALL tablet header buttons */
-  header .header-btn {
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%; /* Default to a circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* --- UPDATED BLUE STYLE --- */
-    background-color: rgba(0, 168, 255, 0.1);
-    border: 1px solid #00a8ff;
-    transition: background-color 0.2s ease;
-  }
-  
-  /* Add a hover effect for interactivity */
-  header .header-btn:hover {
-      background-color: rgba(0, 168, 255, 0.25);
-  }
-  
-  /* Make sure the icons inside are centered */
-  header .header-btn .btn-icon {
-    margin: 0;
-    font-size: 1.3em;
-  }
-  
-  /* Adjust the spacing for the dropdowns and buttons */
-  header .header-buttons {
-    gap: 12px;
-  }
-
-  /* --- NEW RULE for the wider middle buttons --- */
-  #usefulLinksBtn,
-  #headerContactUsBtn {
-    width: auto; /* Let the button grow */
-    padding: 0 12px; /* Add horizontal padding */
-    border-radius: 22px; /* Make it a "pill" shape */
-  }
-}
-
-/* Force Footer to be Visible in Landscape Mode */
-.landscape-active footer {
-    display: block !important;
-	
-}
-
-
-@media (min-width: 769px) and (max-width: 1024px) {
-
-  /* Make the main chat container full-width at the bottom */
-  #tornpa-chat-system {
-    bottom: 0 !important;
-    right: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-  }
-
-  /* Make the collapsed bar itself full-width */
-   #chat-bar-collapsed {
-    position: static !important;
-    width: 100% !important;
-    border-radius: 0 !important;
-    padding: 8px 10px !important;   
-    display: flex; /* Make sure it's a flex container */
-    justify-content: center !important; /* This centers the icons */
-    gap: 20px !important; /* This adds space between them */
-	border-top: 2px solid black;
-	border-Bottom: 3px solid black;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
-	
-  }
-  /* Add space to the bottom of the page so the bar doesn't hide content */
-  body {
-    padding-bottom: 50px !important; /* Adjust 50px if you need more/less space */
-	padding-top: 50px !important;
-  }
-}
-
-@media (max-width: 1024px) {
-    /* Hide the text part of all header buttons definitively on small screens */
-    header .btn-text {
+@media only screen and (max-width: 991px) {
+    body:not(.page-index) .footer {
         display: none !important;
-       }
-    body {
-        padding-top: 115px; /* Adjust this value if needed */
     }
-    
-    
-
-    /* Style the circular, icon-only buttons for small screens */
-    .home-header .header-buttons .btn,
-    .other-pages-header .header-buttons .btn:not(#usefulLinksBtn):not(#contactUsBtn) {
-        min-width: 44px;
-        height: 44px;
-        padding: 0;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 168, 255, 0.1);
-        border: 1px solid #00a8ff;
-    }
-
-    /* Style the pill-shaped buttons (Useful Links and Contact) for small screens */
-    .home-header .header-buttons #usefulLinksBtn,
-    .home-header .header-buttons #headerContactUsBtn,
-    .other-pages-header .header-buttons #usefulLinksBtn,
-    .other-pages-header .header-buttons #contactUsBtn {
-        width: auto;
-        padding: 0 12px;
-        border-radius: 22px;
-        height: 40px;
-        background-color: rgba(0, 168, 255, 0.1);
-        border: 1px solid #00a8ff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    /* Ensure the icons inside the buttons are correctly sized and positioned */
-    .home-header .btn .btn-icon,
-    .other-pages-header .btn .btn-icon {
-        font-size: 1.6em;
-        line-height: 1;
-        margin: 0;
-    }
-}
-/* --- Header Toggle Functionality (Simple Method) --- */
-
-/* 1. By default, the toggle button is hidden on desktop. */
-.header-toggle-button {
-    display: none;
-    font-size: 20px;
-    padding: 5px 15px;
-    cursor: pointer;
-    background: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 8px;
-    margin: 10px auto; /* Adds some space and centers it */
-}
-
-/* 2. Media query to apply styles only on tablet/mobile */
-@media (max-width: 768px) {
-
-    /* On mobile, show the toggle button. */
-    .header-toggle-button {
-        display: block;
-    }
-
-    /* 3. This is the magic for the collapsed state */
-    /* When collapsed, hide all direct children of the header... */
-    header.header-collapsed > * {
-        display: none;
-    }
-
-    /* ...BUT, make an exception and keep the toggle button visible! */
-    header.header-collapsed > .header-toggle-button {
-        display: block;
-        transform: rotate(180deg); /* Flips the arrow to point down */
-    }
-}
-
- footer.footer {
-        height: auto !important;         /* Let the footer's height be determined by its content */
-        padding-top: 10px !important;     /* Adjust top padding for balance */
-        padding-bottom: 10px !important;  /* Increase bottom padding to push all content up and into view */
-    }
-
-    body {
-        /* This rule might already exist in your media query. If so, just update padding-bottom. */
-        /* It adds space at the very bottom of the page for the new, taller footer */
-        padding-bottom: 85px !important;
-    }
-	
-	
-/* Hide footer on touchscreen devices (phones/tablets) in landscape mode */
-@media (pointer: coarse) and (orientation: landscape) {
-  footer.footer {
-    display: none;
-  }
-}
-/* ================================================== */
-/* == EYE-SOOTHING THEME (ACCENT COLOR SWAP V3) == */
-/* ================================================== */
-
-body.eye-soothing-mode {
-    /* -- WARNING: This will make accents invisible on your dark theme -- */
-    --soothing-accent: #000000; /* True black */
-    --soothing-accent-hover: #111111; /* Slightly off-black for hover */
-    --soothing-accent-glow: rgba(0, 0, 0, 0); /* Glow is not possible with black */
-}
-
-/* --- 1. UNIVERSAL CONTAINER & TITLE RULES --- */
-
-/* This styles ANY element you give the class "themed-container". */
-body.eye-soothing-mode .themed-container {
-    border-color: var(--soothing-accent) !important; /* Use !important to override any specific panel styles */
-    box-shadow: 0 0 15px var(--soothing-accent-glow) !important;
-}
-
-/* This targets all common heading levels INSIDE a themed container. */
-body.eye-soothing-mode .themed-container h2,
-body.eye-soothing-mode .themed-container h3,
-body.eye-soothing-mode .themed-container h4,
-body.eye-soothing-mode .themed-container .panel-title { /* A fallback class */
-    color: var(--soothing-accent);
-}
-
-/* --- 2. GLOBAL STYLES (Header, Footer, Buttons, etc.) --- */
-
-/* Header and footer borders */
-body.eye-soothing-mode header,
-body.eye-soothing-mode footer.footer {
-    border-color: var(--soothing-accent);
-}
-
-/* General text links and modal close buttons */
-body.eye-soothing-mode .header-left h1,
-body.eye-soothing-mode footer.footer .footer-links a,
-body.eye-soothing-mode .modal-content .modal-close-btn {
-    color: var(--soothing-accent);
-}
-
-/* Table links, etc. */
-body.eye-soothing-mode .overview-table .overview-name a, 
-body.eye-soothing-mode .overview-table .overview-name a:visited {
-    color: var(--soothing-accent) !important;
-}
-
-/* General buttons and inputs */
-body.eye-soothing-mode .btn,
-body.eye-soothing-mode .custom-input:focus,
-body.eye-soothing-mode .dropdown-content,
-body.eye-soothing-mode .modal-content,
-body.eye-soothing-mode .modal-content-box {
-    border-color: var(--soothing-accent);
-}
-
-body.eye-soothing-mode .btn:not(:disabled):hover,
-body.eye-soothing-mode .btn:not(:disabled):focus {
-    border-color: var(--soothing-accent-hover);
-    box-shadow: 0 1px 2px 0 var(--soothing-accent-glow), 0 1px 3px 1px var(--soothing-accent-glow);
-}
-
-/* Glow effects */
-body.eye-soothing-mode .image-glow,
-body.eye-soothing-mode .image-glow-flipped {
-    filter: drop-shadow(0px 0px 12px var(--soothing-accent));
-}
-body.eye-soothing-mode #headerMainLogo {
-    filter: drop-shadow(0px 0px 8px var(--soothing-accent-glow));
-}
-
-/* --- 3. SPECIFIC ELEMENT STYLES (NEWLY ADDED) --- */
-
-/* This targets the sub-headings in the "Explore Your Tools" panel */
-body.eye-soothing-mode .tool-category-header {
-    color: var(--soothing-accent);
-}
-
-/* This targets the "TornCityTime" text */
-body.eye-soothing-mode #tornTimeContainer {
-    color: var(--soothing-accent);
 }
