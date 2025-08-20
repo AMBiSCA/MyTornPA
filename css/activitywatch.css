@@ -1,10 +1,11 @@
-html, body {
-    height: 100%;
+html,body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
-    padding: 0;
-    overflow-x: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee;
+    overflow-x: hidden;
 }
 
 body {
