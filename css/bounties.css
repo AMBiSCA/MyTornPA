@@ -223,7 +223,7 @@ body {
 @media (max-width: 768px) {
 	
 	 body {
-        overflow-y: auto; /* Allows the body to scroll on screens 768px or smaller */
+        overflow-y: auto !important; /* Allows the body to scroll on screens 768px or smaller */
     }
 	
     .peeper-tool-container.bounty-page {
