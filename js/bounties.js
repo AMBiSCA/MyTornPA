@@ -255,92 +255,91 @@ let rotateBlocker = null;
  * Creates the two different overlay messages and adds them to the page.
  * This function only runs once.
  */
-/**
- * Creates the two different overlay messages and adds them to the page.
- * This function only runs once.
- */
 function createRequiredOverlays() {
-    // Return if overlays have already been created
-    if (document.getElementById('unavailable-blocker')) return;
+    // Return if overlays have already been created
+    if (document.getElementById('unavailable-blocker')) return;
 
-    // --- Create the "Feature Unavailable" Blocker ---
-    unavailableBlocker = document.createElement('div');
-    unavailableBlocker.id = 'unavailable-blocker';
-    unavailableBlocker.innerHTML = `
-        <div>
-            <h2>Feature Unavailable on Mobile</h2>
-            <p>For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
-            <a href="home.html" class="blocker-btn">Go to Homepage</a>
-        </div>
-    `;
-    document.body.appendChild(unavailableBlocker);
+    // --- Create the "Feature Unavailable" Blocker ---
+    unavailableBlocker = document.createElement('div');
+    unavailableBlocker.id = 'unavailable-blocker';
+    unavailableBlocker.innerHTML = `
+        <div>
+            <h2>Feature Unavailable on Mobile</h2>
+            <p>For the best experience, this tool is designed for full-size tablets and desktop computers.</p>
+            <a href="home.html" class="blocker-btn">Go to Homepage</a>
+        </div>
+    `;
+    document.body.appendChild(unavailableBlocker);
 
-    // --- Create the "Please Rotate" Blocker ---
-    rotateBlocker = document.createElement('div');
-    rotateBlocker.id = 'rotate-blocker';
-    rotateBlocker.innerHTML = `
-        <div>
-            <h2>Please Rotate Your Device</h2>
-            <p>This page is best viewed in landscape mode.</p>
-        </div>
-    `;
-    document.body.appendChild(rotateBlocker);
+    // --- Create the "Please Rotate" Blocker ---
+    rotateBlocker = document.createElement('div');
+    rotateBlocker.id = 'rotate-blocker';
+    rotateBlocker.innerHTML = `
+        <div>
+            <h2>Please Rotate Your Device</h2>
+            <p>This page is best viewed in landscape mode.</p>
+        </div>
+    `;
+    document.body.appendChild(rotateBlocker);
 
-    // --- Add CSS styles for both blockers ---
-    const style = document.createElement('style');
-    style.textContent = `
-        #unavailable-blocker, #rotate-blocker {
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            justify-content: center; /* Vertical Center */
-            align-items: center;     /* Horizontal Center */
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: #222;
-            color: #eee;
-            text-align: center;
-            z-index: 99999;
-            padding: 20px;
-            box-sizing: border-box; /* Ensures padding doesn't affect dimensions */
-        }
-        /* Target the content inside the blocker for precise centering */
-        #unavailable-blocker > div, #rotate-blocker > div {
-            max-width: 95%;
-        }
-        #unavailable-blocker h2, #rotate-blocker h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        /* --- THIS IS THE NEW RULE TO ENSURE THE HEADING IS BLUE --- */
-        #unavailable-blocker h2 {
+    // --- Add CSS styles for both blockers ---
+    const style = document.createElement('style');
+    style.textContent = `
+        #unavailable-blocker, #rotate-blocker {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center; /* Vertical Center */
+            align-items: center;     /* Horizontal Center */
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #222;
+            color: #eee;
+            text-align: center;
+            z-index: 99999;
+            padding: 20px;
+            box-sizing: border-box; /* Ensures padding doesn't affect dimensions */
+        }
+        /* Target the content inside the blocker for precise centering */
+        #unavailable-blocker > div, #rotate-blocker > div {
+            max-width: 95%;
+        }
+        #unavailable-blocker h2, #rotate-blocker h2 {
+            margin-top: 0;
+            margin-bottom: 10px;			
+        }
+		
+		#unavailable-blocker h2 {
             color: #00a8ff;
         }
-        #unavailable-blocker p, #rotate-blocker p {
-            margin-top: 0;
-            margin-bottom: 25px; /* Added more space before button */
-            font-size: 0.8em;
-            max-width: 90%;
-            margin-left: auto; /* Helps ensure centering */
-            margin-right: auto; /* Helps ensure centering */
-        }
-        .blocker-btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #00a8ff;
-            color: #1a1a1a;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s ease;
-        }
-        .blocker-btn:hover {
-            background-color: #4dc4ff;
-        }
-    `;
-    document.head.appendChild(style);
+		
+        #unavailable-blocker p, #rotate-blocker p {
+            margin-top: 0;
+            margin-bottom: 25px; /* Added more space before button */
+            font-size: 0.8em;
+            max-width: 90%;
+            margin-left: auto; /* Helps ensure centering */
+            margin-right: auto; /* Helps ensure centering */
+        }
+        .blocker-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #00a8ff;
+            color: #1a1a1a;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+        .blocker-btn:hover {
+            background-color: #4dc4ff;
+        }
+    `;
+    document.head.appendChild(style);
 }
-
+/**
+ * The main logic to decide which blocker to show, if any.
+ */
 function manageDeviceOverlay() {
     // Make sure the overlay elements exist
     createRequiredOverlays();
