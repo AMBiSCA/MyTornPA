@@ -1,4 +1,7 @@
-/* mysite/css/bounties.css */
+
+body {
+    overflow-y: hidden; /* Hides the vertical scrollbar on the main page */
+}
 
 .peeper-tool-container.bounty-page {
     max-width: 1200px;
