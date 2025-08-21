@@ -1154,6 +1154,11 @@ function createRequiredOverlays() {
             margin-top: 0;
             margin-bottom: 10px;
         }
+		
+           #unavailable-blocker h2 {
+            color: #00a8ff;
+        }
+
         #unavailable-blocker p, #rotate-blocker p {
             margin-top: 0;
             margin-bottom: 25px; /* Added more space before button */

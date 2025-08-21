@@ -515,7 +515,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
         flex: none; /* Remove flex sizing */
         width: 100%; /* Take full width */
         max-width: none;
-        margin-top: 30px;
+        margin-top: 25px;
     }
 
     /* Hide the .gym-section content on screens smaller than 992px */

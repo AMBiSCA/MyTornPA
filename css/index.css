@@ -1111,6 +1111,7 @@ header {
     .index-main-feature-box {
         padding: 20px 15px;
         width: 95%;
+		margin-top: 200px;
     }
     .popup,
     .custom-popup-content {
