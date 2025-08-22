@@ -1130,13 +1130,9 @@ header {
         margin-bottom: 12px;
     }
     .btn-uniform {
- height: auto;
-min-height: 38px;
- font-size: 13px;
- padding: 8px 10px;
- white-space: normal;
- line-height: 1.2;
-}
+        height: 38px;
+        font-size: 13px;
+        padding: 0 10px;
     }
     .btn-uniform .btn-icon.email-icon {
         width: 18px;
