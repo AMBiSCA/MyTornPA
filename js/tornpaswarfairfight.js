@@ -70,6 +70,9 @@ async function populateFactionMembers(factionId) {
 /**
  * Main function to generate the war report.
  */
+/**
+ * Main function to generate the war report.
+ */
 async function generateWarReport() {
     hideMainError();
     const selectedMemberValue = document.getElementById('factionMemberSelect').value;
@@ -94,16 +97,16 @@ async function generateWarReport() {
         const memberProfileDoc = await db.collection('userProfiles').doc(friendlyUid).get();
         if (!memberProfileDoc.exists) throw new Error("Selected member's profile not found.");
         
-        const friendlyApiKey = memberProfileDoc.data().tornApiKey;
+        // We still need the member's name for the report title
         const friendlyName = memberProfileDoc.data().name;
-        if (!friendlyApiKey) throw new Error("The selected member has not set their API key on this site.");
 
+        // We still need the member's stats for the formula
         const memberStatsDoc = await db.collection('users').doc(friendlyTornId).get();
         if (!memberStatsDoc.exists || !memberStatsDoc.data().battlestats) throw new Error("Could not find the selected member's battle stats.");
         const friendlyTotalStats = memberStatsDoc.data().battlestats.total;
 
-        // --- STEP 2: Get the list of enemy members using the site's key ---
-        const siteApiKey = await getTornApiKey(); // This key is for general site use
+        // --- STEP 2: Get the list of enemy members AND the site's main API key ---
+        const siteApiKey = await getTornApiKey(); // This key is for ALL external API calls
         if (!siteApiKey) return; // Error is shown inside the function
 
         const factionApiUrl = `https://api.torn.com/faction/${enemyFactionId}?selections=basic&key=${siteApiKey}`;
@@ -117,8 +120,9 @@ async function generateWarReport() {
 
         if (enemyPlayerIds.length === 0) throw new Error("No members found in the enemy faction.");
 
-        // --- STEP 3: Get Fair Fight data for all enemies using the FRIENDLY member's key ---
-        const ffResultsFromApi = await fetchFairFightData(enemyPlayerIds, friendlyApiKey);
+        // --- STEP 3: Get Fair Fight data using the SITE'S MAIN API KEY ---
+        // THIS IS THE FIX: We use siteApiKey here instead of friendlyApiKey
+        const ffResultsFromApi = await fetchFairFightData(enemyPlayerIds, siteApiKey);
 
         // --- STEP 4: Recalculate scores from the friendly member's perspective using your formula ---
         const finalResults = ffResultsFromApi.map((targetData, index) => {
@@ -144,7 +148,6 @@ async function generateWarReport() {
         hideLoadingSpinner();
     }
 }
-
 
 // --- REUSED/UTILITY FUNCTIONS ---
 
