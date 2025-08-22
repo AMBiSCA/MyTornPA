@@ -396,18 +396,54 @@ function displayReport(results, title) {
 
 // Download functionality
 function downloadReport() {
+    // Find the necessary elements for the screenshot
     const modalContent = document.querySelector('.modal-content');
+    const tableContainer = document.querySelector('#resultsModalOverlay .modal-table-container');
+    const tableElement = document.querySelector('#resultsModalOverlay table');
+    const tableHeaders = document.querySelectorAll('#resultsModalOverlay thead th');
     const downloadBtn = document.getElementById('downloadReportBtn');
-    
+
+    // Check if all elements were found
+    if (!modalContent || !tableContainer || !tableElement || !downloadBtn) {
+        console.error('Error: Could not find all required elements for the download function.');
+        alert('Could not find the table to download. Report cannot be generated.');
+        return;
+    }
+
     downloadBtn.disabled = true;
 
+    // --- Logic from the working script ---
+    // 1. Save all the original styles so we can restore them later
+    const originalModalContentMaxHeight = modalContent.style.maxHeight;
+    const originalTableContainerMaxHeight = tableContainer.style.maxHeight;
+    const originalTableContainerOverflowY = tableContainer.style.overflowY;
+    const originalScrollTop = tableContainer.scrollTop;
+
+    const originalHeaderStyles = [];
+    tableHeaders.forEach(th => {
+        originalHeaderStyles.push({ position: th.style.position, top: th.style.top });
+        th.style.position = 'static'; // Temporarily remove 'sticky' positioning
+    });
+
+    // 2. Modify the styles to expand the container and show the entire table
+    modalContent.style.maxHeight = 'none';
+    tableContainer.style.maxHeight = 'none';
+    tableContainer.style.overflowY = 'visible';
+    tableContainer.scrollTop = 0; // Scroll to the very top
+
+    // Get the full height of the table content
+    const fullTableHeight = tableElement.scrollHeight;
+
     setTimeout(() => {
-        html2canvas(modalContent, {
+        // 3. Take a screenshot of the TABLE ELEMENT itself, not the whole modal
+        html2canvas(tableElement, {
             scale: 2,
             useCORS: true,
             logging: false,
-            allowTaint: true
+            allowTaint: true,
+            height: fullTableHeight // Tell html2canvas to capture the full height
         }).then(function(canvas) {
+            // Create the download link
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             const titleElement = document.getElementById('modal-report-target');
@@ -417,16 +453,25 @@ function downloadReport() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            downloadBtn.disabled = false;
+
         }).catch(error => {
             console.error('Error generating image:', error);
             alert('Failed to generate image. Please try again.');
+        }).finally(() => {
+            // 4. IMPORTANT: Restore all the original styles, whether it succeeded or failed
+            modalContent.style.maxHeight = originalModalContentMaxHeight;
+            tableContainer.style.maxHeight = originalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalTableContainerOverflowY;
+            tableContainer.scrollTop = originalScrollTop;
+
+            tableHeaders.forEach((th, index) => {
+                th.style.position = originalHeaderStyles[index].position;
+            });
+
             downloadBtn.disabled = false;
         });
     }, 100);
 }
-
 // Attach event listeners
 document.addEventListener('DOMContentLoaded', () => {
     const fetchButton = document.getElementById('fetchFairFight');
