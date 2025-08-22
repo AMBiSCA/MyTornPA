@@ -288,9 +288,7 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-    .btn .btn-text {
-        display: none;
-    }
+  
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;
