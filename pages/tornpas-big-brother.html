@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
-	<link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
     <link rel="stylesheet" href="../css/tornpas-big-brother.css">
 </head>
 <body>
@@ -27,9 +27,10 @@
         <div class="main-content-wrapper">
 
             <div class="tab-navigation-bb">
-				<div id="availability-admin-controls" class="admin-controls-placeholder"></div>
+                <div id="availability-admin-controls" class="admin-controls-placeholder"></div>
                 <button class="tab-button-bb active" data-tab="current-stats">Current Stats</button>
                 <button class="tab-button-bb" data-tab="gains-tracking">Gains Tracking</button>
+                <button class="tab-button-bb" data-tab="energy-tracking">Energy Tracking</button>
             </div>
 
             <div class="tab-content-container-bb" id="tabContentContainer">
@@ -37,7 +38,7 @@
                 <div id="current-stats-tab" class="tab-pane-bb active">
                     <div class="table-container">
                         <table class="friendly-members-table" id="friendly-members-table">
-                           <thead>
+                            <thead>
     <tr>
         <th class="col-name">Name</th>
         <th class="col-last-action hide-on-mobile">Last Action</th>
@@ -84,6 +85,33 @@
                     </div>
                 </div>
 
+                <div id="energy-tracking-tab" class="tab-pane-bb">
+                    <div class="gains-tracking-controls">
+                        <p>This tab will show energy spent on gym training over time.</p>
+                        <button id="startEnergyTrackingBtn" class="action-btn-bb">Start Energy Tracking</button>
+                        <button id="stopEnergyTrackingBtn" class="action-btn-bb hidden">Stop Energy Tracking</button>
+                        <div id="energyTrackingStatus">Not currently tracking.</div>
+                        <span id="energyGainsStartedAt"></span>
+                    </div>
+                    <div class="energy-table-container table-container">
+                        <p>No energy data available. Click "Start Energy Tracking" to begin a new session.</p>
+                        <table class="gains-overview-table" id="energy-overview-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Strength Energy</th>
+                                    <th>Dexterity Energy</th>
+                                    <th>Speed Energy</th>
+                                    <th>Defense Energy</th>
+                                    <th>Total Energy Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody id="energy-overview-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
@@ -95,7 +123,7 @@
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
     <script src="../js/global.js"></script> 
-	<script src="../js/tornpas-big-brother.js"></script>
+    <script src="../js/tornpas-big-brother.js"></script>
     <script src="../js/globalfooter.js"></script>
 
 </body>
