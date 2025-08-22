@@ -295,22 +295,4 @@ header {
     }
 }
 
-/* ========================================================== */
-/* === Authentication Visibility Rules === */
-/* ========================================================== */
 
-/* By default (when logged out), hide the logged-in buttons */
-#headerButtonsContainer {
-  display: none;
-}
-
-/* When the user logs in, the JS will add a class to the body tag */
-/* This rule says: when body has that class, SHOW the logged-in buttons */
-body.user-is-logged-in #headerButtonsContainer {
-  display: flex;
-}
-
-/* And HIDE the logged-out button */
-body.user-is-logged-in #signUpButtonHeader {
-  display: none;
-}
