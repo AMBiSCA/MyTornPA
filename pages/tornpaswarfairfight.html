@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TornPDA's War Fair Fight</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/tornpaswarfairfight.css">
+</head>
+<body>
+
+    <script src="../js/auth-guard.js"></script>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+        <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+        <div class="fairfight-tool-container">
+            <h2 class="script-title">Leader's Fair Fight Dashboard</h2>
+        
+            <div id="leader-tool-content" style="display: none;"> <div class="input-group">
+                    <div class="input-field">
+                        <label for="factionMemberSelect">Select a Faction Member:</label>
+                        <select id="factionMemberSelect">
+                            <option value="">Loading members...</option>
+                        </select>
+                    </div>
+                </div>
+        
+                <div class="action-buttons-container">
+                    <button id="getMemberReportBtn" class="action-btn fetch-btn">Get Member's Fair Fight</button>
+                    <button id="downloadAllBtn" class="action-btn download-btn">Download All Members</button>
+                </div>
+            </div>
+            
+            <div id="main-error-feedback" class="error-message"></div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="resultsModalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+            <h3 class="modal-title">TornPDA's Faction Fair Fight</h3>
+            <div class="modal-summary">
+                <p>Report for: <span id="modal-report-target"></span></p>
+                <p id="modal-member-count"></p>
+            </div>
+            <div class="modal-table-container">
+                <table class="modal-table">
+                    <thead id="modal-results-table-header">
+                        <tr>
+                            <th>Name</th>
+                            <th>User ID</th>
+                            <th>Fair Fight</th>
+                            <th>Last Update</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-results-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        </footer>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/tornpaswarfairfight.js"></script>
+</body>
+</html>
