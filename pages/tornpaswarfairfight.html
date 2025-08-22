@@ -21,20 +21,24 @@
         <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
 
         <div class="fairfight-tool-container">
-            <h2 class="script-title">Leader's Fair Fight Dashboard</h2>
+            <h2 class="script-title">Leader's War Dashboard</h2>
         
             <div id="leader-tool-content" style="display: none;"> <div class="input-group">
                     <div class="input-field">
-                        <label for="factionMemberSelect">Select a Faction Member:</label>
+                        <label for="factionMemberSelect">1. Select Your Member (As Attacker):</label>
                         <select id="factionMemberSelect">
                             <option value="">Loading members...</option>
                         </select>
                     </div>
+
+                    <div class="input-field">
+                        <label for="enemyFactionId">2. Enter Enemy Faction ID:</label>
+                        <input type="text" id="enemyFactionId" placeholder="ID of enemy faction" />
+                    </div>
                 </div>
         
                 <div class="action-buttons-container">
-                    <button id="getMemberReportBtn" class="action-btn fetch-btn">Get Member's Fair Fight</button>
-                    <button id="downloadAllBtn" class="action-btn download-btn">Download All Members</button>
+                    <button id="generateReportBtn" class="action-btn fetch-btn">Generate War Report</button>
                 </div>
             </div>
             
@@ -49,7 +53,7 @@
     <div id="resultsModalOverlay" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
-            <h3 class="modal-title">TornPDA's Faction Fair Fight</h3>
+            <h3 class="modal-title">TornPDA's Fair Fight Report</h3>
             <div class="modal-summary">
                 <p>Report for: <span id="modal-report-target"></span></p>
                 <p id="modal-member-count"></p>
@@ -57,12 +61,6 @@
             <div class="modal-table-container">
                 <table class="modal-table">
                     <thead id="modal-results-table-header">
-                        <tr>
-                            <th>Name</th>
-                            <th>User ID</th>
-                            <th>Fair Fight</th>
-                            <th>Last Update</th>
-                        </tr>
                     </thead>
                     <tbody id="modal-results-table-body">
                     </tbody>

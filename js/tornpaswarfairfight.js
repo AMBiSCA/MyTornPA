@@ -1,186 +1,144 @@
+// --- CORRECTED SCRIPT FOR LEADER WAR DASHBOARD ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for Firebase to be ready
     firebase.auth().onAuthStateChanged(async user => {
         if (user) {
-            // User is signed in, start the main logic.
             await initializeLeaderDashboard(user);
         } else {
-            // User is not signed in.
             showMainError("Please log in to access this page.");
         }
     });
 
-    // Attach event listeners to the buttons
-    document.getElementById('getMemberReportBtn').addEventListener('click', getSelectedMemberReport);
-    document.getElementById('downloadAllBtn').addEventListener('click', () => {
-        alert("The 'Download All' feature will be built next!");
-    });
+    document.getElementById('generateReportBtn').addEventListener('click', generateWarReport);
 });
 
-/**
- * Main function to initialize the dashboard.
- * Verifies user role and populates the member dropdown.
- * @param {object} currentUser - The currently authenticated Firebase user.
- */
 async function initializeLeaderDashboard(currentUser) {
     showLoadingSpinner();
     const db = firebase.firestore();
-
     try {
-        const userProfileRef = db.collection('userProfiles').doc(currentUser.uid);
-        const userProfileDoc = await userProfileRef.get();
-
+        const userProfileDoc = await db.collection('userProfiles').doc(currentUser.uid).get();
         if (!userProfileDoc.exists) {
-            showMainError("Your user profile was not found.");
-            hideLoadingSpinner();
-            return;
+            throw new Error("Your user profile was not found.");
         }
-
         const userData = userProfileDoc.data();
-        const userPosition = userData.position;
-        const userFactionId = userData.faction_id;
-
-        // 1. AUTHORIZATION CHECK
-        if (userPosition === 'Leader' || userPosition === 'Co-leader') {
-            // Show the main tool content if authorized
+        if (userData.position === 'Leader' || userData.position === 'Co-leader') {
             document.getElementById('leader-tool-content').style.display = 'block';
-
-            // 2. POPULATE DROPDOWN
-            if (userFactionId) {
-                await populateFactionMembers(userFactionId);
+            if (userData.faction_id) {
+                await populateFactionMembers(userData.faction_id);
             } else {
-                showMainError("Your faction ID is not set in your profile.");
+                throw new Error("Your faction ID is not set in your profile.");
             }
-
         } else {
-            // User is not a leader or co-leader
-            showMainError("Access Denied: This page is for Faction Leaders and Co-leaders only.");
+            throw new Error("Access Denied: This page is for Faction Leaders and Co-leaders only.");
         }
-
     } catch (error) {
-        console.error("Error initializing dashboard:", error);
-        showMainError(`An error occurred: ${error.message}`);
+        showMainError(error.message);
     } finally {
         hideLoadingSpinner();
     }
 }
 
-/**
- * Fetches all users from a given faction and populates the dropdown.
- * @param {string} factionId - The ID of the faction to fetch members for.
- */
 async function populateFactionMembers(factionId) {
     const db = firebase.firestore();
     const selectElement = document.getElementById('factionMemberSelect');
-    selectElement.innerHTML = '<option value="">Loading members...</option>'; // Reset
-
+    selectElement.innerHTML = '<option value="">Loading members...</option>';
     try {
-        const membersQuery = db.collection('userProfiles').where('faction_id', '==', factionId);
-        const querySnapshot = await membersQuery.get();
-
+        const querySnapshot = await db.collection('userProfiles').where('faction_id', '==', factionId).get();
         if (querySnapshot.empty) {
             selectElement.innerHTML = '<option value="">No members found</option>';
             return;
         }
-
         const members = [];
         querySnapshot.forEach(doc => {
-            const memberData = doc.data();
-            members.push({
-                uid: doc.id, // Firebase Auth UID
-                name: memberData.name || `User ${memberData.tornProfileId}`,
-                tornProfileId: memberData.tornProfileId
-            });
+            const data = doc.data();
+            members.push({ uid: doc.id, name: data.name || `User ${data.tornProfileId}`, tornProfileId: data.tornProfileId });
         });
-
-        // Sort members alphabetically by name
         members.sort((a, b) => a.name.localeCompare(b.name));
-
-        // Populate the dropdown
         selectElement.innerHTML = '<option value="">-- Select a Member --</option>';
         members.forEach(member => {
-            // The value of each option will be the member's tornProfileId and their Firebase UID, separated by a comma
             const option = document.createElement('option');
             option.value = `${member.tornProfileId},${member.uid}`;
             option.textContent = member.name;
             selectElement.appendChild(option);
         });
-
     } catch (error) {
-        console.error("Error populating faction members:", error);
         selectElement.innerHTML = '<option value="">Error loading members</option>';
         showMainError("Could not load faction members.");
     }
 }
 
 /**
- * Triggered when "Get Member's Fair Fight" is clicked.
- * Fetches and displays the report for the selected member.
+ * Main function to generate the war report.
  */
-async function getSelectedMemberReport() {
+async function generateWarReport() {
     hideMainError();
-    const selectElement = document.getElementById('factionMemberSelect');
-    const selectedValue = selectElement.value;
+    const selectedMemberValue = document.getElementById('factionMemberSelect').value;
+    const enemyFactionId = document.getElementById('enemyFactionId').value.trim();
 
-    if (!selectedValue) {
-        showMainError("Please select a member from the list.");
+    if (!selectedMemberValue) {
+        showMainError("Please select one of your members.");
+        return;
+    }
+    if (!enemyFactionId) {
+        showMainError("Please enter an enemy faction ID.");
         return;
     }
 
     showLoadingSpinner();
+    const db = firebase.firestore();
 
     try {
-        const [selectedTornId, selectedUid] = selectedValue.split(',');
-        const db = firebase.firestore();
+        // --- STEP 1: Get data for the selected friendly member ---
+        const [friendlyTornId, friendlyUid] = selectedMemberValue.split(',');
+        
+        const memberProfileDoc = await db.collection('userProfiles').doc(friendlyUid).get();
+        if (!memberProfileDoc.exists) throw new Error("Selected member's profile not found.");
+        
+        const friendlyApiKey = memberProfileDoc.data().tornApiKey;
+        const friendlyName = memberProfileDoc.data().name;
+        if (!friendlyApiKey) throw new Error("The selected member has not set their API key on this site.");
 
-        // 1. Get the selected member's UserProfile to find their API key
-        const memberProfileRef = db.collection('userProfiles').doc(selectedUid);
-        const memberProfileDoc = await memberProfileRef.get();
-        if (!memberProfileDoc.exists) {
-            throw new Error("Selected member's profile not found.");
-        }
-        const memberApiKey = memberProfileDoc.data().tornApiKey;
-        const memberName = memberProfileDoc.data().name;
-        if (!memberApiKey) {
-            throw new Error("This member has not set their API key on the site.");
-        }
+        const memberStatsDoc = await db.collection('users').doc(friendlyTornId).get();
+        if (!memberStatsDoc.exists || !memberStatsDoc.data().battlestats) throw new Error("Could not find the selected member's battle stats.");
+        const friendlyTotalStats = memberStatsDoc.data().battlestats.total;
 
-        // 2. Get the selected member's battle stats for the personalized formula
-        const memberStatsRef = db.collection('users').doc(selectedTornId);
-        const memberStatsDoc = await memberStatsRef.get();
-        if (!memberStatsDoc.exists || !memberStatsDoc.data().battlestats) {
-            throw new Error("Could not find the selected member's battle stats.");
-        }
-        const memberTotalStats = memberStatsDoc.data().battlestats.total;
+        // --- STEP 2: Get the list of enemy members using the site's key ---
+        const siteApiKey = await getTornApiKey(); // This key is for general site use
+        if (!siteApiKey) return; // Error is shown inside the function
 
-        // 3. Fetch the fair fight data using the member's key
-        const ffResultsFromApi = await fetchFairFightData([selectedTornId], memberApiKey);
+        const factionApiUrl = `https://api.torn.com/faction/${enemyFactionId}?selections=basic&key=${siteApiKey}`;
+        const factionResponse = await fetch(factionApiUrl);
+        const factionData = await factionResponse.json();
+        if (factionData.error) throw new Error(`Torn API Error: ${factionData.error.error}`);
+        
+        const enemyFactionName = factionData.name;
+        const enemyPlayerIds = Object.keys(factionData.members);
+        const enemyPlayerNames = new Map(Object.entries(factionData.members).map(([id, member]) => [id, member.name]));
 
-        // 4. Recalculate the score from the member's perspective
-        const finalResults = ffResultsFromApi.map(targetData => {
-            if (targetData.error || targetData.no_data || !targetData.bs_estimate || memberTotalStats <= 0 || targetData.bs_estimate <= 0) {
-                return targetData;
+        if (enemyPlayerIds.length === 0) throw new Error("No members found in the enemy faction.");
+
+        // --- STEP 3: Get Fair Fight data for all enemies using the FRIENDLY member's key ---
+        const ffResultsFromApi = await fetchFairFightData(enemyPlayerIds, friendlyApiKey);
+
+        // --- STEP 4: Recalculate scores from the friendly member's perspective ---
+        const finalResults = ffResultsFromApi.map((targetData, index) => {
+            const enemyId = enemyPlayerIds[index];
+            if (targetData.error || targetData.no_data || !targetData.bs_estimate || friendlyTotalStats <= 0 || targetData.bs_estimate <= 0) {
+                return { userId: enemyId, name: enemyPlayerNames.get(enemyId) || `User ${enemyId}`, ffData: targetData };
             }
-            // This is your personalized formula from the original script
-            let finalScore = 3.5 * Math.pow(3, Math.log10(targetData.bs_estimate / memberTotalStats));
-            if (finalScore < 1.03) {
-                finalScore = 1.03;
-            }
-            return { ...targetData, value: finalScore };
+            let finalScore = 3.5 * Math.pow(3, Math.log10(targetData.bs_estimate / friendlyTotalStats));
+            if (finalScore < 1.03) finalScore = 1.03;
+            return { userId: enemyId, name: enemyPlayerNames.get(enemyId) || `User ${enemyId}`, ffData: { ...targetData, value: finalScore } };
         });
+        
+        // Sort results by name before displaying
+        finalResults.sort((a, b) => a.name.localeCompare(b.name));
 
-        // 5. Display the report
-        const reportData = finalResults.map(ffData => ({
-            userId: selectedTornId,
-            name: memberName,
-            ffData: ffData
-        }));
-
-        displayReport(reportData, `User: ${memberName}`);
+        // --- STEP 5: Display the full report ---
+        const reportTitle = `${enemyFactionName} (vs ${friendlyName})`;
+        displayReport(finalResults, reportTitle);
 
     } catch (error) {
-        console.error("Error generating member report:", error);
         showMainError(`Error: ${error.message}`);
     } finally {
         hideLoadingSpinner();
@@ -188,10 +146,25 @@ async function getSelectedMemberReport() {
 }
 
 
-// --- REUSED FUNCTIONS FROM YOUR tornpafairfight.js SCRIPT ---
+// --- REUSED/UTILITY FUNCTIONS ---
+
+// This function is needed again to fetch public faction data
+async function getTornApiKey() {
+    try {
+        const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93'; // Hardcoded UID for the site's API key
+        const userDoc = await firebase.firestore().collection('userProfiles').doc(ownerUid).get();
+        if (userDoc.exists && userDoc.data().tornApiKey) {
+            return userDoc.data().tornApiKey;
+        } else {
+            throw new Error("A critical error occurred. The site API key is not configured.");
+        }
+    } catch (error) {
+        showMainError(error.message);
+        return null;
+    }
+}
 
 const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
-
 async function fetchFairFightData(playerIds, apiKey) {
     if (playerIds.length === 0) return [];
     const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${playerIds.join(",")}`;
@@ -200,23 +173,15 @@ async function fetchFairFightData(playerIds, apiKey) {
         if (!response.ok) throw new Error(`FF Scouter API error: ${response.status}`);
         const apiResponse = await response.json();
         if (apiResponse.error) throw new Error(`FF Scouter API error: ${apiResponse.error}`);
-        
         const resultsMap = new Map();
         apiResponse.forEach(result => {
             if (result.player_id) {
-                resultsMap.set(result.player_id.toString(), {
-                    value: result.fair_fight,
-                    last_updated: result.last_updated,
-                    bs_estimate: result.bs_estimate,
-                    bs_estimate_human: result.bs_estimate_human,
-                    no_data: result.fair_fight === null
-                });
+                resultsMap.set(result.player_id.toString(), { value: result.fair_fight, last_updated: result.last_updated, bs_estimate: result.bs_estimate, bs_estimate_human: result.bs_estimate_human, no_data: result.fair_fight === null });
             }
         });
         return playerIds.map(id => resultsMap.get(id.toString()) || { no_data: true });
     } catch (error) {
-        console.error("Error fetching Fair Fight data:", error);
-        return playerIds.map(id => ({ error: true, message: `Could not fetch FF data: ${error.message}` }));
+        return playerIds.map(id => ({ error: true, message: error.message }));
     }
 }
 
@@ -225,27 +190,19 @@ function displayReport(results, title) {
     const tableHeader = document.getElementById('modal-results-table-header');
     const reportTarget = document.getElementById('modal-report-target');
     const memberCount = document.getElementById('modal-member-count');
-
     tableBody.innerHTML = '';
-    
-    tableHeader.innerHTML = '<tr><th>Name</th><th>User ID</th><th>Fair Fight</th><th>Last Updated</th><th>Est. Stats</th></tr>';
-
+    tableHeader.innerHTML = '<tr><th>Name</th><th>User ID</th><th>Fair Fight</th><th>Est. Stats</th><th>Last Updated</th></tr>';
     reportTarget.textContent = title;
-    memberCount.textContent = `Members: ${results.length}`;
-    
+    memberCount.textContent = `Targets: ${results.length}`;
     results.forEach(item => {
         const row = tableBody.insertRow();
-        const fairFightData = item.ffData;
-        const name = item.name;
-        const userId = item.userId;
-
+        const { ffData, name, userId } = item;
         row.insertCell().innerHTML = `<a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank">${name}</a>`;
         row.insertCell().textContent = userId;
-
         const ffCell = row.insertCell();
-        if (fairFightData && !fairFightData.error) {
-            ffCell.textContent = getFFDisplayValue(fairFightData);
-            const colors = getFFDisplayColor(fairFightData);
+        if (ffData && !ffData.error) {
+            ffCell.textContent = getFFDisplayValue(ffData);
+            const colors = getFFDisplayColor(ffData);
             ffCell.style.backgroundColor = colors.background;
             ffCell.style.color = colors.text;
             ffCell.style.fontWeight = 'bold';
@@ -254,26 +211,17 @@ function displayReport(results, title) {
             ffCell.style.backgroundColor = '#444';
             ffCell.style.color = 'white';
         }
-
-        row.insertCell().textContent = fairFightData && fairFightData.last_updated ?
-            new Date(fairFightData.last_updated * 1000).toLocaleString() : 'N/A';
-
-        row.insertCell().textContent = fairFightData && fairFightData.bs_estimate_human ? fairFightData.bs_estimate_human : 'N/A';
+        row.insertCell().textContent = ffData?.bs_estimate_human || 'N/A';
+        row.insertCell().textContent = ffData?.last_updated ? new Date(ffData.last_updated * 1000).toLocaleString() : 'N/A';
     });
-
     showResultsModal();
 }
-
-
-// --- REUSED HELPER & UI FUNCTIONS ---
 
 function getFFDisplayValue(ffResponse) {
     if (!ffResponse || ffResponse.no_data || typeof ffResponse.value !== 'number') return "N/A";
     const ff = ffResponse.value.toFixed(2);
-    const now = Date.now() / 1000;
-    const age = now - ffResponse.last_updated;
-    const suffix = age > (14 * 24 * 60 * 60) ? "?" : "";
-    return `${ff}${suffix}`;
+    const age = (Date.now() / 1000) - ffResponse.last_updated;
+    return `${ff}${age > (14 * 24 * 60 * 60) ? "?" : ""}`;
 }
 
 function getFFDisplayColor(ffResponse) {
@@ -307,6 +255,5 @@ function showMainError(message) {
     errorDiv.style.display = 'block';
 }
 function hideMainError() {
-    const errorDiv = document.getElementById('main-error-feedback');
-    errorDiv.style.display = 'none';
+    document.getElementById('main-error-feedback').style.display = 'none';
 }
