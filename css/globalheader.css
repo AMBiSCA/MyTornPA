@@ -70,6 +70,13 @@ header {
     gap: 10px;
 }
 
+/* === NEW RULE TO PREVENT FLICKER === */
+#nav-logged-in,
+#nav-logged-out {
+    display: none;
+}
+
+
 /* Base Button Style for header buttons */
 .header-right-controls .btn {
     font-weight: bold;
@@ -288,10 +295,9 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-  
+ 
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;
     }
 }
-
