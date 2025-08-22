@@ -1,4 +1,4 @@
-// --- CORRECTED SCRIPT FOR LEADER WAR DASHBOARD ---
+// --- SCRIPT FOR LEADER WAR DASHBOARD ---
 
 document.addEventListener('DOMContentLoaded', async () => {
     firebase.auth().onAuthStateChanged(async user => {
@@ -120,7 +120,7 @@ async function generateWarReport() {
         // --- STEP 3: Get Fair Fight data for all enemies using the FRIENDLY member's key ---
         const ffResultsFromApi = await fetchFairFightData(enemyPlayerIds, friendlyApiKey);
 
-        // --- STEP 4: Recalculate scores from the friendly member's perspective ---
+        // --- STEP 4: Recalculate scores from the friendly member's perspective using your formula ---
         const finalResults = ffResultsFromApi.map((targetData, index) => {
             const enemyId = enemyPlayerIds[index];
             if (targetData.error || targetData.no_data || !targetData.bs_estimate || friendlyTotalStats <= 0 || targetData.bs_estimate <= 0) {
