@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
             if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
             if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-		   document.getElementById('global-header-placeholder').style.opacity = '1';
+		 document.getElementById('global-header-placeholder').style.opacity = '1';
         }
 
         function handleLogout() {
