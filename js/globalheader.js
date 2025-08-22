@@ -30,19 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (authModal && !document.getElementById('authModal')) {
                     document.body.appendChild(authModal);
-                    console.log("globalheader.js: Auth Modal appended to body.");
                 }
                 if (profileSetupModal && !document.getElementById('profileSetupModal')) {
                     document.body.appendChild(profileSetupModal);
-                    console.log("globalheader.js: Profile Setup Modal appended to body.");
                 }
                 if (customAlertFromHTML && !document.getElementById('customAlert')) {
                     document.body.appendChild(customAlertFromHTML);
-                    console.log("globalheader.js: Custom Alert Modal appended to body.");
                 }
                 if (globalConfirmModalFromHTML && !document.getElementById('globalConfirmModal')) {
                     document.body.appendChild(globalConfirmModalFromHTML);
-                    console.log("globalheader.js: Global Confirm Modal appended to body.");
                 }
 
                 initializeHeaderLogicAfterLoad();
@@ -59,14 +55,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeHeaderLogicAfterLoad() {
         console.log("globalheader.js: Initializing header and modal specific JavaScript logic.");
 
-        // --- Theme Switcher Logic (CORRECT LOCATION) ---
+        // --- Theme Switcher Logic ---
         const themeToggleButton = document.getElementById('theme-toggle-btn');
         const body = document.body;
-
         if (localStorage.getItem('theme') === 'eye-soothing') {
             body.classList.add('eye-soothing-mode');
         }
-
         if (themeToggleButton) {
             themeToggleButton.addEventListener('click', () => {
                 body.classList.toggle('eye-soothing-mode');
@@ -77,68 +71,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-        // --- End Theme Switcher Logic ---
 
-        // --- Custom Alert System (REVISED TO FIX BUGS) ---
+        // --- Custom Alert System ---
         const nativeAlert = window.alert;
-
         function hideCustomAlert() {
             const customAlertEl = document.getElementById('customAlert');
-            if (customAlertEl) {
-                customAlertEl.classList.remove('visible');
-            }
+            if (customAlertEl) customAlertEl.classList.remove('visible');
         }
-
         function handleAlertClicks(event) {
             const customAlertEl = document.getElementById('customAlert');
             const customAlertOkBtn = document.getElementById('customAlertOkBtn');
             const contentBox = customAlertEl.querySelector('.modal-content-box');
-            
             if (event.target === customAlertOkBtn || (contentBox && !contentBox.contains(event.target))) {
                 hideCustomAlert();
             }
         }
-
         window.showCustomAlert = function(message, title = 'Notification') {
             const customAlertEl = document.getElementById('customAlert');
             const customAlertTitleEl = document.getElementById('customAlertTitle');
             const customAlertMessageEl = document.getElementById('customAlertMessage');
-            const customAlertOkBtn = document.getElementById('customAlertOkBtn');
-
-            if (customAlertEl && customAlertMessageEl && customAlertOkBtn && customAlertTitleEl) {
+            if (customAlertEl && customAlertMessageEl && customAlertTitleEl) {
                 customAlertTitleEl.textContent = title;
                 customAlertMessageEl.textContent = message;
                 customAlertEl.classList.add('visible');
-                
                 customAlertEl.removeEventListener('click', handleAlertClicks);
                 customAlertEl.addEventListener('click', handleAlertClicks);
             } else {
-                console.error("Custom alert elements not found. Falling back to NATIVE alert.");
                 nativeAlert(message);
             }
         };
-        
         window.alert = function(message) {
-            console.log("--- Custom Alert System Intercepted an alert() call --- Message:", message);
             if (typeof message === 'string' && message.trim() !== '') {
                 window.showCustomAlert(message);
-            } else {
-                console.log("globalheader.js: An empty alert() was called and ignored.");
             }
         };
-        // --- End Custom Alert System ---
-
-        let auth = window.auth;
-        if (!auth) {
-            console.error("globalheader.js: Firebase Auth object (window.auth) not found. Header authentication features will not work.");
-        } else {
-            console.log("globalheader.js: Using Firebase Auth instance from window.auth.");
-        }
 
         // --- Get references to all necessary elements ---
-        const navLoggedIn = document.getElementById('nav-logged-in');
-        const navLoggedOut = document.getElementById('nav-logged-out');
-
+        let auth = window.auth;
         const logoutButtonHeader = document.getElementById('logoutButtonHeader');
         const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
         const homeButtonHeader = document.getElementById('homeButtonHeader');
@@ -160,19 +129,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentPagePath = window.location.pathname;
                 const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase().replace('.html', '');
                 const isHomePage = (pageName === 'home');
-                
+
                 if (user) {
                     // --- User is SIGNED IN ---
-                    console.log("globalheader.js: User is SIGNED IN. Configuring logged-in header.");
-                    if (navLoggedIn) navLoggedIn.style.display = 'flex';
-                    if (navLoggedOut) navLoggedOut.style.display = 'none';
+                    console.log("globalheader.js: User is SIGNED IN. Adding body class.");
+                    document.body.classList.add('user-is-logged-in');
 
+                    // Handle page-specific buttons (Home vs Edit Profile)
                     if (isHomePage) {
-                        // On the home page, show "Edit Profile" and hide "Home"
                         if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
                         if (homeButtonHeader) homeButtonHeader.style.display = 'none';
                     } else {
-                        // On any other page, show "Home" and hide "Edit Profile"
                         if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
                         if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
                     }
@@ -182,23 +149,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (homeButtonHeader) homeButtonHeader.addEventListener('click', handleHomeNavigation);
                     if (headerLogoLink) headerLogoLink.addEventListener('click', handleHomeNavigation);
                     if (headerEditProfileBtn) headerEditProfileBtn.addEventListener('click', handleEditProfile);
-                
+
                 } else {
                     // --- User is SIGNED OUT ---
-                    console.log("globalheader.js: User is SIGNED OUT. Configuring logged-out header.");
-                    if (navLoggedIn) navLoggedIn.style.display = 'none';
-                    if (navLoggedOut) navLoggedOut.style.display = 'flex';
-                    
+                    console.log("globalheader.js: User is SIGNED OUT. Removing body class.");
+                    document.body.classList.remove('user-is-logged-in');
+
                     // Attach event listeners for logged-out users
-                    if (headerLogoLink) headerLogoLink.addEventListener('click', handleHomeNavigation); // Logo might still go home
                     if (signUpButtonHeader) signUpButtonHeader.addEventListener('click', handleSignUpNavigation);
+                    if (headerLogoLink) headerLogoLink.addEventListener('click', handleHomeNavigation);
                 }
                 closeAllManagedHeaderDropdowns(null);
             });
         } else {
             console.warn("globalheader.js: Firebase auth not available. Header UI will default to logged out.");
-            if (navLoggedIn) navLoggedIn.style.display = 'none';
-            if (navLoggedOut) navLoggedOut.style.display = 'flex';
+            document.body.classList.remove('user-is-logged-in');
         }
 
         function handleLogout() {
@@ -210,46 +175,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error signing out: ' + error.message);
             });
         }
-
-        function handleHomeNavigation() {
-            window.location.href = '/pages/home.html';
-        }
-
-        function handleSignUpNavigation() {
-            window.location.href = '/index.html';
-        }
-
-        function handleEditProfile() {
-            if (profileSetupModal) {
-                profileSetupModal.style.display = 'flex';
-            }
-        }
-
+        function handleHomeNavigation() { window.location.href = '/pages/home.html'; }
+        function handleSignUpNavigation() { window.location.href = '/index.html'; }
+        function handleEditProfile() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
+        
         const allHeaderDropdownsToManage = [usefulLinksDropdown, contactUsDropdown].filter(Boolean);
-
         function closeAllManagedHeaderDropdowns(exceptThisOne) {
             allHeaderDropdownsToManage.forEach(dropdown => {
-                if (dropdown !== exceptThisOne) {
-                    dropdown.style.display = 'none';
-                }
+                if (dropdown !== exceptThisOne) dropdown.style.display = 'none';
             });
         }
-
         function setupManagedDropdown(button, dropdown) {
             if (button && dropdown) {
                 button.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const isCurrentlyShown = dropdown.style.display === 'block';
                     closeAllManagedHeaderDropdowns(dropdown);
-
                     dropdown.style.display = isCurrentlyShown ? 'none' : 'block';
                 });
             }
         }
-        
         setupManagedDropdown(usefulLinksBtn, usefulLinksDropdown);
         setupManagedDropdown(contactUsBtn, contactUsDropdown);
-
         window.addEventListener('click', (event) => {
             const isClickInsideDropdown = allHeaderDropdownsToManage.some(d => d.contains(event.target));
             const isClickOnTrigger = usefulLinksBtn?.contains(event.target) || contactUsBtn?.contains(event.target);
@@ -266,6 +213,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     loadGlobalHeaderAndInitializeLogic();
-
     console.log("globalheader.js: End of script (initial DOMContentLoaded phase).");
 });
