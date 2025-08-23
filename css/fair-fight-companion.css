@@ -177,6 +177,13 @@ body::before {
     min-height: 1.2em;
 }
 
+.modal-action-area {
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center; /* Center the button horizontally */
+    padding-top: 20px;
+    flex-shrink: 0;
+}
+
 
 /* ==========================================================================
    4. TAB-SPECIFIC STYLES
