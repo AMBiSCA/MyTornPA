@@ -66,7 +66,7 @@ function closeResultsModal() {
 
 function closeDiscordSettingsModal() {
     const overlay = document.getElementById('discordSettingsModal');
-    if (overlay) overlay.style.display = 'none'; // Assuming it's controlled by display
+    if (overlay) overlay.style.display = 'none';
 }
 
 function showError(tabName, message) {
@@ -83,6 +83,65 @@ function showError(tabName, message) {
         errorDiv.textContent = message;
         errorDiv.style.display = message ? 'block' : 'none';
     }
+}
+
+function handleDownloadReport() {
+    const modalContent = document.querySelector('#resultsModalOverlay .modal-content');
+    const tableContainer = document.querySelector('#resultsModalOverlay .modal-table-container');
+    const tableElement = document.querySelector('#resultsModalOverlay .modal-table');
+    const downloadBtn = document.getElementById('downloadReportBtn');
+
+    if (!modalContent || !tableContainer || !tableElement || !downloadBtn) {
+        console.error('Download error: Could not find all required modal elements.');
+        alert('Could not find the table to download.');
+        return;
+    }
+
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = 'Preparing...';
+
+    // Store original styles to restore them later
+    const originalTableContainerMaxHeight = tableContainer.style.maxHeight;
+    const originalTableContainerOverflowY = tableContainer.style.overflowY;
+    const originalScrollTop = tableContainer.scrollTop;
+
+    // Temporarily modify styles to show the entire table for the screenshot
+    tableContainer.style.maxHeight = 'none';
+    tableContainer.style.overflowY = 'visible';
+    tableContainer.scrollTop = 0; // Scroll to the top
+
+    setTimeout(() => {
+        html2canvas(tableContainer, { // Target the container that scrolls
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            allowTaint: true,
+            scrollY: -window.scrollY // Fix for capturing scrolled content
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            
+            // Generate a filename from the modal title
+            const titleElement = document.querySelector('#resultsModalOverlay .modal-title');
+            const fileName = (titleElement ? titleElement.textContent.replace(/[^a-zA-Z0-9]/g, '_') : 'FairFight_Report');
+            link.download = `${fileName}.png`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }).catch(error => {
+            console.error('Error generating image:', error);
+            alert('Failed to generate image. Please try again.');
+        }).finally(() => {
+            // IMPORTANT: Restore all original styles
+            tableContainer.style.maxHeight = originalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalTableContainerOverflowY;
+            tableContainer.scrollTop = originalScrollTop;
+
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = 'Download Report';
+        });
+    }, 100); // Small delay for styles to apply
 }
 
 // --- Formatting & Display Functions ---
@@ -447,8 +506,9 @@ function initializeCompanionPage() {
     document.getElementById('fetchTargetsBtn').addEventListener('click', handlePersonalTargetFinder);
     document.getElementById('fetchFairFight').addEventListener('click', handlePublicFairFightLookup);
     document.getElementById('generateReportBtn').addEventListener('click', handleLeaderWarReport);
-    // Add other general listeners like download button if it becomes shared
-    // document.getElementById('downloadReportBtn').addEventListener('click', handleDownload);
+    
+    // Connect the shared download button to its function
+    document.getElementById('downloadReportBtn').addEventListener('click', handleDownloadReport);
 
     // Authentication-dependent setup
     firebase.auth().onAuthStateChanged(async user => {
