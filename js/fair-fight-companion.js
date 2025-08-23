@@ -149,7 +149,11 @@ function displayPersonalTargets(data, playerId) {
     const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
+    const downloadBtn = document.getElementById('downloadReportBtn'); // Get the button
     
+    // HIDE the download button for this specific report
+    downloadBtn.style.display = 'none';
+
     modalTitle.textContent = 'Recommended Targets';
     tableBody.innerHTML = '';
     tableHeader.innerHTML = '';
