@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyTornPA - GymGain</title>
-	
-	
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-	
+    
     <link rel="stylesheet" href="../css/global.css">
-	<link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
     <link rel="stylesheet" href="../css/gymgain.css">
-	
+    
 </head>
 <body>
 
@@ -32,48 +32,22 @@
                     <div class="stat-item"><strong>Dexterity🎯:</strong> <span id="dexterityStat">--</span></div>
                     <div class="stat-item"><strong>Energy🔋:</strong> <span id="availableEnergy">--/--</span></div>
                 </div>
-                <div class="gain-summary-box styled-container">
-                    <h3 class="underlined-heading">📋📊 Estimated Gains Summary. 📊📋</h3>
-                    <div class="gain-summary-grid">
-                        <div class="gain-summary-item">
-                            <strong>One Train (<span id="perTrainEnergyValue">--</span> E) :</strong>
-                            <div class="gain-figures centralized-gain-figures">
-                                <span class="gain-text">Str: <span id="perTrainGainStr">--</span></span>
-                                <span class="gain-text">Def: <span id="perTrainGainDef">--</span></span>
-                                <span class="gain-text">Spd: <span id="perTrainGainSpe">--</span></span>
-                                <span class="gain-text">Dex: <span id="perTrainGainDex">--</span></span>
-                            </div>
-                        </div>
-                        <div class="gain-summary-item">
-                            <strong>One Xanax (250 E) :</strong>
-                            <div class="gain-figures centralized-gain-figures">
-                                <span class="gain-text">Str: <span id="xanaxGainStr">--</span></span>
-                                <span class="gain-text">Def: <span id="xanaxGainDef">--</span></span>
-                                <span class="gain-text">Spd: <span id="xanaxGainSpe">--</span></span>
-                                <span class="gain-text">Dex: <span id="xanaxGainDex">--</span></span>
-                            </div>
-                        </div>
-                        <div class="gain-summary-item">
-                            <strong>Max Energy (<span id="maxEnergyValue">--</span> E) :</strong>
-                            <div class="gain-figures centralized-gain-figures">
-                                <span class="gain-text">Str: <span id="maxEnergyGainStr">--</span></span>
-                                <span class="gain-text">Def: <span id="maxEnergyGainDef">--</span></span>
-                                <span class="gain-text">Spd: <span id="maxEnergyGainSpe">--</span></span>
-                                <span class="gain-text">Dex: <span id="maxEnergyGainDex">--</span></span>
-                            </div>
-                        </div>
-                        <div class="gain-summary-item">
-                            <strong>Est. H.Jump (1150 E) :</strong>
-                            <div class="gain-figures centralized-gain-figures">
-                                <span class="gain-text">Str: <span id="happyJumpGainStr">--</span></span>
-                                <span class="gain-text">Def: <span id="happyJumpGainDef">--</span></span>
-                                <span class="gain-text">Spd: <span id="happyJumpGainSpe">--</span></span>
-                                <span class="gain-text">Dex: <span id="happyJumpGainDex">--</span></span>
-                            </div>
-                        </div>
-                           <p class="gain-disclaimer" style="text-align: center; margin-top: 15px; color: #FFA500 !important;">(Note: Does not include perk multipliers due to API key limitations.)</p>
+
+                <div class="personal-tracker-box styled-container">
+                    <h3 class="underlined-heading">⚡ Energy Spent Tracker ⚡</h3>
+                    <div class="gains-tracking-controls">
+                        <button id="startPersonalEnergyBtn" class="action-btn-bb">Start Energy Tracking</button>
+                        <button id="stopPersonalEnergyBtn" class="action-btn-bb hidden">Stop Energy Tracking</button>
+                        <div id="personalEnergyStatus" style="margin-top: 10px;">Not currently tracking.</div>
+                        <span id="personalEnergyStartedAt" style="font-size: 0.85em; color: #bbb;"></span>
+                    </div>
+                    <div class="personal-gains-display">
+                        <p id="noPersonalEnergyData" style="text-align: center;">No energy data available. Click "Start" to begin.</p>
+                        <div class="stat-item hidden" id="personalGainTrainsItem"><strong>Total Gym Trains:</strong> <span id="personalGainTrains">--</span></div>
+                        <div class="stat-item hidden" id="personalGainEnergyItem"><strong>Energy Spent (Est.):</strong> <span id="personalGainEnergy">--</span></div>
                     </div>
                 </div>
+
                 <div class="torn-gym-link-container">
                     <a href="https://www.torn.com/gym.php" target="_blank" rel="noopener noreferrer" class="btn torn-gym-btn header-btn">
                         <span class="btn-text">Go to Torn Gym!</span>
@@ -92,7 +66,7 @@
 
                 <div class="tab-navigation-bb" style="margin-top: 20px;">
                     <button class="tab-button-bb active" data-tab="current-gym-stats">Current Gym Stats</button>
-                    <button class="tab-button-bb" data-tab="personal-gym-gains">Gym Gains Tracking</button>
+                    <button class="tab-button-bb" data-tab="personal-gym-gains">Battle Stat Gains</button>
                     <button class="tab-button-bb" data-tab="personal-work-stats">Work Stats</button>
                     <button class="tab-button-bb" data-tab="personal-crimes">Crimes</button>
                 </div>
@@ -112,13 +86,13 @@
 
                     <div id="personal-gym-gains-tab" class="tab-pane-bb">
                         <div class="gains-tracking-controls" style="text-align: center; margin-top: 15px;">
-                            <button id="startPersonalTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
-                            <button id="stopPersonalTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
-                            <div id="personalTrackingStatus" style="margin-top: 10px;">Not currently tracking.</div>
-                            <span id="personalGainsStartedAt" style="font-size: 0.85em; color: #bbb;"></span>
+                            <button id="startPersonalStatsBtn" class="action-btn-bb">Start Stat Tracking</button>
+                            <button id="stopPersonalStatsBtn" class="action-btn-bb hidden">Stop Stat Tracking</button>
+                            <div id="personalStatsStatus" style="margin-top: 10px;">Not currently tracking.</div>
+                            <span id="personalStatsStartedAt" style="font-size: 0.85em; color: #bbb;"></span>
                         </div>
                         <div class="personal-gains-display" style="margin-top: 15px;">
-                            <p id="noPersonalGainsData" style="text-align: center;">No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
+                            <p id="noPersonalStatsData" style="text-align: center;">No gains data available. Click "Start" to begin.</p>
                             <div class="stat-item hidden" id="personalGainStrItem"><strong>Strength Gain💪:</strong> <span id="personalGainStr">--</span></div>
                             <div class="stat-item hidden" id="personalGainDefItem"><strong>Defense Gain🛡️:</strong> <span id="personalGainDef">--</span></div>
                             <div class="stat-item hidden" id="personalGainSpdItem"><strong>Speed Gain⚡:</strong> <span id="personalGainSpd">--</span></div>
@@ -164,6 +138,6 @@
     <script src="../js/globalheader.js"></script>
     <script src="../js/gymgain.js"></script>
     <script src="../js/global.js" defer></script>
-	<script src="../js/globalfooter.js"></script> </body>
+    <script src="../js/globalfooter.js"></script> </body>
 </body>
 </html>
