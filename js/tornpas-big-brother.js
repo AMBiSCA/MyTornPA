@@ -171,146 +171,13 @@ async function checkIfUserHasTrackerAccess(userUid) {
 }
 
 
-// Renders the friendly members table using cached data and current sort settings.
-function renderFriendlyMembersTable() {
-    // --- START: Added code for scrollable table ---
-    const table = document.getElementById('friendly-members-table');
-    // Check if the table exists and if it's not already inside our scroll wrapper
-    if (table && table.parentElement.id !== 'table-scroll-wrapper') {
-        // Create a new div element to act as the wrapper
-        const wrapper = document.createElement('div');
-        wrapper.id = 'table-scroll-wrapper'; // Give it an ID to find it later
-
-        // Apply styles directly with JS to make it scrollable
-        wrapper.style.maxHeight = '65vh'; // 65% of the viewport height
-        wrapper.style.overflowY = 'auto'; // Add vertical scrollbar only when needed
-
-        // Insert the wrapper into the DOM right before the table
-        table.parentNode.insertBefore(wrapper, table);
-
-        // Move the table inside our new scrollable wrapper
-        wrapper.appendChild(table);
-    }
-    // --- END: Added code for scrollable table ---
-
-    const tbody = document.getElementById('friendly-members-tbody');
-    const tableHeaders = document.querySelectorAll('#friendly-members-table th[data-sort-key]');
-    if (!tbody || !tableHeaders.length) return;
-
-    const getStat = (member, stat) => parseStatValue(member.firebaseData.battlestats?.[stat] || 0);
-
-    // Sorting logic
-    friendlyMembersDataCache.sort((a, b) => {
-        let valA, valB;
-        switch (currentSort.column) {
-            case 'name':
-                valA = a.tornData.name || '';
-                valB = b.tornData.name || '';
-                return valA.localeCompare(valB);
-            case 'lastAction':
-                valA = a.tornData.last_action?.timestamp || 0;
-                valB = b.tornData.last_action?.timestamp || 0;
-                return valB - valA; // Higher timestamp is more recent
-            case 'strength': return getStat(b, 'strength') - getStat(a, 'strength');
-            case 'dexterity': return getStat(b, 'dexterity') - getStat(a, 'dexterity');
-            case 'speed': return getStat(b, 'speed') - getStat(a, 'speed');
-            case 'defense': return getStat(b, 'defense') - getStat(a, 'defense');
-            case 'status':
-                valA = a.tornData.status?.description || '';
-                valB = b.tornData.status?.description || '';
-                return valA.localeCompare(valB);
-            case 'nerve':
-                valA = a.firebaseData.nerve?.current || 0;
-                valB = b.firebaseData.nerve?.current || 0;
-                return valB - valA;
-            case 'energy':
-                valA = a.firebaseData.energy?.current || 0;
-                valB = b.firebaseData.energy?.current || 0;
-                return valB - valA;
-            case 'drug':
-                valA = a.firebaseData.cooldowns?.drug || 0;
-                valB = b.firebaseData.cooldowns?.drug || 0;
-                return valB - valA;
-            default: // 'totalStats'
-                return b.totalStats - a.totalStats;
-        }
-    });
-
-    if (currentSort.direction === 'asc') {
-        friendlyMembersDataCache.reverse();
-    }
-
-    // Update header icons
-    tableHeaders.forEach(th => {
-        const sortKey = th.dataset.sortKey;
-        th.innerHTML = th.textContent.replace(/ [▼▲↕]/, ''); // Use textContent to avoid issues with other HTML
-        th.style.cursor = 'pointer';
-        if (sortKey === currentSort.column) {
-            th.innerHTML += currentSort.direction === 'desc' ? ' ▼' : ' ▲';
-        } else {
-            th.innerHTML += ' ↕';
-        }
-    });
-
-    // Generate and inject table HTML
-    const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
-    let allRowsHtml = '';
-    for (const member of friendlyMembersDataCache) {
-        const { tornData, firebaseData, totalStats } = member;
-        const memberId = tornData.user_id || tornData.id;
-        const name = tornData.name || 'Unknown';
-        const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-        const strength = formatBattleStats(getStat(member, 'strength'));
-        const dexterity = formatBattleStats(getStat(member, 'dexterity'));
-        const speed = formatBattleStats(getStat(member, 'speed'));
-        const defense = formatBattleStats(getStat(member, 'defense'));
-        const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-        let energyValue = mobileLandscapeQuery.matches ? (firebaseData.energy?.current ?? 'N/A') : `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
-        const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-        let drugCooldown, drugCooldownClass = '';
-        if (drugCooldownValue > 0) {
-            const hours = Math.floor(drugCooldownValue / 3600);
-            const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-            drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-            if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-            else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-            else drugCooldownClass = 'status-okay';
-        } else {
-            drugCooldown = mobileLandscapeQuery.matches ? 'None' : 'None 🍁';
-            drugCooldownClass = 'status-okay';
-        }
-        const statusState = tornData.status?.state || '';
-        let formattedStatus = tornData.status?.description || 'N/A';
-        let statusClass = 'status-okay';
-        if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
-        else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
-        else if (statusState !== 'Okay') { statusClass = 'status-other'; }
-        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-        allRowsHtml += `
-            <tr data-id="${memberId}">
-                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                <td class="hide-on-mobile">${lastAction}</td>
-                <td>${strength}</td>
-                <td>${dexterity}</td>
-                <td>${speed}</td>
-                <td>${defense}</td>
-                <td>${formatBattleStats(totalStats)}</td>
-                <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
-                <td class="nerve-text hide-on-mobile">${nerve}</td>
-                <td class="energy-text hide-on-mobile">${energyValue}</td>
-                <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
-            </tr>
-        `;
-    }
-    tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
-    applyStatColorCoding();
-}
-
-// Fetches data and populates the Current Stats Table.
+// --- Main Data Fetching and Display Function for the Current Stats Table ---
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
     if (!tbody) return;
+
     showLoadingMessage();
+
     try {
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
         const userProfileDoc = await userProfileDocRef.get();
@@ -320,7 +187,16 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: Faction ID not found.</td></tr>';
             return;
         }
-        await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
+
+        console.log("Triggering backend refresh for faction data...");
+        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
+        if (!refreshResponse.ok) {
+            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
+            console.error("Backend refresh failed:", errorResult.message);
+        } else {
+            console.log("Backend refresh triggered successfully.");
+        }
+
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
@@ -329,37 +205,116 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
             return;
         }
+
         const membersArray = Object.values(factionData.members || {});
         if (membersArray.length === 0) {
             hideLoadingMessage();
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
             return;
         }
+
         const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
         const CHUNK_SIZE = 10;
         const firestoreFetchPromises = [];
         const allMemberFirebaseData = {};
+
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            firestoreFetchPromises.push(db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get());
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
         }
+
         const snapshots = await Promise.all(firestoreFetchPromises);
         snapshots.forEach(snapshot => snapshot.forEach(doc => allMemberFirebaseData[doc.id] = doc.data()));
+
         const processedMembers = membersArray.map((memberTornData) => {
             const memberId = String(memberTornData.user_id || memberTornData.id);
             if (!memberId) return null;
+
             const memberFirebaseData = allMemberFirebaseData[memberId] || {};
+
             const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
             const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
             const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
             const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+
             return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
         }).filter(m => m !== null);
 
-        friendlyMembersDataCache = processedMembers;
-        renderFriendlyMembersTable();
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
+
+        const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
+
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
+
+            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
+            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
+            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
+            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
+
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+
+            let energyValue;
+            if (mobileLandscapeQuery.matches) {
+                energyValue = firebaseData.energy?.current ?? 'N/A';
+            } else {
+                energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            }
+
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
+                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
+                else drugCooldownClass = 'status-okay';
+            } else {
+                if (mobileLandscapeQuery.matches) {
+                    drugCooldown = 'None';
+                } else {
+                    drugCooldown = 'None 🍁';
+                }
+                drugCooldownClass = 'status-okay';
+            }
+
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                    <td class="hide-on-mobile">${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
+                    <td class="nerve-text hide-on-mobile">${nerve}</td>
+                    <td class="energy-text hide-on-mobile">${energyValue}</td>
+                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+                </tr>
+            `;
+        }
+
         hideLoadingMessage();
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
+        applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         hideLoadingMessage();
@@ -367,40 +322,11 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     }
 }
 
-// Automatically sets data-sort-key attributes on table headers.
-function dynamicallySetSortKeys() {
-    const headers = document.querySelectorAll('#friendly-members-table th');
-    const keyMap = {
-        'Name': 'name', 'Last Action': 'lastAction', 'Strength': 'strength', 'Dexterity': 'dexterity',
-        'Speed': 'speed', 'Defense': 'defense', 'Total': 'totalStats', 'Status': 'status',
-        'Nerve': 'nerve', 'Energy': 'energy', 'Drug CD': 'drug'
-    };
-    headers.forEach(th => {
-        const text = th.textContent.trim().replace(/ [▼▲↕]/, '').trim();
-        if (keyMap[text]) {
-            th.dataset.sortKey = keyMap[text];
-        }
-    });
-}
+// --- Gain Tracking Core Logic ---
 
-// Adds click listeners to table headers to enable sorting.
-function initializeTableSorting() {
-    const table = document.getElementById('friendly-members-table');
-    if (!table) return;
-    table.addEventListener('click', (event) => {
-        const header = event.target.closest('th');
-        if (!header || !header.dataset.sortKey) return;
-        
-        const sortKey = header.dataset.sortKey;
-        if (currentSort.column === sortKey) {
-            currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
-        } else {
-            currentSort.column = sortKey;
-            currentSort.direction = (sortKey === 'name' || sortKey === 'status') ? 'asc' : 'desc';
-        }
-        renderFriendlyMembersTable();
-    });
-}
+/**
+ * Helper to format gain values (+X, -Y, 0) with appropriate CSS class.
+ */
 function formatGainValue(gain) {
     if (typeof gain !== 'number') {
         return '<span class="gain-neutral">N/A</span>';
