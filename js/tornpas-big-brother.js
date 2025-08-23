@@ -371,64 +371,6 @@ function renderFriendlyMembersTable() {
     applyStatColorCoding();
 }
 
-// Creates and injects sorting dropdown and direction toggle button.
-function setupSortingControls() {
-    const tableContainer = document.querySelector('#current-stats-tab .table-container');
-    if (!tableContainer || document.getElementById('sorting-controls-container')) return;
-
-    const controlsContainer = document.createElement('div');
-    controlsContainer.id = 'sorting-controls-container';
-    Object.assign(controlsContainer.style, {
-        display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-        marginBottom: '10px', gap: '10px'
-    });
-
-    const label = document.createElement('label');
-    label.htmlFor = 'sort-by-select';
-    label.textContent = 'Sort by:';
-    label.style.fontWeight = 'bold';
-
-    const select = document.createElement('select');
-    select.id = 'sort-by-select';
-    select.className = 'form-control';
-    select.style.flex = '0 1 150px';
-
-    const sortOptions = {
-        'totalStats': 'Total Stats', 'name': 'Name', 'lastAction': 'Last Action', 'strength': 'Strength',
-        'dexterity': 'Dexterity', 'speed': 'Speed', 'defense': 'Defense', 'status': 'Status',
-        'nerve': 'Nerve', 'energy': 'Energy', 'drug': 'Drug CD'
-    };
-
-    for (const [value, text] of Object.entries(sortOptions)) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = text;
-        select.appendChild(option);
-    }
-
-    const directionButton = document.createElement('button');
-    directionButton.id = 'sort-direction-toggle';
-    directionButton.className = 'btn btn-secondary';
-    directionButton.style.width = '80px';
-
-    select.addEventListener('change', (e) => {
-        const newSortKey = e.target.value;
-        currentSort.column = newSortKey;
-        currentSort.direction = (newSortKey === 'name' || newSortKey === 'status') ? 'asc' : 'desc';
-        renderFriendlyMembersTable();
-    });
-
-    directionButton.addEventListener('click', () => {
-        currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
-        renderFriendlyMembersTable();
-    });
-
-    controlsContainer.appendChild(label);
-    controlsContainer.appendChild(select);
-    controlsContainer.appendChild(directionButton);
-    tableContainer.prepend(controlsContainer);
-}
-
 // Sets data attributes on table headers to enable sorting.
 function dynamicallySetSortKeys() {
     const headers = document.querySelectorAll('#friendly-members-table th');
@@ -1378,9 +1320,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const startEnergyTrackingBtn = document.getElementById('startEnergyTrackingBtn');
     const stopEnergyTrackingBtn = document.getElementById('stopEnergyTrackingBtn');
 
-    // --- NEW: Setup Sorting Functionality ---
+    // --- Setup Sorting Functionality ---
     dynamicallySetSortKeys();
-    setupSortingControls();
     initializeTableSorting();
 
     // --- Event Listeners ---
