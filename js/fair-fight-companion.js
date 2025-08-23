@@ -60,6 +60,8 @@ function closeResultsModal() {
     document.getElementById('modal-results-table-body').innerHTML = '';
     document.querySelector('#resultsModalOverlay .modal-title').textContent = 'Report';
     document.querySelector('#resultsModalOverlay .modal-summary').innerHTML = '';
+    // Make sure download button is visible by default for the next opening
+    document.getElementById('downloadReportBtn').style.display = 'block';
 }
 
 function closeDiscordSettingsModal() {
@@ -149,7 +151,7 @@ function displayPersonalTargets(data, playerId) {
     const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
-    const downloadBtn = document.getElementById('downloadReportBtn'); // Get the button
+    const downloadBtn = document.getElementById('downloadReportBtn');
     
     // HIDE the download button for this specific report
     downloadBtn.style.display = 'none';
@@ -253,6 +255,10 @@ function displayPublicLookupReport(results, title) {
     const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
+    const downloadBtn = document.getElementById('downloadReportBtn');
+    
+    // SHOW the download button for this report
+    downloadBtn.style.display = 'block';
     
     modalTitle.textContent = "Fair Fight Report";
     tableBody.innerHTML = '';
@@ -378,6 +384,10 @@ function displayLeaderWarReport(results, title) {
     const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
+    const downloadBtn = document.getElementById('downloadReportBtn');
+    
+    // SHOW the download button for this report
+    downloadBtn.style.display = 'block';
     
     modalTitle.textContent = "Leader's War Report";
     tableBody.innerHTML = '';
