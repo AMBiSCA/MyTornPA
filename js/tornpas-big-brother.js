@@ -32,6 +32,10 @@ let unsubscribeFromTrackingStatus = null;
 let unsubscribeFromEnergyTrackingStatus = null; // New unsubscribe for energy
 let unsubscribeFromGainsData = null;
 
+// Variables for table sorting
+let friendlyMembersDataCache = [];
+let currentSort = { column: 'totalStats', direction: 'desc' };
+
 // --- Helper Functions ---
 
 /**
@@ -189,14 +193,9 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         console.log("Triggering backend refresh for faction data...");
-        const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
-        if (!refreshResponse.ok) {
-            const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
-            console.error("Backend refresh failed:", errorResult.message);
-        } else {
-            console.log("Backend refresh triggered successfully.");
-        }
-
+        // This fetch remains the same
+        await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
+        
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_BigBrother_FriendlyMembers`;
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
@@ -230,96 +229,251 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         const processedMembers = membersArray.map((memberTornData) => {
             const memberId = String(memberTornData.user_id || memberTornData.id);
             if (!memberId) return null;
-
             const memberFirebaseData = allMemberFirebaseData[memberId] || {};
-
             const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
             const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
             const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
             const defenseNum = parseStatValue(memberFirebaseData.battlestats?.defense || 0);
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
-
             return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
         }).filter(m => m !== null);
 
-        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
-
-        const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
-
-        let allRowsHtml = '';
-        for (const member of processedMembers) {
-            const { tornData, firebaseData, totalStats } = member;
-            const memberId = tornData.user_id || tornData.id;
-            const name = tornData.name || 'Unknown';
-            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-
-            const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
-            const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
-            const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
-            const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
-
-            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-
-            let energyValue;
-            if (mobileLandscapeQuery.matches) {
-                energyValue = firebaseData.energy?.current ?? 'N/A';
-            } else {
-                energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
-            }
-
-            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
-            let drugCooldown, drugCooldownClass = '';
-            if (drugCooldownValue > 0) {
-                const hours = Math.floor(drugCooldownValue / 3600);
-                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
-                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
-                else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
-                else drugCooldownClass = 'status-okay';
-            } else {
-                if (mobileLandscapeQuery.matches) {
-                    drugCooldown = 'None';
-                } else {
-                    drugCooldown = 'None 🍁';
-                }
-                drugCooldownClass = 'status-okay';
-            }
-
-            const statusState = tornData.status?.state || '';
-            const originalDescription = tornData.status?.description || 'N/A';
-            let formattedStatus = originalDescription;
-            let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
-            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
-            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
-
-            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-
-            allRowsHtml += `
-                <tr data-id="${memberId}">
-                    <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                    <td class="hide-on-mobile">${lastAction}</td>
-                    <td>${strength}</td>
-                    <td>${dexterity}</td>
-                    <td>${speed}</td>
-                    <td>${defense}</td>
-                    <td>${formatBattleStats(totalStats)}</td>
-                    <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
-                    <td class="nerve-text hide-on-mobile">${nerve}</td>
-                    <td class="energy-text hide-on-mobile">${energyValue}</td>
-                    <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
-                </tr>
-            `;
-        }
+        // --- THIS IS THE MAIN CHANGE ---
+        // Instead of sorting and rendering here, we save the data to the cache...
+        friendlyMembersDataCache = processedMembers;
+        // ...and call the render function to display it.
+        renderFriendlyMembersTable();
 
         hideLoadingMessage();
-        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
-        applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         hideLoadingMessage();
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
+}
+
+// --- Table Sorting & Rendering Logic ---
+
+// Renders the friendly members table using cached data and current sort settings.
+function renderFriendlyMembersTable() {
+    // --- START: Update sorting controls UI to stay in sync ---
+    const sortSelect = document.getElementById('sort-by-select');
+    const directionToggle = document.getElementById('sort-direction-toggle');
+    if (sortSelect) {
+        sortSelect.value = currentSort.column;
+    }
+    if (directionToggle) {
+        directionToggle.textContent = currentSort.direction === 'desc' ? '▼ Desc' : '▲ Asc';
+    }
+    // --- END: Update sorting controls UI ---
+
+    const table = document.getElementById('friendly-members-table');
+    const tbody = document.getElementById('friendly-members-tbody');
+    const tableHeaders = document.querySelectorAll('#friendly-members-table th[data-sort-key]');
+    if (!tbody || !tableHeaders.length) return;
+
+    // Helper to get a numeric stat value from a member object
+    const getStat = (member, stat) => parseStatValue(member.firebaseData.battlestats?.[stat] || 0);
+
+    // Sorting logic based on the global 'currentSort' object
+    friendlyMembersDataCache.sort((a, b) => {
+        let valA, valB;
+        switch (currentSort.column) {
+            case 'name':
+                valA = a.tornData.name || '';
+                valB = b.tornData.name || '';
+                return valA.localeCompare(valB);
+            case 'lastAction':
+                valA = a.tornData.last_action?.timestamp || 0;
+                valB = b.tornData.last_action?.timestamp || 0;
+                return valB - valA; // Higher timestamp is more recent
+            case 'strength': return getStat(b, 'strength') - getStat(a, 'strength');
+            case 'dexterity': return getStat(b, 'dexterity') - getStat(a, 'dexterity');
+            case 'speed': return getStat(b, 'speed') - getStat(a, 'speed');
+            case 'defense': return getStat(b, 'defense') - getStat(a, 'defense');
+            case 'status':
+                valA = a.tornData.status?.description || '';
+                valB = b.tornData.status?.description || '';
+                return valA.localeCompare(valB);
+            case 'nerve':
+                valA = a.firebaseData.nerve?.current || 0;
+                valB = b.firebaseData.nerve?.current || 0;
+                return valB - valA;
+            case 'energy':
+                valA = a.firebaseData.energy?.current || 0;
+                valB = b.firebaseData.energy?.current || 0;
+                return valB - valA;
+            case 'drug':
+                valA = a.firebaseData.cooldowns?.drug || 0;
+                valB = b.firebaseData.cooldowns?.drug || 0;
+                return valB - valA;
+            default: // 'totalStats'
+                return b.totalStats - a.totalStats;
+        }
+    });
+
+    if (currentSort.direction === 'asc') {
+        friendlyMembersDataCache.reverse();
+    }
+
+    // Update header icons to show current sort column and direction
+    tableHeaders.forEach(th => {
+        const sortKey = th.dataset.sortKey;
+        th.innerHTML = th.textContent.replace(/ [▼▲↕]/, '');
+        th.style.cursor = 'pointer';
+        if (sortKey === currentSort.column) {
+            th.innerHTML += currentSort.direction === 'desc' ? ' ▼' : ' ▲';
+        } else {
+            th.innerHTML += ' ↕';
+        }
+    });
+
+    // Generate and inject table HTML from the sorted data
+    const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
+    let allRowsHtml = '';
+    for (const member of friendlyMembersDataCache) {
+        // This is the same HTML generation logic you already had
+        const { tornData, firebaseData, totalStats } = member;
+        const memberId = tornData.user_id || tornData.id;
+        const name = tornData.name || 'Unknown';
+        const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
+        const strength = formatBattleStats(getStat(member, 'strength'));
+        const dexterity = formatBattleStats(getStat(member, 'dexterity'));
+        const speed = formatBattleStats(getStat(member, 'speed'));
+        const defense = formatBattleStats(getStat(member, 'defense'));
+        const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+        let energyValue = mobileLandscapeQuery.matches ? (firebaseData.energy?.current ?? 'N/A') : `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+        const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+        let drugCooldown, drugCooldownClass = '';
+        if (drugCooldownValue > 0) {
+            const hours = Math.floor(drugCooldownValue / 3600);
+            const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+            drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+            if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
+            else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
+            else drugCooldownClass = 'status-okay';
+        } else {
+            drugCooldown = mobileLandscapeQuery.matches ? 'None' : 'None 🍁';
+            drugCooldownClass = 'status-okay';
+        }
+        const statusState = tornData.status?.state || '';
+        let formattedStatus = tornData.status?.description || 'N/A';
+        let statusClass = 'status-okay';
+        if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+        else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+        else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+        allRowsHtml += `
+            <tr data-id="${memberId}">
+                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                <td class="hide-on-mobile">${lastAction}</td>
+                <td>${strength}</td>
+                <td>${dexterity}</td>
+                <td>${speed}</td>
+                <td>${defense}</td>
+                <td>${formatBattleStats(totalStats)}</td>
+                <td class="${statusClass} hide-on-mobile">${formattedStatus}</td>
+                <td class="nerve-text hide-on-mobile">${nerve}</td>
+                <td class="energy-text hide-on-mobile">${energyValue}</td>
+                <td class="${drugCooldownClass} hide-on-mobile">${drugCooldown}</td>
+            </tr>
+        `;
+    }
+    tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
+    applyStatColorCoding();
+}
+
+// Creates and injects sorting dropdown and direction toggle button.
+function setupSortingControls() {
+    const tableContainer = document.querySelector('#current-stats-tab .table-container');
+    if (!tableContainer || document.getElementById('sorting-controls-container')) return;
+
+    const controlsContainer = document.createElement('div');
+    controlsContainer.id = 'sorting-controls-container';
+    Object.assign(controlsContainer.style, {
+        display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+        marginBottom: '10px', gap: '10px'
+    });
+
+    const label = document.createElement('label');
+    label.htmlFor = 'sort-by-select';
+    label.textContent = 'Sort by:';
+    label.style.fontWeight = 'bold';
+
+    const select = document.createElement('select');
+    select.id = 'sort-by-select';
+    select.className = 'form-control';
+    select.style.flex = '0 1 150px';
+
+    const sortOptions = {
+        'totalStats': 'Total Stats', 'name': 'Name', 'lastAction': 'Last Action', 'strength': 'Strength',
+        'dexterity': 'Dexterity', 'speed': 'Speed', 'defense': 'Defense', 'status': 'Status',
+        'nerve': 'Nerve', 'energy': 'Energy', 'drug': 'Drug CD'
+    };
+
+    for (const [value, text] of Object.entries(sortOptions)) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = text;
+        select.appendChild(option);
+    }
+
+    const directionButton = document.createElement('button');
+    directionButton.id = 'sort-direction-toggle';
+    directionButton.className = 'btn btn-secondary';
+    directionButton.style.width = '80px';
+
+    select.addEventListener('change', (e) => {
+        const newSortKey = e.target.value;
+        currentSort.column = newSortKey;
+        currentSort.direction = (newSortKey === 'name' || newSortKey === 'status') ? 'asc' : 'desc';
+        renderFriendlyMembersTable();
+    });
+
+    directionButton.addEventListener('click', () => {
+        currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+        renderFriendlyMembersTable();
+    });
+
+    controlsContainer.appendChild(label);
+    controlsContainer.appendChild(select);
+    controlsContainer.appendChild(directionButton);
+    tableContainer.prepend(controlsContainer);
+}
+
+// Sets data attributes on table headers to enable sorting.
+function dynamicallySetSortKeys() {
+    const headers = document.querySelectorAll('#friendly-members-table th');
+    const keyMap = {
+        'Name': 'name', 'Last Action': 'lastAction', 'Strength': 'strength', 'Dexterity': 'dexterity',
+        'Speed': 'speed', 'Defense': 'defense', 'Total': 'totalStats', 'Status': 'status',
+        'Nerve': 'nerve', 'Energy': 'energy', 'Drug CD': 'drug'
+    };
+    headers.forEach(th => {
+        const text = th.textContent.trim().replace(/ [▼▲↕]/, '').trim();
+        if (keyMap[text]) {
+            th.dataset.sortKey = keyMap[text];
+        }
+    });
+}
+
+// Adds click listeners to table headers to enable sorting.
+function initializeTableSorting() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) return;
+    table.addEventListener('click', (event) => {
+        const header = event.target.closest('th');
+        if (!header || !header.dataset.sortKey) return;
+        
+        const sortKey = header.dataset.sortKey;
+        if (currentSort.column === sortKey) {
+            currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+        } else {
+            currentSort.column = sortKey;
+            currentSort.direction = (sortKey === 'name' || sortKey === 'status') ? 'asc' : 'desc';
+        }
+        renderFriendlyMembersTable();
+    });
 }
 
 // --- Gain Tracking Core Logic ---
@@ -1231,34 +1385,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabButtons = document.querySelectorAll('.tab-button-bb');
     const tabPanes = document.querySelectorAll('.tab-pane-bb');
     const downloadButton = document.getElementById('downloadTableDataBtn');
-
-    // Gains Tracking Buttons
     const startTrackingBtn = document.getElementById('startTrackingBtn');
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
-
-    // Energy Tracking Buttons
     const startEnergyTrackingBtn = document.getElementById('startEnergyTrackingBtn');
     const stopEnergyTrackingBtn = document.getElementById('stopEnergyTrackingBtn');
 
-    // --- Event Listeners ---
-    if (downloadButton) {
-        downloadButton.addEventListener('click', downloadCurrentTabAsImage);
-    }
-    if (startTrackingBtn) {
-        startTrackingBtn.addEventListener('click', startTrackingGains);
-    }
-    if (stopTrackingBtn) {
-        stopTrackingBtn.addEventListener('click', stopTrackingGains);
-    }
-    if (startEnergyTrackingBtn) {
-        startEnergyTrackingBtn.addEventListener('click', startEnergyTracking);
-    }
-    if (stopEnergyTrackingBtn) {
-        stopEnergyTrackingBtn.addEventListener('click', stopEnergyTracking);
-    }
+    // --- NEW: Setup Sorting Functionality ---
+    dynamicallySetSortKeys();
+    setupSortingControls();
+    initializeTableSorting();
 
-    // --- Tab Switching Logic ---
-    showTab = function(tabId) { // Assign to the global variable
+    // --- Event Listeners ---
+    if (downloadButton) downloadButton.addEventListener('click', downloadCurrentTabAsImage);
+    if (startTrackingBtn) startTrackingBtn.addEventListener('click', startTrackingGains);
+    if (stopTrackingBtn) stopTrackingBtn.addEventListener('click', stopTrackingGains);
+    if (startEnergyTrackingBtn) startEnergyTrackingBtn.addEventListener('click', startEnergyTracking);
+    if (stopEnergyTrackingBtn) stopEnergyTrackingBtn.addEventListener('click', stopEnergyTracking);
+
+    // --- Tab Switching Logic (remains the same) ---
+    showTab = function(tabId) { 
         tabPanes.forEach(pane => pane.classList.toggle('active', pane.id === tabId));
         tabButtons.forEach(button => button.classList.toggle('active', button.dataset.tab + '-tab' === tabId));
 
@@ -1284,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Authentication and Initial Data Load ---
+    // --- Authentication and Initial Data Load (remains the same) ---
     auth.onAuthStateChanged(async (user) => {
         currentFirebaseUserUid = user ? user.uid : null;
         if (user) {
@@ -1295,13 +1440,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
                     userFactionIdFromProfile = userData.faction_id || null;
-                    
-                    // --- NEW PERMISSION LOGIC ---
                     currentUserHasTrackerAccess = await checkIfUserHasTrackerAccess(user.uid);
-
                     const gainsTabButton = document.querySelector('[data-tab="gains-tracking"]');
                     const energyTabButton = document.querySelector('[data-tab="energy-tracking"]');
-
                     if (gainsTabButton && energyTabButton) {
                         if (currentUserHasTrackerAccess) {
                             gainsTabButton.classList.remove('hidden');
@@ -1309,15 +1450,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             gainsTabButton.classList.add('hidden');
                             energyTabButton.classList.add('hidden');
-
                             const activeTabButton = document.querySelector('.tab-button-bb.active');
                             if (activeTabButton === gainsTabButton || activeTabButton === energyTabButton) {
                                 showTab('current-stats-tab');
                             }
                         }
                     }
-                    // --- END NEW PERMISSION LOGIC ---
-
                     if (userFactionIdFromProfile) {
                         setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                         setupRealtimeEnergyTrackingStatusListener(userFactionIdFromProfile);
@@ -1325,7 +1463,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         updateGainTrackingUI();
                         updateEnergyTrackingUI();
                     }
-
                     const activeTab = document.querySelector('.tab-pane-bb.active').id;
                     if (userApiKey && activeTab === 'current-stats-tab') {
                         await updateFriendlyMembersTable(userApiKey, user.uid);
@@ -1343,16 +1480,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('friendly-members-tbody').innerHTML = `<tr><td colspan="11" style="color:red;">Error: ${error.message}.</td></tr>`;
             }
         } else {
-            // Not logged in
             hideLoadingMessage();
             document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Please log in to view stats.</td></tr>';
-            
-            // Hide tabs for non-logged in users
             const gainsTabButton = document.querySelector('[data-tab="gains-tracking"]');
             const energyTabButton = document.querySelector('[data-tab="energy-tracking"]');
             if (gainsTabButton) gainsTabButton.classList.add('hidden');
             if (energyTabButton) energyTabButton.classList.add('hidden');
-
             updateGainTrackingUI();
             updateEnergyTrackingUI();
         }
