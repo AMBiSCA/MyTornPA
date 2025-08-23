@@ -260,7 +260,6 @@ body::before {
 .modal-table tbody tr:nth-child(odd) {background-color: #2b2b2b;}
 .modal-table tbody td {padding: 8px 15px;border: 1px solid #333;color: #eee;font-size: 0.9rem;text-align: left;}
 .modal-table tbody tr:hover {background-color: #3a3a3a;}
-.modal-action-area { text-align: center; padding-top: 20px; flex-shrink: 0; }
 .loading-overlay {
     position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.7);
     display: flex;justify-content: center;align-items: center;z-index: 2000;backdrop-filter: blur(5px);
