@@ -10,13 +10,13 @@ const db = firebase.firestore();
 let userApiKey = null;
 let userTornProfileId = null;
 let currentFirebaseUserUid = null; // Store current user's UID
-let currentUserIsAdmin = false; // Store admin status
+let currentUserHasTrackerAccess = false; // Store permission status for tracker tabs
 let userFactionIdFromProfile = null; // Store user's faction ID, retrieved from profile
 
 // State for Battle Stat Gains Tracking
-let activeTrackingSessionId = null; 
-let activeTrackingStartedAt = null; 
-let baselineStatsCache = {}; 
+let activeTrackingSessionId = null;
+let activeTrackingStartedAt = null;
+let baselineStatsCache = {};
 
 // State for Energy Gains Tracking
 let activeEnergyTrackingSessionId = null;
@@ -30,7 +30,7 @@ const ENERGY_TRACKING_SESSIONS_COLLECTION = 'energyTrackingSessions'; // New col
 // Real-time Firestore unsubscribe functions
 let unsubscribeFromTrackingStatus = null;
 let unsubscribeFromEnergyTrackingStatus = null; // New unsubscribe for energy
-let unsubscribeFromGainsData = null; 
+let unsubscribeFromGainsData = null;
 
 // --- Helper Functions ---
 
@@ -49,14 +49,14 @@ function formatBattleStats(num) {
  * Helper function to parse a stat string (which might contain 'k', 'm', 'b') into a number.
  */
 function parseStatValue(statString) {
-    if (typeof statString === 'number') { 
+    if (typeof statString === 'number') {
         return statString;
     }
     if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
-        return 0; 
+        return 0;
     }
 
-    let value = statString.trim().toLowerCase(); 
+    let value = statString.trim().toLowerCase();
 
     let multiplier = 1;
     if (value.endsWith('k')) {
@@ -70,7 +70,7 @@ function parseStatValue(statString) {
         value = value.slice(0, -1);
     }
 
-    const number = parseFloat(value.replace(/,/g, '')); 
+    const number = parseFloat(value.replace(/,/g, ''));
     return isNaN(number) ? 0 : number * multiplier;
 }
 
@@ -95,20 +95,20 @@ function applyStatColorCoding() {
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
-        if (value >= 10000000000) { tierClass = 'stat-tier-14'; } 
-        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } 
-        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } 
-        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } 
-        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } 
-        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  
-        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  
-        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  
-        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  
-        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  
-        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  
-        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  
-        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  
-        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+        if (value >= 10000000000) { tierClass = 'stat-tier-14'; }
+        else if (value >= 5000000000) { tierClass = 'stat-tier-13'; }
+        else if (value >= 2500000000) { tierClass = 'stat-tier-12'; }
+        else if (value >= 1000000000) { tierClass = 'stat-tier-11'; }
+        else if (value >= 500000000) { tierClass = 'stat-tier-10'; }
+        else if (value >= 250000000) { tierClass = 'stat-tier-9'; }
+        else if (value >= 100000000) { tierClass = 'stat-tier-8'; }
+        else if (value >= 50000000) { tierClass = 'stat-tier-7'; }
+        else if (value >= 10000000) { tierClass = 'stat-tier-6'; }
+        else if (value >= 5000000) { tierClass = 'stat-tier-5'; }
+        else if (value >= 1000000) { tierClass = 'stat-tier-4'; }
+        else if (value >= 100000) { tierClass = 'stat-tier-3'; }
+        else if (value >= 10000) { tierClass = 'stat-tier-2'; }
+        else if (value > 0) { tierClass = 'stat-tier-1'; }
 
         if (tierClass) {
             cell.classList.add(tierClass);
@@ -148,20 +148,28 @@ function hideLoadingMessage() {
     }
 }
 
-// --- User Role / Admin Check ---
-async function checkIfUserIsAdmin(userUid) {
+// --- MODIFIED PERMISSION CHECK ---
+/**
+ * Checks if a user has permission to view tracker tabs.
+ * Access is granted to 'Leader', 'Co-leader', and 'Council'.
+ * @param {string} userUid The Firebase UID of the user.
+ * @returns {boolean} True if the user has access, false otherwise.
+ */
+async function checkIfUserHasTrackerAccess(userUid) {
     if (!userUid) return false;
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(userUid).get();
         if (!userProfileDoc.exists) return false;
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
-        return userPosition === 'leader' || userPosition === 'co-leader';
+        // Check for all three roles
+        return userPosition === 'leader' || userPosition === 'co-leader' || userPosition === 'council';
     } catch (error) {
-        console.error("Error during admin check in TornPAs Big Brother:", error);
+        console.error("Error during tracker access check:", error);
         return false;
     }
 }
+
 
 // --- Main Data Fetching and Display Function for the Current Stats Table ---
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
@@ -181,7 +189,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         console.log("Triggering backend refresh for faction data...");
-        // This Netlify function is assumed to be authorized and update 'users' collection
         const refreshResponse = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${userFactionId}`);
         if (!refreshResponse.ok) {
             const errorResult = await refreshResponse.json().catch(() => ({ message: "Unknown refresh error" }));
@@ -225,7 +232,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             if (!memberId) return null;
 
             const memberFirebaseData = allMemberFirebaseData[memberId] || {};
-            
+
             const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
             const speedNum = parseStatValue(memberFirebaseData.battlestats?.speed || 0);
             const dexterityNum = parseStatValue(memberFirebaseData.battlestats?.dexterity || 0);
@@ -245,14 +252,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const memberId = tornData.user_id || tornData.id;
             const name = tornData.name || 'Unknown';
             const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
-            
+
             const strength = formatBattleStats(parseStatValue(firebaseData.battlestats?.strength || 0));
             const dexterity = formatBattleStats(parseStatValue(firebaseData.battlestats?.dexterity || 0));
             const speed = formatBattleStats(parseStatValue(firebaseData.battlestats?.speed || 0));
             const defense = formatBattleStats(parseStatValue(firebaseData.battlestats?.defense || 0));
 
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-            
+
             let energyValue;
             if (mobileLandscapeQuery.matches) {
                 energyValue = firebaseData.energy?.current ?? 'N/A';
@@ -304,7 +311,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 </tr>
             `;
         }
-        
+
         hideLoadingMessage();
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
         applyStatColorCoding();
@@ -348,20 +355,20 @@ function updateGainTrackingUI() {
         return;
     }
 
-    if (!currentUserIsAdmin) {
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
         startTrackingBtn.classList.add('hidden');
         stopTrackingBtn.classList.add('hidden');
-        trackingStatusDisplay.textContent = 'Only leaders/co-leaders can track gains.';
+        trackingStatusDisplay.textContent = 'You do not have permission to track gains.';
         gainsStartedAtDisplay.textContent = '';
         return;
     }
-    
+
     if (activeTrackingSessionId) {
         startTrackingBtn.classList.add('hidden');
         stopTrackingBtn.classList.remove('hidden');
         stopTrackingBtn.disabled = false;
         stopTrackingBtn.textContent = 'Stop Tracking';
-        
+
         trackingStatusDisplay.textContent = 'Currently tracking gains.';
         if (activeTrackingStartedAt) {
             const startedDate = activeTrackingStartedAt.toDate ? activeTrackingStartedAt.toDate() : activeTrackingStartedAt;
@@ -383,9 +390,8 @@ function updateGainTrackingUI() {
  * Fetches current battle stats for all faction members and saves them as a snapshot.
  */
 async function startTrackingGains() {
-    console.log("Attempting to start tracking gains...");
-    if (!currentUserIsAdmin) {
-        alert("Permission denied. Only leaders/co-leaders can start tracking.");
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
+        alert("Permission denied. You do not have access to this feature.");
         return;
     }
     if (!userApiKey || !currentFirebaseUserUid || !userFactionIdFromProfile) {
@@ -400,8 +406,8 @@ async function startTrackingGains() {
     }
 
     try {
-        const userFactionId = userFactionIdFromProfile; 
-        
+        const userFactionId = userFactionIdFromProfile;
+
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}&comment=MyTornPA_BigBrother_Snapshot`;
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
@@ -436,7 +442,7 @@ async function startTrackingGains() {
             });
         });
 
-        const newSessionDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(); 
+        const newSessionDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc();
         await newSessionDocRef.set({
             factionId: userFactionId,
             startedByUid: currentFirebaseUserUid,
@@ -445,7 +451,7 @@ async function startTrackingGains() {
             snapshot: currentStatsForSnapshot
         });
 
-        const factionStatusDocId = String(userFactionId); 
+        const factionStatusDocId = String(userFactionId);
         await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(factionStatusDocId).set({
             activeSessionId: newSessionDocRef.id,
             factionId: userFactionId,
@@ -454,7 +460,7 @@ async function startTrackingGains() {
         }, { merge: true });
 
         console.log("Gains tracking started. Snapshot saved with ID:", newSessionDocRef.id);
-        
+
         alert("Gains tracking started successfully!");
 
     } catch (error) {
@@ -472,9 +478,8 @@ async function startTrackingGains() {
  * Stops the current gains tracking session for the user's faction.
  */
 async function stopTrackingGains() {
-    console.log("Attempting to stop tracking gains...");
-    if (!currentUserIsAdmin) {
-        alert("Permission denied. Only leaders/co-leaders can stop tracking.");
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
+        alert("Permission denied. You do not have access to this feature.");
         return;
     }
     if (!userFactionIdFromProfile) {
@@ -502,7 +507,7 @@ async function stopTrackingGains() {
             });
 
             await statusDocRef.delete();
-            
+
             console.log("Gains tracking stopped for session:", activeSessionIdToUpdate);
 
             alert("Gains tracking stopped successfully!");
@@ -510,7 +515,7 @@ async function stopTrackingGains() {
         } else {
             alert("No active tracking session found for your faction.");
         }
-        updateGainTrackingUI(); 
+        updateGainTrackingUI();
 
     } catch (error) {
         console.error("Error stopping gains tracking:", error);
@@ -565,7 +570,7 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
         baselineStatsCache = {};
         updateGainTrackingUI();
         if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
-             displayGainsTable();
+            displayGainsTable();
         }
     });
     console.log(`Real-time tracking status listener set up for faction: ${userFactionId}`);
@@ -578,7 +583,7 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
 async function displayGainsTable() {
     const gainsTbody = document.getElementById('gains-overview-tbody');
     const gainsMessageContainer = document.querySelector('#gains-tracking-tab .gains-table-container p');
-    
+
     if (!gainsTbody || !gainsMessageContainer) {
         console.error("HTML Error: Gains table body or message container not found.");
         return;
@@ -626,7 +631,7 @@ async function displayGainsTable() {
             gainsMessageContainer.textContent = 'No members to display gains for.';
             return;
         }
-        
+
         if (unsubscribeFromGainsData) {
             unsubscribeFromGainsData();
             unsubscribeFromGainsData = null;
@@ -671,7 +676,7 @@ async function displayGainsTable() {
                     initialTotal: baseline.total
                 });
             } else if (current && !baseline) {
-                 membersWithGains.push({
+                membersWithGains.push({
                     name: memberTornData.name,
                     memberId: memberId,
                     strengthGain: current.strength,
@@ -680,7 +685,7 @@ async function displayGainsTable() {
                     defenseGain: current.defense,
                     totalGain: current.total,
                     initialTotal: current.total,
-                    isNew: true 
+                    isNew: true
                 });
             }
         });
@@ -710,7 +715,7 @@ async function displayGainsTable() {
     }
 }
 
-// --- NEW Energy Tracking Core Logic ---
+// --- Energy Tracking Core Logic ---
 
 /**
  * Updates the UI elements related to ENERGY tracking status (buttons, text).
@@ -726,10 +731,10 @@ function updateEnergyTrackingUI() {
         return;
     }
 
-    if (!currentUserIsAdmin) {
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
         startBtn.classList.add('hidden');
         stopBtn.classList.add('hidden');
-        statusDisplay.textContent = 'Only leaders/co-leaders can track energy.';
+        statusDisplay.textContent = 'You do not have permission to track energy.';
         startedAtDisplay.textContent = '';
         return;
     }
@@ -739,7 +744,7 @@ function updateEnergyTrackingUI() {
         stopBtn.classList.remove('hidden');
         stopBtn.disabled = false;
         stopBtn.textContent = 'Stop Energy Tracking';
-        
+
         statusDisplay.textContent = 'Currently tracking energy.';
         if (activeEnergyTrackingStartedAt) {
             const startedDate = activeEnergyTrackingStartedAt.toDate ? activeEnergyTrackingStartedAt.toDate() : activeEnergyTrackingStartedAt;
@@ -761,9 +766,8 @@ function updateEnergyTrackingUI() {
  * Fetches current gym contributor stats for all members and saves them as a snapshot.
  */
 async function startEnergyTracking() {
-    console.log("Attempting to start energy tracking...");
-    if (!currentUserIsAdmin) {
-        alert("Permission denied. Only leaders/co-leaders can start tracking.");
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
+        alert("Permission denied. You do not have access to this feature.");
         return;
     }
     if (!userApiKey || !currentFirebaseUserUid || !userFactionIdFromProfile) {
@@ -780,8 +784,7 @@ async function startEnergyTracking() {
     try {
         const userFactionId = userFactionIdFromProfile;
         const statsToFetch = ['gymstrength', 'gymspeed', 'gymdexterity', 'gymdefense'];
-        
-        // Create an array of fetch promises
+
         const apiPromises = statsToFetch.map(stat => {
             const url = `https://api.torn.com/v2/faction/${userFactionId}?selections=contributors&stat=${stat}&key=${userApiKey}&comment=MyTornPA_EnergyTrackerStart`;
             return fetch(url).then(response => {
@@ -790,13 +793,11 @@ async function startEnergyTracking() {
             });
         });
 
-        // Await all promises to resolve
         const results = await Promise.all(apiPromises);
 
-        // Process the results
         const baselineSnapshot = {};
         results.forEach((result, index) => {
-            const statName = statsToFetch[index].replace('gym', ''); // 'strength', 'speed', etc.
+            const statName = statsToFetch[index].replace('gym', '');
             if (result.error) {
                 throw new Error(`Torn API Error for ${statName}: ${result.error.error}`);
             }
@@ -810,8 +811,7 @@ async function startEnergyTracking() {
                 baselineSnapshot[memberId][statName] = contributor.value || 0;
             }
         });
-        
-        // Save to Firestore
+
         const newSessionDocRef = db.collection(ENERGY_TRACKING_SESSIONS_COLLECTION).doc();
         await newSessionDocRef.set({
             factionId: userFactionId,
@@ -847,9 +847,8 @@ async function startEnergyTracking() {
  * Stops the current energy tracking session.
  */
 async function stopEnergyTracking() {
-    console.log("Attempting to stop energy tracking...");
-    if (!currentUserIsAdmin) {
-        alert("Permission denied. Only leaders/co-leaders can stop tracking.");
+    if (!currentUserHasTrackerAccess) { // <-- USES NEW PERMISSION VARIABLE
+        alert("Permission denied. You do not have access to this feature.");
         return;
     }
     if (!userFactionIdFromProfile) {
@@ -877,7 +876,7 @@ async function stopEnergyTracking() {
             });
 
             await statusDocRef.delete();
-            
+
             console.log("Energy tracking stopped for session:", activeSessionIdToUpdate);
             alert("Energy tracking stopped successfully!");
 
@@ -976,42 +975,39 @@ async function displayEnergyGainsTable() {
         const baselineStats = baselineEnergyStatsCache[activeEnergyTrackingSessionId];
         const statsToFetch = ['gymstrength', 'gymspeed', 'gymdexterity', 'gymdefense'];
 
-        // Fetch current data from API
         const apiPromises = statsToFetch.map(stat => {
             const url = `https://api.torn.com/v2/faction/${userFactionId}?selections=contributors&stat=${stat}&key=${userApiKey}&comment=MyTornPA_EnergyTrackerUpdate`;
             return fetch(url).then(res => res.json());
         });
         const results = await Promise.all(apiPromises);
 
-        // Process current data
         const currentStats = {};
         results.forEach((result, index) => {
             const statName = statsToFetch[index].replace('gym', '');
             if (result.error) throw new Error(`API Error for ${statName}: ${result.error.error}`);
-            
+
             const contributors = result.contributors || [];
             for (const contributor of contributors) {
                 const memberId = String(contributor.id);
                 if (!currentStats[memberId]) {
                     currentStats[memberId] = { name: contributor.username, strength: 0, speed: 0, dexterity: 0, defense: 0 };
                 }
-                currentStats[memberId].name = contributor.username; // Ensure name is up-to-date
+                currentStats[memberId].name = contributor.username;
                 currentStats[memberId][statName] = contributor.value || 0;
             }
         });
 
-        // Calculate gains and prepare for display
         const membersWithGains = [];
         for (const memberId in currentStats) {
             const current = currentStats[memberId];
-            const baseline = baselineStats[memberId] || { strength: 0, speed: 0, dexterity: 0, defense: 0 }; // Handle new members
+            const baseline = baselineStats[memberId] || { strength: 0, speed: 0, dexterity: 0, defense: 0 };
 
             const strengthGain = current.strength - baseline.strength;
             const dexterityGain = current.dexterity - baseline.dexterity;
             const speedGain = current.speed - baseline.speed;
             const defenseGain = current.defense - baseline.defense;
             const totalGain = strengthGain + dexterityGain + speedGain + defenseGain;
-            
+
             membersWithGains.push({
                 memberId,
                 name: current.name,
@@ -1019,26 +1015,24 @@ async function displayEnergyGainsTable() {
                 isNew: !baselineStats[memberId]
             });
         }
-        
-        // Add members who were in baseline but might not be in current stats (e.g., left faction)
+
         for (const memberId in baselineStats) {
             if (!currentStats[memberId]) {
-                 // You can decide how to handle members who have left. Here we just show 0 gain.
-                 const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}`;
-                 const factionResponse = await fetch(factionMembersApiUrl);
-                 const factionData = await factionResponse.json();
-                 const memberInfo = factionData.members ? factionData.members[memberId] : null;
-                 const name = memberInfo ? memberInfo.name : `User ${memberId}`;
+                const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}`;
+                const factionResponse = await fetch(factionMembersApiUrl);
+                const factionData = await factionResponse.json();
+                const memberInfo = factionData.members ? factionData.members[memberId] : null;
+                const name = memberInfo ? memberInfo.name : `User ${memberId}`;
 
-                 membersWithGains.push({
-                     memberId, name,
-                     strengthGain: 0, dexterityGain: 0, speedGain: 0, defenseGain: 0, totalGain: 0
-                 });
+                membersWithGains.push({
+                    memberId, name,
+                    strengthGain: 0, dexterityGain: 0, speedGain: 0, defenseGain: 0, totalGain: 0
+                });
             }
         }
 
         membersWithGains.sort((a, b) => b.totalGain - a.totalGain);
-        
+
         let energyRowsHtml = '';
         membersWithGains.forEach(member => {
             const profileUrl = `https://www.torn.com/profiles.php?XID=${member.memberId}`;
@@ -1054,7 +1048,7 @@ async function displayEnergyGainsTable() {
                 </tr>
             `;
         });
-        
+
         energyTbody.innerHTML = energyRowsHtml.length > 0 ? energyRowsHtml : '<tr><td colspan="6" style="text-align:center;">No energy gains to display.</td></tr>';
         energyMessageContainer.classList.add('hidden');
 
@@ -1081,7 +1075,7 @@ function downloadCurrentTabAsImage() {
 
     if (activeTabPane.id === 'current-stats-tab') {
         originalTable = document.getElementById('friendly-members-table');
-        columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; 
+        columnIndicesToKeep = [0, 2, 3, 4, 5, 6];
         headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
         filename = 'tornpas_current_stats.png';
         const now = new Date();
@@ -1097,7 +1091,7 @@ function downloadCurrentTabAsImage() {
         } else {
             reportTitle = 'Faction Gains Report';
         }
-    } else if (activeTabPane.id === 'energy-tracking-tab') { // <-- NEW PART
+    } else if (activeTabPane.id === 'energy-tracking-tab') {
         originalTable = document.getElementById('energy-overview-table');
         columnIndicesToKeep = [0, 1, 2, 3, 4, 5];
         headerTextsToKeep = ["Name", "Strength Energy", "Dexterity Energy", "Speed Energy", "Defense Energy", "Total Energy"];
@@ -1136,7 +1130,7 @@ function downloadCurrentTabAsImage() {
 
     const tempTable = document.createElement('table');
     tempTable.className = 'download-table-preview';
-    
+
     const tempThead = document.createElement('thead');
     const tempTbody = document.createElement('tbody');
 
@@ -1147,7 +1141,7 @@ function downloadCurrentTabAsImage() {
         tempHeaderRow.appendChild(th);
     });
     tempThead.appendChild(tempHeaderRow);
-    
+
     const originalRows = originalTable.querySelectorAll('tbody tr');
     originalRows.forEach(originalRow => {
         const tempRow = document.createElement('tr');
@@ -1155,11 +1149,10 @@ function downloadCurrentTabAsImage() {
             const originalCell = originalRow.children[index];
             if (originalCell) {
                 const clonedCell = originalCell.cloneNode(true);
-                 // Capture computed styles for accurate color representation
                 const computedStyle = window.getComputedStyle(originalCell);
                 clonedCell.style.backgroundColor = computedStyle.backgroundColor;
                 const innerSpan = clonedCell.querySelector('span');
-                if(innerSpan){
+                if (innerSpan) {
                     clonedCell.style.color = window.getComputedStyle(innerSpan).color;
                 } else {
                     clonedCell.style.color = computedStyle.color;
@@ -1205,7 +1198,7 @@ function managePortraitBlocker() {
             document.body.appendChild(blocker);
             // ... your button logic
         }
-        
+
         if (header) header.style.display = 'none';
         if (mainContentArea) mainContentArea.style.display = 'none';
         if (footer) footer.style.display = 'none';
@@ -1220,6 +1213,8 @@ function managePortraitBlocker() {
     }
 }
 
+// Global variable to hold the function for tab switching
+let showTab;
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -1236,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabButtons = document.querySelectorAll('.tab-button-bb');
     const tabPanes = document.querySelectorAll('.tab-pane-bb');
     const downloadButton = document.getElementById('downloadTableDataBtn');
-    
+
     // Gains Tracking Buttons
     const startTrackingBtn = document.getElementById('startTrackingBtn');
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
@@ -1263,15 +1258,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Tab Switching Logic ---
-    function showTab(tabId) {
+    showTab = function(tabId) { // Assign to the global variable
         tabPanes.forEach(pane => pane.classList.toggle('active', pane.id === tabId));
         tabButtons.forEach(button => button.classList.toggle('active', button.dataset.tab + '-tab' === tabId));
 
-        // Clear all listeners on tab switch to prevent multiple listeners
         if (unsubscribeFromTrackingStatus) unsubscribeFromTrackingStatus();
         if (unsubscribeFromEnergyTrackingStatus) unsubscribeFromEnergyTrackingStatus();
-        
-        // Load data for the selected tab
+
         if (userFactionIdFromProfile) {
             if (tabId === 'current-stats-tab') {
                 if (userApiKey && auth.currentUser) {
@@ -1302,27 +1295,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
                     userFactionIdFromProfile = userData.faction_id || null;
-                    currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
                     
+                    // --- NEW PERMISSION LOGIC ---
+                    currentUserHasTrackerAccess = await checkIfUserHasTrackerAccess(user.uid);
+
+                    const gainsTabButton = document.querySelector('[data-tab="gains-tracking"]');
+                    const energyTabButton = document.querySelector('[data-tab="energy-tracking"]');
+
+                    if (gainsTabButton && energyTabButton) {
+                        if (currentUserHasTrackerAccess) {
+                            gainsTabButton.classList.remove('hidden');
+                            energyTabButton.classList.remove('hidden');
+                        } else {
+                            gainsTabButton.classList.add('hidden');
+                            energyTabButton.classList.add('hidden');
+
+                            const activeTabButton = document.querySelector('.tab-button-bb.active');
+                            if (activeTabButton === gainsTabButton || activeTabButton === energyTabButton) {
+                                showTab('current-stats-tab');
+                            }
+                        }
+                    }
+                    // --- END NEW PERMISSION LOGIC ---
+
                     if (userFactionIdFromProfile) {
-                        // Setup both listeners, but they will only fetch data when their tab is active
                         setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                         setupRealtimeEnergyTrackingStatusListener(userFactionIdFromProfile);
                     } else {
                         updateGainTrackingUI();
                         updateEnergyTrackingUI();
                     }
-                    
+
                     const activeTab = document.querySelector('.tab-pane-bb.active').id;
                     if (userApiKey && activeTab === 'current-stats-tab') {
                         await updateFriendlyMembersTable(userApiKey, user.uid);
                     } else if (!userApiKey) {
-                         hideLoadingMessage();
-                         document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow;">Please add your Torn API key in settings.</td></tr>';
+                        hideLoadingMessage();
+                        document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow;">Please add your Torn API key in settings.</td></tr>';
                     }
                 } else {
-                     hideLoadingMessage();
-                     document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow;">User profile not found.</td></tr>';
+                    hideLoadingMessage();
+                    document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow;">User profile not found.</td></tr>';
                 }
             } catch (error) {
                 console.error("Error fetching user profile:", error);
@@ -1333,6 +1346,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Not logged in
             hideLoadingMessage();
             document.getElementById('friendly-members-tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Please log in to view stats.</td></tr>';
+            
+            // Hide tabs for non-logged in users
+            const gainsTabButton = document.querySelector('[data-tab="gains-tracking"]');
+            const energyTabButton = document.querySelector('[data-tab="energy-tracking"]');
+            if (gainsTabButton) gainsTabButton.classList.add('hidden');
+            if (energyTabButton) energyTabButton.classList.add('hidden');
+
             updateGainTrackingUI();
             updateEnergyTrackingUI();
         }
@@ -1345,11 +1365,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ... your existing, unchanged orientation handler code ...
-// This part of your code is complex and self-contained, so I've left it as is.
-// Just ensure it's at the end of the file.
 let portraitBlocker = null;
 let landscapeBlocker = null;
-// ... (the rest of the orientation code you provided) ...
 function createOverlays() {
     const overlayStyles = {
         display: 'none', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
