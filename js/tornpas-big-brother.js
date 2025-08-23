@@ -256,17 +256,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
 // Renders the friendly members table using cached data and current sort settings.
 function renderFriendlyMembersTable() {
-    // --- START: Update sorting controls UI to stay in sync ---
-    const sortSelect = document.getElementById('sort-by-select');
-    const directionToggle = document.getElementById('sort-direction-toggle');
-    if (sortSelect) {
-        sortSelect.value = currentSort.column;
-    }
-    if (directionToggle) {
-        directionToggle.textContent = currentSort.direction === 'desc' ? '▼ Desc' : '▲ Asc';
-    }
-    // --- END: Update sorting controls UI ---
-
     const table = document.getElementById('friendly-members-table');
     const tbody = document.getElementById('friendly-members-tbody');
     const tableHeaders = document.querySelectorAll('#friendly-members-table th[data-sort-key]');
@@ -332,7 +321,6 @@ function renderFriendlyMembersTable() {
     const mobileLandscapeQuery = window.matchMedia("only screen and (orientation: landscape) and (max-height: 500px)");
     let allRowsHtml = '';
     for (const member of friendlyMembersDataCache) {
-        // This is the same HTML generation logic you already had
         const { tornData, firebaseData, totalStats } = member;
         const memberId = tornData.user_id || tornData.id;
         const name = tornData.name || 'Unknown';
