@@ -248,7 +248,7 @@ body::before {
 .modal-summary span {font-weight: bold;color: #eee;}
 .modal-table-container {
     max-height: calc(90vh - 280px);
-    overflow-y: auto;border: 1px solid #007acc;border-radius: 8px;margin-top: 15px;
+    overflow-y: auto;border: 1px solid #007acc;border-radius: 8px;margin-top: -36px;
     flex-grow: 1;
 }
 .modal-table {width: 100%;border-collapse: collapse;margin: 0;background-color: #1a1a1a;}
