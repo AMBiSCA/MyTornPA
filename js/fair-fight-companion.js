@@ -1,20 +1,10 @@
-/* ==========================================================================
-   FAIR FIGHT COMPANION - MASTER SCRIPT
-   ========================================================================== */
-
-// --- 1. CONSTANTS ---
-const FF_SCOUTER_API_URL = "https://ffscouter.com/api/v1/get-stats";
+const TORNPA_FF_DATA_SOURCE = `/.netlify/functions/get-fair-fight`; 
 const NETLIFY_TARGETS_FUNCTION = `/.netlify/functions/get-recommended-targets`;
 
 
-/* ==========================================================================
-   2. SHARED UTILITY FUNCTIONS (De-duplicated)
-   ========================================================================== */
-
-// --- API & Data Functions ---
 async function getTornApiKey() {
     try {
-        const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93'; // Hardcoded UID for the site's API key
+        const ownerUid = '48CQkfJqz2YrXrHfmOO0y1zeci93'; 
         const userDoc = await firebase.firestore().collection('userProfiles').doc(ownerUid).get();
         if (userDoc.exists && userDoc.data().tornApiKey) {
             return userDoc.data().tornApiKey;
@@ -22,19 +12,30 @@ async function getTornApiKey() {
             throw new Error("A critical error occurred. The site API key is not configured.");
         }
     } catch (error) {
-        showError('public', error.message); // Show error on a default tab
+        showError('public', error.message); 
         return null;
     }
 }
 
-async function fetchFairFightData(playerIds, apiKey) {
+
+async function fetchTornPAsFFData(playerIds) {
     if (!playerIds || playerIds.length === 0) return [];
-    const url = `${FF_SCOUTER_API_URL}?key=${apiKey}&targets=${playerIds.join(",")}`;
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`FF Scouter API error: ${response.status}`);
+        const response = await fetch(TORNPA_FF_DATA_SOURCE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playerIds: playerIds })
+        });
+
+        if (!response.ok) {
+             const errorData = await response.json();
+             throw new Error(errorData.error || `Server function failed with status: ${response.status}`);
+        }
+        
         const apiResponse = await response.json();
-        if (apiResponse.error) throw new Error(`FF Scouter API error: ${apiResponse.error}`);
+        if (apiResponse.error) throw new Error(`Server function error: ${apiResponse.error}`);
+
+        // The structure of the data coming back is the same as before, so we just process it
         const resultsMap = new Map();
         apiResponse.forEach(result => {
             if (result.player_id) {
@@ -42,10 +43,14 @@ async function fetchFairFightData(playerIds, apiKey) {
             }
         });
         return playerIds.map(id => resultsMap.get(id.toString()) || { no_data: true });
+
     } catch (error) {
+        console.error("Error fetching data from TornPA's FF source:", error);
+        // Return an error object for each ID so the UI can display it
         return playerIds.map(id => ({ error: true, message: error.message }));
     }
 }
+
 
 // --- UI Control Functions ---
 function showLoadingSpinner() { document.getElementById('loadingOverlay').classList.add('visible'); }
@@ -55,12 +60,10 @@ function showResultsModal() { document.getElementById('resultsModalOverlay').cla
 function closeResultsModal() {
     const overlay = document.getElementById('resultsModalOverlay');
     if (overlay) overlay.classList.remove('visible');
-    // Reset modal content for next use
     document.getElementById('modal-results-table-header').innerHTML = '';
     document.getElementById('modal-results-table-body').innerHTML = '';
     document.querySelector('#resultsModalOverlay .modal-title').textContent = 'Report';
     document.querySelector('#resultsModalOverlay .modal-summary').innerHTML = '';
-    // Make sure download button is visible by default for the next opening
     document.getElementById('downloadReportBtn').style.display = 'block';
 }
 
@@ -71,13 +74,9 @@ function closeDiscordSettingsModal() {
 
 function showError(tabName, message) {
     let errorDiv;
-    if (tabName === 'personal') {
-        errorDiv = document.getElementById('fairFightApiKeyError');
-    } else if (tabName === 'public') {
-        errorDiv = document.getElementById('public-main-error-feedback');
-    } else if (tabName === 'leader') {
-        errorDiv = document.getElementById('leader-main-error-feedback');
-    }
+    if (tabName === 'personal') { errorDiv = document.getElementById('fairFightApiKeyError'); } 
+    else if (tabName === 'public') { errorDiv = document.getElementById('public-main-error-feedback'); }
+    else if (tabName === 'leader') { errorDiv = document.getElementById('leader-main-error-feedback'); }
 
     if (errorDiv) {
         errorDiv.textContent = message;
@@ -91,41 +90,25 @@ function handleDownloadReport() {
     const tableElement = document.querySelector('#resultsModalOverlay .modal-table');
     const downloadBtn = document.getElementById('downloadReportBtn');
 
-    if (!modalContent || !tableContainer || !tableElement || !downloadBtn) {
-        console.error('Download error: Could not find all required modal elements.');
-        alert('Could not find the table to download.');
-        return;
-    }
+    if (!modalContent || !tableContainer || !tableElement || !downloadBtn) { return; }
 
     downloadBtn.disabled = true;
     downloadBtn.textContent = 'Preparing...';
-
-    // Store original styles to restore them later
     const originalTableContainerMaxHeight = tableContainer.style.maxHeight;
     const originalTableContainerOverflowY = tableContainer.style.overflowY;
     const originalScrollTop = tableContainer.scrollTop;
-
-    // Temporarily modify styles to show the entire table for the screenshot
     tableContainer.style.maxHeight = 'none';
     tableContainer.style.overflowY = 'visible';
-    tableContainer.scrollTop = 0; // Scroll to the top
+    tableContainer.scrollTop = 0;
 
     setTimeout(() => {
-        html2canvas(tableContainer, { // Target the container that scrolls
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            allowTaint: true,
-            scrollY: -window.scrollY // Fix for capturing scrolled content
-        }).then(canvas => {
+        html2canvas(tableContainer, { scale: 2, useCORS: true, logging: false, allowTaint: true, scrollY: -window.scrollY })
+        .then(canvas => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
-            
-            // Generate a filename from the modal title
             const titleElement = document.querySelector('#resultsModalOverlay .modal-title');
             const fileName = (titleElement ? titleElement.textContent.replace(/[^a-zA-Z0-9]/g, '_') : 'FairFight_Report');
             link.download = `${fileName}.png`;
-
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -133,15 +116,13 @@ function handleDownloadReport() {
             console.error('Error generating image:', error);
             alert('Failed to generate image. Please try again.');
         }).finally(() => {
-            // IMPORTANT: Restore all original styles
             tableContainer.style.maxHeight = originalTableContainerMaxHeight;
             tableContainer.style.overflowY = originalTableContainerOverflowY;
             tableContainer.scrollTop = originalScrollTop;
-
             downloadBtn.disabled = false;
             downloadBtn.textContent = 'Download Report';
         });
-    }, 100); // Small delay for styles to apply
+    }, 100);
 }
 
 // --- Formatting & Display Functions ---
@@ -175,19 +156,13 @@ function getFFDisplayValue(ffResponse) {
 async function handlePersonalTargetFinder() {
     showError('personal', '');
     const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('personal', 'You must be logged in to find targets.');
-        return;
-    }
+    if (!user) { showError('personal', 'You must be logged in to find targets.'); return; }
     showLoadingSpinner();
-
     try {
         const userProfileDoc = await firebase.firestore().collection('userProfiles').doc(user.uid).get();
         if (!userProfileDoc.exists) throw new Error("Your user profile was not found.");
-
         const { tornApiKey, tornProfileId } = userProfileDoc.data();
         if (!tornApiKey || !tornProfileId) throw new Error("Your API Key or Torn ID is not set in your profile.");
-
         const response = await fetch(NETLIFY_TARGETS_FUNCTION, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -195,9 +170,7 @@ async function handlePersonalTargetFinder() {
         });
         const data = await response.json();
         if (!response.ok || data.error) throw new Error(data.error || `Function Error: ${response.status}`);
-        
         displayPersonalTargets(data, tornProfileId);
-
     } catch (error) {
         showError('personal', error.message);
     } finally {
@@ -211,41 +184,32 @@ function displayPersonalTargets(data, playerId) {
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
     const downloadBtn = document.getElementById('downloadReportBtn');
-    
-    // HIDE the download button for this specific report
     downloadBtn.style.display = 'none';
-
     modalTitle.textContent = 'Recommended Targets';
     tableBody.innerHTML = '';
     tableHeader.innerHTML = '';
-    
     if (!data.targets || data.targets.length === 0) {
         modalSummary.innerHTML = `Player: <span>${playerId}</span> | Status: <span style="color: #ff4d4d;">${data.message || 'No recommended targets found.'}</span>`;
     } else {
         modalSummary.innerHTML = `Player: <span>${data.playerName || 'You'} [${playerId}]</span> | Found <span>${data.targets.length}</span> Recommended Targets.`;
         const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Status", "Attack Link"];
         tableHeader.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-        
         data.targets.forEach(target => {
             const row = tableBody.insertRow();
             row.insertCell().textContent = target.playerName || target.playerID;
             row.insertCell().textContent = target.playerID;
-            
             const ffCell = row.insertCell();
             const ffColor = getFairFightColor(parseFloat(target.fairFightScore));
             ffCell.style.backgroundColor = ffColor;
             ffCell.style.color = getContrastColor(ffColor);
             ffCell.style.fontWeight = 'bold';
             ffCell.textContent = target.fairFightScore;
-
             row.insertCell().textContent = target.difficulty;
             row.insertCell().textContent = target.estimatedBattleStats || "N/A";
-            
             const statusCell = row.insertCell();
             statusCell.textContent = target.status.text;
             statusCell.style.color = target.status.color;
             statusCell.style.fontWeight = 'bold';
-
             row.insertCell().innerHTML = `<a href="${target.attackUrl}" target="_blank">Attack</a>`;
         });
     }
@@ -257,23 +221,17 @@ async function handlePublicFairFightLookup() {
     showError('public', '');
     const factionId = document.getElementById('factionId').value.trim();
     const userId = document.getElementById('userId').value.trim();
-
     if (!factionId && !userId) return showError('public', 'Please enter a Faction ID or a User ID.');
     if (factionId && userId) return showError('public', 'Please enter only one ID, not both.');
-    
     showLoadingSpinner();
     try {
         const loggedInUserDoc = await firebase.firestore().collection('userProfiles').doc(firebase.auth().currentUser.uid).get();
         if (!loggedInUserDoc.exists) throw new Error("Your user profile could not be found.");
         const visitorTotalStats = (await firebase.firestore().collection('users').doc(loggedInUserDoc.data().tornProfileId).get()).data().battlestats.total;
-
         const siteApiKey = await getTornApiKey();
         if (!siteApiKey) return;
 
-        let playerIdsToFetch = [];
-        let reportTitle = "";
-        let playerNames = new Map();
-
+        let playerIdsToFetch = [], reportTitle = "", playerNames = new Map();
         if (factionId) {
             const factionData = await (await fetch(`https://api.torn.com/faction/${factionId}?selections=basic&key=${siteApiKey}`)).json();
             if (factionData.error) throw new Error(factionData.error.error);
@@ -288,8 +246,7 @@ async function handlePublicFairFightLookup() {
             playerNames.set(userId, userData.name);
         }
 
-        const ffResults = await fetchFairFightData(playerIdsToFetch, siteApiKey);
-        
+        const ffResults = await fetchTornPAsFFData(playerIdsToFetch);
         const finalResults = ffResults.map((targetData, i) => {
             const currentUserId = playerIdsToFetch[i];
             if (targetData.error || targetData.no_data || !targetData.bs_estimate || visitorTotalStats <= 0) {
@@ -299,9 +256,7 @@ async function handlePublicFairFightLookup() {
             if (finalScore < 1.03) finalScore = 1.03;
             return { userId: currentUserId, name: playerNames.get(currentUserId), ffData: { ...targetData, value: finalScore } };
         });
-        
         displayPublicLookupReport(finalResults, reportTitle);
-
     } catch (error) {
         showError('public', `Error: ${error.message}`);
     } finally {
@@ -315,42 +270,27 @@ function displayPublicLookupReport(results, title) {
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
     const downloadBtn = document.getElementById('downloadReportBtn');
-    
-    // SHOW the download button for this report
     downloadBtn.style.display = 'block';
-    
     modalTitle.textContent = "Fair Fight Report";
     tableBody.innerHTML = '';
-    
     modalSummary.innerHTML = `<p>Report for: <span>${title}</span></p><p>Targets: ${results.length}</p>`;
-    
-    const headers = results.length > 1 
-        ? ["Name", "User ID", "Fair Fight", "Last Updated"]
-        : ["Name", "User ID", "Fair Fight", "Est. Stats", "Last Updated"];
+    const headers = ["Name", "User ID", "Fair Fight", "Est. Stats", "Last Updated"];
     tableHeader.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-
     results.forEach(item => {
         const row = tableBody.insertRow();
         row.insertCell().innerHTML = `<a href="https://www.torn.com/profiles.php?XID=${item.userId}" target="_blank">${item.name}</a>`;
         row.insertCell().textContent = item.userId;
-
         const ffCell = row.insertCell();
         const ffColor = getFairFightColor(item.ffData.value);
         ffCell.style.backgroundColor = ffColor;
         ffCell.style.color = getContrastColor(ffColor);
         ffCell.style.fontWeight = 'bold';
         ffCell.textContent = getFFDisplayValue(item.ffData);
-
-        if (results.length === 1) {
-            row.insertCell().textContent = item.ffData.bs_estimate_human || 'N/A';
-        }
-
+        row.insertCell().textContent = item.ffData.bs_estimate_human || 'N/A';
         row.insertCell().textContent = item.ffData.last_updated ? new Date(item.ffData.last_updated * 1000).toLocaleString() : 'N/A';
     });
-    
     showResultsModal();
 }
-
 
 // --- TAB 3: LEADER'S WAR DASHBOARD ---
 async function initializeLeaderDashboard(user, userData) {
@@ -392,32 +332,27 @@ async function handleLeaderWarReport() {
     showError('leader', '');
     const selectedMemberValue = document.getElementById('factionMemberSelect').value;
     const enemyFactionId = document.getElementById('enemyFactionId').value.trim();
-
     if (!selectedMemberValue) return showError('leader', "Please select one of your members.");
     if (!enemyFactionId) return showError('leader', "Please enter an enemy faction ID.");
-
     showLoadingSpinner();
     try {
         const [friendlyTornId, friendlyUid] = selectedMemberValue.split(',');
         const memberProfileDoc = await firebase.firestore().collection('userProfiles').doc(friendlyUid).get();
         if (!memberProfileDoc.exists) throw new Error("Selected member's profile not found.");
-        
         const friendlyName = memberProfileDoc.data().name;
         const memberStatsDoc = await firebase.firestore().collection('users').doc(friendlyTornId).get();
         if (!memberStatsDoc.exists || !memberStatsDoc.data().battlestats) throw new Error("Could not find the selected member's battle stats.");
         const friendlyTotalStats = memberStatsDoc.data().battlestats.total;
-
         const siteApiKey = await getTornApiKey();
         if (!siteApiKey) return;
 
         const factionData = await (await fetch(`https://api.torn.com/faction/${enemyFactionId}?selections=basic&key=${siteApiKey}`)).json();
         if (factionData.error) throw new Error(`Torn API Error: ${factionData.error.error}`);
-        
         const enemyFactionName = factionData.name;
         const enemyPlayerIds = Object.keys(factionData.members);
         const enemyPlayerNames = new Map(Object.entries(factionData.members).map(([id, member]) => [id, member.name]));
 
-        const ffResults = await fetchFairFightData(enemyPlayerIds, siteApiKey);
+        const ffResults = await fetchTornPAsFFData(enemyPlayerIds);
         const finalResults = ffResults.map((targetData, i) => {
             const enemyId = enemyPlayerIds[i];
             if (targetData.error || targetData.no_data || !targetData.bs_estimate || friendlyTotalStats <= 0) {
@@ -427,10 +362,8 @@ async function handleLeaderWarReport() {
             if (finalScore < 1.03) finalScore = 1.03;
             return { userId: enemyId, name: enemyPlayerNames.get(enemyId), ffData: { ...targetData, value: finalScore } };
         });
-        
         finalResults.sort((a, b) => a.name.localeCompare(b.name));
         displayLeaderWarReport(finalResults, `${enemyFactionName} (vs ${friendlyName})`);
-
     } catch (error) {
         showError('leader', `Error: ${error.message}`);
     } finally {
@@ -444,17 +377,12 @@ function displayLeaderWarReport(results, title) {
     const tableHeader = document.getElementById('modal-results-table-header');
     const tableBody = document.getElementById('modal-results-table-body');
     const downloadBtn = document.getElementById('downloadReportBtn');
-    
-    // SHOW the download button for this report
     downloadBtn.style.display = 'block';
-    
     modalTitle.textContent = "Leader's War Report";
     tableBody.innerHTML = '';
-
     modalSummary.innerHTML = `<p>Report for: <span>${title}</span></p><p>Targets: ${results.length}</p>`;
     const headers = ["Name", "User ID", "Fair Fight", "Est. Stats", "Last Updated"];
     tableHeader.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    
     results.forEach(item => {
         const row = tableBody.insertRow();
         row.insertCell().innerHTML = `<a href="https://www.torn.com/profiles.php?XID=${item.userId}" target="_blank">${item.name}</a>`;
@@ -483,14 +411,10 @@ function displayLeaderWarReport(results, title) {
 function setupTabControls() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
-
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Deactivate all tabs and panes
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabPanes.forEach(pane => pane.classList.remove('active'));
-
-            // Activate the clicked tab and corresponding pane
             const tabId = button.dataset.tab;
             button.classList.add('active');
             document.getElementById(tabId).classList.add('active');
@@ -499,29 +423,20 @@ function setupTabControls() {
 }
 
 function initializeCompanionPage() {
-    // Basic setup that runs for everyone
     setupTabControls();
-
-    // Attach event listeners for buttons within each tab
     document.getElementById('fetchTargetsBtn').addEventListener('click', handlePersonalTargetFinder);
     document.getElementById('fetchFairFight').addEventListener('click', handlePublicFairFightLookup);
     document.getElementById('generateReportBtn').addEventListener('click', handleLeaderWarReport);
-    
-    // Connect the shared download button to its function
     document.getElementById('downloadReportBtn').addEventListener('click', handleDownloadReport);
 
-    // Authentication-dependent setup
     firebase.auth().onAuthStateChanged(async user => {
         if (user) {
-            // Logic for signed-in users
             const userProfileDoc = await firebase.firestore().collection('userProfiles').doc(user.uid).get();
             if (userProfileDoc.exists) {
                 const userData = userProfileDoc.data();
-                // Initialize the leader dashboard (which will show/hide the tab)
                 initializeLeaderDashboard(user, userData);
             }
         } else {
-            // Logic for signed-out users (e.g., disable certain features)
             document.getElementById('fetchTargetsBtn').disabled = true;
             document.getElementById('leader-dashboard-tab').style.display = 'none';
             showError('personal', 'Please sign in to use this feature.');
