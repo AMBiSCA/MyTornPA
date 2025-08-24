@@ -1,4 +1,4 @@
-// mysite/js/broker.js (Final Version Using Your Correct Logic)
+// mysite/js/broker.js (Final Working Version)
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -26,10 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         tornApiKey = userDoc.data().tornApiKey;
                         if (tornApiKey) {
                             brokerApiKeyErrorDiv.textContent = '';
-                            await Promise.all([
-                                fetchAllItems(tornApiKey),
-                                fetchUserInventory(tornApiKey)
-                            ]);
+                            // Fetch all static item data once on load
+                            await fetchAllItems(tornApiKey);
                         } else {
                             handleApiError('Your Torn API Key is not set in your profile.');
                         }
@@ -67,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`https://api.torn.com/user/?selections=inventory&key=${apiKey}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error.error);
-            userInventory = {};
+            userInventory = {}; // Reset inventory before populating
             if (data.inventory) {
+                // Convert API response array to an object keyed by item ID for easy lookup
                 Object.values(data.inventory).forEach(item => {
                     userInventory[item.ID] = item.quantity;
                 });
@@ -79,51 +78,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- UI Rendering ---
-   // mysite/js/broker.js (Final Corrected Function)
+    async function refreshWatchlistDisplay() {
+        if (watchlist.length === 0) {
+            itemTableBody.innerHTML = '<tr><td colspan="5">Add an item to your watchlist to begin...</td></tr>';
+            currentItemsSpan.textContent = '0';
+            return;
+        }
 
-async function refreshWatchlistDisplay() {
-    if (watchlist.length === 0) {
-        itemTableBody.innerHTML = '<tr><td colspan="5">Add an item to your watchlist to begin...</td></tr>';
-        currentItemsSpan.textContent = '0';
-        return;
+        itemTableBody.innerHTML = `<tr><td colspan="5">Fetching latest data for ${watchlist.length} item(s)...</td></tr>`;
+        currentItemsSpan.textContent = watchlist.length;
+
+        // FIX: Re-fetch inventory every time to ensure stock count is always accurate.
+        await fetchUserInventory(tornApiKey);
+
+        const promises = watchlist.map(itemId =>
+            fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json())
+        );
+
+        const results = await Promise.all(promises);
+        itemTableBody.innerHTML = ''; // Clear table for new rows
+
+        for (let i = 0; i < watchlist.length; i++) {
+            const itemId = watchlist[i];
+            const itemInfo = allItems[itemId];
+            const marketData = results[i];
+
+            // Get the live market price (lowest listing)
+            const marketPrice = marketData?.itemmarket?.item?.average_price ? '$' + marketData.itemmarket.item.average_price.toLocaleString() : 'N/A';
+            
+            // FIX: Get the stable market value instead of the unavailable bazaar price
+            const marketValue = itemInfo && itemInfo.market_value ? '$' + itemInfo.market_value.toLocaleString() : 'N/A';
+
+            // Get the accurate stock count
+            const userStock = userInventory[itemId] || 0;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
+                <td>${marketPrice}</td>
+                <td>${marketValue}</td>
+                <td>${userStock.toLocaleString()}</td>
+                <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
+            `;
+            itemTableBody.appendChild(row);
+        }
     }
 
-    itemTableBody.innerHTML = `<tr><td colspan="5">Fetching prices for ${watchlist.length} item(s)...</td></tr>`;
-    currentItemsSpan.textContent = watchlist.length;
-
-    const promises = [];
-    watchlist.forEach(itemId => {
-        promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json()));
-        promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar&key=${tornApiKey}`).then(res => res.json()));
-    });
-
-    const results = await Promise.all(promises);
-    itemTableBody.innerHTML = ''; // Clear table for new rows
-
-    for (let i = 0; i < watchlist.length; i++) {
-        const itemId = watchlist[i];
-        const itemInfo = allItems[itemId];
-
-        const marketData = results[i * 2];
-        const bazaarData = results[i * 2 + 1];
-
-        // --- FINAL CORRECTED LINE with the proper nesting (.item) ---
-        const averageMarketPrice = marketData?.itemmarket?.item?.average_price ? '$' + marketData.itemmarket.item.average_price.toLocaleString() : 'N/A';
-
-        const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
-        const userStock = userInventory[itemId] || 0;
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
-            <td>${averageMarketPrice}</td>
-            <td>${bazaarPrice}</td>
-            <td>${userStock.toLocaleString()}</td>
-            <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
-        `;
-        itemTableBody.appendChild(row);
-    }
-}
     // --- Event Listeners ---
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.toLowerCase();
@@ -181,8 +181,8 @@ async function refreshWatchlistDisplay() {
     });
 });
 
-// Orientation handler code (unchanged)...
 // --- START: Complete and Unified Orientation Handler ---
+// This part is unchanged.
 let portraitBlocker = null;
 let landscapeBlocker = null;
 function createOverlays() {
