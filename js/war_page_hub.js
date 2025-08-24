@@ -2540,61 +2540,6 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
-/*
-function setupFactionHitsListener(db, factionId) {
-	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
-    // These are the HTML elements we created earlier
-    const tcHitsElement = document.getElementById('tc-hits-value');
-    const abroadHitsElement = document.getElementById('abroad-hits-value');
-
-    // If the elements don't exist on the page, stop the function to prevent errors.
-    if (!tcHitsElement || !abroadHitsElement) {
-        console.error("Faction hits display elements not found on the page.");
-        return;
-    }
-
-    // This is the Firestore query. It looks for all users that match your faction ID.
-    const factionQuery = db.collection('users').where('faction_id', '==', factionId);
-
-    // .onSnapshot() creates a real-time listener.
-    // This code will run automatically every time the data changes for any user in your faction.
-    factionQuery.onSnapshot(snapshot => {
-        let totalTCEnergy = 0;
-        let totalAbroadEnergy = 0;
-
-        // Loop through every member found by the query
-        snapshot.forEach(doc => {
-            const memberData = doc.data();
-
-            // Check if the member has energy data to avoid errors
-            if (memberData.energy && typeof memberData.energy.current === 'number') {
-                // If the 'traveling' field is true, add their energy to the 'Abroad' total
-                if (memberData.traveling === true) {
-                    totalAbroadEnergy += memberData.energy.current;
-                } else {
-                    // Otherwise, add it to the 'Torn City' total
-                    totalTCEnergy += memberData.energy.current;
-                }
-            }
-        });
-
-        // Calculate the number of hits (1 hit = 25 energy)
-        // Math.floor() rounds down to the nearest whole number.
-        const tcHits = Math.floor(totalTCEnergy / 25);
-        const abroadHits = Math.floor(totalAbroadEnergy / 25);
-
-        // Update the numbers on your webpage
-        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
-        abroadHitsElement.textContent = abroadHits.toLocaleString();
-
-    }, error => {
-        // This will log any errors if the listener fails.
-        console.error("Error with faction hits listener:", error);
-        tcHitsElement.textContent = "Error";
-        abroadHitsElement.textContent = "Error";
-    });
-}
-*/
 
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
