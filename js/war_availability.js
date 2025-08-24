@@ -6,7 +6,6 @@ let userApiKey = null;
 let factionApiFullData = null;
 let globalYourFactionID = null;
 const memberProfileCache = {};
-const DEFAULT_PROFILE_ICONS = ['../../images/default_user_icon.svg']; // Add more default paths if you have them
 
 // --- CORE UI FUNCTIONS ---
 
