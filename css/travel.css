@@ -224,7 +224,6 @@ header {
 
 /* --- Main Page Container --- */
 .page-specific-content-area {
-    display: flex;
     flex-direction: column;
     flex-grow: 1;
     width: 95%;
@@ -233,7 +232,7 @@ header {
     padding: 10px 40px;
     background-color: #2a2a2a;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     text-align: left;
     position: relative;
     z-index: 1;
