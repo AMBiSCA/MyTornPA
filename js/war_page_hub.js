@@ -3640,7 +3640,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 }
 
-}
+
 
             finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
             currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
