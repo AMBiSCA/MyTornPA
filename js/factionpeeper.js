@@ -1,4 +1,4 @@
-// Rest of your main JavaScript file (the one you sent me)
+
 // Stat selection logic and other functions
 const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
 const statCategories = [
