@@ -107,17 +107,9 @@ async function refreshWatchlistDisplay() {
         const marketData = results[i * 2];
         const bazaarData = results[i * 2 + 1];
 
-        // --- NEW DEBUGGING STEPS ---
-        console.log('1. Raw marketData:', marketData);
+        // --- FINAL CORRECTED LINE with the proper nesting (.item) ---
+        const averageMarketPrice = marketData?.itemmarket?.item?.average_price ? '$' + marketData.itemmarket.item.average_price.toLocaleString() : 'N/A';
 
-        const itemmarketObject = marketData ? marketData.itemmarket : undefined;
-        console.log('2. Extracted itemmarket object:', itemmarketObject);
-
-        const priceValue = itemmarketObject ? itemmarketObject.average_price : undefined;
-        console.log('3. Extracted price value:', priceValue);
-        // --- END DEBUGGING STEPS ---
-
-        const averageMarketPrice = priceValue ? '$' + priceValue.toLocaleString() : 'N/A';
         const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
         const userStock = userInventory[itemId] || 0;
 
