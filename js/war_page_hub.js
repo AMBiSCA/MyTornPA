@@ -156,6 +156,14 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
+function formatBattleStats(num) {
+    if (isNaN(num) || num === 0) return '0';
+    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num.toLocaleString();
+}
+
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
     // Safety check to make sure the button/label element was passed correctly
     if (!labelElement) {
@@ -3453,6 +3461,119 @@ function setupMemberClickEvents() {
     });
 }
 
+	function setupToggleSelectionEvents() {
+    // This function is currently not defined.
+    // Its purpose is to set up event listeners for various toggles or selections on the page.
+    // If you have specific code that belongs here, please add it.
+    console.warn("setupToggleSelectionEvents is called but its full functionality is missing.");
+}
+
+
+    // Create and display the autocomplete suggestions
+    const showSuggestions = (arr) => {
+        console.log("Attempting to show suggestions:", arr); // <<< CONSOLE LOG ADDED
+        // Remove any existing list
+        closeAllLists();
+
+        if (!arr.length) {
+            console.log("No matches to show."); // <<< CONSOLE LOG ADDED
+            return false;
+        }
+
+        // Create the autocomplete list container
+        autocompleteList = document.createElement("DIV");
+        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
+        autocompleteList.setAttribute("class", "autocomplete-items"); // Add a class for styling
+
+        // Append the list to the parent of the input (e.g., the toggle-control div)
+        // This ensures the list is positioned correctly relative to the input
+        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
+        console.log("Autocomplete list container created and appended."); // <<< CONSOLE LOG ADDED
+
+        // Populate the list with suggestions
+        arr.forEach(member => {
+            const item = document.createElement("DIV");
+            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
+            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
+            item.innerHTML += `<input type="hidden" value="${member.name}">`; // Hidden input to hold the full name
+
+            item.addEventListener("click", function(e) {
+                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
+                closeAllLists();
+                currentTeamLeadInput.focus(); // Keep focus after selection
+            });
+            autocompleteList.appendChild(item);
+        });
+        console.log("Suggestions populated into list."); // <<< CONSOLE LOG ADDED
+        return true;
+    };
+
+    // Handle input events on the text field
+    currentTeamLeadInput.addEventListener("input", function(e) {
+        const val = this.value;
+        console.log("Input event fired. Value:", val); // <<< CONSOLE LOG ADDED
+        closeAllLists(); // Close any open lists
+
+        if (!val) { 
+            console.log("Input value is empty, not showing suggestions."); // <<< CONSOLE LOG ADDED
+            return false; 
+        } 
+
+        const matches = filterMembers(val);
+        showSuggestions(matches);
+        currentFocus = -1; // Reset focus on new input
+    });
+
+    // Handle keyboard navigation (arrows, Enter, Escape)
+    currentTeamLeadInput.addEventListener("keydown", function(e) {
+        let x = document.getElementById(this.id + "-autocomplete-list");
+        if (x) x = x.getElementsByTagName("div"); // Get all suggestion items
+
+        if (e.keyCode == 40) { // DOWN arrow
+            currentFocus++;
+            addActive(x);
+        } else if (e.keyCode == 38) { // UP arrow
+            currentFocus--;
+            addActive(x);
+        } else if (e.keyCode == 13) { // ENTER key
+            e.preventDefault(); // Prevent form submission
+            if (currentFocus > -1) {
+                if (x) x[currentFocus].click(); // Simulate a click on the active item
+            } else {
+                closeAllLists(); // If no item is focused, just close the list
+            }
+        } else if (e.keyCode == 27) { // ESCAPE key
+            closeAllLists();
+        }
+    });
+
+    // Helper to add "active" class for keyboard navigation highlighting
+    const addActive = (x) => {
+        if (!x) return false;
+        removeActive(x); // Remove active from all items first
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+    };
+
+    // Helper to remove "active" class
+    const removeActive = (x) => {
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    };
+
+    // Close all autocomplete lists
+    const closeAllLists = (elmnt) => {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != currentTeamLeadInput) { // Don't close if click target is the list or input
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        currentFocus = -1; // Reset focus when lists are closed
+    };
+
     // Close lists when clicking outside the input/list
     document.addEventListener("click", function (e) {
         closeAllLists(e.target);
@@ -3659,6 +3780,252 @@ function showTab(tabId) {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
+async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HERE: Accepting targetDisplayElement
+    console.log("[Settings Tab] Populating tab with detailed layout...");
+
+    if (!targetDisplayElement) { // Use the passed argument for error checking
+        console.error("HTML Error: targetDisplayElement not provided to populateSettingsTab function.");
+        return;
+    }
+
+    targetDisplayElement.innerHTML = `
+        <div class="chat-settings-panel">
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>User & List Display</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="userStatusDisplay">User Status Display:</label>
+                        <select id="userStatusDisplay">
+                            <option value="online_offline">Online/Offline</option>
+                            <option value="last_action">Last Action</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>General Chat Display</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="chatFontSize">Font Size:</label>
+                        <select id="chatFontSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="chatTheme">Chat Theme:</label>
+                        <select id="chatTheme">
+                            <option value="dark" selected>Dark</option>
+                            <option value="light">Light (Coming Soon)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="messageDensity">Message Density:</label>
+                        <select id="messageDensity">
+                            <option value="compact">Compact</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="spacious">Spacious</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="chatInputSize">Chat Input Size:</label>
+                        <select id="chatInputSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="showTimestamps">Show Timestamps in Chat:</label>
+                        <input type="checkbox" id="showTimestamps" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="autoScrollChat">Auto-Scroll Chat:</label>
+                        <input type="checkbox" id="autoScrollChat" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="profanityFilter">Profanity Filter:</label>
+                        <input type="checkbox" id="profanityFilter">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>Chat Channel & Sound</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="defaultChatTab">Default Chat Tab:</label>
+                        <select id="defaultChatTab">
+                            <option value="faction-chat" selected>Faction Chat</option>
+                            <option value="war-chat">War Chat</option>
+                            <option value="private-chat">Private Chat</option>
+                        </select>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="toggleWarChat">Toggle War Chat (On/Off):</label>
+                        <input type="checkbox" id="toggleWarChat" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="muteAllChatSounds">Mute All Chat Sounds:</label>
+                        <input type="checkbox" id="muteAllChatSounds">
+                    </div>
+                    <div class="setting-item">
+                        <label for="notificationMethod">Notification Method:</label>
+                        <select id="notificationMethod">
+                            <option value="browser-popup">Browser Pop-up</option>
+                            <option value="sound-only">Sound Only</option>
+                            <option value="none" selected>None</option>
+                        </select>
+                    </div>
+                    <p style="text-align: center; color: #a0a0a0; font-size: 0.85em; margin-top: 5px;">
+                        (Note: Browser pop-ups are an advanced feature requiring user permission.)
+                    </p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>Data & Actions</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item action-item">
+                        <button id="clearChatHistoryButton" class="action-button">Clear Chat History (Local)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section save-settings-section">
+                <div class="header-box">
+                    <b>Save Settings</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item action-item">
+                        <button id="saveAllSettingsButton" class="action-button">Save All Settings</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    `;
+
+    
+}
+
+async function populateRecentlyMetTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Recently Met tab.");
+        return;
+    }
+
+    // Set a simple loading message without the extra title
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
+
+    try {
+        // Step 1: Fetch the last 5 wars to get their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
+
+        if (historyData.error) throw new Error(historyData.error.error);
+
+        const wars = historyData.rankedwars || [];
+        if (wars.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
+            return;
+        }
+
+        // Step 2: Fetch detailed reports for those wars
+        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
+        const reportPromises = wars.map(war => 
+            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
+        );
+        const warReports = await Promise.all(reportPromises);
+
+        // Step 3: Aggregate and deduplicate all opponents
+        const opponentsMap = new Map();
+        warReports.forEach(reportData => {
+            const report = reportData.rankedwarreport;
+            if (!report || !report.factions) return;
+
+            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
+            if (opponentFaction && opponentFaction.members) {
+                opponentFaction.members.forEach(member => {
+                    if (!opponentsMap.has(member.id)) {
+                        opponentsMap.set(member.id, { id: member.id, name: member.name });
+                    }
+                });
+            }
+        });
+        
+        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
+        if (uniqueOpponentIds.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
+            return;
+        }
+
+        // Step 4: Check registration status in chunks
+        const registeredUserIds = new Set();
+        const chunkSize = 30;
+        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
+            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
+            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
+            querySnapshot.forEach(doc => {
+                registeredUserIds.add(doc.data().tornProfileId);
+            });
+        }
+
+        // Step 5: Build the final HTML grid
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
+
+        let cardsHtml = '';
+        for (const opponent of opponentsMap.values()) {
+            const isRegistered = registeredUserIds.has(String(opponent.id));
+            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
+
+            let messageButton;
+            if (isRegistered) {
+                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
+            } else {
+                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
+                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
+            }
+
+            cardsHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        ${messageButton}
+                    </div>
+                </div>
+            `;
+        }
+
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.appendChild(membersListContainer);
+
+    } catch (error) {
+        console.error("Error populating Recently Met tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
+    }
+}
+
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
@@ -3755,7 +4122,134 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     }
 }
-    
+
+async function displayQuickFFTargets(userApiKey, playerId) {
+    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+    if (!quickFFTargetsDisplay) {
+        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
+        return;
+    }
+
+    if (quickFFTargetsDisplay.innerHTML === '') {
+        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
+    }
+
+    if (!userApiKey || !playerId) {
+        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
+        }
+        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
+        return;
+    }
+
+    try {
+        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
+        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
+        
+        const functionUrl = `/.netlify/functions/get-recommended-targets`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
+        });
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
+            console.error("Error fetching Quick FF Targets:", errorMessage);
+            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
+            }
+            return;
+        }
+
+        if (!data.targets || data.targets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        let availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
+
+        if (availableTargets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        // --- CHANGE IS HERE ---
+        const MAX_TARGETS_TO_DISPLAY = 3; // Changed from 2 to 3
+        const MAX_SHUFFLE_ATTEMPTS = 10; 
+
+        let finalSelectedTargets = [];
+        let currentDisplayedTargetIDs = [];
+        let attempt = 0;
+
+        do {
+            for (let i = availableTargets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]];
+            }
+
+            finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
+            currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
+            attempt++;
+
+        } while (availableTargets.length >= MAX_TARGETS_TO_DISPLAY &&
+                 areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs) &&
+                 consecutiveSameTargetsCount >= 2 &&
+                 attempt < MAX_SHUFFLE_ATTEMPTS);
+
+        if (areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs)) {
+            consecutiveSameTargetsCount++;
+            if (consecutiveSameTargetsCount >= 3) {
+                console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
+            }
+        } else {
+            consecutiveSameTargetsCount = 1;
+        }
+        lastDisplayedTargetIDs = currentDisplayedTargetIDs;
+
+        const newTargetsHtmlContainer = document.createElement('div');
+        let newTargetsHtml = '';
+        let currentEmojisUsedForBatch = new Set();
+        let emojiCycleIndex = lastEmojiIndex;
+
+        for (let i = 0; i < finalSelectedTargets.length; i++) {
+            const target = finalSelectedTargets[i];
+            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
+            const targetName = target.playerName || `Target ${i + 1}`;
+
+            let selectedEmoji = '';
+            do {
+                emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
+                selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
+            } while (currentEmojisUsedForBatch.has(selectedEmoji));
+
+            currentEmojisUsedForBatch.add(selectedEmoji);
+            lastEmojiIndex = emojiCycleIndex;
+
+            newTargetsHtml += `
+                <a href="${attackUrl}" target="_blank"
+                   class="quick-ff-target-btn"
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
+                    <span class="emoji-wrapper">${selectedEmoji}</span> ${targetName} <span class="emoji-wrapper">${selectedEmoji}</span>
+                </a>
+            `;
+        }
+
+        quickFFTargetsDisplay.innerHTML = newTargetsHtml;
+
+    } catch (error) {
+        console.error("Failed to fetch or display Quick FF Targets:", error);
+        if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+             quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+        }
+    }
+}
+          
 		  document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
