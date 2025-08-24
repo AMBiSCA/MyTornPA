@@ -5,7 +5,12 @@ const auth = firebase.auth();
 let userApiKey = null;
 let factionApiFullData = null;
 let globalYourFactionID = null;
-const memberProfileCache = {};
+
+// --- NEW CACHING LOGIC ---
+// Load the cache from sessionStorage when the script starts.
+// If it doesn't exist, start with an empty object.
+let memberProfileCache = JSON.parse(sessionStorage.getItem('memberProfileCache')) || {};
+
 
 // --- CORE UI FUNCTIONS ---
 
@@ -33,7 +38,10 @@ async function displayWarRoster() {
         }
         const allMembers = Object.values(factionApiFullData.members);
 
-        // This part is unchanged: create HTML for every member
+        // A flag to track if we fetched new data that needs to be saved
+        let cacheNeedsUpdate = false;
+
+        // Create HTML for every member, now including the Firestore lookup for the profile image
         const memberDisplayPromises = allMembers.map(async (member) => {
             const memberId = String(member.id);
             const memberName = member.name;
@@ -68,7 +76,29 @@ async function displayWarRoster() {
                 }
             }
             
-            const profileImageUrl = memberProfileCache[memberId]?.profile_image || '../../images/default_user_icon.svg';
+            // ---- IMPROVED CACHING FOR PROFILE IMAGES ----
+            let profileImageUrl = '../../images/default_user_icon.svg'; 
+            try {
+                // First, check the cache to avoid unnecessary database reads
+                if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+                    profileImageUrl = memberProfileCache[memberId].profile_image;
+                } else {
+                    // If not in cache, fetch from the 'users' collection in Firestore
+                    const userDoc = await db.collection('users').doc(memberId).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        if (userData.profile_image && userData.profile_image.trim() !== '') {
+                            profileImageUrl = userData.profile_image;
+                            // Save to our cache object and mark that we need to update sessionStorage
+                            memberProfileCache[memberId] = { profile_image: profileImageUrl };
+                            cacheNeedsUpdate = true;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn(`Could not fetch profile image for ${memberName} (${memberId}):`, err);
+            }
+            // ---- END OF IMPROVED CACHING ----
 
             return `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
@@ -80,32 +110,27 @@ async function displayWarRoster() {
                 </div>`;
         });
         
-        // This part is unchanged: it resolves all the HTML promises
         const allPlayerHtml = await Promise.all(memberDisplayPromises);
         rosterDisplay.innerHTML = allPlayerHtml.join('');
 
-        // ---- NEW CODE START ----
-        // After rendering the list, we calculate and set the container's height
+        // ---- NEW CACHING LOGIC ---
+        // If we fetched any new images from Firestore, save the updated cache to sessionStorage
+        if (cacheNeedsUpdate) {
+            sessionStorage.setItem('memberProfileCache', JSON.stringify(memberProfileCache));
+        }
+
+        // Set the container height for scrolling (if more than 8 members)
         if (allMembers.length > 8) {
             const firstRosterItem = rosterDisplay.querySelector('.roster-player');
             if (firstRosterItem) {
-                // Get the height of one item
                 const itemHeight = firstRosterItem.offsetHeight;
-                
-                // Get the gap between items from the CSS (defaults to 8px if not found)
                 const gap = parseInt(window.getComputedStyle(rosterDisplay).gap, 10) || 8;
-                
-                // Calculate the total height for 8 items (8 items + 7 gaps)
                 const desiredHeight = (itemHeight * 8) + (gap * 7);
-                
-                // Apply the calculated height to the roster list container
                 rosterDisplay.style.height = `${desiredHeight}px`;
             }
         }
-        // ---- NEW CODE END ----
 
-        // This part is moved. We call it *after* the main roster is built.
-        // It's responsible for the left panel summary.
+        // Calculate and display the summary panel on the left
         let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
         allMembers.forEach(member => {
             const memberAvailability = availabilityData[String(member.id)];
@@ -129,12 +154,6 @@ async function displayWarRoster() {
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
     }
 }
-
-/**
- * Populates the left panel with the summary of availability responses
- * and the leader control buttons.
- * @param {object} summaryCounts - An object with counts of yes/partial/no responses.
- */
 async function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
