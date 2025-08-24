@@ -365,54 +365,6 @@ function createStatusBoxHtml(label, id) {
     `;
 }
 
-function isOnlineWithin59Seconds(relativeTimeStr) {
-    if (relativeTimeStr === "Now") {
-        return true;
-    }
-    const match = relativeTimeStr.match(/(\d+) second(?:s)? ago/);
-    if (match) {
-        const seconds = parseInt(match[1], 10);
-        return seconds <= 59;
-    }
-    return false; // Not online within 59 seconds
-}
-
-async function updateOnlineMemberCounts() {
-    // Friendly Faction Online Members
-    if (onlineFriendlyMembersDisplay && factionApiFullData && factionApiFullData.members) {
-        let onlineCount = 0;
-        const membersArray = Object.values(factionApiFullData.members); // Assuming it's an object with IDs as keys here
-        // If factionApiFullData.members is already an array, use:
-        // const membersArray = factionApiFullData.members;
-
-        for (const member of membersArray) {
-            if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
-                onlineCount++;
-            }
-        }
-        onlineFriendlyMembersDisplay.textContent = `${onlineCount}/${membersArray.length}`;
-    } else if (onlineFriendlyMembersDisplay) {
-        onlineFriendlyMembersDisplay.textContent = 'N/A';
-    }
-
-    // Enemy Faction Online Members
-    if (onlineEnemyMembersDisplay && enemyDataGlobal && enemyDataGlobal.members) {
-        let onlineCount = 0;
-        const membersArray = Object.values(enemyDataGlobal.members); // Assuming it's an object with IDs as keys here
-        // If enemyDataGlobal.members is already an array, use:
-        // const membersArray = enemyDataGlobal.members;
-
-        for (const member of membersArray) {
-            if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
-                onlineCount++;
-            }
-        }
-        onlineEnemyMembersDisplay.textContent = `${onlineCount}/${membersArray.length}`;
-    } else if (onlineEnemyMembersDisplay) {
-        onlineEnemyMembersDisplay.textContent = 'N/A';
-    }
-}
-
 function showCustomConfirm(message, title = "Confirm") {
     // This returns a Promise, which lets us use 'await' to wait for the user's choice
     return new Promise((resolve) => {
@@ -672,67 +624,6 @@ async function resetAllAvailability() {
         showCustomAlert(`Failed to reset all availability data: ${error.message}`, "Reset Failed");
         throw error; // Re-throw to be caught by the calling event listener's try/catch
     }
-}
-
-function updateUserEnergyDisplay() {
-    if (!userApiKey) {
-        console.warn("User API key not available for energy display.");
-        const activeOpsEnergyEl = document.getElementById('rw-user-energy');
-        const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
-        if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Key Missing';
-        if (announcementEnergyEl) announcementEnergyEl.textContent = 'Key Missing';
-        return;
-    }
-
-    const API_KEY = userApiKey;
-    const activeOpsEnergyEl = document.getElementById('rw-user-energy');
-    const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
-
-    // --- THIS IS THE FIX ---
-    // Only show "Loading" if a value isn't already displayed
-    if (activeOpsEnergyEl && !activeOpsEnergyEl.textContent.includes('/')) {
-        activeOpsEnergyEl.textContent = 'Loading E...';
-    }
-    if (announcementEnergyEl && !announcementEnergyEl.textContent.includes('/')) {
-        announcementEnergyEl.textContent = 'Loading E...';
-    }
-    // --- END OF FIX ---
-
-    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}&comment=MyTornPA_Energy`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.error("Torn API Error:", data.error.code, data.error.error);
-                if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'API Error';
-                if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
-                return;
-            }
-
-            const energy = data.energy.current;
-            const maxEnergy = data.energy.maximum;
-            const energyFullTime = data.energy.fulltime;
-            const energyString = `${energy}/${maxEnergy}`;
-            const tooltipString = `Full E at: ${new Date(energyFullTime * 1000).toLocaleTimeString()} ${new Date(energyFullTime * 1000).toLocaleDateString()}`;
-
-            if (activeOpsEnergyEl) {
-                activeOpsEnergyEl.textContent = energyString;
-                activeOpsEnergyEl.title = tooltipString;
-            }
-            if (announcementEnergyEl) {
-                announcementEnergyEl.textContent = energyString;
-                announcementEnergyEl.title = tooltipString;
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching user energy data:", error);
-            if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Fetch Error';
-            if (announcementEnergyEl) announcementEnergyEl.textContent = 'Fetch Error';
-        });
 }
 
 async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
