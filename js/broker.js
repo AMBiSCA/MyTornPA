@@ -60,22 +60,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchUserInventory(apiKey) {
-        try {
-            const response = await fetch(`https://api.torn.com/user/?selections=inventory&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.error);
-            userInventory = {}; // Reset inventory before populating
-            if (data.inventory) {
-                // Convert API response array to an object keyed by item ID for easy lookup
-                Object.values(data.inventory).forEach(item => {
-                    userInventory[item.ID] = item.quantity;
-                });
-            }
-        } catch (error) {
-            console.error("Could not fetch user inventory:", error.message);
+   async function fetchUserInventory(apiKey) {
+    try {
+        const response = await fetch(`https://api.torn.com/user/?selections=inventory&key=${apiKey}`);
+        const data = await response.json();
+        
+        // --- Let's see what the API is actually sending us ---
+        console.log('API Response for Inventory:', data); 
+
+        if (data.error) throw new Error(data.error.error);
+        userInventory = {}; // Reset inventory before populating
+        if (data.inventory) {
+            // Convert API response array to an object keyed by item ID for easy lookup
+            Object.values(data.inventory).forEach(item => {
+                userInventory[item.ID] = item.quantity;
+            });
         }
+    } catch (error) {
+        console.error("Could not fetch user inventory:", error.message);
     }
+}
 
     // --- UI Rendering ---
     async function refreshWatchlistDisplay() {
