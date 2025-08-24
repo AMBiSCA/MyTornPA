@@ -2608,6 +2608,636 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+/**
+ * Calculates and updates the width and text of a chain progress bar.
+ * @param {number} currentHits - The current number of hits in the chain.
+ * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ * @param {string} textElementId - The ID of the text element to update.
+ */
+function updateChainProgress(currentHits, progressBarElement, textElementId) {
+    if (!progressBarElement) return;
+
+    const textElement = document.getElementById(textElementId);
+    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+    const hits = Number(currentHits);
+
+    if (isNaN(hits)) {
+        progressBarElement.style.width = '0%';
+        if (textElement) textElement.textContent = '';
+        return;
+    }
+
+    let nextMilestone = milestones.find(m => m > hits);
+    
+    if (nextMilestone === undefined) {
+        progressBarElement.style.width = '100%';
+        if (textElement) textElement.textContent = 'MAX';
+        return;
+    }
+
+    let previousMilestone = 0;
+    for (let i = milestones.length - 1; i >= 0; i--) {
+        if (milestones[i] <= hits) {
+            previousMilestone = milestones[i];
+            break;
+        }
+    }
+
+    const totalForMilestone = nextMilestone - previousMilestone;
+    const progressInMilestone = hits - previousMilestone;
+    let percentage = 0;
+    if (totalForMilestone > 0) {
+        percentage = (progressInMilestone / totalForMilestone) * 100;
+    }
+
+    progressBarElement.style.width = percentage + '%';
+    if (textElement) {
+        textElement.textContent = Math.floor(percentage) + '%';
+    }
+}
+
+/*
+function setupFactionHitsListener(db, factionId) {
+	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
+    // These are the HTML elements we created earlier
+    const tcHitsElement = document.getElementById('tc-hits-value');
+    const abroadHitsElement = document.getElementById('abroad-hits-value');
+
+    // If the elements don't exist on the page, stop the function to prevent errors.
+    if (!tcHitsElement || !abroadHitsElement) {
+        console.error("Faction hits display elements not found on the page.");
+        return;
+    }
+
+    // This is the Firestore query. It looks for all users that match your faction ID.
+    const factionQuery = db.collection('users').where('faction_id', '==', factionId);
+
+    // .onSnapshot() creates a real-time listener.
+    // This code will run automatically every time the data changes for any user in your faction.
+    factionQuery.onSnapshot(snapshot => {
+        let totalTCEnergy = 0;
+        let totalAbroadEnergy = 0;
+
+        // Loop through every member found by the query
+        snapshot.forEach(doc => {
+            const memberData = doc.data();
+
+            // Check if the member has energy data to avoid errors
+            if (memberData.energy && typeof memberData.energy.current === 'number') {
+                // If the 'traveling' field is true, add their energy to the 'Abroad' total
+                if (memberData.traveling === true) {
+                    totalAbroadEnergy += memberData.energy.current;
+                } else {
+                    // Otherwise, add it to the 'Torn City' total
+                    totalTCEnergy += memberData.energy.current;
+                }
+            }
+        });
+
+        // Calculate the number of hits (1 hit = 25 energy)
+        // Math.floor() rounds down to the nearest whole number.
+        const tcHits = Math.floor(totalTCEnergy / 25);
+        const abroadHits = Math.floor(totalAbroadEnergy / 25);
+
+        // Update the numbers on your webpage
+        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
+        abroadHitsElement.textContent = abroadHits.toLocaleString();
+
+    }, error => {
+        // This will log any errors if the listener fails.
+        console.error("Error with faction hits listener:", error);
+        tcHitsElement.textContent = "Error";
+        abroadHitsElement.textContent = "Error";
+    });
+}
+
+
+// NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
+function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
+    if (!bigHitterWatchlistContainer) {
+        console.error("HTML Error: Cannot find element with ID 'bigHitterWatchlistContainer'.");
+        return;
+    }
+
+    bigHitterWatchlistContainer.innerHTML = ''; // Clear existing checkboxes
+
+    if (!enemyMembers || typeof enemyMembers !== 'object' || Object.keys(enemyMembers).length === 0) {
+        bigHitterWatchlistContainer.innerHTML = '<div class="member-selection-item">No enemy members available</div>';
+        return;
+    }
+
+    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
+        const nameA = enemyMembers[a].name || '';
+        const nameB = enemyMembers[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedEnemyMemberIds.forEach(memberId => {
+        const member = enemyMembers[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
+
+        const isWatchlistChecked = (savedWatchlistMembers && savedWatchlistMembers.includes(memberId)) ? 'checked' : '';
+        const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
+        bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
+    });
+}
+
+
+async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) {
+        console.error("HTML Error: Friendly members table body (tbody) not found!");
+        return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
+
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
+        const userProfileDoc = await userProfileDocRef.get();
+        if (!userProfileDoc.exists) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color: red;">Error: User profile not found.</td></tr>';
+            return;
+        }
+        const userFactionId = userProfileDoc.data().faction_id;
+
+        if (!userFactionId) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">Not in a faction or Faction ID not stored.</td></tr>';
+            return;
+        }
+
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers`;
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+
+        if (!factionResponse.ok || factionData.error) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'API Error'}.</td></tr>`;
+            return;
+        }
+
+        const membersArray = Object.values(factionData.members || {});
+        if (membersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No members found.</td></tr>';
+            return;
+        }
+
+        // --- START OF MODIFIED LOGIC ---
+        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
+        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
+        const firestoreFetchPromises = [];
+        const allMemberFirebaseData = {}; // To store all fetched Firebase data indexed by Torn ID
+
+        // Divide member IDs into chunks and create a fetch promise for each chunk
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
+        }
+
+        // Wait for all Firestore queries to complete
+        const snapshots = await Promise.all(firestoreFetchPromises);
+
+        // Process all snapshots and populate allMemberFirebaseData
+        snapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                allMemberFirebaseData[doc.id] = doc.data();
+            });
+        });
+        // --- END OF MODIFIED LOGIC ---
+
+        // Step 1: Process all members to get their data and calculated stats
+        const processedMembers = membersArray.map((memberTornData) => {
+            const memberId = String(memberTornData.user_id || memberTornData.id); // Ensure memberId is string for lookup
+            if (!memberId) return null;
+
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {}; // Get data from our new combined object
+            
+            const strengthNum = parseFloat(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
+            const speedNum = parseFloat(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
+            const dexterityNum = parseFloat(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
+            const defenseNum = parseFloat(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
+            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+
+            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
+        }).filter(m => m !== null); // Filter out any null entries if IDs were missing
+
+        // Step 2: Sort the processed members by totalStats in descending order
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
+
+        // Step 3: Build the HTML from the sorted data
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+			console.log('WORKING PAGE - Firebase Data:', member.firebaseData);
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action?.relative || 'N/A';
+            const strength = firebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
+            const dexterity = firebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
+            const speed = firebaseData.battlestats?.speed?.toLocaleString() || 'N/A';
+            const defense = firebaseData.battlestats?.defense?.toLocaleString() || 'N/A';
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+            const energy = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            const isRevivable = (tornData.revive_setting || '').trim();
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital'; else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other'; else drugCooldownClass = 'status-okay';
+            } else {
+                drugCooldown = 'None 🍁'; drugCooldownClass = 'status-okay';
+            }
+
+            let revivableClass = '';
+            if (isRevivable === 'Everyone') { revivableClass = 'revivable-text-green'; }
+            else if (isRevivable === 'Friends & faction') { revivableClass = 'revivable-text-orange'; }
+            else if (isRevivable === 'No one') { revivableClass = 'revivable-text-red'; }
+
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <td>${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass}">${formattedStatus}</td>
+                    <td class="nerve-text">${nerve}</td>
+                    <td class="energy-text">${energy}</td>
+                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${revivableClass}">${isRevivable}</td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
+
+        applyStatColorCoding();
+    } catch (error) {
+        console.error("Fatal error in updateFriendlyMembersTable:", error);
+        tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+    }
+}
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for faction members list.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
+
+    // Get the current user's friends list first
+    let friendsSet = new Set();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        try {
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+            friendsSnapshot.forEach(doc => friendsSet.add(doc.id));
+        } catch (error) {
+            console.error("Error fetching friends list:", error);
+        }
+    }
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    targetDisplayElement.innerHTML = '';
+    targetDisplayElement.appendChild(membersListContainer);
+
+    for (const member of membersArray) {
+        const tornPlayerId = member.id;
+        const memberName = member.name;
+        const memberRank = member.position;
+        const isFriend = friendsSet.has(tornPlayerId);
+
+        // --- CORRECTED: This now generates the button with the person icon and a +/- sign ---
+        let actionButtonHtml = '';
+        if (isFriend) {
+            actionButtonHtml = `
+                <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
+                    👤<span class="plus-sign">-</span>
+                </button>
+            `;
+        } else {
+            actionButtonHtml = `
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+            `;
+        }
+        
+        const memberItemDiv = document.createElement('div');
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member');
+        }
+
+        memberItemDiv.innerHTML = `
+            <span class="member-rank">${memberRank}</span>
+            <div class="member-identity">
+                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                <span class="member-name">${memberName}</span>
+            </div>
+            <div class="member-actions">
+                ${actionButtonHtml}
+                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+            </div>
+        `;
+        
+        membersListContainer.appendChild(memberItemDiv);
+
+        (async () => {
+            try {
+                const docRef = db.collection('users').doc(String(tornPlayerId));
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    const firebaseMemberData = docSnap.data();
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) imgElement.src = profileImageUrl;
+                }
+            } catch (error) {
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
+            }
+        })();
+    }
+}
+
+async function fetchAndDisplayMemberDetails(memberId) {
+    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
+
+    const detailPanel = document.getElementById('selectedMemberDetailPanel');
+    if (!detailPanel) {
+        console.error("HTML Error: Cannot find the detail panel element.");
+        return;
+    }
+
+    detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
+    detailPanel.classList.add('detail-panel-loaded');
+
+    let tornApiData = null;
+    let apiErrorMessage = '';
+
+    try {
+        const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
+
+        if (querySnapshot.empty) {
+            detailPanel.innerHTML = `
+                <h4>Details Unavailable</h4>
+                <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
+            console.warn(`[DEBUG] No Firebase userProfile found for Torn ID: ${memberId}.`);
+            return;
+        }
+
+        const userDoc = querySnapshot.docs[0];
+        const memberDataFromFirebase = userDoc.data();
+        const memberApiKey = memberDataFromFirebase.tornApiKey;
+        const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
+
+        console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
+        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`); // Verify the key used
+
+        if (!memberApiKey) {
+            detailPanel.innerHTML = `
+                <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
+                <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
+                <p>Cannot fetch detailed stats.</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
+            return;
+        }
+
+        // Selections for the API call
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
+        const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
+
+        console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
+
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
+            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
+            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
+            if (errorData && errorData.error && errorData.error.error) {
+                errorMessage += ` - ${errorData.error.error}`;
+            }
+            throw new Error(errorMessage);
+        } else {
+            tornApiData = await response.json();
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
+
+            if (tornApiData.error) {
+                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
+                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
+                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
+                } else {
+                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
+                }
+            }
+        }
+
+        if (!tornApiData || Object.keys(tornApiData).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
+        }
+
+        const personalStats = tornApiData.personalstats || {};
+        const jobData = tornApiData.job || {};
+        const cooldowns = tornApiData.cooldowns || {};
+        
+        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
+        const barsData = tornApiData.bars || {};
+        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
+        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
+
+        // Access name, player_id, last_action, status directly from tornApiData (root)
+        const memberName = tornApiData.name || 'Unknown';
+        const memberPlayerId = tornApiData.player_id || 'N/A';
+        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
+        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
+
+        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
+        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
+
+        console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
+        console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
+        console.log("[DEBUG] Extracted Main Status Data:", mainStatusData);
+        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
+        console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
+        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Extracted Nerve Data (from bars/root object):", nerve);
+        console.log("[DEBUG] Extracted Energy Data (from bars/root object):", energy);
+        console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
+        console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
+
+
+        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        const strength = (personalStats.strength || tornApiData.strength || 0).toLocaleString();
+        const speed = (personalStats.speed || tornApiData.speed || 0).toLocaleString();
+        const dexterity = (personalStats.dexterity || tornApiData.dexterity || 0).toLocaleString();
+        const defense = (personalStats.defense || tornApiData.defense || 0).toLocaleString();
+
+        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
+
+        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        const manuelLabor = (personalStats.manuallabor || tornApiData.manual_labor || 0).toLocaleString();
+        const intelligence = (personalStats.intelligence || tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (personalStats.endurance || tornApiData.endurance || 0).toLocaleString();
+        
+        const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
+        const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
+
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        // Nerve and Energy display values
+        const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
+        const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
+
+        const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
+        const energyMax = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
+
+        let cooldownsHtml = ''; // Will build this as list items for 3 columns
+        if (Object.keys(cooldowns).length > 0) {
+            for (const key in cooldowns) {
+                if (cooldowns.hasOwnProperty(key)) {
+                    const timeLeft = cooldowns[key];
+                    let displayValue;
+                    if (typeof timeLeft === 'number' && timeLeft > 0) {
+                        displayValue = formatTime(timeLeft);
+                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
+                        displayValue = 'Ready';
+                    } else {
+                        displayValue = 'N/A';
+                    }
+                    cooldownsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${displayValue}</li>`;
+                }
+            }
+        } else {
+            cooldownsHtml += '<li>No active cooldowns.</li>';
+        }
+
+        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
+
+        // Use the new lastActionData object directly
+        const lastActionTimestamp = lastActionData.timestamp ? lastActionData.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        // Use the new mainStatusData object directly
+        let statusText = mainStatusData.description || 'Unknown';
+        let statusClass = 'status-okay';
+
+        if (mainStatusData) { // Check if mainStatusData is not null/undefined
+            if (mainStatusData.state === 'Hospital') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (mainStatusData.state === 'Traveling') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
+                statusText = `${mainStatusData.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (mainStatusData.state !== 'Okay') {
+                statusText = mainStatusData.description;
+                statusClass = 'status-other';
+            }
+        }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
+
+        let overallAccessMessage = '';
+        if (apiErrorMessage) {
+            overallAccessMessage = `<p class="member-detail-error-message">Note: ${apiErrorMessage}</p>`;
+        }
+
+        // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
+        const detailsHtml = `
+            <div class="member-detail-header">
+                <div class="member-header-top-row">
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Energy:</h5>
+                        <p>${energyDisplay}</p>
+                    </div>
+                    ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Nerve:</h5>
+                        <p>${nerveDisplay}</p>
+                    </div>
+                </div>
+                <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
+            </div>
+
+            ${overallAccessMessage}
+
+            <div class="member-detail-info-row"> 
+                <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
+                <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+            </div>
+
+            <div class="member-stats-group-row">
+                <div class="member-stat-block">
+                    <h5>Battle Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Strength:</span> <span>${strength}</span>
+                        <span>Defense:</span> <span>${defense}</span>
+                        <span>Speed:</span> <span>${speed}</span>
+                        <span>Dexterity:</span> <span>${dexterity}</span>
+                    </div>
+                </div>
+                <div class="member-stat-block">
+                    <h5>Work Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Job:</span> <span>${job}</span>
+                        <span>Efficiency:</span> <span>${jobEfficiency}</span>
+                        <span>Manual Labor:</span> <span>${manuelLabor}</span>
+                        <span>Intelligence:</span> <span>${intelligence}</span>
+                        <span>Endurance:</span> <span>${endurance}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-cooldowns-block">
+                <h5>Cool downs</h5>
+                <ul class="member-cooldowns-list">
+                    ${cooldownsHtml}
+                </ul>
+            </div>
+        `;
+
+        detailPanel.innerHTML = detailsHtml;
+
+    } catch (error) {
+        console.error("Error fetching member details:", error);
+        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
+    }
+}
 // UPDATED: Now performs its own API call to fetch current chain data regularly.
 async function fetchAndDisplayChainData() {
     // Only proceed if API key and faction ID are available globally.
