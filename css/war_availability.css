@@ -1,0 +1,309 @@
+/* General Page Layout */
+.styled-container {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.script-title {
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ==================================================================
+   War Availability Tab Styles
+   ================================================================== */
+
+/* Main 2-column grid for the page content */
+.war-availability-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr; /* Left column is smaller than the right */
+    gap: 20px;
+    padding: 10px;
+}
+
+/* Panel Styling (for both left and right columns) */
+.user-status-panel,
+.team-roster-panel {
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Titles inside the panels */
+.user-status-panel h4,
+.team-roster-panel h4 {
+    color: #e0a71a;
+    margin: 0 0 10px 0;
+    text-align: center;
+    font-size: 1.5em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+/* --- Left Column: User Form Styles --- */
+.availability-day-form {
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.availability-day-form h5 {
+    text-align: center;
+    color: #00a8ff;
+    margin: -10px -10px 10px -10px;
+    padding: 8px;
+    background-color: #333;
+    border-radius: 5px 5px 0 0;
+}
+
+.form-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.form-group.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-group select,
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    background-color: #1e1e1e;
+    border: 1px solid #555;
+    color: #f0f0f0;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* --- Faction-Wide Summary Panel Styles (Left Column) --- */
+.faction-summary-panel {
+    border-top: 2px solid #444;
+    margin-top: 20px;
+    padding-top: 15px;
+}
+
+.faction-summary-panel h4 {
+    font-size: 1.2em;
+    color: #e0a71a;
+    text-align: center;
+    margin: 0 0 15px 0;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.summary-col {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.summary-col strong {
+    color: #00a8ff;
+    border-bottom: 1px solid #555;
+    display: block;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.summary-col p {
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: #f0f0f0;
+}
+
+.summary-footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.summary-footer hr {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 10px auto;
+    width: 80%;
+}
+
+.summary-footer p { margin: 5px 0; }
+.summary-footer strong { color: #e0a71a; }
+
+.summary-edit-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* --- Leader Controls (in Summary Panel) --- */
+#availability-admin-controls {
+    display: none; /* Controlled by JS */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.leader-controls-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.leader-controls-row > .action-btn,
+.leader-controls-row > .discord-webhook-unified-control {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* --- Right Column: Roster Styles --- */
+.roster-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.roster-player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background-color: #333;
+    border-left: 5px solid; /* Colored status border */
+}
+
+.roster-player-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    flex-shrink: 0;
+}
+
+.roster-player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-grow: 1;
+}
+
+.roster-player .player-name {
+    color: #FFFFFF !important;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.roster-player .player-status {
+    color: #bbbbbb !important;
+    font-size: 0.85em;
+}
+
+/* Roster and Status Text Color Coding */
+.status-text-green  { color: #66bb6a !important; font-weight: bold; }
+.status-text-orange { color: #ffa726 !important; font-weight: bold; }
+.status-text-red    { color: #ef5350 !important; font-weight: bold; }
+.status-text-grey   { color: #9E9E9E !important; font-style: italic; }
+
+.roster-player.status-green  { border-left-color: #4CAF50; }
+.roster-player.status-orange { border-left-color: #ff9800; }
+.roster-player.status-red    { border-left-color: #f44336; }
+.roster-player.status-grey   { border-left-color: #666; }
+
+
+/* General Action Button Style */
+.action-btn {
+    padding: 8px 15px;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: black;
+    background-color: #007bff;
+    border: 2px solid black;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover { background-color: #00a8ff; }
+.action-btn:disabled { background-color: #6c757d; cursor: not-allowed; }
+
+/* Discord Webhook Modal Styles */
+.webhook-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.webhook-edit-area {
+    background-color: #2a2a2a;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.webhook-edit-area .modal-header h4 {
+    color: #e0a71a;
+    margin: 0;
+    font-size: 1.4em;
+}
+
+.webhook-edit-area .modal-footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.discord-webhook-unified-control.configured-status { background-color: #4CAF50 !important; }
+.discord-webhook-unified-control.not-set-status { background-color: #FF6347 !important; }
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .war-availability-grid {
+        grid-template-columns: 1fr; /* Stack columns */
+    }
+}

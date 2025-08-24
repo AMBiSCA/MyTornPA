@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - War Availability</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="war_availability.css">
+</head>
+<body>
+    <script src="../js/auth-guard.js"></script>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div id="warAvailabilityContainer" class="styled-container">
+            <h2 class="script-title" id="availabilityPageTitle">War Availability Hub</h2>
+
+            <div class="war-availability-grid">
+                <div class="user-status-panel">
+                    <h4>Your Factions Availability</h4>
+                    <div id="availability-forms-container">
+                        <p>Loading your status...</p>
+                    </div>
+                </div>
+
+                <div class="team-roster-panel">
+                    <h4>Your Factions Roster</h4>
+                    <div id="war-roster-display" class="roster-list">
+                        <p>Loading roster...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="globalfooterplaceholder"></div>
+
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="war_availability.js"></script>
+    <script src="../../js/global.js"></script>
+    <script src="../js/globalfooter.js"></script>
+</body>
+</html>
