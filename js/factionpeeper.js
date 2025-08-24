@@ -1,4 +1,3 @@
-
 // Stat selection logic and other functions
 const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
 const statCategories = [
