@@ -564,6 +564,51 @@ function updateUserEnergyDisplay() {
         });
 }
 
+async function fetchAndДDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) return;
+
+    // Get the scoreboard element from the Announcements tab
+    const opponentNameEl = document.getElementById('rw-faction-two-name_announcement');
+
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        enemyDataGlobal = await response.json(); // Store enemy data globally
+        const enemyData = enemyDataGlobal;
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        // Update the scoreboard with the enemy faction's name
+        if (opponentNameEl) {
+            opponentNameEl.textContent = enemyData.basic.name || 'Opponent';
+        }
+
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            // This part is still needed for the "Big Hitter Watchlist" in the Leadership tab
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
+        } else {
+            console.warn("Enemy faction members data not found.");
+            populateEnemyMemberCheckboxes({}, []);
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (opponentNameEl) {
+            opponentNameEl.textContent = 'Invalid Enemy ID';
+        }
+        populateEnemyMemberCheckboxes({}, []);
+    }
+}
+
 async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
     console.log("Calling fetchAndDisplayRankedWarScores with received data.");
 
@@ -693,46 +738,38 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
 
     console.log("Successfully parsed and displayed ranked war data for both scoreboards.");
 }
+ 
  function updateAllTimers() {
-    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
 
-    // Part 1: Updates the "Next Planned Chain Time" from the Leader Config tab
-    if (warNextChainTimeStatus && nextChainTimeInput) {
-        const nextChainTimeValue = nextChainTimeInput.value.trim();
-        const targetChainTime = parseInt(nextChainTimeValue, 10);
+    // Part 1: Updates the "Next Planned Chain Time" from the Leader Config tab
+    if (warNextChainTimeStatus && nextChainTimeInput) {
+        const nextChainTimeValue = nextChainTimeInput.value.trim();
+        const targetChainTime = parseInt(nextChainTimeValue, 10);
 
-        if (!isNaN(targetChainTime) && targetChainTime > 0) {
-            const timeLeft = targetChainTime - nowInSeconds;
-            if (timeLeft > 0) {
-                warNextChainTimeStatus.textContent = formatTime(timeLeft);
-            } else {
-                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-            }
-        } else {
-            warNextChainTimeStatus.textContent = nextChainTimeValue || 'N/A';
-        }
-    }
-
-    // Part 2: Updates the timers in the enemy targets table (e.g. hospital/travel)
-    if (enemyTargetsContainer) {
-        const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-        statusCells.forEach(cell => {
-            const targetTime = parseInt(cell.dataset.until, 10);
-            if (!isNaN(targetTime) && targetTime > 0) {
-                const timeLeft = targetTime - nowInSeconds;
-                const originalDescription = cell.textContent.split('(')[0].trim();
-                
-                if (timeLeft > 0) {
-                    cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                } else {
-                    cell.textContent = 'Okay';
-                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                    cell.classList.add('status-okay');
-                    cell.removeAttribute('data-until');
-                }
-            }
-        });
-    }
+        if (!isNaN(targetChainTime) && targetChainTime > 0) {
+            const timeLeft = targetChainTime - nowInSeconds;
+            if (timeLeft > 0) {
+                warNextChainTimeStatus.textContent = formatTime(timeLeft);
+            } else {
+                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
+            }
+        } else {
+            warNextChainTimeStatus.textContent = nextChainTimeValue || 'N/A';
+        }
+    }
+    
+    // Part 2: Updates the Ranked War elapsed timer on the Announcements tab
+    const rankedWarTimerEl = document.getElementById('rw-war-timer_announcement');
+    if (rankedWarTimerEl) {
+        if (globalWarStartedActualTime > 0) {
+            const timeElapsed = nowInSeconds - globalWarStartedActualTime;
+            rankedWarTimerEl.textContent = formatDuration(timeElapsed);
+        } else {
+            rankedWarTimerEl.textContent = '0:00:00:00';
+        }
+    }
+}
 
     // Part 3: Updates "Your Chain" timer smoothly
     const friendlyTimeEl = document.getElementById('friendly-chain-time');
