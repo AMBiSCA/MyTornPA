@@ -1,4 +1,14 @@
-/* General Page Layout */
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* This makes the body at least as tall as the browser window */
+}
+
+.main-content-wrapper {
+    flex-grow: 1; /* This tells the main content to grow and fill any empty space */
+}
+
 .styled-container {
     background-color: #1e1e1e;
     color: #f0f0f0;
