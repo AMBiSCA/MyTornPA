@@ -106,6 +106,64 @@ const discordWebhookModalOverlay = document.getElementById('discordWebhookModalO
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
 
 
+
+
+function countFactionMembers(membersObject) {
+    if (!membersObject) return 0;
+    return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
+}
+
+async function processProfileFetchQueue() {
+    if (isProcessingQueue || profileFetchQueue.length === 0) {
+        return; // Already processing or nothing in queue
+    }
+
+    isProcessingQueue = true;
+    while (profileFetchQueue.length > 0) {
+        const { memberId, apiKey, itemElement } = profileFetchQueue.shift();
+
+        // Check cache before fetching
+        if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+            console.log(`[Cache Hit] Profile for ${memberId} already in cache.`);
+            updateMemberItemDisplay(itemElement, memberProfileCache[memberId].profile_image);
+            continue; // Skip fetch, move to next item
+        }
+
+        try {
+            const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile&key=${apiKey}&comment=MyTornPA_MemberProfilePic`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                console.error(`Error fetching profile for member ${memberId}:`, data.error?.error || response.statusText);
+                updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on error
+            } else {
+                const profileImage = data.profile_image || '../../images/default_profile_icon.png';
+                memberProfileCache[memberId] = { profile_image: profileImage, name: data.name }; // Cache the result
+                updateMemberItemDisplay(itemElement, profileImage);
+            }
+        } catch (error) {
+            console.error(`Network error fetching profile for member ${memberId}:`, error);
+            updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on network error
+        }
+
+        // Introduce delay before the next fetch, unless it's the last one
+        if (profileFetchQueue.length > 0) {
+            await new Promise(resolve => setTimeout(resolve, FETCH_DELAY_MS));
+        }
+    }
+    isProcessingQueue = false;
+    console.log("Profile fetch queue finished processing.");
+}
+
+function formatBattleStats(num) {
+    if (isNaN(num) || num === 0) return '0';
+    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num.toLocaleString();
+}
+
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
     // Safety check to make sure the button/label element was passed correctly
     if (!labelElement) {
