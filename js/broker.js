@@ -93,7 +93,6 @@ async function refreshWatchlistDisplay() {
 
     const promises = [];
     watchlist.forEach(itemId => {
-        // FINAL FIX: Re-added the /v2/ to the URL path for both separate calls.
         promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json()));
         promises.push(fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar&key=${tornApiKey}`).then(res => res.json()));
     });
@@ -105,13 +104,13 @@ async function refreshWatchlistDisplay() {
         const itemId = watchlist[i];
         const itemInfo = allItems[itemId];
 
-        // The results array will have market data at index 2*i and bazaar data at 2*i + 1
         const marketData = results[i * 2];
         const bazaarData = results[i * 2 + 1];
 
-        // --- THIS IS THE CORRECTED LINE ---
+        // --- NEW DEBUGGING LINE ---
+        console.log('Inspecting marketData:', marketData);
+
         const averageMarketPrice = marketData && marketData.itemmarket && marketData.itemmarket.average_price ? '$' + marketData.itemmarket.average_price.toLocaleString() : 'N/A';
-        
         const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
         const userStock = userInventory[itemId] || 0;
 
