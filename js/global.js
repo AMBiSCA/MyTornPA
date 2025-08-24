@@ -6,7 +6,6 @@ const DEFAULT_PROFILE_ICONS = [
     '../../images/boysy.png',
     '../../images/business-man.png',
     '../../images/customer-service.png',
-    '../../images/circle.png',
     '../../images/display-pic.png',
     '../../images/man.png',
     '../../images/man3w.png',
