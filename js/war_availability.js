@@ -25,6 +25,7 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
+        // Fetch all availability data for the faction
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
@@ -37,8 +38,10 @@ async function displayWarRoster() {
         }
         const allMembers = Object.values(factionApiFullData.members);
 
+        // A flag to track if we fetched new data that needs to be saved
         let cacheNeedsUpdate = false;
 
+        // Create HTML for every member, now including the Firestore lookup for the profile image
         const memberDisplayPromises = allMembers.map(async (member) => {
             const memberId = String(member.id);
             const memberName = member.name;
@@ -73,37 +76,29 @@ async function displayWarRoster() {
                 }
             }
             
-            // ---- UPDATED LOGIC TO USE RANDOM DEFAULT ICONS ----
-            let profileImageUrl; // No initial value
-
-            // 1. Check the cache first
-            if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
-                profileImageUrl = memberProfileCache[memberId].profile_image;
-            } else {
-                // 2. If not in cache, try to fetch from Firestore
-                try {
+            // ---- IMPROVED CACHING FOR PROFILE IMAGES ----
+            let profileImageUrl = '../../images/default_user_icon.svg'; 
+            try {
+                // First, check the cache to avoid unnecessary database reads
+                if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+                    profileImageUrl = memberProfileCache[memberId].profile_image;
+                } else {
+                    // If not in cache, fetch from the 'users' collection in Firestore
                     const userDoc = await db.collection('users').doc(memberId).get();
-                    if (userDoc.exists && userDoc.data().profile_image) {
-                        const imageUrlFromDb = userDoc.data().profile_image;
-                        if (imageUrlFromDb.trim() !== '') {
-                            profileImageUrl = imageUrlFromDb;
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        if (userData.profile_image && userData.profile_image.trim() !== '') {
+                            profileImageUrl = userData.profile_image;
+                            // Save to our cache object and mark that we need to update sessionStorage
+                            memberProfileCache[memberId] = { profile_image: profileImageUrl };
+                            cacheNeedsUpdate = true;
                         }
                     }
-                } catch (err) {
-                    console.warn(`Could not fetch profile image for ${memberName} (${memberId}):`, err);
                 }
-
-                // 3. If STILL no image, assign a random one from the global array
-                if (!profileImageUrl) {
-                    const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
-                    profileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
-                }
-
-                // 4. Save whatever image we ended up with to the cache for this session
-                memberProfileCache[memberId] = { profile_image: profileImageUrl };
-                cacheNeedsUpdate = true;
+            } catch (err) {
+                console.warn(`Could not fetch profile image for ${memberName} (${memberId}):`, err);
             }
-            // ---- END OF UPDATED LOGIC ----
+            // ---- END OF IMPROVED CACHING ----
 
             return `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
@@ -118,10 +113,13 @@ async function displayWarRoster() {
         const allPlayerHtml = await Promise.all(memberDisplayPromises);
         rosterDisplay.innerHTML = allPlayerHtml.join('');
 
+        // ---- NEW CACHING LOGIC ---
+        // If we fetched any new images from Firestore, save the updated cache to sessionStorage
         if (cacheNeedsUpdate) {
             sessionStorage.setItem('memberProfileCache', JSON.stringify(memberProfileCache));
         }
 
+        // Set the container height for scrolling (if more than 8 members)
         if (allMembers.length > 8) {
             const firstRosterItem = rosterDisplay.querySelector('.roster-player');
             if (firstRosterItem) {
@@ -132,6 +130,7 @@ async function displayWarRoster() {
             }
         }
 
+        // Calculate and display the summary panel on the left
         let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
         allMembers.forEach(member => {
             const memberAvailability = availabilityData[String(member.id)];
@@ -155,7 +154,6 @@ async function displayWarRoster() {
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
     }
 }
-
 async function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
