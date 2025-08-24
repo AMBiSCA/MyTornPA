@@ -2656,62 +2656,6 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
-/*
-function setupFactionHitsListener(db, factionId) {
-	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
-    // These are the HTML elements we created earlier
-    const tcHitsElement = document.getElementById('tc-hits-value');
-    const abroadHitsElement = document.getElementById('abroad-hits-value');
-
-    // If the elements don't exist on the page, stop the function to prevent errors.
-    if (!tcHitsElement || !abroadHitsElement) {
-        console.error("Faction hits display elements not found on the page.");
-        return;
-    }
-
-    // This is the Firestore query. It looks for all users that match your faction ID.
-    const factionQuery = db.collection('users').where('faction_id', '==', factionId);
-
-    // .onSnapshot() creates a real-time listener.
-    // This code will run automatically every time the data changes for any user in your faction.
-    factionQuery.onSnapshot(snapshot => {
-        let totalTCEnergy = 0;
-        let totalAbroadEnergy = 0;
-
-        // Loop through every member found by the query
-        snapshot.forEach(doc => {
-            const memberData = doc.data();
-
-            // Check if the member has energy data to avoid errors
-            if (memberData.energy && typeof memberData.energy.current === 'number') {
-                // If the 'traveling' field is true, add their energy to the 'Abroad' total
-                if (memberData.traveling === true) {
-                    totalAbroadEnergy += memberData.energy.current;
-                } else {
-                    // Otherwise, add it to the 'Torn City' total
-                    totalTCEnergy += memberData.energy.current;
-                }
-            }
-        });
-
-        // Calculate the number of hits (1 hit = 25 energy)
-        // Math.floor() rounds down to the nearest whole number.
-        const tcHits = Math.floor(totalTCEnergy / 25);
-        const abroadHits = Math.floor(totalAbroadEnergy / 25);
-
-        // Update the numbers on your webpage
-        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
-        abroadHitsElement.textContent = abroadHits.toLocaleString();
-
-    }, error => {
-        // This will log any errors if the listener fails.
-        console.error("Error with faction hits listener:", error);
-        tcHitsElement.textContent = "Error";
-        abroadHitsElement.textContent = "Error";
-    });
-}
-
-
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
@@ -4737,36 +4681,6 @@ if (availabilityTab) {
         });
     }
 	
-	
-
-    // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const originalText = saveEnergyTrackMembersBtn.textContent;
-            saveEnergyTrackMembersBtn.disabled = true;
-            saveEnergyTrackMembersBtn.textContent = "Saving...";
-            try {
-                const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    energyTrackingMembers: selectedEnergyMemberIds
-                }, {
-                    merge: true
-                });
-                saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-                saveEnergyTrackMembersBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save energy tracking members. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveEnergyTrackMembersBtn.disabled = false;
-                    saveEnergyTrackMembersBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
     // Big Hitter Watchlist Save Listener (added to DOMContentLoaded as a one-time setup)
     if (saveSelectionsBtnBH) { // Assuming this is your save button for Big Hitters
         saveSelectionsBtnBH.addEventListener('click', async () => {
@@ -4859,83 +4773,6 @@ if (availabilityTab) {
     }
 
 }); // --- END OF DOMCONTENTLOADED ---
-
-/**
- * ==================================================================
- * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
- * ==================================================================
- */
-
-// Helper function to parse a stat string into a number.
-function parseStatValue(statString) {
-    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
-        return 0;
-    }
-    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
-    let multiplier = 1;
-    if (sanitizedString.endsWith('k')) {
-        multiplier = 1000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('m')) {
-        multiplier = 1000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('b')) {
-        multiplier = 1000000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    }
-    const number = parseFloat(sanitizedString);
-    return isNaN(number) ? 0 : number * multiplier;
-}
-
-/**
- * Applies CSS classes to table cells based on battle stat tiers for color coding.
- * This function needs to be called after the table is populated.
- */
-function applyStatColorCoding() {
-    const table = document.getElementById('friendly-members-table');
-    if (!table) {
-        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
-        return;
-    }
-
-    // This adds the 'table-striped' class to your table so the CSS rules will work.
-    table.classList.add('table-striped');
-
-    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
-
-    statCells.forEach(cell => {
-        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
-        for (let i = 1; i <= 14; i++) {
-            cell.classList.remove(`stat-tier-${i}`);
-        }
-        cell.classList.remove('stat-cell');
-
-        // Now, determine and add the correct new class
-        const value = parseStatValue(cell.textContent);
-        let tierClass = '';
-
-        // New 14-tier logic
-        if (value >= 10000000000)      { tierClass = 'stat-tier-14'; } // 10b+
-        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
-        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
-        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
-        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
-        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
-        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
-        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
-        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
-        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
-        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
-        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
-        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
-        else if (value > 0)            { tierClass = 'stat-tier-1'; }
-
-        if (tierClass) {
-            cell.classList.add(tierClass);
-            cell.classList.add('stat-cell'); // General class for stat cells
-        }
-    });
-}
 
 function blockLandscape() {
   const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
