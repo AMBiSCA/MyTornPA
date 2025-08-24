@@ -1450,83 +1450,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     }
 }
 
-// --- NEW FUNCTION: Creates and styles the progress bar text elements ---
-function setupProgressText() {
-    const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
-    const enemyContainer = document.getElementById('enemy-chain-progress')?.parentElement;
-
-    // A helper function to avoid repeating code
-    const createTextElement = (container, id) => {
-        if (!container || document.getElementById(id)) return; // Don't run if container doesn't exist or text is already there
-
-        // This is needed to position the text inside the container
-        container.style.position = 'relative';
-
-        const textEl = document.createElement('span');
-        textEl.id = id;
-
-        // --- All styling is applied here via JavaScript ---
-        textEl.style.position = 'absolute';
-        textEl.style.top = '50%';
-        textEl.style.left = '50%';
-        textEl.style.transform = 'translate(-50%, -50%)';
-        textEl.style.color = '#FFFFFF';
-        textEl.style.fontWeight = 'bold';
-        textEl.style.fontSize = '10px';
-        textEl.style.textShadow = '0 0 2px rgba(0,0,0,0.8)'; // Makes text more readable
-        textEl.style.pointerEvents = 'none'; // Makes text unclickable
-
-        container.appendChild(textEl);
-    };
-
-    createTextElement(friendlyContainer, 'friendly-chain-text');
-    createTextElement(enemyContainer, 'enemy-chain-text');
-}
-
-async function claimTarget(memberId, memberName) {
-    if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
-        alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
-        console.error("Claim failed: Missing auth, Torn username, API key, or Faction ID.");
-        return;
-    }
-
-    // Immediately disable the button to prevent double-clicks
-    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    if (claimBtn) claimBtn.disabled = true;
-
-    // --- CRITICAL CHANGE HERE: Use and increment the localCurrentClaimHitCounter directly. ---
-    // We are trusting that localCurrentClaimHitCounter is correctly initialized by initializeAndLoadData
-    // and kept up-to-date by setupWarClaimsListener.
-    const nextChainHitNumber = localCurrentClaimHitCounter + 1;
-    // --- END CRITICAL CHANGE ---
-
-    try {
-        // Save the claim to Firebase
-        await db.collection('warClaims').doc(memberId).set({
-            claimedByUserId: auth.currentUser.uid,
-            claimedByUserName: currentTornUserName,
-            chainHitNumber: nextChainHitNumber, // Use our local, incrementing counter
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log(`Claim for ${memberName} (${memberId}) saved to Firebase. Chain hit: ${nextChainHitNumber}`);
-
-        // Update the local counter *after* a successful save
-        // This makes sure our local state for subsequent claims reflects this new claim
-        localCurrentClaimHitCounter = nextChainHitNumber;
-        console.log(`localCurrentClaimHitCounter updated to: ${localCurrentClaimHitCounter}`);
-
-        // Send message to faction chat (this calls the function that also displays locally)
-        await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
-
-    } catch (error) {
-        console.error("Error saving claim to Firebase:", error);
-        alert(`Failed to claim target: ${error.message}`);
-    } finally {
-        // Re-enable the button regardless of success/failure (listener will update its state)
-        if (claimBtn) claimBtn.disabled = false;
-    }
-}
-
 function generateDayFormHTML(dayNumber) {
     return `
         <div class="availability-day-form" data-day="${dayNumber}">
@@ -1839,6 +1762,7 @@ async function sendAvailabilityReport() {
     }
 }
 
+
 function showDayForm(dayNumber) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (formsContainer) {
@@ -1846,6 +1770,7 @@ function showDayForm(dayNumber) {
         formsContainer.innerHTML = formHtml;
     }
 }
+
 
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 // Locate this function in your war_page_hub.js
@@ -1987,6 +1912,7 @@ async function setupDiscordWebhookControls() {
         }
     });
 }
+
 async function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
@@ -2083,6 +2009,8 @@ async function showFactionSummary(summaryCounts) {
         }, 0);
     }
 }
+
+
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
     if (!rosterDisplay) {
@@ -2232,149 +2160,6 @@ async function checkIfUserIsAdmin() {
         return false;
     }
 }
-
-/**
- * Fetches and displays war history, top hitters, and respect stats.
- * @param {string} apiKey The user's Torn API key.
- */
-async function displayWarHistory(apiKey) {
-    if (!enemyTargetsContainer) {
-        console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display content.");
-        return;
-    }
-
-    // Initial loading message
-    enemyTargetsContainer.innerHTML = `
-        <div class="war-history-container">
-            <h4>Loading War Data...</h4>
-        </div>`;
-
-    try {
-        // Step 1: Get the list of recent wars to find their IDs
-        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistoryList`;
-        const historyResponse = await fetch(historyUrl);
-        const historyData = await historyResponse.json();
-
-        if (!historyResponse.ok || historyData.error) {
-            throw new Error(historyData.error?.error || 'Failed to fetch war history list.');
-        }
-
-        const warsArray = historyData.rankedwars || [];
-        if (warsArray.length === 0) {
-            enemyTargetsContainer.innerHTML = `<div class="war-history-container"><h4>Recent War History</h4><p style="text-align:center; padding: 20px;">No ranked war history found.</p></div>`;
-            return;
-        }
-
-        // Step 2: Get the last 3 war IDs and fetch their detailed reports
-        const lastThreeWarIds = warsArray.slice(0, 3).map(war => war.id);
-        const reportPromises = lastThreeWarIds.map(id => {
-            const reportUrl = `https://api.torn.com/v2/faction/${id}/rankedwarreport?key=${apiKey}&comment=MyTornPA_WarReport`;
-            return fetch(reportUrl).then(res => res.json());
-        });
-        const warReports = await Promise.all(reportPromises);
-
-        // Step 3: Process data from the reports
-        let totalRespect = 0;
-        let lastWarRespect = 0;
-        const hitters = {};
-
-        warReports.forEach((reportData, index) => {
-            const report = reportData.rankedwarreport;
-            if (!report) return;
-
-            const yourFactionDetails = report.factions.find(f => f.id == globalYourFactionID);
-            if (!yourFactionDetails || !yourFactionDetails.rewards) return;
-
-            const respectGained = yourFactionDetails.rewards.respect || 0;
-            totalRespect += respectGained;
-
-            if (index === 0) { // The first report is the most recent
-                lastWarRespect = respectGained;
-            }
-
-            // Aggregate hits for each member
-            (yourFactionDetails.members || []).forEach(member => {
-                if (!hitters[member.id]) {
-                    hitters[member.id] = { name: member.name, attacks: 0 };
-                }
-                hitters[member.id].attacks += member.attacks;
-            });
-        });
-        
-        // Calculate overall W/L Ratio from the full history
-        let wins = 0;
-        let losses = 0;
-        warsArray.forEach(war => {
-            if (war.winner === globalYourFactionID) { wins++; } else { losses++; }
-        });
-
-        // Sort hitters and get the top 3
-        const sortedHitters = Object.values(hitters).sort((a, b) => b.attacks - a.attacks);
-        const topThreeHitters = sortedHitters.slice(0, 3);
-        
-        // Step 4: Build the HTML for all sections
-        const topHittersHtml = topThreeHitters.map((hitter, index) => {
-            const rank = index + 1;
-            const medals = ['🥇', '🥈', '🥉'];
-            return `
-                <li class="top-hitter-item rank-${rank}">
-                    <span class="hitter-rank">${medals[index]}</span>
-                    <span class="hitter-name">${hitter.name}</span>
-                    <span class="hitter-score">${hitter.attacks.toLocaleString()} hits</span>
-                </li>`;
-        }).join('');
-
-        const warHistoryHtml = warsArray.slice(0, 10).map(war => {
-            const yourFaction = war.factions.find(f => f.id == globalYourFactionID);
-            const opponent = war.factions.find(f => f.id != globalYourFactionID);
-            if (!yourFaction || !opponent) return '';
-
-            const result = war.winner === globalYourFactionID ? 'Win' : 'Loss';
-            const resultClass = `war-result-${result.toLowerCase()}`;
-            const timeAgo = formatRelativeTime(war.end);
-
-            return `
-                <li class="war-history-item">
-                    <span class="opponent-name">Vs. ${opponent.name}</span>
-                    <span class="war-result ${resultClass}">${result}</span>
-                    <span class="war-score">${yourFaction.score.toLocaleString()} to ${opponent.score.toLocaleString()}</span>
-                    <span class="war-time">${timeAgo}</span>
-                </li>
-            `;
-        }).join('');
-
-        enemyTargetsContainer.innerHTML = `
-            <div class="war-history-container">
-                <div class="war-history-header">
-                    <div class="respect-box">
-                        <span>Bonus Respect Gained</span>
-                        <div class="respect-line">Last War: <strong>${lastWarRespect.toLocaleString()}</strong></div>
-                        <div class="respect-line">Total (Last 3): <strong>${totalRespect.toLocaleString()}</strong></div>
-                    </div>
-                    <h4>Recent War History</h4>
-                    <div class="win-loss-ratio-box">
-                        <span>W/L (All Time)</span>
-                        <span class="ratio-value">${wins} / ${losses}</span>
-                    </div>
-                </div>
-                <div class="top-hitters-container">
-                    <h5>Top Hitters Based on Last Three Wars</h5>
-                    <ol class="top-hitters-list">${topHittersHtml}</ol>
-                </div>
-                <ul class="war-history-list">${warHistoryHtml}</ul>
-            </div>
-        `;
-    } catch (error) {
-        console.error("Error displaying war history:", error);
-        enemyTargetsContainer.innerHTML = `
-            <div class="war-history-container">
-                <h4>Error</h4>
-                <p style="color: red; text-align: center; padding: 20px;">${error.message}</p>
-            </div>
-        `;
-    }
-}
-
 
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
