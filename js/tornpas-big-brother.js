@@ -152,21 +152,32 @@ function hideLoadingMessage() {
     }
 }
 
-// --- MODIFIED PERMISSION CHECK ---
 /**
  * Checks if a user has permission to view tracker tabs.
- * Access is granted to 'Leader', 'Co-leader', and 'Council'.
+ * Access is granted to 'Leader', 'Co-leader', 'Council', or specific UIDs.
  * @param {string} userUid The Firebase UID of the user.
  * @returns {boolean} True if the user has access, false otherwise.
  */
 async function checkIfUserHasTrackerAccess(userUid) {
     if (!userUid) return false;
+    
+    // Define an array of UIDs that should have special access.
+    const allowedUids = [
+        "Rc2knWVpfXaekcuodg3mSawzE4Z2",
+        "kGy5SGu6EZPj3cf7pqUlfVmObAp1"
+    ];
+
+    // Check if the user's UID is in the hardcoded allowlist.
+    if (allowedUids.includes(userUid)) {
+        return true;
+    }
+
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(userUid).get();
         if (!userProfileDoc.exists) return false;
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
-        // Check for all three roles
+        // Check for the original three roles.
         return userPosition === 'leader' || userPosition === 'co-leader' || userPosition === 'council';
     } catch (error) {
         console.error("Error during tracker access check:", error);
