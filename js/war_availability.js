@@ -27,25 +27,14 @@ async function displayWarRoster() {
             availabilityData[doc.id] = doc.data();
         });
 
-        // Ensure we have faction member data loaded
         if (!factionApiFullData || !factionApiFullData.members) {
             rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
-        rosterDisplay.innerHTML = ''; // Clear loading message
 
-        // Initialize counters for the summary panel
-        let summaryCounts = {
-            day1: { yes: 0, partial: 0, no: 0 },
-            day2: { yes: 0, partial: 0, no: 0 },
-            day3: { yes: 0, partial: 0, no: 0 },
-            roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 },
-            atStart: 0
-        };
-
-        // Create HTML for each member in the roster
-        for (const member of allMembers) {
+        // This part is unchanged: create HTML for every member
+        const memberDisplayPromises = allMembers.map(async (member) => {
             const memberId = String(member.id);
             const memberName = member.name;
             const memberAvailability = availabilityData[memberId];
@@ -57,16 +46,9 @@ async function displayWarRoster() {
                 const summaryParts = [];
                 let hasSaidNo = false, hasSaidPartial = false, hasSaidYes = false;
 
-                // Process availability for Day 1, 2, and 3
                 for (let i = 1; i <= 3; i++) {
                     const dayData = memberAvailability[`day_${i}`];
                     if (dayData && dayData.status !== 'no-response') {
-                        summaryCounts[`day${i}`][dayData.status]++;
-                        if (i === 1) { // Only Day 1 contributes to role/start counts
-                            if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
-                            if (dayData.isAvailableForStart) summaryCounts.atStart++;
-                        }
-                        
                         let dayStatusText = `D${i}: `;
                         let dayStatusClass = '';
                         switch (dayData.status) {
@@ -86,10 +68,9 @@ async function displayWarRoster() {
                 }
             }
             
-            // Basic profile image handling
-            const profileImageUrl = memberProfileCache[memberId]?.profile_image || DEFAULT_PROFILE_ICONS[0];
+            const profileImageUrl = memberProfileCache[memberId]?.profile_image || '../../images/default_user_icon.svg';
 
-            const playerHtml = `
+            return `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
                     <img src="${profileImageUrl}" alt="${memberName}'s profile pic" class="roster-player-pic">
                     <div class="roster-player-info">
@@ -97,10 +78,50 @@ async function displayWarRoster() {
                         <span class="player-status">${statusTextHtml}</span>
                     </div>
                 </div>`;
-            rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
-        }
+        });
+        
+        // This part is unchanged: it resolves all the HTML promises
+        const allPlayerHtml = await Promise.all(memberDisplayPromises);
+        rosterDisplay.innerHTML = allPlayerHtml.join('');
 
-        // After processing all members, display the summary panel
+        // ---- NEW CODE START ----
+        // After rendering the list, we calculate and set the container's height
+        if (allMembers.length > 8) {
+            const firstRosterItem = rosterDisplay.querySelector('.roster-player');
+            if (firstRosterItem) {
+                // Get the height of one item
+                const itemHeight = firstRosterItem.offsetHeight;
+                
+                // Get the gap between items from the CSS (defaults to 8px if not found)
+                const gap = parseInt(window.getComputedStyle(rosterDisplay).gap, 10) || 8;
+                
+                // Calculate the total height for 8 items (8 items + 7 gaps)
+                const desiredHeight = (itemHeight * 8) + (gap * 7);
+                
+                // Apply the calculated height to the roster list container
+                rosterDisplay.style.height = `${desiredHeight}px`;
+            }
+        }
+        // ---- NEW CODE END ----
+
+        // This part is moved. We call it *after* the main roster is built.
+        // It's responsible for the left panel summary.
+        let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
+        allMembers.forEach(member => {
+            const memberAvailability = availabilityData[String(member.id)];
+            if (memberAvailability) {
+                for (let i = 1; i <= 3; i++) {
+                    const dayData = memberAvailability[`day_${i}`];
+                    if (dayData && dayData.status !== 'no-response') {
+                        summaryCounts[`day${i}`][dayData.status]++;
+                        if (i === 1) {
+                            if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
+                            if (dayData.isAvailableForStart) summaryCounts.atStart++;
+                        }
+                    }
+                }
+            }
+        });
         await showFactionSummary(summaryCounts);
         
     } catch (error) {
@@ -108,7 +129,6 @@ async function displayWarRoster() {
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
     }
 }
-
 
 /**
  * Populates the left panel with the summary of availability responses
