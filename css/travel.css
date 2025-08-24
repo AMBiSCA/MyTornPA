@@ -287,10 +287,10 @@ header {
 /* --- Input Section (Left Panel) --- */
 .input-section {
     padding: 20px;
-    border: 1px solid #00a8ff;
+    border: 1px solid black;
     border-radius: 8px;
     background-color: #2e2e2e;
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     flex-grow: 1;
     min-height: 0;
     display: flex;
