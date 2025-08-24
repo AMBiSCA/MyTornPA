@@ -1,237 +1,252 @@
-// mysite/js/broker.js (Final Simplified Version)
+/* mysite/css/broker.css */
 
-document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const itemTableBody = document.getElementById('item-table-body');
-    const currentItemsSpan = document.getElementById('current-items');
-    const brokerApiKeyErrorDiv = document.getElementById('brokerApiKeyError');
-    const searchInput = document.getElementById('item-search');
-    const searchResultsDiv = document.getElementById('search-results');
-    const addItemBtn = document.getElementById('add-item-btn');
+.peeper-tool-container.broker-page {
+    max-width: 1200px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    background-color: #222;
+    padding: 30px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff;
+    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    text-align: center;
+    width: 95%;
+}
 
-    // Global variables
-    let allItems = {};
-    let portfolio = {}; // Will store { itemId: { quantity: X, buyPrice: Y } }
-    let watchlist = [];
-    let tornApiKey = null;
-    let selectedItemId = null;
-    const PORTFOLIO_STORAGE_KEY = 'tornBrokerPortfolio';
+.script-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #00a8ff;
+    -webkit-text-stroke: 1px black;
+    text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
+    margin-bottom: 30px;
+}
 
-    // --- Data Persistence ---
-    function loadPortfolio() {
-        const savedData = JSON.parse(localStorage.getItem(PORTFOLIO_STORAGE_KEY));
-        if (savedData) {
-            portfolio = savedData.portfolio || {};
-            watchlist = savedData.watchlist || [];
-        }
+.filters-panel {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.filters-panel .filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.filters-panel label {
+    font-size: 1rem;
+    color: #eee;
+    font-weight: bold;
+}
+
+.filters-panel select, .filters-panel input {
+    height: 38px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    border: 1.5px solid #007acc;
+    background-color: #121212;
+    color: #eee;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.filters-panel button {
+    padding: 8px 20px;
+    height: 38px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007acc;
+    border: 1px solid #00a8ff;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.filters-panel button:hover {
+    background-color: #00a8ff;
+    transform: translateY(-2px);
+}
+
+.search-results-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #1c1c1c;
+    border: 1.5px solid #007acc;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.search-result-item {
+    padding: 10px 15px;
+    color: #eee;
+    cursor: pointer;
+    text-align: left;
+}
+
+.search-result-item:hover {
+    background-color: #007acc;
+    color: #fff;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-height: 410px; 
+    overflow-y: auto;
+}
+
+.table-wrapper::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background-color: #007acc;
+    border-radius: 10px;
+    border: 3px solid #2a2a2a;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1c1c1c;
+    min-width: 950px; 
+}
+
+.item-table thead th {
+    background-color: #007acc;
+    color: black;
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #005f99;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 0.95rem;
+}
+
+.item-table tbody tr:nth-child(even) { background-color: #2a2a2a; }
+.item-table tbody tr:nth-child(odd) { background-color: #333; }
+
+.item-table tbody td {
+    padding: 10px 15px;
+    border: 1px solid #444;
+    color: #eee;
+    font-size: 0.9rem;
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 600;
+}
+
+.item-table td:last-child {
+    text-align: center;
+}
+
+.item-table tbody tr:hover { background-color: #404040; }
+
+.item-table .action-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #cc0000;
+    border: 1px solid #ff4d4d;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.1s;
+    cursor: pointer;
+}
+
+.item-table .action-btn:hover {
+    background-color: #ff4d4d;
+    transform: scale(1.05);
+}
+
+.item-table .item-link {
+    color: #00a8ff;
+    text-decoration: none;
+}
+
+.item-table .item-link:hover {
+    text-decoration: underline;
+}
+
+/* --- STYLES FOR PORTFOLIO TRACKER (CORRECTED) --- */
+.item-table input[type="text"] {
+    width: 100%;
+    max-width: 130px; /* Give it a max width */
+    height: 36px; /* Set a consistent height */
+    padding: 6px 10px;
+    background-color: #121212;
+    border: 1.5px solid #007acc;
+    color: #eee;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: left; /* Align text to the left */
+    box-sizing: border-box; /* IMPORTANT for consistent sizing */
+}
+
+/* Hide the number input arrows (though type is text, this is good practice) */
+.item-table input[type=number] {
+  -moz-appearance: textfield;
+}
+.item-table input::-webkit-outer-spin-button,
+.item-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Colors for Profit/Loss column */
+.profit {
+    color: #4CAF50 !important; /* Green */
+}
+
+.loss {
+    color: #F44336 !important; /* Red */
+}
+
+.neutral {
+    color: #9E9E9E !important; /* Grey */
+}
+/* --- END PORTFOLIO STYLES --- */
+
+
+@media (max-width: 768px) {
+    .peeper-tool-container.broker-page {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding: 20px;
     }
 
-    function savePortfolio() {
-        const dataToSave = {
-            watchlist: watchlist,
-            portfolio: portfolio
-        };
-        localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(dataToSave));
+    .filters-panel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
     }
-
-    // --- Firebase Authentication ---
-    if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-        auth.onAuthStateChanged(async function(user) {
-            if (user) {
-                try {
-                    const userDoc = await db.collection('userProfiles').doc(user.uid).get();
-                    if (userDoc.exists) {
-                        tornApiKey = userDoc.data().tornApiKey;
-                        if (tornApiKey) {
-                            brokerApiKeyErrorDiv.textContent = '';
-                            await fetchAllItems(tornApiKey);
-                            loadPortfolio(); // Load user data after getting API key
-                            refreshWatchlistDisplay(); // Display saved data
-                        } else {
-                            handleApiError('Your Torn API Key is not set in your profile.');
-                        }
-                    }
-                } catch (error) {
-                    handleApiError('Error loading your profile.');
-                }
-            } else {
-                handleApiError('Please sign in to use the Broker\'s Hub.');
-            }
-        });
-    }
-
-    function handleApiError(message) {
-        if (brokerApiKeyErrorDiv) brokerApiKeyErrorDiv.textContent = message;
-        itemTableBody.innerHTML = `<tr><td colspan="7" class="error-message">${message}</td></tr>`;
-    }
-
-    // --- Data Fetching ---
-    async function fetchAllItems(apiKey) {
-        try {
-            const response = await fetch(`https://api.torn.com/torn/?selections=items&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.error);
-            allItems = data.items;
-        } catch (error) {
-            handleApiError(`Could not fetch item data: ${error.message}`);
-        }
-    }
-
-    // --- Core Calculation & Rendering ---
-    function updateRowCalculations(row) {
-        const itemId = row.dataset.itemId;
-        const marketPrice = parseFloat(row.dataset.marketPrice) || 0;
-        
-        const quantityInput = row.querySelector('.quantity-input');
-        const buyPriceInput = row.querySelector('.buy-price-input');
-        const currentValueCell = row.querySelector('.current-value-cell');
-        const profitLossCell = row.querySelector('.profit-loss-cell');
-
-        const quantity = parseInt(quantityInput.value) || 0;
-        const buyPrice = parseInt(buyPriceInput.value) || 0;
-
-        // Save the new values whenever they are changed
-        if (portfolio[itemId]) {
-            portfolio[itemId].quantity = quantity;
-            portfolio[itemId].buyPrice = buyPrice;
-            savePortfolio();
-        }
-
-        const currentValue = quantity * marketPrice;
-        const totalCost = quantity * buyPrice;
-        const profitLoss = currentValue - totalCost;
-
-        currentValueCell.textContent = '$' + currentValue.toLocaleString();
-        profitLossCell.textContent = '$' + profitLoss.toLocaleString();
-
-        // Apply profit/loss coloring
-        profitLossCell.classList.remove('profit', 'loss', 'neutral');
-        if (profitLoss > 0) {
-            profitLossCell.classList.add('profit');
-        } else if (profitLoss < 0) {
-            profitLossCell.classList.add('loss');
-        } else {
-            profitLossCell.classList.add('neutral');
-        }
-    }
-
-    async function refreshWatchlistDisplay() {
-        if (watchlist.length === 0) {
-            itemTableBody.innerHTML = `<tr><td colspan="7">Add an item to your portfolio to begin...</td></tr>`;
-            currentItemsSpan.textContent = '0';
-            return;
-        }
-
-        itemTableBody.innerHTML = `<tr><td colspan="7">Fetching market data for ${watchlist.length} item(s)...</td></tr>`;
-        currentItemsSpan.textContent = watchlist.length;
-
-        const promises = watchlist.map(itemId =>
-            fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${tornApiKey}`).then(res => res.json())
-        );
-
-        const results = await Promise.all(promises);
-        itemTableBody.innerHTML = ''; // Clear table for new rows
-
-        for (let i = 0; i < watchlist.length; i++) {
-            const itemId = watchlist[i];
-            const itemInfo = allItems[itemId];
-            const marketData = results[i];
-            const itemPortfolioData = portfolio[itemId] || { quantity: 0, buyPrice: 0 };
-
-            const liveMarketPrice = marketData?.itemmarket?.item?.average_price || 0;
-
-            const row = document.createElement('tr');
-            row.dataset.itemId = itemId;
-            row.dataset.marketPrice = liveMarketPrice;
-
-            row.innerHTML = `
-                <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
-                <td>$${liveMarketPrice.toLocaleString()}</td>
-                <td><input type="number" class="quantity-input" value="${itemPortfolioData.quantity}" placeholder="0"></td>
-                <td><input type="number" class="buy-price-input" value="${itemPortfolioData.buyPrice}" placeholder="0"></td>
-                <td class="current-value-cell">$0</td>
-                <td class="profit-loss-cell">$0</td>
-                <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
-            `;
-
-            itemTableBody.appendChild(row);
-            
-            // Add event listeners for live updates
-            row.querySelector('.quantity-input').addEventListener('input', () => updateRowCalculations(row));
-            row.querySelector('.buy-price-input').addEventListener('input', () => updateRowCalculations(row));
-            
-            // Perform initial calculation for the row
-            updateRowCalculations(row);
-        }
-    }
-
-    // --- Event Listeners ---
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase();
-        if (query.length < 3) {
-            searchResultsDiv.style.display = 'none';
-            return;
-        }
-        const matches = Object.entries(allItems)
-            .filter(([id, item]) => item.name.toLowerCase().includes(query))
-            .slice(0, 10);
-        displaySearchResults(matches);
-    });
-
-    function displaySearchResults(matches) {
-        if (matches.length === 0) {
-            searchResultsDiv.style.display = 'none';
-            return;
-        }
-        searchResultsDiv.innerHTML = '';
-        matches.forEach(([id, item]) => {
-            const resultItem = document.createElement('div');
-            resultItem.textContent = item.name;
-            resultItem.classList.add('search-result-item');
-            resultItem.addEventListener('click', () => {
-                searchInput.value = item.name;
-                selectedItemId = id;
-                searchResultsDiv.style.display = 'none';
-            });
-            searchResultsDiv.appendChild(resultItem);
-        });
-        searchResultsDiv.style.display = 'block';
-    }
-
-    addItemBtn.addEventListener('click', () => {
-        if (selectedItemId && !watchlist.includes(selectedItemId)) {
-            watchlist.push(selectedItemId);
-            portfolio[selectedItemId] = { quantity: 0, buyPrice: 0 };
-            savePortfolio();
-            refreshWatchlistDisplay();
-        }
-        searchInput.value = '';
-        selectedItemId = null;
-    });
-
-    itemTableBody.addEventListener('click', (e) => {
-        if (e.target && e.target.classList.contains('remove-btn')) {
-            const itemIdToRemove = e.target.dataset.id;
-            watchlist = watchlist.filter(id => id !== itemIdToRemove);
-            delete portfolio[itemIdToRemove];
-            savePortfolio();
-            refreshWatchlistDisplay();
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.filter-group')) {
-            searchResultsDiv.style.display = 'none';
-        }
-    });
-});
-
-
-// --- Orientation Handler (Unchanged) ---
-let portraitBlocker = null;
-let landscapeBlocker = null;
-function createOverlays(){/*... function content unchanged ...*/}
-function handleOrientation(){/*... function content unchanged ...*/}
-document.addEventListener('DOMContentLoaded', handleOrientation);
-window.addEventListener('resize', handleOrientation);
-window.addEventListener('orientationchange', handleOrientation);
+}
