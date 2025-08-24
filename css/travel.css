@@ -287,7 +287,7 @@ header {
 /* --- Input Section (Left Panel) --- */
 .input-section {
     padding: 20px;
-    border: 1px solid black;
+    border: 2px solid black;
     border-radius: 8px;
     background-color: #2e2e2e;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
