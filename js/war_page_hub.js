@@ -3708,6 +3708,110 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
+async function populateRecentlyMetTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Recently Met tab.");
+        return;
+    }
+
+    // Set a simple loading message without the extra title
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
+
+    try {
+        // Step 1: Fetch the last 5 wars to get their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
+
+        if (historyData.error) throw new Error(historyData.error.error);
+
+        const wars = historyData.rankedwars || [];
+        if (wars.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
+            return;
+        }
+
+        // Step 2: Fetch detailed reports for those wars
+        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
+        const reportPromises = wars.map(war => 
+            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
+        );
+        const warReports = await Promise.all(reportPromises);
+
+        // Step 3: Aggregate and deduplicate all opponents
+        const opponentsMap = new Map();
+        warReports.forEach(reportData => {
+            const report = reportData.rankedwarreport;
+            if (!report || !report.factions) return;
+
+            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
+            if (opponentFaction && opponentFaction.members) {
+                opponentFaction.members.forEach(member => {
+                    if (!opponentsMap.has(member.id)) {
+                        opponentsMap.set(member.id, { id: member.id, name: member.name });
+                    }
+                });
+            }
+        });
+        
+        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
+        if (uniqueOpponentIds.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
+            return;
+        }
+
+        // Step 4: Check registration status in chunks
+        const registeredUserIds = new Set();
+        const chunkSize = 30;
+        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
+            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
+            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
+            querySnapshot.forEach(doc => {
+                registeredUserIds.add(doc.data().tornProfileId);
+            });
+        }
+
+        // Step 5: Build the final HTML grid
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
+
+        let cardsHtml = '';
+        for (const opponent of opponentsMap.values()) {
+            const isRegistered = registeredUserIds.has(String(opponent.id));
+            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
+
+            let messageButton;
+            if (isRegistered) {
+                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
+            } else {
+                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
+                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
+            }
+
+            cardsHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        ${messageButton}
+                    </div>
+                </div>
+            `;
+        }
+
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.appendChild(membersListContainer);
+
+    } catch (error) {
+        console.error("Error populating Recently Met tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
+    }
+}
 
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
@@ -3805,11 +3909,141 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     }
 }
-      
- document.addEventListener('DOMContentLoaded', () => {
 
+async function displayQuickFFTargets(userApiKey, playerId) {
+    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+    if (!quickFFTargetsDisplay) {
+        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
+        return;
+    }
+
+    if (quickFFTargetsDisplay.innerHTML === '') {
+        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
+    }
+
+    if (!userApiKey || !playerId) {
+        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
+        }
+        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
+        return;
+    }
+
+    try {
+        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
+        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
+        
+        const functionUrl = `/.netlify/functions/get-recommended-targets`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
+        });
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
+            console.error("Error fetching Quick FF Targets:", errorMessage);
+            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
+            }
+            return;
+        }
+
+        if (!data.targets || data.targets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        let availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
+
+        if (availableTargets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        // --- CHANGE IS HERE ---
+        const MAX_TARGETS_TO_DISPLAY = 3; // Changed from 2 to 3
+        const MAX_SHUFFLE_ATTEMPTS = 10; 
+
+        let finalSelectedTargets = [];
+        let currentDisplayedTargetIDs = [];
+        let attempt = 0;
+
+        do {
+            for (let i = availableTargets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]];
+            }
+
+            finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
+            currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
+            attempt++;
+
+        } while (availableTargets.length >= MAX_TARGETS_TO_DISPLAY &&
+                 areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs) &&
+                 consecutiveSameTargetsCount >= 2 &&
+                 attempt < MAX_SHUFFLE_ATTEMPTS);
+
+        if (areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs)) {
+            consecutiveSameTargetsCount++;
+            if (consecutiveSameTargetsCount >= 3) {
+                console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
+            }
+        } else {
+            consecutiveSameTargetsCount = 1;
+        }
+        lastDisplayedTargetIDs = currentDisplayedTargetIDs;
+
+        const newTargetsHtmlContainer = document.createElement('div');
+        let newTargetsHtml = '';
+        let currentEmojisUsedForBatch = new Set();
+        let emojiCycleIndex = lastEmojiIndex;
+
+        for (let i = 0; i < finalSelectedTargets.length; i++) {
+            const target = finalSelectedTargets[i];
+            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
+            const targetName = target.playerName || `Target ${i + 1}`;
+
+            let selectedEmoji = '';
+            do {
+                emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
+                selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
+            } while (currentEmojisUsedForBatch.has(selectedEmoji));
+
+            currentEmojisUsedForBatch.add(selectedEmoji);
+            lastEmojiIndex = emojiCycleIndex;
+
+            newTargetsHtml += `
+                <a href="${attackUrl}" target="_blank"
+                   class="quick-ff-target-btn"
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
+                    <span class="emoji-wrapper">${selectedEmoji}</span> ${targetName} <span class="emoji-wrapper">${selectedEmoji}</span>
+                </a>
+            `;
+        }
+
+        quickFFTargetsDisplay.innerHTML = newTargetsHtml;
+
+    } catch (error) {
+        console.error("Failed to fetch or display Quick FF Targets:", error);
+        if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+             quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+        }
+    }
+}
+          
+		  document.addEventListener('DOMContentLoaded', () => {
+    // --- START OF DOMCONTENTLOADED ---
+
+    // --- NEW: This block reads the URL to see if a specific tab was requested ---
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
+    // --- END NEW ---
 
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -3879,6 +4113,7 @@ tabButtons.forEach(button => {
         }
     });
 });
+
 
   // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
 const availabilityTab = document.getElementById('war-availability-tab');
@@ -4003,7 +4238,7 @@ if (availabilityTab) {
         }
     });
 }
-
+    // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
     // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
     if (requestedTabName) {
@@ -4411,6 +4646,83 @@ if (availabilityTab) {
     }
 
 }); // --- END OF DOMCONTENTLOADED ---
+
+/**
+ * ==================================================================
+ * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
+ * ==================================================================
+ */
+
+// Helper function to parse a stat string into a number.
+function parseStatValue(statString) {
+    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
+        return 0;
+    }
+    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
+    let multiplier = 1;
+    if (sanitizedString.endsWith('k')) {
+        multiplier = 1000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('m')) {
+        multiplier = 1000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('b')) {
+        multiplier = 1000000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    }
+    const number = parseFloat(sanitizedString);
+    return isNaN(number) ? 0 : number * multiplier;
+}
+
+/**
+ * Applies CSS classes to table cells based on battle stat tiers for color coding.
+ * This function needs to be called after the table is populated.
+ */
+function applyStatColorCoding() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) {
+        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
+        return;
+    }
+
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+
+    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
+
+    statCells.forEach(cell => {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
+            cell.classList.remove(`stat-tier-${i}`);
+        }
+        cell.classList.remove('stat-cell');
+
+        // Now, determine and add the correct new class
+        const value = parseStatValue(cell.textContent);
+        let tierClass = '';
+
+        // New 14-tier logic
+        if (value >= 10000000000)      { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+
+        if (tierClass) {
+            cell.classList.add(tierClass);
+            cell.classList.add('stat-cell'); // General class for stat cells
+        }
+    });
+}
 
 function blockLandscape() {
   const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
