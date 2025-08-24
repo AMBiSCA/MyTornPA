@@ -528,26 +528,34 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.display = 'none';
     });
     
-    itemSearchInput.addEventListener('input', async () => {
-        const searchQuery = itemSearchInput.value.trim();
-        const apiKey = currentTornApiKey;
-        if (searchQuery === '') {
-            const selectedCountryId = destinationSelect.value;
-            if (selectedCountryId && apiKey) {
-                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-                await displayItemsForCountry(selectedCountryId, apiKey);
-            } else {
-                selectedCountryNameSpan.textContent = 'Selected Country';
-                itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
-            }
-            return;
-        }
-        if (!apiKey) {
-            errorDisplay.textContent = 'No Torn API Key available.';
-            return;
-        }
+   itemSearchInput.addEventListener('input', async () => {
+    const searchQuery = itemSearchInput.value.trim();
+    const apiKey = currentTornApiKey;
+
+    // First, check if there is an API key. If not, stop.
+    if (!apiKey) {
+        errorDisplay.textContent = 'No Torn API Key available.';
+        return;
+    }
+
+    // If the search query has text, run the search function.
+    if (searchQuery) {
         await searchItemsAndDisplayResults(searchQuery, apiKey);
-    });
+    } 
+    // If the search query is empty (e.g., the user backspaced everything),
+    // revert to showing the items for the selected country.
+    else {
+        const selectedCountryId = destinationSelect.value;
+        if (selectedCountryId) {
+            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+            await displayItemsForCountry(selectedCountryId, apiKey);
+        } else {
+            // If no country is selected, show the default message.
+            selectedCountryNameSpan.textContent = 'Selected Country';
+            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
+        }
+    }
+});
 
     destinationSelect.addEventListener('change', async () => {
         const selectedCountryId = destinationSelect.value;
