@@ -156,6 +156,14 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
+function formatBattleStats(num) {
+    if (isNaN(num) || num === 0) return '0';
+    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num.toLocaleString();
+}
+
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
     // Safety check to make sure the button/label element was passed correctly
     if (!labelElement) {
@@ -223,6 +231,129 @@ async function handleImageUpload(fileInput, displayElement, labelElement, type) 
             labelElement.innerHTML = originalLabelHTML;
         }, 2000);
     }
+}
+
+async function sendClaimChatMessage(claimerName, targetName, chainNumber, customMessage = null) {
+    if (!chatMessagesCollection || !auth.currentUser) {
+        console.warn("Cannot send claim/unclaim message: Firebase collection or user not available.");
+        return;
+    }
+
+    let messageText;
+    if (customMessage) {
+        messageText = customMessage; // Use the provided custom message
+    } else {
+        // Default message for a 'claim' action
+        messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
+    }
+    
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: "Chain Alert:", // --- CHANGED SENDER PREFIX HERE ---
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'claim_notification'
+    };
+
+    try {
+        await chatMessagesCollection.add(messageObj);
+        console.log("Claim/Unclaim message sent to Firebase:", messageObj);
+
+        // Display locally immediately without waiting for Firebase listener
+        displayChatMessage(messageObj); 
+
+    } catch (error) {
+        console.error("Error sending claim/unclaim message to Firebase:", error);
+    }
+}
+
+function autoUnclaimHitTargets() {
+    console.log("Running autoUnclaimHitTargets check (chain progression-based)...");
+    if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
+        console.log("No active claims to check for auto-unclaim.");
+        return;
+    }
+    if (!enemyDataGlobal || !enemyDataGlobal.members) {
+        console.warn("Enemy data not available for auto-unclaim check.");
+        return;
+    }
+    if (!auth.currentUser) {
+        console.warn("User not logged in. Cannot auto-unclaim targets.");
+        return;
+    }
+
+    const membersInCurrentEnemyData = Object.values(enemyDataGlobal.members);
+    const currentEnemyMemberIds = new Set(membersInCurrentEnemyData.map(m => String(m.id)));
+
+    for (const memberId in globalActiveClaims) {
+        if (globalActiveClaims.hasOwnProperty(memberId)) {
+            const activeClaim = globalActiveClaims[memberId]; // The current claim from Firebase
+
+            // --- Condition 1: Auto-unclaim if target has disappeared from enemy data ---
+            if (!currentEnemyMemberIds.has(memberId)) {
+                console.warn(`Claimed target ${memberId} not found in current enemy data (might have disappeared). Auto-unclaiming.`);
+                unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
+                continue; // Move to the next claim
+            }
+
+            // --- Condition 2: Auto-unclaim if the chain has progressed past this claimed hit number ---
+            // This is the NEW logic you requested.
+            // Check if localCurrentClaimHitCounter (which represents the faction's current chain status)
+            // is greater than or equal to the hit number this target was claimed for.
+            if (localCurrentClaimHitCounter >= activeClaim.chainHitNumber && activeClaim.chainHitNumber > 0) {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Auto-unclaiming ${memberName} (${memberId}). Chain (${localCurrentClaimHitCounter}) has surpassed claimed hit (${activeClaim.chainHitNumber}).`);
+                unclaimTarget(memberId); // Call the unclaim function for this target
+            } else {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Claimed target ${memberName} (${memberId}) is still active. Chain: ${localCurrentClaimHitCounter}, Claimed for: ${activeClaim.chainHitNumber}.`);
+            }
+        }
+    }
+}
+
+function displayChatMessage(message) {
+    // This is the ID from your new chat system's HTML for the war chat
+    const displayArea = document.getElementById('war-chat-display-area'); 
+    
+    if (!displayArea) {
+        console.error("Fatal Error: Could not find the war chat display area with ID 'war-chat-display-area'.");
+        return;
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message', 'system-notification'); // Add classes for styling
+
+    // Format the message content
+    // Note: The 'sender' is "Chain Alert:" from your other function
+    messageDiv.innerHTML = `<strong>${message.sender}</strong> ${message.text}`;
+    
+    // Add the new message to the chat display
+    displayArea.appendChild(messageDiv);
+
+    // Automatically scroll to the bottom to see the latest message
+    displayArea.scrollTop = displayArea.scrollHeight;
+}
+
+function areTargetSetsIdentical(set1, set2) {
+    if (set1.length !== set2.length) {
+        return false;
+    }
+    if (set1.length === 0) { // Both empty sets are identical
+        return true;
+    }
+    const sortedSet1 = [...set1].sort();
+    const sortedSet2 = [...set2].sort();
+    for (let i = 0; i < sortedSet1.length; i++) {
+        if (sortedSet1[i] !== sortedSet2[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function createStatusBoxHtml(label, id) {
