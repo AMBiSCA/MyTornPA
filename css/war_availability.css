@@ -1,14 +1,25 @@
-
+/* ---- START: Layout Fix ---- */
 body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* This makes the body at least as tall as the browser window */
+    min-height: 100vh;
 }
 
 .main-content-wrapper {
-    flex-grow: 1; /* This tells the main content to grow and fill any empty space */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
+#warAvailabilityContainer.styled-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+/* ---- END: Layout Fix ---- */
+
+
+/* General Page Layout */
 .styled-container {
     background-color: #1e1e1e;
     color: #f0f0f0;
@@ -36,6 +47,7 @@ body {
     grid-template-columns: 1fr 1.5fr; /* Left column is smaller than the right */
     gap: 20px;
     padding: 10px;
+    flex-grow: 1; /* Makes the grid expand to fill the container */
 }
 
 /* Panel Styling (for both left and right columns) */
