@@ -2656,7 +2656,7 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
-
+/*
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
     // These are the HTML elements we created earlier
@@ -2710,7 +2710,7 @@ function setupFactionHitsListener(db, factionId) {
         abroadHitsElement.textContent = "Error";
     });
 }
-
+*/
 
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
