@@ -19,19 +19,7 @@ let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for l
 let unsubscribeFromChat = null;
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
-let lastEmojiIndex = -1; // To keep track of the last emoji used
-let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
-let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
-let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let scrollUpIndicatorEl = null;
-let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
-let claimedTargets = new Set(); // This will remember the claimed target IDs
-let userEnergyDisplay = null;
-let onlineFriendlyMembersDisplay = null;
-let onlineEnemyMembersDisplay = null;
-let globalActiveClaims = {};
-let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
-let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 let orientationOverlay = null;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -71,16 +59,7 @@ const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
 const FETCH_DELAY_MS = 500;
-const chatTabsContainer = document.querySelector('.chat-tabs-container');
-const chatTabButtons = document.querySelectorAll('.chat-tab');
-const chatInputArea = document.querySelector('.chat-input-area');
-const warChatDisplayArea = document.getElementById('warChatDisplayArea');
-const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
-const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea');
-const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
-const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
 const settingsDisplayArea = document.getElementById('settingsDisplayArea');
-const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
 const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
 const factionOneNameEl = document.getElementById('factionOneName');
