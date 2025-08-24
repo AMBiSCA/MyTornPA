@@ -7,8 +7,8 @@
     background-color: #222;
     padding: 30px 40px;
     border-radius: 12px;
-    border: 2px solid #00a8ff;
-    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    border: 2px solid black;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     text-align: center;
     width: 95%;
 }
