@@ -277,7 +277,7 @@ body::before {
    6. RESPONSIVE MEDIA QUERIES
    ========================================================================== */
 @media (max-width: 768px) {
-    .companion-container { padding: 10px 15px; width: 95%; margin-top: 115px; }
+    .companion-container { padding: 10px 15px; width: 90%; margin-top: 125px; }
     .image-glow, .image-glow-flipped { display: none !important; }
     .modal-content { width: 95% !important; max-width: 100% !important; padding: 15px !important; max-height: calc(100vh - 100px) !important; margin-top: 93px !important; }
     .modal-title { font-size: 1.5rem; }
