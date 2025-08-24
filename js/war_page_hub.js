@@ -1143,6 +1143,37 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
 }
 
+async function unclaimTarget(memberId) {
+    if (!auth.currentUser) {
+        alert("You must be logged in to unclaim targets.");
+        return;
+    }
+
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    if (claimBtn) claimBtn.disabled = true;
+
+    // Get the member's name from the data-member-name attribute on the row
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+    const memberName = targetRow ? targetRow.dataset.memberName : 'Unknown Target';
+
+    try {
+        // Delete the claim from Firebase
+        await db.collection('warClaims').doc(memberId).delete();
+        console.log(`Claim for ${memberId} deleted from Firebase.`);
+
+        // --- UPDATED: Send an "unclaim" message with new wording ---
+        const unclaimMessageText = `📢 ${currentTornUserName} has unclaimed his hit against ${memberName}.`;
+        await sendClaimChatMessage(currentTornUserName, memberName, null, unclaimMessageText); // Pass null for chainNumber, custom message
+        // --- END UPDATED ---
+
+    } catch (error) {
+        console.error("Error deleting claim from Firebase:", error);
+        alert(`Failed to unclaim target: ${error.message}`);
+    } finally {
+        if (claimBtn) claimBtn.disabled = false;
+    }
+}
+
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
@@ -1450,6 +1481,50 @@ function setupProgressText() {
 
     createTextElement(friendlyContainer, 'friendly-chain-text');
     createTextElement(enemyContainer, 'enemy-chain-text');
+}
+
+async function claimTarget(memberId, memberName) {
+    if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
+        alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
+        console.error("Claim failed: Missing auth, Torn username, API key, or Faction ID.");
+        return;
+    }
+
+    // Immediately disable the button to prevent double-clicks
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    if (claimBtn) claimBtn.disabled = true;
+
+    // --- CRITICAL CHANGE HERE: Use and increment the localCurrentClaimHitCounter directly. ---
+    // We are trusting that localCurrentClaimHitCounter is correctly initialized by initializeAndLoadData
+    // and kept up-to-date by setupWarClaimsListener.
+    const nextChainHitNumber = localCurrentClaimHitCounter + 1;
+    // --- END CRITICAL CHANGE ---
+
+    try {
+        // Save the claim to Firebase
+        await db.collection('warClaims').doc(memberId).set({
+            claimedByUserId: auth.currentUser.uid,
+            claimedByUserName: currentTornUserName,
+            chainHitNumber: nextChainHitNumber, // Use our local, incrementing counter
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Claim for ${memberName} (${memberId}) saved to Firebase. Chain hit: ${nextChainHitNumber}`);
+
+        // Update the local counter *after* a successful save
+        // This makes sure our local state for subsequent claims reflects this new claim
+        localCurrentClaimHitCounter = nextChainHitNumber;
+        console.log(`localCurrentClaimHitCounter updated to: ${localCurrentClaimHitCounter}`);
+
+        // Send message to faction chat (this calls the function that also displays locally)
+        await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
+
+    } catch (error) {
+        console.error("Error saving claim to Firebase:", error);
+        alert(`Failed to claim target: ${error.message}`);
+    } finally {
+        // Re-enable the button regardless of success/failure (listener will update its state)
+        if (claimBtn) claimBtn.disabled = false;
+    }
 }
 
 function generateDayFormHTML(dayNumber) {
@@ -2008,7 +2083,6 @@ async function showFactionSummary(summaryCounts) {
         }, 0);
     }
 }
-
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
     if (!rosterDisplay) {
@@ -2070,13 +2144,25 @@ async function displayWarRoster() {
 
             const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
             let profileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
-            
-            // --- THIS IS THE FIX ---
-            // It now ONLY checks the cache and does NOT query the database in a loop.
-            if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
-                profileImageUrl = memberProfileCache[memberId].profile_image;
+            try {
+                if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+                    profileImageUrl = memberProfileCache[memberId].profile_image;
+                } else {
+                    const userDoc = await db.collection('users').doc(String(memberId)).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        if (userData.profile_image && userData.profile_image.trim() !== '') {
+                            profileImageUrl = userData.profile_image;
+                        }
+                        memberProfileCache[memberId] = { profile_image: profileImageUrl, name: userData.name || memberName };
+                    } else {
+                        console.log(`User document not found in 'users' collection for member ${memberId}. Using default profile image.`);
+                    }
+                }
+            } catch (err) {
+                console.warn(`Error fetching profile picture from Firebase for member ${memberId}:`, err);
+                profileImageUrl = '../../images/default_user_icon.svg';
             }
-            // --- END OF FIX ---
 
             return `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
@@ -2147,6 +2233,332 @@ async function checkIfUserIsAdmin() {
     }
 }
 
+/**
+ * Fetches and displays war history, top hitters, and respect stats.
+ * @param {string} apiKey The user's Torn API key.
+ */
+async function displayWarHistory(apiKey) {
+    if (!enemyTargetsContainer) {
+        console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display content.");
+        return;
+    }
+
+    // Initial loading message
+    enemyTargetsContainer.innerHTML = `
+        <div class="war-history-container">
+            <h4>Loading War Data...</h4>
+        </div>`;
+
+    try {
+        // Step 1: Get the list of recent wars to find their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistoryList`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
+
+        if (!historyResponse.ok || historyData.error) {
+            throw new Error(historyData.error?.error || 'Failed to fetch war history list.');
+        }
+
+        const warsArray = historyData.rankedwars || [];
+        if (warsArray.length === 0) {
+            enemyTargetsContainer.innerHTML = `<div class="war-history-container"><h4>Recent War History</h4><p style="text-align:center; padding: 20px;">No ranked war history found.</p></div>`;
+            return;
+        }
+
+        // Step 2: Get the last 3 war IDs and fetch their detailed reports
+        const lastThreeWarIds = warsArray.slice(0, 3).map(war => war.id);
+        const reportPromises = lastThreeWarIds.map(id => {
+            const reportUrl = `https://api.torn.com/v2/faction/${id}/rankedwarreport?key=${apiKey}&comment=MyTornPA_WarReport`;
+            return fetch(reportUrl).then(res => res.json());
+        });
+        const warReports = await Promise.all(reportPromises);
+
+        // Step 3: Process data from the reports
+        let totalRespect = 0;
+        let lastWarRespect = 0;
+        const hitters = {};
+
+        warReports.forEach((reportData, index) => {
+            const report = reportData.rankedwarreport;
+            if (!report) return;
+
+            const yourFactionDetails = report.factions.find(f => f.id == globalYourFactionID);
+            if (!yourFactionDetails || !yourFactionDetails.rewards) return;
+
+            const respectGained = yourFactionDetails.rewards.respect || 0;
+            totalRespect += respectGained;
+
+            if (index === 0) { // The first report is the most recent
+                lastWarRespect = respectGained;
+            }
+
+            // Aggregate hits for each member
+            (yourFactionDetails.members || []).forEach(member => {
+                if (!hitters[member.id]) {
+                    hitters[member.id] = { name: member.name, attacks: 0 };
+                }
+                hitters[member.id].attacks += member.attacks;
+            });
+        });
+        
+        // Calculate overall W/L Ratio from the full history
+        let wins = 0;
+        let losses = 0;
+        warsArray.forEach(war => {
+            if (war.winner === globalYourFactionID) { wins++; } else { losses++; }
+        });
+
+        // Sort hitters and get the top 3
+        const sortedHitters = Object.values(hitters).sort((a, b) => b.attacks - a.attacks);
+        const topThreeHitters = sortedHitters.slice(0, 3);
+        
+        // Step 4: Build the HTML for all sections
+        const topHittersHtml = topThreeHitters.map((hitter, index) => {
+            const rank = index + 1;
+            const medals = ['🥇', '🥈', '🥉'];
+            return `
+                <li class="top-hitter-item rank-${rank}">
+                    <span class="hitter-rank">${medals[index]}</span>
+                    <span class="hitter-name">${hitter.name}</span>
+                    <span class="hitter-score">${hitter.attacks.toLocaleString()} hits</span>
+                </li>`;
+        }).join('');
+
+        const warHistoryHtml = warsArray.slice(0, 10).map(war => {
+            const yourFaction = war.factions.find(f => f.id == globalYourFactionID);
+            const opponent = war.factions.find(f => f.id != globalYourFactionID);
+            if (!yourFaction || !opponent) return '';
+
+            const result = war.winner === globalYourFactionID ? 'Win' : 'Loss';
+            const resultClass = `war-result-${result.toLowerCase()}`;
+            const timeAgo = formatRelativeTime(war.end);
+
+            return `
+                <li class="war-history-item">
+                    <span class="opponent-name">Vs. ${opponent.name}</span>
+                    <span class="war-result ${resultClass}">${result}</span>
+                    <span class="war-score">${yourFaction.score.toLocaleString()} to ${opponent.score.toLocaleString()}</span>
+                    <span class="war-time">${timeAgo}</span>
+                </li>
+            `;
+        }).join('');
+
+        enemyTargetsContainer.innerHTML = `
+            <div class="war-history-container">
+                <div class="war-history-header">
+                    <div class="respect-box">
+                        <span>Bonus Respect Gained</span>
+                        <div class="respect-line">Last War: <strong>${lastWarRespect.toLocaleString()}</strong></div>
+                        <div class="respect-line">Total (Last 3): <strong>${totalRespect.toLocaleString()}</strong></div>
+                    </div>
+                    <h4>Recent War History</h4>
+                    <div class="win-loss-ratio-box">
+                        <span>W/L (All Time)</span>
+                        <span class="ratio-value">${wins} / ${losses}</span>
+                    </div>
+                </div>
+                <div class="top-hitters-container">
+                    <h5>Top Hitters Based on Last Three Wars</h5>
+                    <ol class="top-hitters-list">${topHittersHtml}</ol>
+                </div>
+                <ul class="war-history-list">${warHistoryHtml}</ul>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Error displaying war history:", error);
+        enemyTargetsContainer.innerHTML = `
+            <div class="war-history-container">
+                <h4>Error</h4>
+                <p style="color: red; text-align: center; padding: 20px;">${error.message}</p>
+            </div>
+        `;
+    }
+}
+function displayEnemyTargetsTable(members) {
+    if (!enemyTargetsContainer) {
+        console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
+        return;
+    }
+
+    // --- THIS IS THE MODIFIED LOGIC ---
+    // Check if there are any members to display.
+    if (!members || Object.keys(members).length === 0) {
+        // If NO members, call the new function to show war history and stop.
+        // The global 'userApiKey' is used here.
+        displayWarHistory(userApiKey);
+        return; 
+    }
+    // --- END OF MODIFIED LOGIC ---
+
+
+    // If there ARE members, the rest of the function builds the table as before.
+    let tableHtml = `
+        <table class="enemy-targets-table">
+            <thead>
+                <tr>
+                    <th class="col-name">Name (ID)</th>
+                    <th class="col-level">Level</th>
+                    <th class="col-last-action">Last Action</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-claim">Claim</th>
+                    <th class="col-attack">Attack</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const membersArray = Object.values(members);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const currentAuthUid = auth.currentUser ? auth.currentUser.uid : null;
+
+    for (const member of membersArray) {
+        const memberId = member.id;
+        const memberName = member.name;
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+        const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
+
+        let statusText = member.status.description;
+        let statusClass = 'status-okay';
+        let dataUntil = '';
+        let statusState = member.status.state;
+
+        if (member.status.state === 'Hospital') {
+            statusClass = 'status-hospital';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            statusText = timeLeft > 0 ? `In Hospital (${formatTime(timeLeft)})` : 'Okay';
+            if (timeLeft <= 0) statusClass = 'status-okay';
+
+        } else if (member.status.state === 'Traveling') {
+            statusClass = 'status-traveling';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            if (timeLeft <= 0) {
+                statusText = `Arrived`;
+                statusClass = 'status-okay';
+            } else {
+                statusText = `${member.status.description} (${formatTime(timeLeft)})`;
+            }
+        } else if (member.status.state !== 'Okay') {
+            statusClass = 'status-other';
+        }
+
+        const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        let claimButtonHtml;
+        let rowClass = '';
+        const activeClaim = globalActiveClaims[memberId];
+
+        if (activeClaim) {
+            rowClass = 'claimed-row';
+            if (activeClaim.claimedByUserId === currentAuthUid) {
+                claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed-by-me" onclick="unclaimTarget('${memberId}')">Unclaim</button>`;
+            } else {
+                claimButtonHtml = `<span class="claimed-by-other">${activeClaim.claimedByUserName}</span><br><button id="claim-btn-${memberId}" class="claim-btn claimed-by-other-btn" disabled>Claimed</button>`;
+            }
+        } else {
+            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
+        }
+
+        tableHtml += `
+            <tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
+                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                <td class="col-level">${member.level}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                <td class="col-claim">${claimButtonHtml}</td>
+                <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+            </tr>
+        `;
+    }
+
+    tableHtml += `</tbody></table>`;
+
+    enemyTargetsContainer.innerHTML = tableHtml;
+}
+
+function setupWarClaimsListener() {
+    console.log("Setting up real-time listener for war claims...");
+    db.collection('warClaims').onSnapshot(snapshot => {
+        // Clear previous claims for a full re-sync
+        globalActiveClaims = {};
+
+        let highestClaimNumberInSnapshot = localCurrentClaimHitCounter; // Start with current local value
+
+        snapshot.forEach(doc => {
+            const claimData = doc.data();
+            globalActiveClaims[doc.id] = { // Use doc.id as the targetMemberId
+                claimedByUserId: claimData.claimedByUserId,
+                claimedByUserName: claimData.claimedByUserName,
+                chainHitNumber: claimData.chainHitNumber
+            };
+            // Update highestClaimNumberInSnapshot if this claim is higher
+            if (claimData.chainHitNumber && typeof claimData.chainHitNumber === 'number' && claimData.chainHitNumber > highestClaimNumberInSnapshot) {
+                highestClaimNumberInSnapshot = claimData.chainHitNumber;
+            }
+        });
+
+        // After processing all claims in the snapshot, update the local counter if a higher one was found
+        if (highestClaimNumberInSnapshot > localCurrentClaimHitCounter) {
+            localCurrentClaimHitCounter = highestClaimNumberInSnapshot;
+            console.log(`localCurrentClaimHitCounter updated by listener to: ${localCurrentClaimHitCounter}`);
+        }
+
+        console.log("Updated globalActiveClaims:", globalActiveClaims);
+
+        // Re-render the enemy targets table to reflect the latest claims
+        // Ensure enemyDataGlobal is available before re-rendering
+        if (enemyDataGlobal && enemyDataGlobal.members) {
+            displayEnemyTargetsTable(enemyDataGlobal.members);
+        } else {
+            console.warn("Enemy faction members data not available to re-render table after claim update.");
+        }
+
+    }, error => {
+        console.error("Error listening to war claims:", error);
+    });
+}
+function rgbToHex(r, g, b) {
+    return (
+        "#" +
+        ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()
+    );
+}
+
+function get_ff_colour(value) {
+    let r, g, b;
+    if (value <= 1) {
+        r = 0x28; g = 0x28; b = 0xc6; // Blue
+    } else if (value <= 3) {
+        const t = (value - 1) / 2;
+        r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
+    } else if (value <= 5) {
+        const t = (value - 3) / 2;
+        r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
+    } else {
+        r = 0xc6; g = 0x28; b = 0x28; // Red
+    }
+    return rgbToHex(r, g, b);
+}
+
+function get_contrast_color(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+    return brightness > 126 ? "black" : "white";
+}
+
+function get_difficulty_text(ff) {
+    if (ff <= 1) return "Extremely easy";
+    else if (ff <= 2) return "Easy";
+    else if (ff <= 3.5) return "Moderately difficult";
+    else if (ff <= 4.5) return "Difficult";
+    else return "May be impossible";
+}
+
+
 // NEW: Function to format time from timestamp
 function formatTornTime(timestamp) {
   const date = new Date(timestamp * 1000); // Torn API timestamps are in seconds
@@ -2154,6 +2566,24 @@ function formatTornTime(timestamp) {
   const minutes = String(date.getUTCMinutes()).padStart(2, '0');
   const seconds = String(date.getUTCSeconds()).padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
+}
+
+//       Prevents "blinking" by only updating the display after a successful fetch
+function areTargetSetsIdentical(set1, set2) {
+    if (set1.length !== set2.length) {
+        return false;
+    }
+    if (set1.length === 0) { // Both empty sets are identical
+        return true;
+    }
+    const sortedSet1 = [...set1].sort();
+    const sortedSet2 = [...set2].sort();
+    for (let i = 0; i < sortedSet1.length; i++) {
+        if (sortedSet1[i] !== sortedSet2[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function formatRelativeTime(timestampInSeconds) {
@@ -2177,6 +2607,110 @@ function formatRelativeTime(timestampInSeconds) {
         return `${days} day${days === 1 ? '' : 's'} ago`;
     }
 }
+
+/**
+ * Calculates and updates the width and text of a chain progress bar.
+ * @param {number} currentHits - The current number of hits in the chain.
+ * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ * @param {string} textElementId - The ID of the text element to update.
+ */
+function updateChainProgress(currentHits, progressBarElement, textElementId) {
+    if (!progressBarElement) return;
+
+    const textElement = document.getElementById(textElementId);
+    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+    const hits = Number(currentHits);
+
+    if (isNaN(hits)) {
+        progressBarElement.style.width = '0%';
+        if (textElement) textElement.textContent = '';
+        return;
+    }
+
+    let nextMilestone = milestones.find(m => m > hits);
+    
+    if (nextMilestone === undefined) {
+        progressBarElement.style.width = '100%';
+        if (textElement) textElement.textContent = 'MAX';
+        return;
+    }
+
+    let previousMilestone = 0;
+    for (let i = milestones.length - 1; i >= 0; i--) {
+        if (milestones[i] <= hits) {
+            previousMilestone = milestones[i];
+            break;
+        }
+    }
+
+    const totalForMilestone = nextMilestone - previousMilestone;
+    const progressInMilestone = hits - previousMilestone;
+    let percentage = 0;
+    if (totalForMilestone > 0) {
+        percentage = (progressInMilestone / totalForMilestone) * 100;
+    }
+
+    progressBarElement.style.width = percentage + '%';
+    if (textElement) {
+        textElement.textContent = Math.floor(percentage) + '%';
+    }
+}
+
+/*
+function setupFactionHitsListener(db, factionId) {
+	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
+    // These are the HTML elements we created earlier
+    const tcHitsElement = document.getElementById('tc-hits-value');
+    const abroadHitsElement = document.getElementById('abroad-hits-value');
+
+    // If the elements don't exist on the page, stop the function to prevent errors.
+    if (!tcHitsElement || !abroadHitsElement) {
+        console.error("Faction hits display elements not found on the page.");
+        return;
+    }
+
+    // This is the Firestore query. It looks for all users that match your faction ID.
+    const factionQuery = db.collection('users').where('faction_id', '==', factionId);
+
+    // .onSnapshot() creates a real-time listener.
+    // This code will run automatically every time the data changes for any user in your faction.
+    factionQuery.onSnapshot(snapshot => {
+        let totalTCEnergy = 0;
+        let totalAbroadEnergy = 0;
+
+        // Loop through every member found by the query
+        snapshot.forEach(doc => {
+            const memberData = doc.data();
+
+            // Check if the member has energy data to avoid errors
+            if (memberData.energy && typeof memberData.energy.current === 'number') {
+                // If the 'traveling' field is true, add their energy to the 'Abroad' total
+                if (memberData.traveling === true) {
+                    totalAbroadEnergy += memberData.energy.current;
+                } else {
+                    // Otherwise, add it to the 'Torn City' total
+                    totalTCEnergy += memberData.energy.current;
+                }
+            }
+        });
+
+        // Calculate the number of hits (1 hit = 25 energy)
+        // Math.floor() rounds down to the nearest whole number.
+        const tcHits = Math.floor(totalTCEnergy / 25);
+        const abroadHits = Math.floor(totalAbroadEnergy / 25);
+
+        // Update the numbers on your webpage
+        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
+        abroadHitsElement.textContent = abroadHits.toLocaleString();
+
+    }, error => {
+        // This will log any errors if the listener fails.
+        console.error("Error with faction hits listener:", error);
+        tcHitsElement.textContent = "Error";
+        abroadHitsElement.textContent = "Error";
+    });
+}
+*/
 
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
@@ -2206,6 +2740,250 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
         const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
         bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
     });
+}
+
+
+async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) {
+        console.error("HTML Error: Friendly members table body (tbody) not found!");
+        return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
+
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
+        const userProfileDoc = await userProfileDocRef.get();
+        if (!userProfileDoc.exists) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color: red;">Error: User profile not found.</td></tr>';
+            return;
+        }
+        const userFactionId = userProfileDoc.data().faction_id;
+
+        if (!userFactionId) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">Not in a faction or Faction ID not stored.</td></tr>';
+            return;
+        }
+
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers`;
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+
+        if (!factionResponse.ok || factionData.error) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'API Error'}.</td></tr>`;
+            return;
+        }
+
+        const membersArray = Object.values(factionData.members || {});
+        if (membersArray.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No members found.</td></tr>';
+            return;
+        }
+
+        // --- START OF MODIFIED LOGIC ---
+        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
+        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
+        const firestoreFetchPromises = [];
+        const allMemberFirebaseData = {}; // To store all fetched Firebase data indexed by Torn ID
+
+        // Divide member IDs into chunks and create a fetch promise for each chunk
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
+        }
+
+        // Wait for all Firestore queries to complete
+        const snapshots = await Promise.all(firestoreFetchPromises);
+
+        // Process all snapshots and populate allMemberFirebaseData
+        snapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                allMemberFirebaseData[doc.id] = doc.data();
+            });
+        });
+        // --- END OF MODIFIED LOGIC ---
+
+        // Step 1: Process all members to get their data and calculated stats
+        const processedMembers = membersArray.map((memberTornData) => {
+            const memberId = String(memberTornData.user_id || memberTornData.id); // Ensure memberId is string for lookup
+            if (!memberId) return null;
+
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {}; // Get data from our new combined object
+            
+            const strengthNum = parseFloat(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
+            const speedNum = parseFloat(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
+            const dexterityNum = parseFloat(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
+            const defenseNum = parseFloat(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
+            const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
+
+            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
+        }).filter(m => m !== null); // Filter out any null entries if IDs were missing
+
+        // Step 2: Sort the processed members by totalStats in descending order
+        processedMembers.sort((a, b) => b.totalStats - a.totalStats);
+
+        // Step 3: Build the HTML from the sorted data
+        let allRowsHtml = '';
+        for (const member of processedMembers) {
+			console.log('WORKING PAGE - Firebase Data:', member.firebaseData);
+            const { tornData, firebaseData, totalStats } = member;
+            const memberId = tornData.user_id || tornData.id;
+            const name = tornData.name || 'Unknown';
+            const lastAction = tornData.last_action?.relative || 'N/A';
+            const strength = firebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
+            const dexterity = firebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
+            const speed = firebaseData.battlestats?.speed?.toLocaleString() || 'N/A';
+            const defense = firebaseData.battlestats?.defense?.toLocaleString() || 'N/A';
+            const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
+            const energy = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
+            const isRevivable = (tornData.revive_setting || '').trim();
+            const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
+            const statusState = tornData.status?.state || '';
+            const originalDescription = tornData.status?.description || 'N/A';
+            let formattedStatus = originalDescription;
+            let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
+            else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
+            else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+
+            let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600);
+                const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital'; else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other'; else drugCooldownClass = 'status-okay';
+            } else {
+                drugCooldown = 'None 🍁'; drugCooldownClass = 'status-okay';
+            }
+
+            let revivableClass = '';
+            if (isRevivable === 'Everyone') { revivableClass = 'revivable-text-green'; }
+            else if (isRevivable === 'Friends & faction') { revivableClass = 'revivable-text-orange'; }
+            else if (isRevivable === 'No one') { revivableClass = 'revivable-text-red'; }
+
+            allRowsHtml += `
+                <tr data-id="${memberId}">
+                    <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <td>${lastAction}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass}">${formattedStatus}</td>
+                    <td class="nerve-text">${nerve}</td>
+                    <td class="energy-text">${energy}</td>
+                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${revivableClass}">${isRevivable}</td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
+
+        applyStatColorCoding();
+    } catch (error) {
+        console.error("Fatal error in updateFriendlyMembersTable:", error);
+        tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
+    }
+}
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for faction members list.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
+
+    // Get the current user's friends list first
+    let friendsSet = new Set();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        try {
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+            friendsSnapshot.forEach(doc => friendsSet.add(doc.id));
+        } catch (error) {
+            console.error("Error fetching friends list:", error);
+        }
+    }
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    targetDisplayElement.innerHTML = '';
+    targetDisplayElement.appendChild(membersListContainer);
+
+    for (const member of membersArray) {
+        const tornPlayerId = member.id;
+        const memberName = member.name;
+        const memberRank = member.position;
+        const isFriend = friendsSet.has(tornPlayerId);
+
+        // --- CORRECTED: This now generates the button with the person icon and a +/- sign ---
+        let actionButtonHtml = '';
+        if (isFriend) {
+            actionButtonHtml = `
+                <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
+                    👤<span class="plus-sign">-</span>
+                </button>
+            `;
+        } else {
+            actionButtonHtml = `
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+            `;
+        }
+        
+        const memberItemDiv = document.createElement('div');
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member');
+        }
+
+        memberItemDiv.innerHTML = `
+            <span class="member-rank">${memberRank}</span>
+            <div class="member-identity">
+                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                <span class="member-name">${memberName}</span>
+            </div>
+            <div class="member-actions">
+                ${actionButtonHtml}
+                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+            </div>
+        `;
+        
+        membersListContainer.appendChild(memberItemDiv);
+
+        (async () => {
+            try {
+                const docRef = db.collection('users').doc(String(tornPlayerId));
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    const firebaseMemberData = docSnap.data();
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) imgElement.src = profileImageUrl;
+                }
+            } catch (error) {
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
+            }
+        })();
+    }
 }
 
 async function fetchAndDisplayMemberDetails(memberId) {
@@ -3686,246 +4464,478 @@ if (availabilityTab) {
     }
     // --- END MODIFIED ---
 
-   let listenersInitialized = false;
+    let listenersInitialized = false;
 
-    // References to chat elements (ensure these are correctly defined based on your HTML)
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox'); // This element is not always the main chat display.
-    const chatDisplayArea = document.getElementById('chat-display-area'); // This IS your main chat content display area.
-    const chatInputArea = document.querySelector('.chat-input-area');
+    // References to chat elements (ensure these are correctly defined based on your HTML)
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox'); // This element is not always the main chat display.
+    const chatDisplayArea = document.getElementById('chat-display-area'); // This IS your main chat content display area.
+    const chatInputArea = document.querySelector('.chat-input-area');
 
-    // This handles all the data loading after a user logs in
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
+    // This handles all the data loading after a user logs in
+    auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        const userProfileRef = db.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        const userData = doc.exists ? doc.data() : {};
 
-            const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
+        const apiKey = userData.tornApiKey || null;
+        const playerId = userData.tornProfileId || null;
+        currentTornUserName = userData.preferredName || 'Unknown';
 
-            // Clear All War Data Button Listener (moved here to ensure 'db' is available)
-            if (clearAllWarDataBtn) {
-                clearAllWarDataBtn.addEventListener('click', async () => {
-                    const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
-                    const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+        // Clear All War Data Button Listener (moved here to ensure 'db' is available)
+        if (clearAllWarDataBtn) {
+            clearAllWarDataBtn.addEventListener('click', async () => {
+                const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+                const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
-                    if (!userConfirmed) {
-                        return; // Stop if the user clicks 'No' or outside the box
-                    }
+                if (!userConfirmed) {
+                    return; // Stop if the user clicks 'No' or outside the box
+                }
 
-                    const originalText = clearAllWarDataBtn.textContent;
-                    clearAllWarDataBtn.disabled = true;
-                    clearAllWarDataBtn.textContent = "Clearing...";
+                const originalText = clearAllWarDataBtn.textContent;
+                clearAllWarDataBtn.disabled = true;
+                clearAllWarDataBtn.textContent = "Clearing...";
 
-                    // This object defines all the default/empty values
-                    const clearedData = {
-                        toggleEnlisted: false,
-                        toggleTermedWar: false,
-                        toggleTermedWinLoss: false,
-                        toggleChaining: false,
-                        toggleNoFlying: false,
-                        toggleTurtleMode: false,
-                        enemyFactionID: "",
-                        nextChainTimeInput: "",
-                        currentTeamLead: "",
-                        gamePlan: "",
-                        quickAnnouncement: "",
-                        gamePlanImageUrl: null,
-                        announcementsImageUrl: null,
-                        tab4Admins: [], // Also clear these
-                        energyTrackingMembers: [] // And these
-                    };
+                // This object defines all the default/empty values
+                const clearedData = {
+                    toggleEnlisted: false,
+                    toggleTermedWar: false,
+                    toggleTermedWinLoss: false,
+                    toggleChaining: false,
+                    toggleNoFlying: false,
+                    toggleTurtleMode: false,
+                    enemyFactionID: "",
+                    nextChainTimeInput: "",
+                    currentTeamLead: "",
+                    gamePlan: "",
+                    quickAnnouncement: "",
+                    gamePlanImageUrl: null,
+                    announcementsImageUrl: null,
+                    tab4Admins: [], // Also clear these
+                    energyTrackingMembers: [] // And these
+                };
 
-                    try {
-                        // Update the database with the cleared data
-                        await db.collection('factionWars').doc('currentWar').set(clearedData, {
-                            merge: true
-                        });
+                try {
+                    // Update the database with the cleared data
+                    await db.collection('factionWars').doc('currentWar').set(clearedData, {
+                        merge: true
+                    });
 
-                        // Update all the input fields on the screen
-                        if (toggleEnlisted) toggleEnlisted.checked = false;
-                        if (toggleTermedWar) toggleTermedWar.checked = false;
-                        if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
-                        if (toggleChaining) toggleChaining.checked = false;
-                        if (toggleNoFlying) toggleNoFlying.checked = false;
-                        if (toggleTurtleMode) toggleTurtleMode.checked = false;
-                        if (enemyFactionIDInput) enemyFactionIDInput.value = "";
-                        if (nextChainTimeInput) nextChainTimeInput.value = "";
-                        const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-                        if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+                    // Update all the input fields on the screen
+                    if (toggleEnlisted) toggleEnlisted.checked = false;
+                    if (toggleTermedWar) toggleTermedWar.checked = false;
+                    if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+                    if (toggleChaining) toggleChaining.checked = false;
+                    if (toggleNoFlying) toggleNoFlying.checked = false;
+                    if (toggleTurtleMode) toggleTurtleMode.checked = false;
+                    if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+                    if (nextChainTimeInput) nextChainTimeInput.value = "";
+                    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+                    if (currentTeamLeadInput) currentTeamLeadInput.value = "";
 
-                        if (gamePlanEditArea) gamePlanEditArea.value = "";
-                        if (quickAnnouncementInput) quickAnnouncementInput.value = "";
-                        if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                    if (gamePlanEditArea) gamePlanEditArea.value = "";
+                    if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                    if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
 
-                        // Update the read-only display on the announcements tab
-                        populateWarStatusDisplay(clearedData);
+                    // Update the read-only display on the announcements tab
+                    populateWarStatusDisplay(clearedData);
 
-                        // Also clear the populated member checkboxes and enemy targets
-                        if (factionApiFullData && factionApiFullData.members) {
-                            populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
-                        }
-                        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-                        displayEnemyTargetsTable(null); // Clear the enemy targets table
+                    // Also clear the populated member checkboxes and enemy targets
+                    if (factionApiFullData && factionApiFullData.members) {
+                        populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
+                    }
+                    populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+                    displayEnemyTargetsTable(null); // Clear the enemy targets table
 
-                        clearAllWarDataBtn.textContent = "Cleared! ✅";
+                    clearAllWarDataBtn.textContent = "Cleared! ✅";
 
-                    } catch (error) {
-                        console.error("Error clearing war data:", error);
-                        clearAllWarDataBtn.textContent = "Error! ❌";
+                } catch (error) {
+                    console.error("Error clearing war data:", error);
+                    clearAllWarDataBtn.textContent = "Error! ❌";
+     
+                } finally {
+                    setTimeout(() => {
+                        clearAllWarDataBtn.disabled = false;
+                        clearAllWarDataBtn.textContent = originalText;
+                    }, 2000);
+                }
+            });
+        }
 
-                    } finally {
-                        setTimeout(() => {
-                            clearAllWarDataBtn.disabled = false;
-                            clearAllWarDataBtn.textContent = originalText;
-                        }, 2000);
-                    }
-                });
-            }
+        if (apiKey && playerId) {
+                userApiKey = apiKey; // Set global API key
 
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Set global API key
+                await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
 
-                await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+                setupProgressText();
 
-                setupProgressText();
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
+                }
 
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
-                }
+                // Initial calls to update UI
+                displayWarRoster(); // This now expects data from Firebase
+ 
+                setupWarClaimsListener(); // Listens for claims
 
-                // Initial calls to update UI
-                displayWarRoster(); // This now expects data from Firebase
+                userEnergyDisplay = document.getElementById('userEnergyDisplay');
+                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
-                updateUserEnergyDisplay();
-                updateOnlineMemberCounts();
-                fetchAndDisplayChainData(); // Now fetches its own chain data
-                displayQuickFFTargets(userApiKey, playerId);
+                updateUserEnergyDisplay();
+                updateOnlineMemberCounts();
+                fetchAndDisplayChainData(); // Now fetches its own chain data
+                displayQuickFFTargets(userApiKey, playerId);
 
 
-                // Attach event listeners only once
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey); // Contains generic save buttons with new robust code
-                    setupMemberClickEvents(); // For the friendly members table
+                // Attach event listeners only once
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey); // Contains generic save buttons with new robust code
+                    setupMemberClickEvents(); // For the friendly members table
 
-                    // Attach chat tab click listeners
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
+                    // Attach chat tab click listeners
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
 
-                    // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
-                    if (factionApiFullData && factionApiFullData.members) {
-                        setupTeamLeadAutocomplete(factionApiFullData.members);
-                    }
+                    // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
+                    if (factionApiFullData && factionApiFullData.members) {
+                        setupTeamLeadAutocomplete(factionApiFullData.members);
+                    }
 
-                    listenersInitialized = true; // Flag to prevent re-initialization
+                    listenersInitialized = true; // Flag to prevent re-initialization
 
-                    // Set up interval updates
-                    setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
-                        }
-                    }, 15000); // Fetch enemy data every 15 seconds
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
-                            fetchAndDisplayChainData(); // Re-fetches primary chain data
-                        }
-                    }, 5000); // Fetch chain data every 5 seconds
-                    /*
-                    // I've removed this 5-minute full data refresh.
-                    // This is the likely cause of your read spikes. The tab clicks already handle this.
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            // This ensures the main data, including war score and members, is refreshed.
-                            // The populateUiComponents will also be called within this, which refreshes all sections.
-                            initializeAndLoadData(userApiKey, globalYourFactionID);
-                        }
-                    }, 300000); // Refresh all data every 5 minutes (300,000 ms)
-                    */
-                    setInterval(() => {
-                        if (userApiKey) {
-                            updateUserEnergyDisplay(); // Refreshes user's energy display
-                            updateOnlineMemberCounts(); // Refreshes online member counts
-                        }
-                    }, 60000); // Update energy and online counts every 1 minute
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        }
-                    }, 10000); // Refresh quick FF targets every 10 seconds
+                    // Set up interval updates
+                    setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
+                        }
+                    }, 15000); // Fetch enemy data every 15 seconds
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
+                            fetchAndDisplayChainData(); // Re-fetches primary chain data
+                        }
+                    }, 5000); // Fetch chain data every 5 seconds
+                    /*
+                    // I've removed this 5-minute full data refresh.
+                    // This is the likely cause of your read spikes. The tab clicks already handle this.
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            // This ensures the main data, including war score and members, is refreshed.
+                            // The populateUiComponents will also be called within this, which refreshes all sections.
+                            initializeAndLoadData(userApiKey, globalYourFactionID);
+                        }
+                    }, 300000); // Refresh all data every 5 minutes (300,000 ms)
+                    */
+                    setInterval(() => {
+                        if (userApiKey) {
+                            updateUserEnergyDisplay(); // Refreshes user's energy display
+                            updateOnlineMemberCounts(); // Refreshes online member counts
+                        }
+                    }, 60000); // Update energy and online counts every 1 minute
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        }
+                    }, 10000); // Refresh quick FF targets every 10 seconds
 
-                    // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
-                    // After all setup is complete, we check the URL
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const requestedView = urlParams.get('view');
 
-                    if (requestedView === 'friendly-status') {
-                        // Find the button for the requested tab and "click" it
-                        const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
-                        if (targetButton) {
-                            targetButton.click();
-                        }
-                    }
-                    // --- END: NEW CODE ---
-                }
-            } else {
-                console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                // Reset/clear relevant UI elements if API key is missing
-                populateWarStatusDisplay({});
-                loadWarStatusForEdit({});
-                if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-                displayEnemyTargetsTable(null);
-                populateFriendlyMemberCheckboxes({}, [], []);
-                populateEnemyMemberCheckboxes({}, []);
-            }
 
-        } else {
-            userApiKey = null;
-            listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
-            console.log("User not logged in.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            // Clear UI elements when logged out
-            populateWarStatusDisplay({});
-            loadWarStatusForEdit({});
-            if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-            displayEnemyTargetsTable(null);
-            populateFriendlyMemberCheckboxes({}, [], []);
-            populateEnemyMemberCheckboxes({}, []);
-            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
-            if (chatInputArea) chatInputArea.style.display = 'none';
-            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-            if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
-            if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
-            if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
-            if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
-            if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
-            if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
+                    // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
+                    // After all setup is complete, we check the URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const requestedView = urlParams.get('view');
 
-            // Clear any active chat listeners
-            if (unsubscribeFromChat) {
-                unsubscribeFromChat();
-                unsubscribeFromChat = null;
-            }
-        }
-    });
+                    if (requestedView === 'friendly-status') {
+                        // Find the button for the requested tab and "click" it
+                        const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
+                        if (targetButton) {
+                            targetButton.click();
+                        }
+                    }
+                    // --- END: NEW CODE ---
+                }
+            } else {
+                console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                // Reset/clear relevant UI elements if API key is missing
+                populateWarStatusDisplay({});
+                loadWarStatusForEdit({});
+                if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
+                displayEnemyTargetsTable(null);
+                populateFriendlyMemberCheckboxes({}, [], []);
+                populateEnemyMemberCheckboxes({}, []);
+            }
+     
+    } else {
+        userApiKey = null;
+        listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
+        console.log("User not logged in.");
+        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        // Clear UI elements when logged out
+        populateWarStatusDisplay({});
+        loadWarStatusForEdit({});
+        if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
+        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
+        displayEnemyTargetsTable(null);
+        populateFriendlyMemberCheckboxes({}, [], []);
+        populateEnemyMemberCheckboxes({}, []);
+        if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+        if (chatInputArea) chatInputArea.style.display = 'none';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+        if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
+        if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
+        if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
+        if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
+        if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
 
+        // Clear any active chat listeners
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+        }
+    }
+});
+
+  
+    // Admins Save Listener (added to DOMContentLoaded as a one-time setup)
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designatedAdminsContainer) return;
+            const originalText = saveAdminsBtn.textContent;
+            saveAdminsBtn.disabled = true;
+            saveAdminsBtn.textContent = "Saving...";
+            try {
+                const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                await db.collection('factionWars').doc('currentWar').set({
+                    tab4Admins: selectedAdminIds
+                }, {
+                    merge: true
+                });
+                saveAdminsBtn.textContent = "Saved! ✅";
+            } catch (error) {
+                console.error("Error saving admins:", error);
+                saveAdminsBtn.textContent = "Error! ❌";
+              
+            } finally {
+                setTimeout(() => {
+                    saveAdminsBtn.disabled = false;
+                    saveAdminsBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+	
+	
+
+    // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const originalText = saveEnergyTrackMembersBtn.textContent;
+            saveEnergyTrackMembersBtn.disabled = true;
+            saveEnergyTrackMembersBtn.textContent = "Saving...";
+            try {
+                const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                await db.collection('factionWars').doc('currentWar').set({
+                    energyTrackingMembers: selectedEnergyMemberIds
+                }, {
+                    merge: true
+                });
+                saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+                saveEnergyTrackMembersBtn.textContent = "Error! ❌";
+                showCustomAlert("Failed to save energy tracking members. Check console.", "Save Error");
+            } finally {
+                setTimeout(() => {
+                    saveEnergyTrackMembersBtn.disabled = false;
+                    saveEnergyTrackMembersBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    // Big Hitter Watchlist Save Listener (added to DOMContentLoaded as a one-time setup)
+    if (saveSelectionsBtnBH) { // Assuming this is your save button for Big Hitters
+        saveSelectionsBtnBH.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const originalText = saveSelectionsBtnBH.textContent;
+            saveSelectionsBtnBH.disabled = true;
+            saveSelectionsBtnBH.textContent = "Saving...";
+            try {
+                const selectedBigHitterIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                await db.collection('factionWars').doc('currentWar').set({
+                    bigHitterWatchlist: selectedBigHitterIds
+                }, {
+                    merge: true
+                });
+                saveSelectionsBtnBH.textContent = "Saved! ✅";
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+                saveSelectionsBtnBH.textContent = "Error! ❌";
+                showCustomAlert("Failed to save big hitter watchlist. Check console.", "Save Error");
+            } finally {
+                setTimeout(() => {
+                    saveSelectionsBtnBH.disabled = false;
+                    saveSelectionsBtnBH.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+
+
+    // --- RESTORED IMAGE UPLOAD LISTENERS ---
+    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
+    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
+        gamePlanUploadInput.addEventListener('change', () => {
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
+        });
+    }
+
+    const announcementUploadInput = document.getElementById('announcementImageUpload');
+    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
+        announcementUploadInput.addEventListener('change', () => {
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
+        });
+    }
+
+
+    // Clear Image Buttons
+    const clearGamePlanImageBtn = document.getElementById('clearGamePlanImageBtn');
+    if (clearGamePlanImageBtn) {
+        clearGamePlanImageBtn.addEventListener('click', async () => {
+            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Game Plan image?", "Confirm Removal");
+            if (!confirmed) return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({
+                    gamePlanImageUrl: null
+                }, {
+                    merge: true
+                });
+                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                alert('Game Plan image cleared!');
+            } catch (error) {
+                console.error("Error clearing game plan image:", error);
+                alert('Failed to clear image.');
+            }
+        });
+    }
+
+    const clearAnnouncementImageBtn = document.getElementById('clearAnnouncementImageBtn');
+    if (clearAnnouncementImageBtn) {
+        clearAnnouncementImageBtn.addEventListener('click', async () => {
+            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Announcement image?", "Confirm Removal");
+            if (!confirmed) return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({
+                    announcementsImageUrl: null
+                }, {
+                    merge: true
+                });
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                alert('Announcement image cleared!');
+            } catch (error) {
+                console.error("Error clearing announcement image:", error);
+                alert('Failed to clear image.');
+            }
+        });
+    }
+
+}); // --- END OF DOMCONTENTLOADED ---
+
+/**
+ * ==================================================================
+ * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
+ * ==================================================================
+ */
+
+// Helper function to parse a stat string into a number.
+function parseStatValue(statString) {
+    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
+        return 0;
+    }
+    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
+    let multiplier = 1;
+    if (sanitizedString.endsWith('k')) {
+        multiplier = 1000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('m')) {
+        multiplier = 1000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('b')) {
+        multiplier = 1000000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    }
+    const number = parseFloat(sanitizedString);
+    return isNaN(number) ? 0 : number * multiplier;
+}
+
+/**
+ * Applies CSS classes to table cells based on battle stat tiers for color coding.
+ * This function needs to be called after the table is populated.
+ */
+function applyStatColorCoding() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) {
+        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
+        return;
+    }
+
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+
+    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
+
+    statCells.forEach(cell => {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
+            cell.classList.remove(`stat-tier-${i}`);
+        }
+        cell.classList.remove('stat-cell');
+
+        // Now, determine and add the correct new class
+        const value = parseStatValue(cell.textContent);
+        let tierClass = '';
+
+        // New 14-tier logic
+        if (value >= 10000000000)      { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+
+        if (tierClass) {
+            cell.classList.add(tierClass);
+            cell.classList.add('stat-cell'); // General class for stat cells
+        }
+    });
+}
 
 function blockLandscape() {
   const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
