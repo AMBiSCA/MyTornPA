@@ -1,4 +1,4 @@
-// mysite/js/broker.js (Final Simplified Version)
+// mysite/js/broker.js (Final Version with Shorthand Input)
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -33,6 +33,40 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(dataToSave));
     }
+    
+    // --- NEW HELPER FUNCTION ---
+    // Parses strings like "100k", "1.5m", or "2b" into numbers
+    function parseShorthandNumber(str) {
+        if (typeof str !== 'string' || str.trim() === '') {
+            return 0;
+        }
+
+        const cleanedStr = str.toLowerCase().trim();
+        const lastChar = cleanedStr.charAt(cleanedStr.length - 1);
+        
+        let numPart = cleanedStr;
+        let multiplier = 1;
+
+        if (lastChar === 'k') {
+            multiplier = 1000;
+            numPart = cleanedStr.slice(0, -1);
+        } else if (lastChar === 'm') {
+            multiplier = 1000000;
+            numPart = cleanedStr.slice(0, -1);
+        } else if (lastChar === 'b') {
+            multiplier = 1000000000;
+            numPart = cleanedStr.slice(0, -1);
+        }
+
+        const num = parseFloat(numPart);
+
+        if (isNaN(num)) {
+            return 0;
+        }
+
+        return Math.round(num * multiplier);
+    }
+
 
     // --- Firebase Authentication ---
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
@@ -45,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (tornApiKey) {
                             brokerApiKeyErrorDiv.textContent = '';
                             await fetchAllItems(tornApiKey);
-                            loadPortfolio(); // Load user data after getting API key
-                            refreshWatchlistDisplay(); // Display saved data
+                            loadPortfolio();
+                            refreshWatchlistDisplay();
                         } else {
                             handleApiError('Your Torn API Key is not set in your profile.');
                         }
@@ -87,13 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentValueCell = row.querySelector('.current-value-cell');
         const profitLossCell = row.querySelector('.profit-loss-cell');
 
-        const quantity = parseInt(quantityInput.value) || 0;
-        const buyPrice = parseInt(buyPriceInput.value) || 0;
+        // --- UPDATED to use the new parsing function ---
+        const quantity = parseShorthandNumber(quantityInput.value);
+        const buyPrice = parseShorthandNumber(buyPriceInput.value);
 
-        // Save the new values whenever they are changed
+        // Save the raw string value so "800k" is preserved on refresh
         if (portfolio[itemId]) {
-            portfolio[itemId].quantity = quantity;
-            portfolio[itemId].buyPrice = buyPrice;
+            portfolio[itemId].quantity = quantityInput.value;
+            portfolio[itemId].buyPrice = buyPriceInput.value;
             savePortfolio();
         }
 
@@ -104,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentValueCell.textContent = '$' + currentValue.toLocaleString();
         profitLossCell.textContent = '$' + profitLoss.toLocaleString();
 
-        // Apply profit/loss coloring
         profitLossCell.classList.remove('profit', 'loss', 'neutral');
         if (profitLoss > 0) {
             profitLossCell.classList.add('profit');
@@ -130,13 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         const results = await Promise.all(promises);
-        itemTableBody.innerHTML = ''; // Clear table for new rows
+        itemTableBody.innerHTML = '';
 
         for (let i = 0; i < watchlist.length; i++) {
             const itemId = watchlist[i];
             const itemInfo = allItems[itemId];
             const marketData = results[i];
-            const itemPortfolioData = portfolio[itemId] || { quantity: 0, buyPrice: 0 };
+            const itemPortfolioData = portfolio[itemId] || { quantity: '0', buyPrice: '0' };
 
             const liveMarketPrice = marketData?.itemmarket?.item?.average_price || 0;
 
@@ -144,11 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.itemId = itemId;
             row.dataset.marketPrice = liveMarketPrice;
 
+            // --- UPDATED input type from "number" to "text" ---
             row.innerHTML = `
                 <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
                 <td>$${liveMarketPrice.toLocaleString()}</td>
-                <td><input type="number" class="quantity-input" value="${itemPortfolioData.quantity}" placeholder="0"></td>
-                <td><input type="number" class="buy-price-input" value="${itemPortfolioData.buyPrice}" placeholder="0"></td>
+                <td><input type="text" class="quantity-input" value="${itemPortfolioData.quantity}" placeholder="0"></td>
+                <td><input type="text" class="buy-price-input" value="${itemPortfolioData.buyPrice}" placeholder="0"></td>
                 <td class="current-value-cell">$0</td>
                 <td class="profit-loss-cell">$0</td>
                 <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
@@ -156,11 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             itemTableBody.appendChild(row);
             
-            // Add event listeners for live updates
             row.querySelector('.quantity-input').addEventListener('input', () => updateRowCalculations(row));
             row.querySelector('.buy-price-input').addEventListener('input', () => updateRowCalculations(row));
             
-            // Perform initial calculation for the row
             updateRowCalculations(row);
         }
     }
@@ -201,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addItemBtn.addEventListener('click', () => {
         if (selectedItemId && !watchlist.includes(selectedItemId)) {
             watchlist.push(selectedItemId);
-            portfolio[selectedItemId] = { quantity: 0, buyPrice: 0 };
+            portfolio[selectedItemId] = { quantity: '0', buyPrice: '0' };
             savePortfolio();
             refreshWatchlistDisplay();
         }

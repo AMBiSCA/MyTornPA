@@ -2,7 +2,7 @@
 
 .peeper-tool-container.broker-page {
     max-width: 1200px;
-    margin-top: 50px;
+    margin-top: 40px;
     margin-bottom: 50px;
     background-color: #222;
     padding: 30px 40px;
@@ -134,7 +134,6 @@
     width: 100%;
     border-collapse: collapse;
     background-color: #1c1c1c;
-    /* Adjusted min-width for the new columns */
     min-width: 950px; 
 }
 
@@ -175,7 +174,7 @@
     font-size: 0.8rem;
     font-weight: bold;
     color: #fff;
-    background-color: #cc0000; /* Red for remove button */
+    background-color: #cc0000;
     border: 1px solid #ff4d4d;
     border-radius: 6px;
     text-decoration: none;
@@ -197,18 +196,22 @@
     text-decoration: underline;
 }
 
-/* --- STYLES FOR PORTFOLIO TRACKER --- */
-.item-table input[type="number"] {
-    width: 100px;
-    padding: 6px;
+/* --- STYLES FOR PORTFOLIO TRACKER (CORRECTED) --- */
+.item-table input[type="text"] {
+    width: 100%;
+    max-width: 130px;
+    height: 36px;
+    padding: 6px 10px;
     background-color: #121212;
     border: 1.5px solid #007acc;
     color: #eee;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.9rem;
     font-weight: bold;
-    text-align: right;
+    text-align: left;
+    box-sizing: border-box;
 }
+
 /* Hide the number input arrows */
 .item-table input[type=number] {
   -moz-appearance: textfield;
@@ -221,15 +224,15 @@
 
 /* Colors for Profit/Loss column */
 .profit {
-    color: #4CAF50 !important; /* Green */
+    color: #4CAF50 !important;
 }
 
 .loss {
-    color: #F44336 !important; /* Red */
+    color: #F44336 !important;
 }
 
 .neutral {
-    color: #9E9E9E !important; /* Grey */
+    color: #9E9E9E !important;
 }
 /* --- END PORTFOLIO STYLES --- */
 
