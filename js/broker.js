@@ -109,14 +109,16 @@ async function refreshWatchlistDisplay() {
         const marketData = results[i * 2];
         const bazaarData = results[i * 2 + 1];
 
-        const marketPrice = marketData && marketData.itemmarket && marketData.itemmarket[0] ? '$' + marketData.itemmarket[0].cost.toLocaleString() : 'N/A';
+        // --- THIS IS THE CORRECTED LINE ---
+        const averageMarketPrice = marketData && marketData.itemmarket && marketData.itemmarket.average_price ? '$' + marketData.itemmarket.average_price.toLocaleString() : 'N/A';
+        
         const bazaarPrice = bazaarData && bazaarData.bazaar && bazaarData.bazaar[0] ? '$' + bazaarData.bazaar[0].cost.toLocaleString() : 'N/A';
         const userStock = userInventory[itemId] || 0;
 
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
-            <td>${marketPrice}</td>
+            <td>${averageMarketPrice}</td>
             <td>${bazaarPrice}</td>
             <td>${userStock.toLocaleString()}</td>
             <td><button class="action-btn remove-btn" data-id="${itemId}">Remove</button></td>
