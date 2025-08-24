@@ -75,7 +75,6 @@
     transform: translateY(-2px);
 }
 
-/* --- NEW STYLES FOR SEARCH DROPDOWN --- */
 .search-results-dropdown {
     display: none;
     position: absolute;
@@ -102,7 +101,6 @@
     background-color: #007acc;
     color: #fff;
 }
-/* --- END NEW STYLES --- */
 
 .table-wrapper {
     overflow-x: auto;
@@ -136,7 +134,8 @@
     width: 100%;
     border-collapse: collapse;
     background-color: #1c1c1c;
-    min-width: 700px;
+    /* Adjusted min-width for the new columns */
+    min-width: 950px; 
 }
 
 .item-table thead th {
@@ -197,6 +196,43 @@
 .item-table .item-link:hover {
     text-decoration: underline;
 }
+
+/* --- STYLES FOR PORTFOLIO TRACKER --- */
+.item-table input[type="number"] {
+    width: 100px;
+    padding: 6px;
+    background-color: #121212;
+    border: 1.5px solid #007acc;
+    color: #eee;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: right;
+}
+/* Hide the number input arrows */
+.item-table input[type=number] {
+  -moz-appearance: textfield;
+}
+.item-table input::-webkit-outer-spin-button,
+.item-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Colors for Profit/Loss column */
+.profit {
+    color: #4CAF50 !important; /* Green */
+}
+
+.loss {
+    color: #F44336 !important; /* Red */
+}
+
+.neutral {
+    color: #9E9E9E !important; /* Grey */
+}
+/* --- END PORTFOLIO STYLES --- */
+
 
 @media (max-width: 768px) {
     .peeper-tool-container.broker-page {
