@@ -1143,6 +1143,282 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
 }
 
+async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) return;
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        enemyDataGlobal = await response.json(); // Store enemy data globally
+        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            displayEnemyTargetsTable(enemyData.members);
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
+            
+            // --- RE-ADDED: Call autoUnclaimHitTargets() here ---
+            autoUnclaimHitTargets(); 
+            // --- END RE-ADDED ---
+
+        } else {
+            console.warn("Enemy faction members data not found.");
+            displayEnemyTargetsTable(null);
+            populateEnemyMemberCheckboxes({}, []);
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        displayEnemyTargetsTable(null);
+        populateEnemyMemberCheckboxes({}, []);
+    }
+}
+// ... (Your existing claimTarget and unclaimTarget functions) ...
+ fetchAndDisplayEnemyFaction
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
+      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      // If no chain is active or data is reset, show 'Chain Over'
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // NEW: Update Chain Started Time Display
+  // This section ensures the Chain Started time is displayed when data is available
+  // It is placed here because the value does not change after initial fetch
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+  
+ // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
+async function fetchAndDisplayChainScore(apiKey) {
+    const yourFactionNameScoreEl = document.getElementById('yourFactionNameScore');
+    const currentChainScoreEl = document.getElementById('currentChainScore');
+    const leadTargetProgressEl = document.getElementById('leadTargetProgress');
+    const targetFactionScoreEl = document.getElementById('targetFactionScore');
+    const enemyFactionNameScoreEl = document.getElementById('enemyFactionNameScore');
+
+    // Set initial loading states
+    if (currentChainScoreEl) currentChainScoreEl.textContent = '...';
+    if (leadTargetProgressEl) leadTargetProgressEl.textContent = '... / ...';
+    if (targetFactionScoreEl) targetFactionScoreEl.textContent = '...';
+
+    if (!apiKey) {
+        console.warn("API key is not available. Cannot fetch chain score data.");
+        if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
+        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
+        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
+        return;
+    }
+
+    try {
+        const chainScoreApiUrl = `https://api.torn.com/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainScore`;
+        const response = await fetch(chainScoreApiUrl);
+
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        const chainData = await response.json();
+        console.log("Chain Score API Data (selections=chain):", chainData);
+
+        if (chainData && chainData.chain) {
+            const chain = chainData.chain;
+            
+            // Your Faction Name
+            if (yourFactionNameScoreEl && factionApiFullData && factionApiFullData.basic) {
+                yourFactionNameScoreEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+            } else if (yourFactionNameScoreEl) {
+                yourFactionNameScoreEl.textContent = 'Your Faction'; // Fallback
+            }
+
+            // Current Chain Score (left side)
+            if (currentChainScoreEl) {
+                currentChainScoreEl.textContent = chain.current !== undefined ? chain.current.toLocaleString() : 'N/A';
+            }
+
+            // Lead Target Progress (middle)
+            if (leadTargetProgressEl) {
+                const maxHits = chain.max !== undefined ? chain.max.toLocaleString() : 'N/A';
+                // Assuming 'chain_target_score' represents the lead target progress value
+                const targetScore = chain.chain_target_score !== undefined ? chain.chain_target_score.toLocaleString() : 'N/A';
+                leadTargetProgressEl.textContent = `${targetScore} / ${maxHits}`;
+            }
+
+            // Target Faction Score (right side)
+            if (targetFactionScoreEl) {
+                // If the chain.target_id is the enemy faction, we can try to display its name
+                // For now, let's display the 'target' from the chain data, which typically represents the enemy score or a value associated with them.
+                targetFactionScoreEl.textContent = chain.target !== undefined ? chain.target.toLocaleString() : 'N/A';
+            }
+
+            // Enemy Faction Name for Target Score (This requires a separate basic selection for enemy faction if not already fetched)
+            // For now, we use a generic label or assume globalEnemyFactionID's name is already known from other fetches.
+            if (enemyFactionNameScoreEl) {
+                 if (globalEnemyFactionID && enemyDataGlobal && enemyDataGlobal.basic) { // Assuming enemyDataGlobal is available from fetchAndDisplayEnemyFaction
+                     enemyFactionNameScoreEl.textContent = enemyDataGlobal.basic.name || 'Enemy Faction';
+                 } else {
+                     enemyFactionNameScoreEl.textContent = 'Enemy Faction'; // Default generic
+                 }
+            }
+
+
+        } else {
+            console.warn("Chain data not found in API response for chain score.");
+            if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
+            if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
+            if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
+        }
+
+    } catch (error) {
+        console.error("Error fetching chain score data:", error);
+        if (currentChainScoreEl) currentChainScoreEl.textContent = 'Error';
+        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'Error';
+        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'Error';
+    }
+} 
+
+  // NEW: Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
+      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      // If no chain is active or data is reset, show 'Chain Over'
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
+    const friendlyHitsEl = document.getElementById('friendly-chain-hits');
+    const friendlyTimeEl = document.getElementById('friendly-chain-time');
+    const enemyHitsEl = document.getElementById('enemy-chain-hits');
+    const enemyTimeEl = document.getElementById('enemy-chain-time');
+
+    if (!friendlyHitsEl || !friendlyTimeEl || !enemyHitsEl || !enemyTimeEl) {
+        return;
+    }
+
+    if (!apiKey || !yourFactionId) {
+        console.warn("API key or your Faction ID is missing. Cannot fetch chain data for dual timers.");
+        friendlyHitsEl.textContent = 'N/A';
+        friendlyTimeEl.textContent = 'N/A';
+        enemyHitsEl.textContent = 'N/A';
+        enemyTimeEl.textContent = 'N/A';
+        return;
+    }
+
+    let factionIdsToFetch = [yourFactionId];
+    if (enemyFactionId) {
+        factionIdsToFetch.push(enemyFactionId);
+    }
+
+    try {
+        const combinedChainUrl = `https://api.torn.com/faction/${factionIdsToFetch.join(',')}/?selections=chain&key=${apiKey}&comment=MyTornPA_DualChain`;
+        const response = await fetch(combinedChainUrl);
+        const data = await response.json();
+
+        console.log("updateDualChainTimers: Full API response data (after fetch):", data);
+        console.log(`updateDualChainTimers: Your Faction ID used: ${yourFactionId}`);
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error : response.statusText;
+            throw new Error(`Torn API Error fetching combined chain data: ${errorMessage}`);
+        }
+
+        let yourChainData = null;
+        let enemyChainData = null;
+
+        // --- CRITICAL FIX: MORE ROBUST EXTRACTION OF CHAIN DATA ---
+        // Determine if the API response is for a single faction directly (data.chain)
+        // or multiple factions (data[factionId].chain)
+        if (data.chain && (factionIdsToFetch.length === 1 && String(factionIdsToFetch[0]) === String(yourFactionId))) {
+            // Case: Only your faction was fetched, and 'chain' is at the root.
+            yourChainData = data.chain;
+        } else if (data[yourFactionId]?.chain) {
+            // Case: Your faction data is nested under its ID (typically when multiple factions are fetched).
+            yourChainData = data[yourFactionId].chain;
+        }
+
+        if (enemyFactionId) { // Only try to extract enemy data if an enemy ID was provided
+             if (data[enemyFactionId]?.chain) {
+                // Enemy faction data is nested under its ID (typical for multi-faction fetch).
+                enemyChainData = data[enemyFactionId].chain;
+            } else if (factionIdsToFetch.length === 1 && String(factionIdsToFetch[0]) === String(enemyFactionId) && data.chain) {
+                // Edge case: Only enemy faction was requested and 'chain' is at the root.
+                enemyChainData = data.chain;
+            }
+        }
+        // --- END CRITICAL FIX ---
+        
+        console.log("updateDualChainTimers: Extracted yourChainData (after fix):", yourChainData);
+
+        if (yourChainData) {
+            friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
+            friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
+			
+			 const friendlyProgressBar = document.getElementById('friendly-chain-progress');
+            updateChainProgress(yourChainData.current || 0, friendlyProgressBar);
+   
+
+            currentLiveChainSeconds = yourChainData.timeout || 0;
+            lastChainApiFetchTime = Date.now();
+        } else {
+            console.warn("updateDualChainTimers: yourChainData is still not available after extraction. Resetting chain timers to 0.");
+            friendlyHitsEl.textContent = '0';
+            friendlyTimeEl.textContent = 'Over';
+            currentLiveChainSeconds = 0;
+            lastChainApiFetchTime = 0;
+        }
+
+        // Process enemy faction's chain data
+        if (enemyFactionId) {
+            if (enemyChainData) { // Use enemyChainData already extracted above
+                 enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
+                 enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+				 
+				 const enemyProgressBar = document.getElementById('enemy-chain-progress');
+                 updateChainProgress(enemyChainData.current || 0, enemyProgressBar);
+				 
+            } else {
+                enemyHitsEl.textContent = '0';
+                enemyTimeEl.textContent = 'Over';
+            }
+        } else {
+            enemyHitsEl.textContent = '0';
+            enemyTimeEl.textContent = 'No Current War';
+        }
+
+    } catch (error) {
+        console.error("Error in updateDualChainTimers:", error);
+        friendlyHitsEl.textContent = 'Error';
+        friendlyTimeEl.textContent = 'Error';
+        enemyHitsEl.textContent = 'Error';
+        enemyTimeEl.textContent = 'Error';
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+    }
+}
+
 // --- NEW FUNCTION: Creates and styles the progress bar text elements ---
 function setupProgressText() {
     const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
