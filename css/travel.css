@@ -237,7 +237,7 @@ header {
     text-align: left;
     position: relative;
     z-index: 1;
-    border: 2px solid #00a8ff;
+    border: 2px solid black;
 }
 .page-specific-content-area h2 {
     color: #00a8ff;
