@@ -905,19 +905,7 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
         });
     }
 
-    // Part 3: Updates "Your Chain" timer smoothly
-    const friendlyTimeEl = document.getElementById('friendly-chain-time');
-    if (friendlyTimeEl) {
-        if (currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-            const elapsedTime = (Date.now() - lastChainApiFetchTime) / 1000;
-            const timeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTime));
-            friendlyTimeEl.textContent = formatTime(timeLeft);
-        } else {
-            friendlyTimeEl.textContent = 'Over';
-        }
-    }
-
-    // Part 4: Updates the Ranked War elapsed timer
+    
     const rankedWarTimerEl = document.getElementById('rw-war-timer');
     if (rankedWarTimerEl) {
         if (globalWarStartedActualTime > 0) {
@@ -1141,37 +1129,6 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     updateUserEnergyDisplay();
 
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
-}
-
-async function unclaimTarget(memberId) {
-    if (!auth.currentUser) {
-        alert("You must be logged in to unclaim targets.");
-        return;
-    }
-
-    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    if (claimBtn) claimBtn.disabled = true;
-
-    // Get the member's name from the data-member-name attribute on the row
-    const targetRow = document.getElementById(`target-row-${memberId}`);
-    const memberName = targetRow ? targetRow.dataset.memberName : 'Unknown Target';
-
-    try {
-        // Delete the claim from Firebase
-        await db.collection('warClaims').doc(memberId).delete();
-        console.log(`Claim for ${memberId} deleted from Firebase.`);
-
-        // --- UPDATED: Send an "unclaim" message with new wording ---
-        const unclaimMessageText = `📢 ${currentTornUserName} has unclaimed his hit against ${memberName}.`;
-        await sendClaimChatMessage(currentTornUserName, memberName, null, unclaimMessageText); // Pass null for chainNumber, custom message
-        // --- END UPDATED ---
-
-    } catch (error) {
-        console.error("Error deleting claim from Firebase:", error);
-        alert(`Failed to unclaim target: ${error.message}`);
-    } finally {
-        if (claimBtn) claimBtn.disabled = false;
-    }
 }
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
