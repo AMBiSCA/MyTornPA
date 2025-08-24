@@ -70,6 +70,7 @@ body {
     color: #00a8ff;
     text-align: center;
     margin-bottom: 20px;
+	margin-top: -10px;
     font-size: 2em;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
