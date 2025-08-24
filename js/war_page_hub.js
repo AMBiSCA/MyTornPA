@@ -2403,47 +2403,6 @@ function displayEnemyTargetsTable(members) {
     enemyTargetsContainer.innerHTML = tableHtml;
 }
 
-function setupWarClaimsListener() {
-    console.log("Setting up real-time listener for war claims...");
-    db.collection('warClaims').onSnapshot(snapshot => {
-        // Clear previous claims for a full re-sync
-        globalActiveClaims = {};
-
-        let highestClaimNumberInSnapshot = localCurrentClaimHitCounter; // Start with current local value
-
-        snapshot.forEach(doc => {
-            const claimData = doc.data();
-            globalActiveClaims[doc.id] = { // Use doc.id as the targetMemberId
-                claimedByUserId: claimData.claimedByUserId,
-                claimedByUserName: claimData.claimedByUserName,
-                chainHitNumber: claimData.chainHitNumber
-            };
-            // Update highestClaimNumberInSnapshot if this claim is higher
-            if (claimData.chainHitNumber && typeof claimData.chainHitNumber === 'number' && claimData.chainHitNumber > highestClaimNumberInSnapshot) {
-                highestClaimNumberInSnapshot = claimData.chainHitNumber;
-            }
-        });
-
-        // After processing all claims in the snapshot, update the local counter if a higher one was found
-        if (highestClaimNumberInSnapshot > localCurrentClaimHitCounter) {
-            localCurrentClaimHitCounter = highestClaimNumberInSnapshot;
-            console.log(`localCurrentClaimHitCounter updated by listener to: ${localCurrentClaimHitCounter}`);
-        }
-
-        console.log("Updated globalActiveClaims:", globalActiveClaims);
-
-        // Re-render the enemy targets table to reflect the latest claims
-        // Ensure enemyDataGlobal is available before re-rendering
-        if (enemyDataGlobal && enemyDataGlobal.members) {
-            displayEnemyTargetsTable(enemyDataGlobal.members);
-        } else {
-            console.warn("Enemy faction members data not available to re-render table after claim update.");
-        }
-
-    }, error => {
-        console.error("Error listening to war claims:", error);
-    });
-}
 function rgbToHex(r, g, b) {
     return (
         "#" +
