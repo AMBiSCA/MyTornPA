@@ -3763,6 +3763,14 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         displayEnemyTargetsTable(null); // Clear the enemy targets table
     }
 }
+function showTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) selectedTab.classList.add('active');
+    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab', '')}"]`);
+    if (selectedButton) selectedButton.classList.add('active');
+}
 
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
