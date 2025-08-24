@@ -274,7 +274,7 @@ body::before {
 
 
 /* ==========================================================================
-   6. RESPONSIVE MEDIA QURIES
+   6. RESPONSIVE MEDIA
    ========================================================================== */
 @media (max-width: 768px) {
     .companion-container { padding: 10px 15px; width: 90%; margin-top: 125px; }
