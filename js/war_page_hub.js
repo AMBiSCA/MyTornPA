@@ -106,6 +106,64 @@ const discordWebhookModalOverlay = document.getElementById('discordWebhookModalO
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
 
 
+
+
+function countFactionMembers(membersObject) {
+    if (!membersObject) return 0;
+    return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
+}
+
+async function processProfileFetchQueue() {
+    if (isProcessingQueue || profileFetchQueue.length === 0) {
+        return; // Already processing or nothing in queue
+    }
+
+    isProcessingQueue = true;
+    while (profileFetchQueue.length > 0) {
+        const { memberId, apiKey, itemElement } = profileFetchQueue.shift();
+
+        // Check cache before fetching
+        if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+            console.log(`[Cache Hit] Profile for ${memberId} already in cache.`);
+            updateMemberItemDisplay(itemElement, memberProfileCache[memberId].profile_image);
+            continue; // Skip fetch, move to next item
+        }
+
+        try {
+            const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile&key=${apiKey}&comment=MyTornPA_MemberProfilePic`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                console.error(`Error fetching profile for member ${memberId}:`, data.error?.error || response.statusText);
+                updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on error
+            } else {
+                const profileImage = data.profile_image || '../../images/default_profile_icon.png';
+                memberProfileCache[memberId] = { profile_image: profileImage, name: data.name }; // Cache the result
+                updateMemberItemDisplay(itemElement, profileImage);
+            }
+        } catch (error) {
+            console.error(`Network error fetching profile for member ${memberId}:`, error);
+            updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on network error
+        }
+
+        // Introduce delay before the next fetch, unless it's the last one
+        if (profileFetchQueue.length > 0) {
+            await new Promise(resolve => setTimeout(resolve, FETCH_DELAY_MS));
+        }
+    }
+    isProcessingQueue = false;
+    console.log("Profile fetch queue finished processing.");
+}
+
+function formatBattleStats(num) {
+    if (isNaN(num) || num === 0) return '0';
+    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num.toLocaleString();
+}
+
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
     // Safety check to make sure the button/label element was passed correctly
     if (!labelElement) {
@@ -175,6 +233,128 @@ async function handleImageUpload(fileInput, displayElement, labelElement, type) 
     }
 }
 
+async function sendClaimChatMessage(claimerName, targetName, chainNumber, customMessage = null) {
+    if (!chatMessagesCollection || !auth.currentUser) {
+        console.warn("Cannot send claim/unclaim message: Firebase collection or user not available.");
+        return;
+    }
+
+    let messageText;
+    if (customMessage) {
+        messageText = customMessage; // Use the provided custom message
+    } else {
+        // Default message for a 'claim' action
+        messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
+    }
+    
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: "Chain Alert:", // --- CHANGED SENDER PREFIX HERE ---
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'claim_notification'
+    };
+
+    try {
+        await chatMessagesCollection.add(messageObj);
+        console.log("Claim/Unclaim message sent to Firebase:", messageObj);
+
+        // Display locally immediately without waiting for Firebase listener
+        displayChatMessage(messageObj); 
+
+    } catch (error) {
+        console.error("Error sending claim/unclaim message to Firebase:", error);
+    }
+}
+
+function autoUnclaimHitTargets() {
+    console.log("Running autoUnclaimHitTargets check (chain progression-based)...");
+    if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
+        console.log("No active claims to check for auto-unclaim.");
+        return;
+    }
+    if (!enemyDataGlobal || !enemyDataGlobal.members) {
+        console.warn("Enemy data not available for auto-unclaim check.");
+        return;
+    }
+    if (!auth.currentUser) {
+        console.warn("User not logged in. Cannot auto-unclaim targets.");
+        return;
+    }
+
+    const membersInCurrentEnemyData = Object.values(enemyDataGlobal.members);
+    const currentEnemyMemberIds = new Set(membersInCurrentEnemyData.map(m => String(m.id)));
+
+    for (const memberId in globalActiveClaims) {
+        if (globalActiveClaims.hasOwnProperty(memberId)) {
+            const activeClaim = globalActiveClaims[memberId]; // The current claim from Firebase
+
+            // --- Condition 1: Auto-unclaim if target has disappeared from enemy data ---
+            if (!currentEnemyMemberIds.has(memberId)) {
+                console.warn(`Claimed target ${memberId} not found in current enemy data (might have disappeared). Auto-unclaiming.`);
+                unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
+                continue; // Move to the next claim
+            }
+
+            // --- Condition 2: Auto-unclaim if the chain has progressed past this claimed hit number ---
+            // This is the NEW logic you requested.
+            // Check if localCurrentClaimHitCounter (which represents the faction's current chain status)
+            // is greater than or equal to the hit number this target was claimed for.
+            if (localCurrentClaimHitCounter >= activeClaim.chainHitNumber && activeClaim.chainHitNumber > 0) {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Auto-unclaiming ${memberName} (${memberId}). Chain (${localCurrentClaimHitCounter}) has surpassed claimed hit (${activeClaim.chainHitNumber}).`);
+                unclaimTarget(memberId); // Call the unclaim function for this target
+            } else {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Claimed target ${memberName} (${memberId}) is still active. Chain: ${localCurrentClaimHitCounter}, Claimed for: ${activeClaim.chainHitNumber}.`);
+            }
+        }
+    }
+}
+
+function displayChatMessage(message) {
+    // This is the ID from your new chat system's HTML for the war chat
+    const displayArea = document.getElementById('war-chat-display-area'); 
+    
+    if (!displayArea) {
+        console.error("Fatal Error: Could not find the war chat display area with ID 'war-chat-display-area'.");
+        return;
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('chat-message', 'system-notification'); // Add classes for styling
+
+    // Format the message content
+    // Note: The 'sender' is "Chain Alert:" from your other function
+    messageDiv.innerHTML = `<strong>${message.sender}</strong> ${message.text}`;
+    
+    // Add the new message to the chat display
+    displayArea.appendChild(messageDiv);
+
+    // Automatically scroll to the bottom to see the latest message
+    displayArea.scrollTop = displayArea.scrollHeight;
+}
+
+function areTargetSetsIdentical(set1, set2) {
+    if (set1.length !== set2.length) {
+        return false;
+    }
+    if (set1.length === 0) { // Both empty sets are identical
+        return true;
+    }
+    const sortedSet1 = [...set1].sort();
+    const sortedSet2 = [...set2].sort();
+    for (let i = 0; i < sortedSet1.length; i++) {
+        if (sortedSet1[i] !== sortedSet2[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 function createStatusBoxHtml(label, id) {
     return `
@@ -2476,6 +2656,62 @@ function updateChainProgress(currentHits, progressBarElement, textElementId) {
     }
 }
 
+/*
+function setupFactionHitsListener(db, factionId) {
+	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
+    // These are the HTML elements we created earlier
+    const tcHitsElement = document.getElementById('tc-hits-value');
+    const abroadHitsElement = document.getElementById('abroad-hits-value');
+
+    // If the elements don't exist on the page, stop the function to prevent errors.
+    if (!tcHitsElement || !abroadHitsElement) {
+        console.error("Faction hits display elements not found on the page.");
+        return;
+    }
+
+    // This is the Firestore query. It looks for all users that match your faction ID.
+    const factionQuery = db.collection('users').where('faction_id', '==', factionId);
+
+    // .onSnapshot() creates a real-time listener.
+    // This code will run automatically every time the data changes for any user in your faction.
+    factionQuery.onSnapshot(snapshot => {
+        let totalTCEnergy = 0;
+        let totalAbroadEnergy = 0;
+
+        // Loop through every member found by the query
+        snapshot.forEach(doc => {
+            const memberData = doc.data();
+
+            // Check if the member has energy data to avoid errors
+            if (memberData.energy && typeof memberData.energy.current === 'number') {
+                // If the 'traveling' field is true, add their energy to the 'Abroad' total
+                if (memberData.traveling === true) {
+                    totalAbroadEnergy += memberData.energy.current;
+                } else {
+                    // Otherwise, add it to the 'Torn City' total
+                    totalTCEnergy += memberData.energy.current;
+                }
+            }
+        });
+
+        // Calculate the number of hits (1 hit = 25 energy)
+        // Math.floor() rounds down to the nearest whole number.
+        const tcHits = Math.floor(totalTCEnergy / 25);
+        const abroadHits = Math.floor(totalAbroadEnergy / 25);
+
+        // Update the numbers on your webpage
+        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
+        abroadHitsElement.textContent = abroadHits.toLocaleString();
+
+    }, error => {
+        // This will log any errors if the listener fails.
+        console.error("Error with faction hits listener:", error);
+        tcHitsElement.textContent = "Error";
+        abroadHitsElement.textContent = "Error";
+    });
+}
+*/
+
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
@@ -2750,259 +2986,6 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     }
 }
 
-async function fetchAndDisplayMemberDetails(memberId) {
-    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
-
-    const detailPanel = document.getElementById('selectedMemberDetailPanel');
-    if (!detailPanel) {
-        console.error("HTML Error: Cannot find the detail panel element.");
-        return;
-    }
-
-    detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
-    detailPanel.classList.add('detail-panel-loaded');
-
-    let tornApiData = null;
-    let apiErrorMessage = '';
-
-    try {
-        const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
-
-        if (querySnapshot.empty) {
-            detailPanel.innerHTML = `
-                <h4>Details Unavailable</h4>
-                <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
-                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
-            `;
-            console.warn(`[DEBUG] No Firebase userProfile found for Torn ID: ${memberId}.`);
-            return;
-        }
-
-        const userDoc = querySnapshot.docs[0];
-        const memberDataFromFirebase = userDoc.data();
-        const memberApiKey = memberDataFromFirebase.tornApiKey;
-        const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
-
-        console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
-        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`); // Verify the key used
-
-        if (!memberApiKey) {
-            detailPanel.innerHTML = `
-                <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
-                <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
-                <p>Cannot fetch detailed stats.</p>
-                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
-            `;
-            return;
-        }
-
-        // Selections for the API call
-        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
-        const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-
-        console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
-
-        const response = await fetch(apiUrl);
-        console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
-            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
-            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
-            if (errorData && errorData.error && errorData.error.error) {
-                errorMessage += ` - ${errorData.error.error}`;
-            }
-            throw new Error(errorMessage);
-        } else {
-            tornApiData = await response.json();
-            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
-
-            if (tornApiData.error) {
-                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
-                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
-                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
-                } else {
-                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
-                }
-            }
-        }
-
-        if (!tornApiData || Object.keys(tornApiData).length === 0) {
-            throw new Error("Failed to retrieve any meaningful data after API call.");
-        }
-
-        const personalStats = tornApiData.personalstats || {};
-        const jobData = tornApiData.job || {};
-        const cooldowns = tornApiData.cooldowns || {};
-        
-        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
-        const barsData = tornApiData.bars || {};
-        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
-        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
-
-        // Access name, player_id, last_action, status directly from tornApiData (root)
-        const memberName = tornApiData.name || 'Unknown';
-        const memberPlayerId = tornApiData.player_id || 'N/A';
-        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
-        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
-
-        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
-        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
-
-        console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
-        console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
-        console.log("[DEBUG] Extracted Main Status Data:", mainStatusData);
-        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
-        console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
-        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
-        console.log("[DEBUG] Extracted Nerve Data (from bars/root object):", nerve);
-        console.log("[DEBUG] Extracted Energy Data (from bars/root object):", energy);
-        console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
-        console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
-
-
-        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
-        const strength = (personalStats.strength || tornApiData.strength || 0).toLocaleString();
-        const speed = (personalStats.speed || tornApiData.speed || 0).toLocaleString();
-        const dexterity = (personalStats.dexterity || tornApiData.dexterity || 0).toLocaleString();
-        const defense = (personalStats.defense || tornApiData.defense || 0).toLocaleString();
-
-        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
-
-        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
-        const manuelLabor = (personalStats.manuallabor || tornApiData.manual_labor || 0).toLocaleString();
-        const intelligence = (personalStats.intelligence || tornApiData.intelligence || 0).toLocaleString();
-        const endurance = (personalStats.endurance || tornApiData.endurance || 0).toLocaleString();
-        
-        const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
-        const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
-
-        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
-
-        // Nerve and Energy display values
-        const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
-        const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
-        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
-        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
-
-        const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
-        const energyMax = energy.maximum !== undefined ? energy.maximum : '';
-        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
-        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
-
-        let cooldownsHtml = ''; // Will build this as list items for 3 columns
-        if (Object.keys(cooldowns).length > 0) {
-            for (const key in cooldowns) {
-                if (cooldowns.hasOwnProperty(key)) {
-                    const timeLeft = cooldowns[key];
-                    let displayValue;
-                    if (typeof timeLeft === 'number' && timeLeft > 0) {
-                        displayValue = formatTime(timeLeft);
-                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
-                        displayValue = 'Ready';
-                    } else {
-                        displayValue = 'N/A';
-                    }
-                    cooldownsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${displayValue}</li>`;
-                }
-            }
-        } else {
-            cooldownsHtml += '<li>No active cooldowns.</li>';
-        }
-
-        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
-
-        // Use the new lastActionData object directly
-        const lastActionTimestamp = lastActionData.timestamp ? lastActionData.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp);
-
-        // Use the new mainStatusData object directly
-        let statusText = mainStatusData.description || 'Unknown';
-        let statusClass = 'status-okay';
-
-        if (mainStatusData) { // Check if mainStatusData is not null/undefined
-            if (mainStatusData.state === 'Hospital') {
-                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
-                statusText = `In Hospital (${formatTime(timeLeft)})`;
-                statusClass = 'status-hospital';
-            } else if (mainStatusData.state === 'Traveling') {
-                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
-                statusText = `${mainStatusData.description} (${formatTime(timeLeft)})`;
-                statusClass = 'status-traveling';
-            } else if (mainStatusData.state !== 'Okay') {
-                statusText = mainStatusData.description;
-                statusClass = 'status-other';
-            }
-        }
-        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
-
-        let overallAccessMessage = '';
-        if (apiErrorMessage) {
-            overallAccessMessage = `<p class="member-detail-error-message">Note: ${apiErrorMessage}</p>`;
-        }
-
-        // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
-        const detailsHtml = `
-            <div class="member-detail-header">
-                <div class="member-header-top-row">
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Energy:</h5>
-                        <p>${energyDisplay}</p>
-                    </div>
-                    ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Nerve:</h5>
-                        <p>${nerveDisplay}</p>
-                    </div>
-                </div>
-                <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
-            </div>
-
-            ${overallAccessMessage}
-
-            <div class="member-detail-info-row"> 
-                <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
-                <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
-            </div>
-
-            <div class="member-stats-group-row">
-                <div class="member-stat-block">
-                    <h5>Battle Stats:</h5>
-                    <div class="member-stats-grid">
-                        <span>Strength:</span> <span>${strength}</span>
-                        <span>Defense:</span> <span>${defense}</span>
-                        <span>Speed:</span> <span>${speed}</span>
-                        <span>Dexterity:</span> <span>${dexterity}</span>
-                    </div>
-                </div>
-                <div class="member-stat-block">
-                    <h5>Work Stats:</h5>
-                    <div class="member-stats-grid">
-                        <span>Job:</span> <span>${job}</span>
-                        <span>Efficiency:</span> <span>${jobEfficiency}</span>
-                        <span>Manual Labor:</span> <span>${manuelLabor}</span>
-                        <span>Intelligence:</span> <span>${intelligence}</span>
-                        <span>Endurance:</span> <span>${endurance}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="member-cooldowns-block">
-                <h5>Cool downs</h5>
-                <ul class="member-cooldowns-list">
-                    ${cooldownsHtml}
-                </ul>
-            </div>
-        `;
-
-        detailPanel.innerHTML = detailsHtml;
-
-    } catch (error) {
-        console.error("Error fetching member details:", error);
-        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
-    }
-}
-// UPDATED: Now performs its own API call to fetch current chain data regularly.
 async function fetchAndDisplayChainData() {
     // Only proceed if API key and faction ID are available globally.
     if (!userApiKey || !globalYourFactionID) {
@@ -3099,131 +3082,6 @@ function loadWarStatusForEdit(warData = {}) {
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
 
-
-// NEW: Autocomplete setup for the Current Team Lead input
-function setupTeamLeadAutocomplete(allFactionMembers) {
-    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-    if (!currentTeamLeadInput) return;
-
-    let autocompleteList = null; 
-    let currentFocus = -1;
-
-    const filterMembers = (searchTerm) => {
-        searchTerm = searchTerm.toLowerCase();
-        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
-        return Object.values(allFactionMembers).filter(member => 
-            member.name && member.name.toLowerCase().startsWith(searchTerm)
-        ).sort((a, b) => a.name.localeCompare(b.name));
-    };
-
-    const showSuggestions = (arr) => {
-        closeAllLists();
-        if (!arr.length) return false;
-
-        autocompleteList = document.createElement("DIV");
-        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
-        autocompleteList.setAttribute("class", "autocomplete-items");
-        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
-
-        arr.forEach(member => {
-            const item = document.createElement("DIV");
-            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
-            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
-            item.innerHTML += `<input type="hidden" value="${member.name}">`;
-            
-            item.addEventListener("click", function(e) {
-                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
-                closeAllLists();
-                currentTeamLeadInput.focus();
-            });
-            autocompleteList.appendChild(item);
-        });
-        return true;
-    };
-
-    currentTeamLeadInput.addEventListener("input", function(e) {
-        const matches = filterMembers(this.value);
-        showSuggestions(matches);
-        currentFocus = -1;
-    });
-
-    currentTeamLeadInput.addEventListener("keydown", function(e) {
-        let x = document.getElementById(this.id + "-autocomplete-list");
-        if (x) x = x.getElementsByTagName("div");
-
-        if (e.keyCode == 40) { // DOWN
-            currentFocus++;
-            addActive(x);
-        } else if (e.keyCode == 38) { // UP
-            currentFocus--;
-            addActive(x);
-        } else if (e.keyCode == 13) { // ENTER
-            e.preventDefault();
-            if (currentFocus > -1) {
-                if (x) x[currentFocus].click();
-            } else {
-                closeAllLists();
-            }
-        } else if (e.keyCode == 27) { // ESC
-            closeAllLists();
-        }
-    });
-
-    const addActive = (x) => {
-        if (!x) return false;
-        removeActive(x);
-        if (currentFocus >= x.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = (x.length - 1);
-        x[currentFocus].classList.add("autocomplete-active");
-    };
-
-    const removeActive = (x) => {
-        for (let i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
-        }
-    };
-
-    const closeAllLists = (elmnt) => {
-        const x = document.getElementsByClassName("autocomplete-items");
-        for (let i = 0; i < x.length; i++) {
-            if (elmnt != x[i] && elmnt != currentTeamLeadInput) {
-                x[i].parentNode.removeChild(x[i]);
-            }
-        }
-        currentFocus = -1;
-    };
-
-    document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-    });
-}
-
-function setupMemberClickEvents() {
-    if (!friendlyMembersTbody) {
-        console.error("Cannot set up click events, friendly members table body not found.");
-        return;
-    }
-
-    friendlyMembersTbody.addEventListener('click', (event) => {
-        // This finds the specific table row (tr) that you clicked on
-        const clickedRow = event.target.closest('tr');
-        if (!clickedRow) {
-            return; 
-        }
-
-        // This reads the ID from the 'data-id' attribute of that row
-        const memberId = clickedRow.dataset.id;
-
-        if (memberId) {
-            // If it finds an ID, it calls the function to fetch the details
-            fetchAndDisplayMemberDetails(memberId);
-        } else {
-            // If you see this error in the F12 console, it means the 'data-id' 
-            // attribute is missing from your <tr> elements in the HTML.
-            console.error("Clicked row is missing the 'data-id' attribute.");
-        }
-    });
-}
 
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
@@ -3685,111 +3543,6 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
-async function populateRecentlyMetTab(targetDisplayElement) {
-    if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for Recently Met tab.");
-        return;
-    }
-
-    // Set a simple loading message without the extra title
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
-
-    try {
-        // Step 1: Fetch the last 5 wars to get their IDs
-        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
-        const historyResponse = await fetch(historyUrl);
-        const historyData = await historyResponse.json();
-
-        if (historyData.error) throw new Error(historyData.error.error);
-
-        const wars = historyData.rankedwars || [];
-        if (wars.length === 0) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
-            return;
-        }
-
-        // Step 2: Fetch detailed reports for those wars
-        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
-        const reportPromises = wars.map(war => 
-            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
-        );
-        const warReports = await Promise.all(reportPromises);
-
-        // Step 3: Aggregate and deduplicate all opponents
-        const opponentsMap = new Map();
-        warReports.forEach(reportData => {
-            const report = reportData.rankedwarreport;
-            if (!report || !report.factions) return;
-
-            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
-            if (opponentFaction && opponentFaction.members) {
-                opponentFaction.members.forEach(member => {
-                    if (!opponentsMap.has(member.id)) {
-                        opponentsMap.set(member.id, { id: member.id, name: member.name });
-                    }
-                });
-            }
-        });
-        
-        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
-        if (uniqueOpponentIds.length === 0) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
-            return;
-        }
-
-        // Step 4: Check registration status in chunks
-        const registeredUserIds = new Set();
-        const chunkSize = 30;
-        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
-            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
-            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
-            querySnapshot.forEach(doc => {
-                registeredUserIds.add(doc.data().tornProfileId);
-            });
-        }
-
-        // Step 5: Build the final HTML grid
-        const membersListContainer = document.createElement('div');
-        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
-
-        let cardsHtml = '';
-        for (const opponent of opponentsMap.values()) {
-            const isRegistered = registeredUserIds.has(String(opponent.id));
-            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
-            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
-
-            let messageButton;
-            if (isRegistered) {
-                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
-            } else {
-                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
-                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
-            }
-
-            cardsHtml += `
-                <div class="member-item">
-                    <div class="member-identity">
-                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
-                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
-                    </div>
-                    <div class="member-actions">
-                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
-                        ${messageButton}
-                    </div>
-                </div>
-            `;
-        }
-
-        membersListContainer.innerHTML = cardsHtml;
-        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
-        targetDisplayElement.appendChild(membersListContainer);
-
-    } catch (error) {
-        console.error("Error populating Recently Met tab:", error);
-        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
-    }
-}
-
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
@@ -3887,75 +3640,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 }
 
-async function displayQuickFFTargets(userApiKey, playerId) {
-    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-    if (!quickFFTargetsDisplay) {
-        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
-        return;
-    }
-
-    if (quickFFTargetsDisplay.innerHTML === '') {
-        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
-    }
-
-    if (!userApiKey || !playerId) {
-        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
-        }
-        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
-        return;
-    }
-
-    try {
-        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
-        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
-        
-        const functionUrl = `/.netlify/functions/get-recommended-targets`;
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
-        });
-        const data = await response.json();
-
-        if (!response.ok || data.error) {
-            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
-            console.error("Error fetching Quick FF Targets:", errorMessage);
-            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
-                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
-            }
-            return;
-        }
-
-        if (!data.targets || data.targets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
-            lastDisplayedTargetIDs = [];
-            consecutiveSameTargetsCount = 0;
-            return;
-        }
-
-        let availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
-
-        if (availableTargets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
-            lastDisplayedTargetIDs = [];
-            consecutiveSameTargetsCount = 0;
-            return;
-        }
-
-        // --- CHANGE IS HERE ---
-        const MAX_TARGETS_TO_DISPLAY = 3; // Changed from 2 to 3
-        const MAX_SHUFFLE_ATTEMPTS = 10; 
-
-        let finalSelectedTargets = [];
-        let currentDisplayedTargetIDs = [];
-        let attempt = 0;
-
-        do {
-            for (let i = availableTargets.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]];
-            }
+}
 
             finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
             currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
@@ -4501,6 +4186,36 @@ if (availabilityTab) {
         });
     }
 	
+	
+
+    // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const originalText = saveEnergyTrackMembersBtn.textContent;
+            saveEnergyTrackMembersBtn.disabled = true;
+            saveEnergyTrackMembersBtn.textContent = "Saving...";
+            try {
+                const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                await db.collection('factionWars').doc('currentWar').set({
+                    energyTrackingMembers: selectedEnergyMemberIds
+                }, {
+                    merge: true
+                });
+                saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+                saveEnergyTrackMembersBtn.textContent = "Error! ❌";
+                showCustomAlert("Failed to save energy tracking members. Check console.", "Save Error");
+            } finally {
+                setTimeout(() => {
+                    saveEnergyTrackMembersBtn.disabled = false;
+                    saveEnergyTrackMembersBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
     // Big Hitter Watchlist Save Listener (added to DOMContentLoaded as a one-time setup)
     if (saveSelectionsBtnBH) { // Assuming this is your save button for Big Hitters
         saveSelectionsBtnBH.addEventListener('click', async () => {
@@ -4593,6 +4308,83 @@ if (availabilityTab) {
     }
 
 }); // --- END OF DOMCONTENTLOADED ---
+
+/**
+ * ==================================================================
+ * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
+ * ==================================================================
+ */
+
+// Helper function to parse a stat string into a number.
+function parseStatValue(statString) {
+    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
+        return 0;
+    }
+    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
+    let multiplier = 1;
+    if (sanitizedString.endsWith('k')) {
+        multiplier = 1000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('m')) {
+        multiplier = 1000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('b')) {
+        multiplier = 1000000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    }
+    const number = parseFloat(sanitizedString);
+    return isNaN(number) ? 0 : number * multiplier;
+}
+
+/**
+ * Applies CSS classes to table cells based on battle stat tiers for color coding.
+ * This function needs to be called after the table is populated.
+ */
+function applyStatColorCoding() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) {
+        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
+        return;
+    }
+
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+
+    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
+
+    statCells.forEach(cell => {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
+            cell.classList.remove(`stat-tier-${i}`);
+        }
+        cell.classList.remove('stat-cell');
+
+        // Now, determine and add the correct new class
+        const value = parseStatValue(cell.textContent);
+        let tierClass = '';
+
+        // New 14-tier logic
+        if (value >= 10000000000)      { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+
+        if (tierClass) {
+            cell.classList.add(tierClass);
+            cell.classList.add('stat-cell'); // General class for stat cells
+        }
+    });
+}
 
 function blockLandscape() {
   const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
