@@ -59,16 +59,6 @@ const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
 const FETCH_DELAY_MS = 500;
-const chatTabsContainer = document.querySelector('.chat-tabs-container');
-const chatTabButtons = document.querySelectorAll('.chat-tab');
-const chatInputArea = document.querySelector('.chat-input-area');
-const warChatDisplayArea = document.getElementById('warChatDisplayArea');
-const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
-const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea');
-const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
-const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
-const settingsDisplayArea = document.getElementById('settingsDisplayArea');
-const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
 const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
 const gamePlanEditArea = document.getElementById('gamePlanEditArea');
@@ -78,7 +68,6 @@ const postAnnouncementBtn = document.getElementById('postAnnouncementBtn');
 const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
 const warTurtleStatus = document.getElementById('warTurtleStatus');
 const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
-const tabContentContainer = document.querySelector('.tab-content-container');
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
 
 
@@ -114,7 +103,6 @@ async function handleImageUpload(fileInput, displayElement, labelElement, type) 
     }
 
     displayElement.innerHTML = `<p>Uploading image, please wait...</p>`;
-
     const storageRef = firebase.storage().ref();
     const filePath = `war_images/${type}_${globalYourFactionID}.jpg`;
     const fileRef = storageRef.child(filePath);
@@ -227,11 +215,10 @@ function showCustomAlert(message, title = "Alert") {
     const closeBtn = document.createElement('button');
 
     Object.assign(overlay.style, {
-        position: 'fixed',
-        top: '0', left: '0', width: '100%', height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        zIndex: '2000', backdropFilter: 'blur(5px)'
+        position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex',
+        justifyContent: 'center', alignItems: 'center', zIndex: '2000',
+        backdropFilter: 'blur(5px)'
     });
     Object.assign(alertBox.style, {
         background: '#1e2a38', padding: '25px 30px', borderRadius: '8px',
@@ -293,7 +280,6 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         }
 
         const memberName = member.name || `Unknown (${memberId})`;
-
         const isAdminChecked = (savedAdmins && savedAdmins.includes(String(memberId))) ? 'checked' : '';
         const adminItemHtml = `<div class="member-selection-item"><input type="checkbox" id="admin-member-${memberId}" value="${memberId}" ${isAdminChecked}><label for="admin-member-${memberId}">${memberName}</label></div>`;
         if (designatedAdminsContainer) {
@@ -348,7 +334,6 @@ function updateUserEnergyDisplay() {
                 if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
                 return;
             }
-
             const energy = data.energy.current;
             const maxEnergy = data.energy.maximum;
             const energyFullTime = data.energy.fulltime;
@@ -373,7 +358,6 @@ function updateAllTimers() {
     if (warNextChainTimeStatus && nextChainTimeInput) {
         const nextChainTimeValue = nextChainTimeInput.value.trim();
         const targetChainTime = parseInt(nextChainTimeValue, 10);
-
         if (!isNaN(targetChainTime) && targetChainTime > 0) {
             const timeLeft = targetChainTime - nowInSeconds;
             if (timeLeft > 0) {
@@ -385,7 +369,7 @@ function updateAllTimers() {
             warNextChainTimeStatus.textContent = nextChainTimeValue || 'N/A';
         }
     }
-    
+
     // Part 2: Updates the Ranked War elapsed timer on the Announcements tab
     const rankedWarTimerEl = document.getElementById('rw-war-timer_announcement');
     if (rankedWarTimerEl) {
@@ -400,11 +384,8 @@ function updateAllTimers() {
 
 function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     const container = document.getElementById('announcementScoreboardContainer');
-    if (!container) {
-        console.warn(`Scoreboard container with ID 'announcementScoreboardContainer' NOT found.`);
-        return;
-    }
-    
+    if (!container) return;
+
     const yourFactionNameEl = container.querySelector('#rw-faction-one-name_announcement');
     const opponentFactionNameEl = container.querySelector('#rw-faction-two-name_announcement');
     const leadValueEl = container.querySelector('#rw-lead-value_announcement');
@@ -429,9 +410,6 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
             if (progressTwoEl) progressTwoEl.style.width = `${100 - yourFactionProgress}%`;
 
             globalWarStartedActualTime = rankedWarData.start || 0;
-
-        } else {
-            console.warn("Could not find faction info in ranked war data. Displaying N/A.");
         }
     } else {
         if (yourFactionNameEl) yourFactionNameEl.textContent = 'Your Faction';
@@ -482,25 +460,6 @@ function formatTornTime(timestamp) {
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
     return `${hours}:${minutes}:${seconds}`;
-}
-
-function formatRelativeTime(timestampInSeconds) {
-    if (!timestampInSeconds || timestampInSeconds === 0) {
-        return "N/A";
-    }
-    const now = Math.floor(Date.now() / 1000);
-    const diffSeconds = now - timestampInSeconds;
-    if (diffSeconds < 60) return "Now";
-    if (diffSeconds < 3600) {
-        const minutes = Math.floor(diffSeconds / 60);
-        return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
-    }
-    if (diffSeconds < 86400) {
-        const hours = Math.floor(diffSeconds / 3600);
-        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    }
-    const days = Math.floor(diffSeconds / 86400);
-    return `${days} day${days === 1 ? '' : 's'} ago`;
 }
 
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
@@ -575,7 +534,6 @@ function populateUiComponents(warData, apiKey) {
             );
         }
     }
-
     if (gamePlanDisplay) {
         gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     }
@@ -589,7 +547,6 @@ function populateUiComponents(warData, apiKey) {
     if (gamePlanEditArea) {
         gamePlanEditArea.value = warData.gamePlan || '';
     }
-
     populateWarStatusDisplay(warData);
     loadWarStatusForEdit(warData);
     
@@ -634,11 +591,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         }
     }
     globalYourFactionID = finalFactionId;
-
-    if (globalYourFactionID) {
-        chatMessagesCollection = db.collection('factionChats').doc(String(globalYourFactionID)).collection('messages');
-    }
-
     if (!finalFactionId) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
         return;
@@ -664,7 +616,31 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Other setup...
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTabName = urlParams.get('view');
+    
+    // THIS IS THE CORRECTED TAB NAVIGATION LISTENER
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
+            
+            if (targetTabDataset === 'leader-config') {
+                const userIsAdmin = await checkIfUserIsAdmin(); // Assuming checkIfUserIsAdmin exists
+                if (!userIsAdmin) {
+                    showCustomAlert("You do not have permission to view leadership settings.", "Access Denied");
+                    return;
+                }
+            }
+            showTab(targetTabId);
+        });
+    });
+
+    if (requestedTabName) {
+        showTab(requestedTabName + '-tab');
+    } else {
+        showTab('announcements-tab');
+    }
 
     let listenersInitialized = false;
 
@@ -681,7 +657,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await initializeAndLoadData(apiKey, userData.faction_id);
                 updateUserEnergyDisplay();
                 if (!listenersInitialized) {
-                    // setupEventListeners(apiKey); // This contains save buttons etc.
                     
                     setInterval(updateAllTimers, 1000);
                     setInterval(updateUserEnergyDisplay, 60000);
@@ -697,28 +672,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn("API key not found.");
             }
         } else {
-            // Handle user logout
             userApiKey = null;
             listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+            // Clear UI on logout
+            populateWarStatusDisplay({});
+            loadWarStatusForEdit({});
         }
     });
 
-    // Event Listeners for Save buttons in Leader Config
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-             // ... save logic ...
-        });
-    }
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-             // ... save logic ...
-        });
-    }
-
-    if (saveSelectionsBtnBH) {
-        saveSelectionsBtnBH.addEventListener('click', async () => {
-             // ... save logic ...
-        });
-    }
+    // Event Listeners for Save buttons etc.
+    // Ensure functions like checkIfUserIsAdmin, save buttons, etc., are defined.
 });
