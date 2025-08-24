@@ -1,4 +1,4 @@
-// mysite/js/broker.js (Final Portfolio Tracker Version)
+// mysite/js/broker.js (Final Simplified Version)
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleApiError(message) {
         if (brokerApiKeyErrorDiv) brokerApiKeyErrorDiv.textContent = message;
-        itemTableBody.innerHTML = `<tr><td colspan="8" class="error-message">${message}</td></tr>`;
+        itemTableBody.innerHTML = `<tr><td colspan="7" class="error-message">${message}</td></tr>`;
     }
 
     // --- Data Fetching ---
@@ -117,12 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function refreshWatchlistDisplay() {
         if (watchlist.length === 0) {
-            itemTableBody.innerHTML = `<tr><td colspan="8">Add an item to your portfolio to begin...</td></tr>`;
+            itemTableBody.innerHTML = `<tr><td colspan="7">Add an item to your portfolio to begin...</td></tr>`;
             currentItemsSpan.textContent = '0';
             return;
         }
 
-        itemTableBody.innerHTML = `<tr><td colspan="8">Fetching market data for ${watchlist.length} item(s)...</td></tr>`;
+        itemTableBody.innerHTML = `<tr><td colspan="7">Fetching market data for ${watchlist.length} item(s)...</td></tr>`;
         currentItemsSpan.textContent = watchlist.length;
 
         const promises = watchlist.map(itemId =>
@@ -139,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemPortfolioData = portfolio[itemId] || { quantity: 0, buyPrice: 0 };
 
             const liveMarketPrice = marketData?.itemmarket?.item?.average_price || 0;
-            const marketValue = itemInfo?.market_value || 0;
 
             const row = document.createElement('tr');
             row.dataset.itemId = itemId;
@@ -148,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td><a href="https://www.torn.com/imarket.php#/p=shop&step=browse&type=${itemId}" target="_blank" class="item-link">${itemInfo.name}</a></td>
                 <td>$${liveMarketPrice.toLocaleString()}</td>
-                <td>$${marketValue.toLocaleString()}</td>
                 <td><input type="number" class="quantity-input" value="${itemPortfolioData.quantity}" placeholder="0"></td>
                 <td><input type="number" class="buy-price-input" value="${itemPortfolioData.buyPrice}" placeholder="0"></td>
                 <td class="current-value-cell">$0</td>
