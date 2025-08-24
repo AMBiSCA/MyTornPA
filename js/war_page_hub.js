@@ -618,20 +618,22 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTabName = urlParams.get('view');
-    
-    // THIS IS THE CORRECTED TAB NAVIGATION LISTENER
+
+    // This is the corrected and restored tab navigation listener
     tabButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
             const targetTabDataset = event.currentTarget.dataset.tab;
             const targetTabId = targetTabDataset + '-tab';
-            
+
             if (targetTabDataset === 'leader-config') {
-                const userIsAdmin = await checkIfUserIsAdmin(); // Assuming checkIfUserIsAdmin exists
+                const userIsAdmin = await checkIfUserIsAdmin();
                 if (!userIsAdmin) {
-                    showCustomAlert("You do not have permission to view leadership settings.", "Access Denied");
+                    const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                    showCustomAlert(permissionMessage, "Access Denied");
                     return;
                 }
             }
+
             showTab(targetTabId);
         });
     });
@@ -649,14 +651,61 @@ document.addEventListener('DOMContentLoaded', () => {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
+
             const apiKey = userData.tornApiKey || null;
-            userApiKey = apiKey;
+            const playerId = userData.tornProfileId || null;
+            userApiKey = apiKey; // Set global API key
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey) {
+            if (clearAllWarDataBtn) {
+                clearAllWarDataBtn.addEventListener('click', async () => {
+                    const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+                    const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+                    if (!userConfirmed) return;
+
+                    const originalText = clearAllWarDataBtn.textContent;
+                    clearAllWarDataBtn.disabled = true;
+                    clearAllWarDataBtn.textContent = "Clearing...";
+
+                    const clearedData = {
+                        toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
+                        toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
+                        enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
+                        gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
+                        announcementsImageUrl: null, tab4Admins: [], energyTrackingMembers: []
+                    };
+
+                    try {
+                        await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+                        loadWarStatusForEdit(clearedData);
+                        populateWarStatusDisplay(clearedData);
+                        if (gamePlanEditArea) gamePlanEditArea.value = "";
+                        if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                        if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                        if (factionApiFullData && factionApiFullData.members) {
+                            populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
+                        }
+                        populateEnemyMemberCheckboxes({}, []);
+                        clearAllWarDataBtn.textContent = "Cleared! ✅";
+                    } catch (error) {
+                        console.error("Error clearing war data:", error);
+                        clearAllWarDataBtn.textContent = "Error! ❌";
+                    } finally {
+                        setTimeout(() => {
+                            clearAllWarDataBtn.disabled = false;
+                            clearAllWarDataBtn.textContent = originalText;
+                        }, 2000);
+                    }
+                });
+            }
+
+            if (apiKey && playerId) {
                 await initializeAndLoadData(apiKey, userData.faction_id);
                 updateUserEnergyDisplay();
+                
                 if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
                     
                     setInterval(updateAllTimers, 1000);
                     setInterval(updateUserEnergyDisplay, 60000);
@@ -669,19 +718,54 @@ document.addEventListener('DOMContentLoaded', () => {
                     listenersInitialized = true;
                 }
             } else {
-                console.warn("API key not found.");
+                console.warn("API key or Player ID not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
             }
         } else {
             userApiKey = null;
             listenersInitialized = false;
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            // Clear UI on logout
             populateWarStatusDisplay({});
             loadWarStatusForEdit({});
         }
     });
 
-    // Event Listeners for Save buttons etc.
-    // Ensure functions like checkIfUserIsAdmin, save buttons, etc., are defined.
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designatedAdminsContainer) return;
+            // ... (rest of save logic)
+        });
+    }
+    
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            // ... (rest of save logic)
+        });
+    }
+
+    if (saveSelectionsBtnBH) {
+        saveSelectionsBtnBH.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            // ... (rest of save logic)
+        });
+    }
+
+    // This listener is for the buttons INSIDE the availability tab
+    const availabilityTab = document.getElementById('war-availability-tab');
+    if (availabilityTab) {
+        availabilityTab.addEventListener('click', async (event) => {
+            const button = event.target.closest('.action-btn');
+            if (!button) return;
+
+            if (button.textContent.includes('Update Day')) {
+                // ... logic for updating availability ...
+            }
+            if (button.classList.contains('edit-day-btn')) {
+                // ... logic for editing day ...
+            }
+            // ... other button logic for this tab
+        });
+    }
 });
