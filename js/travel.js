@@ -86,6 +86,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper Functions
     
+	function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+	
     // Fetch All Torn Items
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
@@ -528,34 +536,38 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.display = 'none';
     });
     
-   itemSearchInput.addEventListener('input', async () => {
+  // This function contains the actual logic that runs after the delay
+const handleSearchAndDisplay = async () => {
     const searchQuery = itemSearchInput.value.trim();
     const apiKey = currentTornApiKey;
 
-    // First, check if there is an API key. If not, stop.
     if (!apiKey) {
         errorDisplay.textContent = 'No Torn API Key available.';
         return;
     }
 
-    // If the search query has text, run the search function.
+    // If there's a search query, run the search
     if (searchQuery) {
         await searchItemsAndDisplayResults(searchQuery, apiKey);
     } 
-    // If the search query is empty (e.g., the user backspaced everything),
-    // revert to showing the items for the selected country.
+    // Otherwise, revert to the country display
     else {
         const selectedCountryId = destinationSelect.value;
         if (selectedCountryId) {
             selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
             await displayItemsForCountry(selectedCountryId, apiKey);
         } else {
-            // If no country is selected, show the default message.
             selectedCountryNameSpan.textContent = 'Selected Country';
             itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
         }
     }
-});
+};
+
+// Create a debounced version of our function (300ms delay)
+const debouncedSearchHandler = debounce(handleSearchAndDisplay, 300);
+
+// Attach the debounced handler to the search bar's input event
+itemSearchInput.addEventListener('input', debouncedSearchHandler);
 
     destinationSelect.addEventListener('change', async () => {
         const selectedCountryId = destinationSelect.value;
