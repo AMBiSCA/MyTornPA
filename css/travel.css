@@ -237,7 +237,6 @@ header {
     text-align: left;
     position: relative;
     z-index: 1;
-    min-height: 0;
     border: 2px solid #00a8ff;
 }
 .page-specific-content-area h2 {
