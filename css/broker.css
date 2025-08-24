@@ -134,6 +134,7 @@
     width: 100%;
     border-collapse: collapse;
     background-color: #1c1c1c;
+    /* Adjusted min-width for the new columns */
     min-width: 950px; 
 }
 
@@ -174,7 +175,7 @@
     font-size: 0.8rem;
     font-weight: bold;
     color: #fff;
-    background-color: #cc0000;
+    background-color: #cc0000; /* Red for remove button */
     border: 1px solid #ff4d4d;
     border-radius: 6px;
     text-decoration: none;
@@ -196,22 +197,18 @@
     text-decoration: underline;
 }
 
-/* --- STYLES FOR PORTFOLIO TRACKER (CORRECTED) --- */
-.item-table input[type="text"] {
-    width: 100%;
-    max-width: 130px;
-    height: 36px;
-    padding: 6px 10px;
+/* --- STYLES FOR PORTFOLIO TRACKER --- */
+.item-table input[type="number"] {
+    width: 100px;
+    padding: 6px;
     background-color: #121212;
     border: 1.5px solid #007acc;
     color: #eee;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 0.9rem;
     font-weight: bold;
-    text-align: left;
-    box-sizing: border-box;
+    text-align: right;
 }
-
 /* Hide the number input arrows */
 .item-table input[type=number] {
   -moz-appearance: textfield;
@@ -224,15 +221,15 @@
 
 /* Colors for Profit/Loss column */
 .profit {
-    color: #4CAF50 !important;
+    color: #4CAF50 !important; /* Green */
 }
 
 .loss {
-    color: #F44336 !important;
+    color: #F44336 !important; /* Red */
 }
 
 .neutral {
-    color: #9E9E9E !important;
+    color: #9E9E9E !important; /* Grey */
 }
 /* --- END PORTFOLIO STYLES --- */
 
