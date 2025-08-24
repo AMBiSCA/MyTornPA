@@ -312,7 +312,7 @@ header {
     width: 100%;
     padding: 10px 12px;
     margin-bottom: 0;
-    border: 1px solid #00a8ff;
+    border: 1px solid black;
     border-radius: 5px;
     box-sizing: border-box;
     background-color: #383838;
@@ -322,7 +322,7 @@ header {
 .input-section hr {
     width: 100%;
     border: none;
-    border-top: 1px solid #00a8ff;
+    border-top: 1px solid black;
     margin: 0;
 }
 .input-section p {
@@ -420,7 +420,7 @@ header {
     padding: 15px;
     background-color: #2e2e2e;
     border-radius: 8px;
-    border: 1px dashed #00a8ff;
+    border: 1px dashed black;
 }
 
 /* --- NEW COMPACT ITEM CARD STYLES --- */
