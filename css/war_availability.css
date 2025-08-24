@@ -1,22 +1,13 @@
-/* ---- START: Layout Fix ---- */
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+/* ---- START: New Layout Fix ---- */
+
+/* This rule directly targets the dark content box */
+#warAvailabilityContainer {
+    /* We are calculating the height it needs to be: 
+       100% of the viewport height (100vh) MINUS the space for the header/footer. */
+    min-height: calc(100vh - 145px); 
 }
 
-.main-content-wrapper {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-#warAvailabilityContainer.styled-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-/* ---- END: Layout Fix ---- */
+/* ---- END: New Layout Fix ---- */
 
 
 /* General Page Layout */
@@ -26,6 +17,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     margin-top: 20px;
+    margin-bottom: 20px; /* Added a bottom margin for spacing */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -47,7 +39,6 @@ body {
     grid-template-columns: 1fr 1.5fr; /* Left column is smaller than the right */
     gap: 20px;
     padding: 10px;
-    flex-grow: 1; /* Makes the grid expand to fill the container */
 }
 
 /* Panel Styling (for both left and right columns) */
@@ -212,7 +203,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 70vh;
+    /* max-height: 70vh; This is removed to allow the parent to control height */
     overflow-y: auto;
     padding-right: 5px;
 }
