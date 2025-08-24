@@ -19,7 +19,19 @@ let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for l
 let unsubscribeFromChat = null;
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
+let lastEmojiIndex = -1; // To keep track of the last emoji used
+let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
+let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
+let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let scrollUpIndicatorEl = null;
+let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
+let claimedTargets = new Set(); // This will remember the claimed target IDs
+let userEnergyDisplay = null;
+let onlineFriendlyMembersDisplay = null;
+let onlineEnemyMembersDisplay = null;
+let globalActiveClaims = {};
+let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
+let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 let orientationOverlay = null;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -59,7 +71,16 @@ const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
 const FETCH_DELAY_MS = 500;
+const chatTabsContainer = document.querySelector('.chat-tabs-container');
+const chatTabButtons = document.querySelectorAll('.chat-tab');
+const chatInputArea = document.querySelector('.chat-input-area');
+const warChatDisplayArea = document.getElementById('warChatDisplayArea');
+const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
+const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea');
+const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
 const settingsDisplayArea = document.getElementById('settingsDisplayArea');
+const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
 const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
 const factionOneNameEl = document.getElementById('factionOneName');
@@ -135,14 +156,6 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-function formatBattleStats(num) {
-    if (isNaN(num) || num === 0) return '0';
-    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
-    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-    return num.toLocaleString();
-}
-
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
     // Safety check to make sure the button/label element was passed correctly
     if (!labelElement) {
@@ -210,129 +223,6 @@ async function handleImageUpload(fileInput, displayElement, labelElement, type) 
             labelElement.innerHTML = originalLabelHTML;
         }, 2000);
     }
-}
-
-async function sendClaimChatMessage(claimerName, targetName, chainNumber, customMessage = null) {
-    if (!chatMessagesCollection || !auth.currentUser) {
-        console.warn("Cannot send claim/unclaim message: Firebase collection or user not available.");
-        return;
-    }
-
-    let messageText;
-    if (customMessage) {
-        messageText = customMessage; // Use the provided custom message
-    } else {
-        // Default message for a 'claim' action
-        messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
-    }
-    
-    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
-
-    const messageObj = {
-        senderId: auth.currentUser.uid,
-        sender: "Chain Alert:", // --- CHANGED SENDER PREFIX HERE ---
-        text: filteredMessage,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        type: 'claim_notification'
-    };
-
-    try {
-        await chatMessagesCollection.add(messageObj);
-        console.log("Claim/Unclaim message sent to Firebase:", messageObj);
-
-        // Display locally immediately without waiting for Firebase listener
-        displayChatMessage(messageObj); 
-
-    } catch (error) {
-        console.error("Error sending claim/unclaim message to Firebase:", error);
-    }
-}
-
-function autoUnclaimHitTargets() {
-    console.log("Running autoUnclaimHitTargets check (chain progression-based)...");
-    if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
-        console.log("No active claims to check for auto-unclaim.");
-        return;
-    }
-    if (!enemyDataGlobal || !enemyDataGlobal.members) {
-        console.warn("Enemy data not available for auto-unclaim check.");
-        return;
-    }
-    if (!auth.currentUser) {
-        console.warn("User not logged in. Cannot auto-unclaim targets.");
-        return;
-    }
-
-    const membersInCurrentEnemyData = Object.values(enemyDataGlobal.members);
-    const currentEnemyMemberIds = new Set(membersInCurrentEnemyData.map(m => String(m.id)));
-
-    for (const memberId in globalActiveClaims) {
-        if (globalActiveClaims.hasOwnProperty(memberId)) {
-            const activeClaim = globalActiveClaims[memberId]; // The current claim from Firebase
-
-            // --- Condition 1: Auto-unclaim if target has disappeared from enemy data ---
-            if (!currentEnemyMemberIds.has(memberId)) {
-                console.warn(`Claimed target ${memberId} not found in current enemy data (might have disappeared). Auto-unclaiming.`);
-                unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
-                continue; // Move to the next claim
-            }
-
-            // --- Condition 2: Auto-unclaim if the chain has progressed past this claimed hit number ---
-            // This is the NEW logic you requested.
-            // Check if localCurrentClaimHitCounter (which represents the faction's current chain status)
-            // is greater than or equal to the hit number this target was claimed for.
-            if (localCurrentClaimHitCounter >= activeClaim.chainHitNumber && activeClaim.chainHitNumber > 0) {
-                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
-                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
-                console.log(`Auto-unclaiming ${memberName} (${memberId}). Chain (${localCurrentClaimHitCounter}) has surpassed claimed hit (${activeClaim.chainHitNumber}).`);
-                unclaimTarget(memberId); // Call the unclaim function for this target
-            } else {
-                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
-                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
-                console.log(`Claimed target ${memberName} (${memberId}) is still active. Chain: ${localCurrentClaimHitCounter}, Claimed for: ${activeClaim.chainHitNumber}.`);
-            }
-        }
-    }
-}
-
-function displayChatMessage(message) {
-    // This is the ID from your new chat system's HTML for the war chat
-    const displayArea = document.getElementById('war-chat-display-area'); 
-    
-    if (!displayArea) {
-        console.error("Fatal Error: Could not find the war chat display area with ID 'war-chat-display-area'.");
-        return;
-    }
-
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('chat-message', 'system-notification'); // Add classes for styling
-
-    // Format the message content
-    // Note: The 'sender' is "Chain Alert:" from your other function
-    messageDiv.innerHTML = `<strong>${message.sender}</strong> ${message.text}`;
-    
-    // Add the new message to the chat display
-    displayArea.appendChild(messageDiv);
-
-    // Automatically scroll to the bottom to see the latest message
-    displayArea.scrollTop = displayArea.scrollHeight;
-}
-
-function areTargetSetsIdentical(set1, set2) {
-    if (set1.length !== set2.length) {
-        return false;
-    }
-    if (set1.length === 0) { // Both empty sets are identical
-        return true;
-    }
-    const sortedSet1 = [...set1].sort();
-    const sortedSet2 = [...set2].sort();
-    for (let i = 0; i < sortedSet1.length; i++) {
-        if (sortedSet1[i] !== sortedSet2[i]) {
-            return false;
-        }
-    }
-    return true;
 }
 
 function createStatusBoxHtml(label, id) {
@@ -4102,8 +3992,134 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 }
 
+async function displayQuickFFTargets(userApiKey, playerId) {
+    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+    if (!quickFFTargetsDisplay) {
+        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
+        return;
+    }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    if (quickFFTargetsDisplay.innerHTML === '') {
+        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
+    }
+
+    if (!userApiKey || !playerId) {
+        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
+        }
+        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
+        return;
+    }
+
+    try {
+        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
+        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
+        
+        const functionUrl = `/.netlify/functions/get-recommended-targets`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
+        });
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
+            console.error("Error fetching Quick FF Targets:", errorMessage);
+            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
+            }
+            return;
+        }
+
+        if (!data.targets || data.targets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        let availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
+
+        if (availableTargets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
+            lastDisplayedTargetIDs = [];
+            consecutiveSameTargetsCount = 0;
+            return;
+        }
+
+        // --- CHANGE IS HERE ---
+        const MAX_TARGETS_TO_DISPLAY = 3; // Changed from 2 to 3
+        const MAX_SHUFFLE_ATTEMPTS = 10; 
+
+        let finalSelectedTargets = [];
+        let currentDisplayedTargetIDs = [];
+        let attempt = 0;
+
+        do {
+            for (let i = availableTargets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]];
+            }
+
+            finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
+            currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
+            attempt++;
+
+        } while (availableTargets.length >= MAX_TARGETS_TO_DISPLAY &&
+                 areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs) &&
+                 consecutiveSameTargetsCount >= 2 &&
+                 attempt < MAX_SHUFFLE_ATTEMPTS);
+
+        if (areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs)) {
+            consecutiveSameTargetsCount++;
+            if (consecutiveSameTargetsCount >= 3) {
+                console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
+            }
+        } else {
+            consecutiveSameTargetsCount = 1;
+        }
+        lastDisplayedTargetIDs = currentDisplayedTargetIDs;
+
+        const newTargetsHtmlContainer = document.createElement('div');
+        let newTargetsHtml = '';
+        let currentEmojisUsedForBatch = new Set();
+        let emojiCycleIndex = lastEmojiIndex;
+
+        for (let i = 0; i < finalSelectedTargets.length; i++) {
+            const target = finalSelectedTargets[i];
+            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
+            const targetName = target.playerName || `Target ${i + 1}`;
+
+            let selectedEmoji = '';
+            do {
+                emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
+                selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
+            } while (currentEmojisUsedForBatch.has(selectedEmoji));
+
+            currentEmojisUsedForBatch.add(selectedEmoji);
+            lastEmojiIndex = emojiCycleIndex;
+
+            newTargetsHtml += `
+                <a href="${attackUrl}" target="_blank"
+                   class="quick-ff-target-btn"
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
+                    <span class="emoji-wrapper">${selectedEmoji}</span> ${targetName} <span class="emoji-wrapper">${selectedEmoji}</span>
+                </a>
+            `;
+        }
+
+        quickFFTargetsDisplay.innerHTML = newTargetsHtml;
+
+    } catch (error) {
+        console.error("Failed to fetch or display Quick FF Targets:", error);
+        if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
+             quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+        }
+    }
+}
+          
+		  document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
     // --- NEW: This block reads the URL to see if a specific tab was requested ---
@@ -4712,6 +4728,83 @@ if (availabilityTab) {
     }
 
 }); // --- END OF DOMCONTENTLOADED ---
+
+/**
+ * ==================================================================
+ * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
+ * ==================================================================
+ */
+
+// Helper function to parse a stat string into a number.
+function parseStatValue(statString) {
+    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
+        return 0;
+    }
+    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
+    let multiplier = 1;
+    if (sanitizedString.endsWith('k')) {
+        multiplier = 1000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('m')) {
+        multiplier = 1000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('b')) {
+        multiplier = 1000000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    }
+    const number = parseFloat(sanitizedString);
+    return isNaN(number) ? 0 : number * multiplier;
+}
+
+/**
+ * Applies CSS classes to table cells based on battle stat tiers for color coding.
+ * This function needs to be called after the table is populated.
+ */
+function applyStatColorCoding() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) {
+        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
+        return;
+    }
+
+    // This adds the 'table-striped' class to your table so the CSS rules will work.
+    table.classList.add('table-striped');
+
+    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
+
+    statCells.forEach(cell => {
+        // First, remove any existing tier classes to ensure a clean slate (now checks for all 14)
+        for (let i = 1; i <= 14; i++) {
+            cell.classList.remove(`stat-tier-${i}`);
+        }
+        cell.classList.remove('stat-cell');
+
+        // Now, determine and add the correct new class
+        const value = parseStatValue(cell.textContent);
+        let tierClass = '';
+
+        // New 14-tier logic
+        if (value >= 10000000000)      { tierClass = 'stat-tier-14'; } // 10b+
+        else if (value >= 5000000000)  { tierClass = 'stat-tier-13'; } // 5b
+        else if (value >= 2500000000)  { tierClass = 'stat-tier-12'; } // 2.5b
+        else if (value >= 1000000000)  { tierClass = 'stat-tier-11'; } // 1b
+        else if (value >= 500000000)   { tierClass = 'stat-tier-10'; } // 500m
+        else if (value >= 250000000)   { tierClass = 'stat-tier-9'; }  // 250m
+        else if (value >= 100000000)   { tierClass = 'stat-tier-8'; }  // 100m
+        else if (value >= 50000000)    { tierClass = 'stat-tier-7'; }  // 50m
+        else if (value >= 10000000)    { tierClass = 'stat-tier-6'; }  // 10m
+        else if (value >= 5000000)     { tierClass = 'stat-tier-5'; }  // 5m
+        else if (value >= 1000000)     { tierClass = 'stat-tier-4'; }  // 1m
+        else if (value >= 100000)      { tierClass = 'stat-tier-3'; }  // 100k
+        else if (value >= 10000)       { tierClass = 'stat-tier-2'; }  // 10k
+        else if (value > 0)            { tierClass = 'stat-tier-1'; }
+
+        if (tierClass) {
+            cell.classList.add(tierClass);
+            cell.classList.add('stat-cell'); // General class for stat cells
+        }
+    });
+}
 
 function blockLandscape() {
   const isMobileLandscape = window.matchMedia("(max-width: 1280px) and (orientation: landscape)").matches;
