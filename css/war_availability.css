@@ -350,9 +350,10 @@ body {
     /* Adjustments for the main content container */
     #warAvailabilityContainer.styled-container {
         padding: 10px 15px;
-        width: 95%;
+        width: 86%;
         margin-left: auto;
         margin-right: auto;
+		margin-top: 100px;
     }
 
     /* Stack the two main columns into a single column */
