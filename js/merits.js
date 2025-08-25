@@ -1019,6 +1019,7 @@ function updateAchievementsDisplay(playerData) {
 
     // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
+	handleSearch(); // Re-apply the current search filter after building the lists
 }
 
 // ... (The separate applyAwardedTicks function should be completely removed from your file) ...
