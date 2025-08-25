@@ -185,3 +185,7 @@
     font-weight: bold;
     color: #ff4500;
 }
+
+ header #headerEditProfileBtn {
+    display: none !important;
+  }
