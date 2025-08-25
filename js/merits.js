@@ -927,6 +927,52 @@ function getAchievementStatus(achievement, playerData) {
 // ... (keep all code above this function as it is) ...
 
 /**
+ * Handles the search input to filter items across ALL tabs
+ * and automatically switches to the tab of the first found item.
+ */
+function handleSearch() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const allItems = document.querySelectorAll('.achievement-item');
+    let firstMatchTabId = null;
+
+    // First, loop through every single item on every tab
+    allItems.forEach(item => {
+        const itemNameElement = item.querySelector('.merit-name');
+
+        // Safety check: If an item doesn't have a name, skip it.
+        if (!itemNameElement) {
+            return; 
+        }
+
+        const itemName = itemNameElement.textContent.toLowerCase();
+
+        // Check if the item's name matches the search term
+        if (itemName.includes(searchTerm)) {
+            item.style.display = ''; // Show the item
+
+            // If this is the *first* match we've found, grab its parent tab's ID
+            if (!firstMatchTabId) {
+                const parentTabPane = item.closest('.tab-pane');
+                if (parentTabPane) {
+                    firstMatchTabId = parentTabPane.id;
+                }
+            }
+        } else {
+            item.style.display = 'none'; // Hide the item if it doesn't match
+        }
+    });
+
+    // After filtering everything, if we found a match, switch to its tab
+    if (firstMatchTabId) {
+        const activeTab = document.querySelector('.tab-pane.active');
+        // Only switch if the target tab is not already the active one
+        if (!activeTab || activeTab.id !== firstMatchTabId) {
+            switchTab(firstMatchTabId);
+        }
+    }
+}
+
+/**
  * Updates the display for Honors and Medals based on player data.
  * Displays a single, integrated tick for awarded items, replacing progress symbols.
  * @param {object} playerData - The full player data from the Torn API.
