@@ -189,6 +189,8 @@ header {
 /* === Media Queries for Responsiveness === */
 /* ================================================================================= */
 
+/* Desktop layout has already been set, so we only need to handle tablet and mobile. */
+
 /* Tablet Header Customization (769px to 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
     header .header-center,
@@ -223,8 +225,8 @@ header {
     header .header-buttons {
         gap: 12px;
     }
-
-    .btn#signUpButtonHeader:hover {
+	
+	.btn#signUpButtonHeader:hover {
         background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
         color: #ffffff; /* Keep the text white for contrast */
         cursor: pointer;
@@ -255,6 +257,9 @@ header {
         justify-content: center;
         text-align: center;
     }
+	
+	
+	
     .header-left, .header-center, .header-right-controls {
         flex-basis: 100%;
         width: 100%;
@@ -286,11 +291,7 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-	
-	  .btn#headerEditProfileBtn {
-        display: none;
-    }
-
+    
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;

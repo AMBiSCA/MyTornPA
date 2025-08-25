@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
             if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
             if (homeButtonHeader) homeButtonHeader.style.display = 'none';
-
+            
             if (user) {
                 // --- User is LOGGED IN ---
                 // 1. Prepare all the correct buttons while the container is hidden
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // --- Assign event listeners for logged-in state ---
                 if (logoutButtonHeader) logoutButtonHeader.onclick = handleLogout;
                 if (homeButtonHeader) homeButtonHeader.onclick = () => window.location.href = '/pages/home.html';
-                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex !important';
+                if (headerEditProfileBtn) headerEditProfileBtn.onclick = () => {
                     if (profileSetupModal) profileSetupModal.style.display = 'flex';
                 };
 
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }
-
+        
         setupManagedDropdown(usefulLinksBtn, usefulLinksDropdown);
         setupManagedDropdown(contactUsBtn, contactUsDropdown);
 
