@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // --- Assign event listeners for logged-in state ---
                 if (logoutButtonHeader) logoutButtonHeader.onclick = handleLogout;
                 if (homeButtonHeader) homeButtonHeader.onclick = () => window.location.href = '/pages/home.html';
-                if (headerEditProfileBtn) headerEditProfileBtn.onclick = () => {
+                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex !important';
                     if (profileSetupModal) profileSetupModal.style.display = 'flex';
                 };
 
