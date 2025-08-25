@@ -130,19 +130,20 @@ const allHonors = [
     { id: 156, name: "RDD", requirement: "Use a dirty bomb", statKey: "personalstats.dirtybomb_used", threshold: 1, category: "misc-awards-list", type: "count" },
     { id: 14, name: "Slow Bomb", requirement: "Use a dirty bomb", statKey: "personalstats.dirtybomb_used", threshold: 1, category: "misc-awards-list", type: "count" },
 
-    // Drugs
-    { id: 26, name: "Spaced Out", requirement: "Overdose on Cannabis", statKey: "personalstats.overdosed", threshold: 1, category: "misc-awards-list", type: "count" },
-    { id: 29, name: "Who's Frank?", requirement: "Use 50 Cannabis", statKey: "personalstats.cantaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 34, name: "I See Dead People", requirement: "Use 50 Shrooms", statKey: "personalstats.shrtaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 30, name: "Party Animal", requirement: "Use 50 Ecstasy", statKey: "personalstats.exttaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 32, name: "Acid Dream", requirement: "Use 50 LSD", statKey: "personalstats.lsdtaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 38, name: "Painkiller", requirement: "Use 50 Vicodin", statKey: "personalstats.victaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 31, name: "Horse Tranquilizer", requirement: "Use 50 Ketamine", statKey: "personalstats.kettaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 33, name: "The Fields Of Opium", requirement: "Use 50 Opium", statKey: "personalstats.opitaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 35, name: "Crank It Up", requirement: "Use 50 Speed", statKey: "personalstats.spetaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 36, name: "Angel Dust", requirement: "Use 50 PCP", statKey: "personalstats.pcptaken", threshold: 50, category: "misc-awards-list", type: "count" },
-    { id: 37, name: "Free Energy", requirement: "Use 50 Xanax", statKey: "personalstats.xantaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    // --- Replace this entire section in your file ---
 
+    // Drugs
+    { id: 26, name: "Spaced Out", requirement: "Overdose on Cannabis", statKey: "personalstats.overdosed_cannabis", threshold: 1, category: "misc-awards-list", type: "count" }, // MODIFIED statKey to be specific
+    { id: 29, name: "Who's Frank?", requirement: "Use 50 Cannabis", statKey: "personalstats.cantaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 34, name: "I See Dead People", requirement: "Use 50 Shrooms", statKey: "personalstats.shrtaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 30, name: "Party Animal", requirement: "Use 50 Ecstasy", statKey: "personalstats.exttaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 32, name: "Acid Dream", requirement: "Use 50 LSD", statKey: "personalstats.lsdtaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 38, name: "Painkiller", requirement: "Use 50 Vicodin", statKey: "personalstats.victaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 31, name: "Horse Tranquilizer", requirement: "Use 50 Ketamine", statKey: "personalstats.kettaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 33, name: "The Fields Of Opium", requirement: "Use 50 Opium", statKey: "personalstats.opitaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 35, name: "Crank It Up", requirement: "Use 50 Speed", statKey: "personalstats.spetaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 36, name: "Angel Dust", requirement: "Use 50 PCP", statKey: "personalstats.pcptaken", threshold: 50, category: "misc-awards-list", type: "count" },
+    { id: 37, name: "Free Energy", requirement: "Use 50 Xanax", statKey: "personalstats.xantaken", threshold: 50, category: "misc-awards-list", type: "count" },
     // Education (Requires /user/education selection or specific job stats)
     { id: 53, name: "Biology Bachelor", requirement: "Complete all Biology courses", statKey: "personalstats.education_biology", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 54, name: "Business Bachelor", requirement: "Complete all Business Management courses", statKey: "personalstats.education_business", threshold: 1, category: "misc-awards-list", type: "boolean" },
