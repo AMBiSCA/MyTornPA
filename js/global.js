@@ -373,7 +373,7 @@ function toggleDebugMode() {
 				
 
 
-                // --- Send Message Logic ---
+                /*
                 function setupMessageSending(textInput, sendBtn, collectionType) {
                     if (sendBtn) {
                         sendBtn.onclick = async () => {
@@ -403,7 +403,7 @@ function toggleDebugMode() {
             }
         })
         .catch(error => console.error('global.js: Error loading global chat:', error));
-
+*/
     // ---- AUTHENTICATION LISTENER ----
     auth.onAuthStateChanged(async (user) => {
         if (user) {
