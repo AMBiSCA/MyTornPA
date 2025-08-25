@@ -5,9 +5,9 @@
 	margin-top: 50px; 
     padding: 20px;
     color: #eee;
-	border: 2px solid #ff4500;
+	border: 2px solid black;
     font-family: "Arial", sans-serif;
-	box-shadow: 0 0 15px 5px #ff4500;
+	box-shadow: 0 0 15px 5px black;
 }
 
 /* --- Main Menu --- */

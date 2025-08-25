@@ -194,7 +194,7 @@ body::before {
 .target-finder-container p { margin-bottom: 15px; }
 .results-inline-status { font-size: 0.9rem; margin-top: 10px; color: #ffcc00; min-height: 1.2em; }
 .note { text-align: center; font-size: 0.9rem; color: #f39c12; padding: 0px; margin-top: 40px; }
-.note p { font-weight: bold; font-size: 0.9em; }
+.note p { font-weight: bold; font-size: 0.9em; margin-top: -40px;}
 
 /* --- Styles for Tab 2 (Public Lookup) & 3 (Leader Dashboard) --- */
 .input-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; align-items: center; }
