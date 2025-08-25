@@ -364,6 +364,7 @@ body {
     /* Adjust font sizes for a more compact look */
     .script-title {
         font-size: 1.5em;
+		margin-top: 10px;
     }
 
     .user-status-panel h4,
