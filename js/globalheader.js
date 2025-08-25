@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
             if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
             if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+            if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
             // We will manage the display of the headerEditProfileBtn with the CSS class.
             if (homeButtonHeader) homeButtonHeader.style.display = 'none';
            
@@ -69,14 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
 
                 if (isHomePage) {
-                    // If on the home page, remove the class and show the button
-                    if (headerEditProfileBtn) headerEditProfileBtn.classList.remove('hide-on-other-pages');
-                } else {
-                    // If on any other page, add the class to hide the button
-                    if (headerEditProfileBtn) headerEditProfileBtn.classList.add('hide-on-other-pages');
-                    if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
-                }
-
+                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
+            } else {
+                if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
+            }
                 // 2. Now, show the container with the correct buttons already set. This prevents the flash.
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
 

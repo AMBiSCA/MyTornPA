@@ -206,6 +206,7 @@ header {
         height: 44px;
         padding: 0;
         border-radius: 50%;
+        display: flex;
         align-items: center;
         justify-content: center;
         background-color: rgba(0, 168, 255, 0.1);
@@ -256,12 +257,7 @@ header {
         justify-content: center;
         text-align: center;
     }
-	
-	.hide-on-other-pages {
-    display: none !important;
-}
-
-      .header-left, .header-center, .header-right-controls {
+    .header-left, .header-center, .header-right-controls {
         flex-basis: 100%;
         width: 100%;
         justify-content: center;
@@ -292,13 +288,9 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-  
+    
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;
     }
 }
-
-
-
-
