@@ -32,7 +32,7 @@ function initializeGlobals() {
 
     // ---- Torn API Base URL ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
-              		
+    		
     // ---- AUTHENTICATION LISTENER ----
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -52,7 +52,6 @@ function initializeGlobals() {
                 window.TORN_API_BASE_URL = TORN_API_BASE_URL;
                 // UPDATED: Expose currentUserAllianceIds globally
                 window.currentUserAllianceIds = currentUserAllianceIds;
-
 
                 console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
             } else {
@@ -129,8 +128,7 @@ function initializeGlobals() {
             noBtn.onclick = () => closeConfirm(false);
         });
     }
-
-   
+}
 
 // Run the main initialization function
 initializeGlobals();
