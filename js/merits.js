@@ -933,109 +933,75 @@ function getAchievementStatus(achievement, playerData) {
 
 // --- merits.js (UPDATED updateAchievementsDisplay function - Single Tick) ---
 
-// ... (keep all code above this function as it is) ...
-
 /**
- * Updates the display for Honors and Medals based on player data.
- * Displays a single, integrated tick for awarded items, replacing progress symbols.
- * @param {object} playerData - The full player data from the Torn API.
- */
+ * Updates the display for Honors and Medals based on player data.
+ * This version uses the API's awarded lists as the single source of truth for completion.
+ * @param {object} playerData - The full player data from the Torn API.
+ */
 function updateAchievementsDisplay(playerData) {
-    clearAllLists(); // Clear previous content
+    clearAllLists(); // Clear previous content
 
-    const achievementLists = {
-        'honors-attacking-list': honorsAttackingList,
-        'honors-weapons-list': honorsWeaponsList,
-        'honors-chaining-list': honorsChainingList,
+    const achievementLists = {
+        'honors-attacking-list': honorsAttackingList,
+        'honors-weapons-list': honorsWeaponsList,
+        'honors-chaining-list': honorsChainingList,
+        'medals-combat-list': medalsCombatList,
+        'medals-commitment-list': medalsCommitmentList,
+        'medals-crimes-list': medalsCrimesList,
+        'misc-awards-list': miscAwardsList,
+    };
 
-        'medals-combat-list': medalsCombatList,
-        'medals-commitment-list': medalsCommitmentList,
+    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []);
+    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
 
-        'medals-crimes-list': medalsCrimesList,
-        'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
-    };
+    const allAchievementsWithStatus = [];
 
-    // Extract user's awarded IDs from the API response
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
-    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
+    const processAndDisplay = (achievement, type) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('achievement-item');
+        listItem.dataset.id = achievement.id;
+        listItem.dataset.type = type;
 
+        const isAwardedByApi = (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) ||
+                             (type === 'medal' && userOwnedMedalsIds.has(achievement.id));
 
-    const allAchievementsWithStatus = []; // Used for Awards Progress tab
+        if (isAwardedByApi) {
+            listItem.classList.add('awarded-by-api');
+            listItem.innerHTML = `
+                // --- CHANGE: Reverted to simple text symbol ---
+                <span class="merit-status-icon completed">✔</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                </span>
+            `;
+        } else {
+            const { statusIconClass, statusSymbol, progressText, calculatedPercentage } = getAchievementStatus(achievement, playerData);
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                    <span class="merit-progress">${progressText}</span>
+                </span>
+            `;
+            allAchievementsWithStatus.push({
+                achievement, statusIconClass, statusSymbol, progressText, calculatedPercentage
+            });
+        }
 
-    const processAndDisplay = (achievement, type) => {
-        const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
-        
-        const listItem = document.createElement('li');
-        listItem.classList.add('achievement-item'); 
+        if (achievementLists[achievement.category]) {
+            achievementLists[achievement.category].appendChild(listItem);
+        } else {
+            console.warn(`Category list not found for: ${achievement.category}.`);
+        }
+    };
 
-        // Add data-id and data-type attributes (essential for any future external lookup/styling)
-        listItem.dataset.id = achievement.id; 
-        listItem.dataset.type = type; 
+    allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
+    allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
 
-        // Determine if the award is owned by the API response
-        let isAwardedByApi = false;
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        }
-
-        // --- MODIFIED LOGIC: Show Font Awesome tick IF AWARDED, else show progress symbol ---
-        let finalDisplayIconHtml = ''; // Will contain the HTML for the icon/symbol
-        let finalIconClass = statusIconClass; // Keep original progress class by default
-
-        if (isAwardedByApi) {
-            finalDisplayIconHtml = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
-            finalIconClass = 'completed'; // Force to 'completed' color (green)
-            listItem.classList.add('awarded-by-api'); // Keep for overall row styling
-        } else {
-            finalDisplayIconHtml = statusSymbol;
-            // finalIconClass remains statusIconClass
-        }
-        // --- END MODIFIED LOGIC ---
-
-
-        listItem.innerHTML = `
-            <span class="merit-status-icon ${finalIconClass}">${finalDisplayIconHtml}</span>
-            <span class="merit-details">
-                <span class="merit-name">${achievement.name}</span> -
-                <span class="merit-requirement">${achievement.requirement}</span>
-                <span class="merit-progress">${progressText}</span>
-            </span>
-            `;
-
-        if (achievementLists[achievement.category]) {
-            achievementLists[achievement.category].appendChild(listItem);
-        } else {
-            console.warn(`Category list not found for: ${achievement.category}. Check HTML ID or allHonors/allMedals category assignment.`);
-        }
-
-        // Add to the Awards Progress tab if not completed by stat threshold
-        if (!isCompleted) { // Use original isCompleted, not affected by isAwardedByApi
-            allAchievementsWithStatus.push({
-                achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
-                progressText,
-                calculatedPercentage
-            });
-        }
-    };
-
-    // Process all honors and medals. Pass 'honor' or 'medal' type to the helper.
-    allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
-    allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
-
-    // Populate the Awards Progress tab after all other lists are processed
-    populateAwardsProgressTab(allAchievementsWithStatus);
+    populateAwardsProgressTab(allAchievementsWithStatus);
 }
-
-// ... (The separate applyAwardedTicks function should be completely removed from your file) ...
-
-// ... (keep all code below this function as it is) ...
-
-
-
 
 
 
@@ -1153,63 +1119,60 @@ tabsContainer.addEventListener('click', (event) => {
 });
 
 
-// --- Initialization Function (Modified to fetch specific awarded IDs) ---
-
 /**
- * Initializes the Merits page, fetches data, and updates UI.
- */
+ * Initializes the Merits page, fetches data, and updates UI.
+ */
 async function initializeMeritsPage() {
-    hideError();
-    showLoading(); // Show loading initially
+    hideError();
+    showLoading(); // Show loading initially
 
-    // Listen for Firebase authentication state changes
-    firebase.auth().onAuthStateChanged(async (user) => {
-        if (user) {
-            console.log("User is logged in:", user.uid);
-            const db = firebase.firestore();
-            try {
-                const userDocRef = db.collection('userProfiles').doc(user.uid);
-                const doc = await userDocRef.get();
+    // Listen for Firebase authentication state changes
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            console.log("User is logged in:", user.uid);
+            const db = firebase.firestore();
+            try {
+                const userDocRef = db.collection('userProfiles').doc(user.uid);
+                const doc = await userDocRef.get();
 
-                if (doc.exists && doc.data() && doc.data().tornApiKey) {
-                    const tornApiKey = doc.data().tornApiKey;
-                    console.log("Torn API Key retrieved from Firestore.");
+                if (doc.exists && doc.data() && doc.data().tornApiKey) {
+                    const tornApiKey = doc.data().tornApiKey;
+                    console.log("Torn API Key retrieved from Firestore.");
 
-                    const playerData = await fetchTornDataDirectly(tornApiKey);
-                    if (playerData) {
-                        displayPlayerSummary(playerData);
-                        updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
-                        populatePlayerStats(playerData)
-						
+                    const playerData = await fetchTornDataDirectly(tornApiKey);
+                    if (playerData) {
+                        // --- NEW LINE ADDED FOR DEBUGGING ---
+                        console.log("HONORS AWARDED BY API:", playerData.honors_awarded);
 
+                        displayPlayerSummary(playerData);
+                        updateAchievementsDisplay(playerData);
+                        populatePlayerStats(playerData);
 
-                        
-                        switchTab('honors-tab'); 
-                    } else {
-                        console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
-                    }
-                } else {
-                    hideLoading();
-                    showError('No Torn API key found for your account. Please set it in your profile settings.');
-                    console.warn("tornApiKey field is missing in user's Firestore document or document does not exist.");
-                }
-            } catch (firestoreError) {
-                console.error("Error fetching API key from Firestore:", firestoreError);
-                hideLoading();
-                if (firestoreError.code === 'permission-denied') {
-                    showError('Permission denied to access your data. Please check Firebase Security Rules.');
-                } else {
-                    showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
-                }
-            }
-        } else {
-            console.log("No user logged in. Redirecting or prompting login.");
-            hideLoading();
-            showError('Please log in to view your Torn Honors & Medals.');
-        }
-    });
+                        switchTab('honors-tab'); 
+                    } else {
+                        console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
+                    }
+                } else {
+                    hideLoading();
+                    showError('No Torn API key found for your account. Please set it in your profile settings.');
+                    console.warn("tornApiKey field is missing in user's Firestore document or document does not exist.");
+                }
+            } catch (firestoreError) {
+                console.error("Error fetching API key from Firestore:", firestoreError);
+                hideLoading();
+                if (firestoreError.code === 'permission-denied') {
+                    showError('Permission denied to access your data. Please check Firebase Security Rules.');
+                } else {
+                    showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
+                }
+            }
+        } else {
+            console.log("No user logged in. Redirecting or prompting login.");
+            hideLoading();
+            showError('Please log in to view your Torn Honors & Medals.');
+        }
+    });
 }
-
 // Run initialization when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeMeritsPage);
 
