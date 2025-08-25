@@ -245,7 +245,7 @@
     }
 	
 	  header #headerEditProfileBtn {
-    display: none;
+    display: none !important;
   }
 
     .filters-panel {
