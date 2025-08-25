@@ -243,6 +243,10 @@
         margin-bottom: 20px;
         padding: 20px;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
 
     .filters-panel {
         flex-direction: column;
