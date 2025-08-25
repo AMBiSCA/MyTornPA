@@ -1023,33 +1023,12 @@ function updateAchievementsDisplay(playerData) {
 
 // ... (The separate applyAwardedTicks function should be completely removed from your file) ...
 
-/**
- * Handles the search input to filter honors and medals on the active tab.
- */
-function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const activeTab = document.querySelector('.tab-pane.active');
+// ... (keep all code below this function as it is) ...
 
-    if (!activeTab) {
-        return; // Exit if there's no active tab
-    }
 
-    const items = activeTab.querySelectorAll('.achievement-item');
 
-    items.forEach(item => {
-        const itemName = item.querySelector('.merit-name').textContent.toLowerCase();
-        
-        if (itemName.includes(searchTerm)) {
-            item.style.display = ''; // Show the item if it matches
-        } else {
-            item.style.display = 'none'; // Hide the item if it doesn't match
-        }
-    });
-}
-// --- END OF NEW FUNCTION ---
 
-function populateAwardsProgressTab(achievementsInPrgoress) {
-    // ... your existing function starts here ...
+
 
 function populateAwardsProgressTab(achievementsInPrgoress) {
     awardsProgressList.innerHTML = ''; // Clear previous content
@@ -1326,3 +1305,4 @@ function initializeDeviceBlocker() {
 
 // Call the function to set everything up
 initializeDeviceBlocker();
+// --- END: Desktop-Only Device Blocker ---
