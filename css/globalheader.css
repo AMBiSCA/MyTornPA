@@ -258,10 +258,10 @@ header {
         text-align: center;
     }
 	
-	.btn#headerEditProfileBtn {
-        display: none !important;
-    }
-	
+	.hide-on-other-pages {
+    display: none !important;
+}
+
       .header-left, .header-center, .header-right-controls {
         flex-basis: 100%;
         width: 100%;

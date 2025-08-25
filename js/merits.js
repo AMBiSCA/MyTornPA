@@ -1326,4 +1326,5 @@ function initializeDeviceBlocker() {
 
 // Call the function to set everything up
 initializeDeviceBlocker();
-// --- END: Desktop-Only Device Blocker ---
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', handleSearch);
