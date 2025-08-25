@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
             if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
             if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-            if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
+            // We will manage the display of the headerEditProfileBtn with the CSS class.
             if (homeButtonHeader) homeButtonHeader.style.display = 'none';
            
             if (user) {
@@ -69,11 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
 
                 if (isHomePage) {
-                    // Remove the class on the home page
+                    // If on the home page, remove the class and show the button
                     if (headerEditProfileBtn) headerEditProfileBtn.classList.remove('hide-on-other-pages');
-                    if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
                 } else {
-                    // Add the class on other pages
+                    // If on any other page, add the class to hide the button
                     if (headerEditProfileBtn) headerEditProfileBtn.classList.add('hide-on-other-pages');
                     if (homeButtonHeader) homeButtonHeader.style.display = 'inline-flex';
                 }

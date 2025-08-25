@@ -6,8 +6,14 @@
     <title>Warsretreat - Faction War Room</title>
     <link rel="stylesheet" href="warsretreat.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-</head>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    </head>
 <body>
+
+   <div id="global-header-placeholder"></div>
 
     <div id="war-hub-hud">
         <header class="hud-header">
@@ -72,7 +78,15 @@
                 </ul>
         </div>
     </div>
+	
+	  <div id="globalfooterplaceholder"></div>
 
-    <script src="warsretreat.js"></script>
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="../../js/global.js"></script> 
+	<script src="../../js/globalfooter.js"></script>
+	<script src="../../js/warsretreat.js"></script>
+
+   
 </body>
 </html>
