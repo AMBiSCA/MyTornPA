@@ -969,7 +969,6 @@ function updateAchievementsDisplay(playerData) {
         if (isAwardedByApi) {
             listItem.classList.add('awarded-by-api');
             listItem.innerHTML = `
-                // --- CHANGE: Reverted to simple text symbol ---
                 <span class="merit-status-icon completed">✔</span>
                 <span class="merit-details">
                     <span class="merit-name">${achievement.name}</span> -
