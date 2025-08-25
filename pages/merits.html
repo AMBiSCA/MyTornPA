@@ -1,51 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MyTornPA - Honors & Medals</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyTornPA - Honors & Medals</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="../css/global.css">
-	<link rel="stylesheet" href="../css/globalheader.css">
-    <link rel="stylesheet" href="../css/merits.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/globalheader.css">
+    <link rel="stylesheet" href="../css/merits.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
-    <div id="global-header-placeholder"></div>
+    <div id="global-header-placeholder"></div>
 
-    <div class="main-content-wrapper">
-        <main class="page-specific-content-area">
-            <h2>Torn City Honors & Medals Tracker</h2>
-            <p>Track your progress on various in-game Honors and Medals!</p>
+    <div class="main-content-wrapper">
+        <main class="page-specific-content-area">
+            <h2>Torn City Honors & Medals Tracker</h2>
+            <p>Track your progress on various in-game Honors and Medals!</p>
 
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="Search for an Honor or Medal...">
             </div>
-                        <div id="loading-indicator" class="js-hidden-initially">Loading data, please wait...</div>
-            <div id="error-display" class="error-message js-hidden-initially"></div>
+            <div id="loading-indicator" class="js-hidden-initially">Loading data, please wait...</div>
+            <div id="error-display" class="error-message js-hidden-initially"></div>
 
-            <div class="merits-layout-container">
-                <div class="player-summary-section">
-                    <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Networth: <span id="player-networth">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
-                </div>
+            <div class="merits-layout-container">
+                <div class="player-summary-section">
+                    <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Networth: <span id="player-networth">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
+                </div>
 
-                <div class="tabs-container">
-                    <button class="tab-button active" data-tab="honors">Honors</button>
-                    <button class="tab-button" data-tab="medals">Medals</button>
-                    <button class="tab-button" data-tab="stats">Stats Overview</button>
-                    <button class="tab-button" data-tab="progress">Awards Progress</button>
-                </div>
+                <div class="tabs-container">
+                    <button class="tab-button active" data-tab="honors">Honors</button>
+                    <button class="tab-button" data-tab="medals">Medals</button>
+                    <button class="tab-button" data-tab="stats">Stats Overview</button>
+                    <button class="tab-button" data-tab="progress">Awards Progress</button>
+                </div>
 
-                <div id="tab-content" class="tab-content">
-                    <div id="honors-tab" class="tab-pane active">
-                        <div class="merit-category-grid">
-                            <div class="merit-category-panel">
-                                <h3>Attacking / General Honors</h3>
-                                <ul id="honors-attacking-list">
-                                </ul>
-            _message_trunc_
+                <div id="tab-content" class="tab-content">
+                    <div id="honors-tab" class="tab-pane active">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel">
+                                <h3>Attacking / General Honors</h3>
+                                <ul id="honors-attacking-list">
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Weapons Honors</h3>
+                                <ul id="honors-weapons-list">
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Chaining Honors</h3>
+                                <ul id="honors-chaining-list">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="medals-tab" class="tab-pane">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel">
+                                <h3>Combat Medals</h3>
+                                <ul id="medals-combat-list">
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Level / Commitment Medals</h3>
+                                <ul id="medals-commitment-list">
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Crimes Medals</h3>
+                                <ul id="medals-crimes-list">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stats-tab" class="tab-pane">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel full-width">
+                                <h3>Player Stats Overview</h3>
+                                <ul id="player-stats-list">
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel full-width">
+                                <h3>Miscellaneous Awards</h3>
+                                <ul id="misc-awards-list">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="progress-tab" class="tab-pane">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel full-width">
+                                <h3>Awards Close to Achieving</h3>
+                                <ul id="awards-progress-list">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="globalfooterplaceholder"></div>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/global.js"></script> 
+    <script src="../js/merits.js"></script>
+    <script src="../js/globalfooter.js"></script>
+
+</body>
+</html>

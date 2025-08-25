@@ -288,15 +288,13 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-    
+  
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;
     }
-
-    /* Add this rule to explicitly hide the edit profile button on non-home pages */
-    /* when in portrait mode. The JS sets display to none, but this ensures it. */
-    .btn#headerEditProfileBtn {
-        display: none !important;
-    }
 }
+
+
+
+
