@@ -284,7 +284,15 @@ body::before {
     .modal-summary { font-size: 0.9rem; }
     .modal-table-container { overflow-x: auto !important; }
     .modal-table thead th, .modal-table tbody td { padding: 5px 8px !important; font-size: 0.75rem !important; white-space: nowrap; }
+
+ header #headerEditProfileBtn {
+    display: none;
+  }
+
 }
+
+
+
 
 @media (max-width: 480px) {
     .companion-container { padding: 10px; }

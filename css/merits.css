@@ -381,6 +381,11 @@ margin-left: 5px;
     body {
         min-height: auto;
     }
+	
+	 header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .main-content-wrapper {
         padding-top: 10px;
         padding-bottom: 10px;
