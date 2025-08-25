@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warsretreat - Faction War Room</title>
+    <link rel="stylesheet" href="warsretreat.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="war-hub-hud">
+        <header class="hud-header">
+            <h1 id="faction-name">War Command Center</h1>
+        </header>
+
+        <div class="hud-widget main-status-widget">
+            <div class="widget-header">
+                <span class="header-label">War Status</span>
+                <span class="header-value" id="war-timer">0:00:00:00</span>
+            </div>
+            <div class="main-status-content">
+                <div class="faction-score" id="faction-one-score">0</div>
+                <div class="faction-vs">VS</div>
+                <div class="faction-score" id="faction-two-score">0</div>
+            </div>
+            <div class="war-progress-bar-container">
+                <div class="war-progress-bar-left" id="war-progress-left"></div>
+                <div class="war-progress-bar-right" id="war-progress-right"></div>
+            </div>
+        </div>
+
+        <div class="hud-widget chain-status-widget">
+            <div class="widget-header">
+                <span class="header-label">Your Chain</span>
+                <span class="header-value" id="chain-hits">0 Hits</span>
+            </div>
+            <div class="chain-progress-bar-container">
+                <div class="chain-progress-bar" id="chain-progress-bar"></div>
+            </div>
+            <div class="chain-data">
+                <span id="chain-timer">00:00</span>
+                <span id="chain-started-time">Start: N/A</span>
+            </div>
+        </div>
+
+        <div class="hud-widget friendly-members-status">
+            <div class="widget-header">
+                <span class="header-label">Your Team</span>
+                <span class="header-value" id="friendly-members-count">0/0 Online</span>
+            </div>
+            <div id="friendly-members-list" class="members-list">
+                <p class="loading-message">Loading members...</p>
+            </div>
+        </div>
+
+        <div class="hud-widget enemy-members-status">
+            <div class="widget-header">
+                <span class="header-label">Enemy Team</span>
+                <span class="header-value" id="enemy-members-count">0/0 Online</span>
+            </div>
+            <div id="enemy-members-list" class="members-list">
+                <p class="loading-message">Loading members...</p>
+            </div>
+        </div>
+
+        <div class="hud-widget hits-log-widget">
+            <div class="widget-header">
+                <span class="header-label">Recent Hits Log</span>
+            </div>
+            <ul id="hits-log-list" class="hits-log">
+                </ul>
+        </div>
+    </div>
+
+    <script src="warsretreat.js"></script>
+</body>
+</html>

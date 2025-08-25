@@ -257,7 +257,12 @@ header {
         justify-content: center;
         text-align: center;
     }
-    .header-left, .header-center, .header-right-controls {
+	
+	.btn#headerEditProfileBtn {
+        display: none !important;
+    }
+	
+      .header-left, .header-center, .header-right-controls {
         flex-basis: 100%;
         width: 100%;
         justify-content: center;
