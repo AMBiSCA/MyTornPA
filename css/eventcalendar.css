@@ -390,3 +390,9 @@ main {
   cursor: not-allowed;
   background-color: #2c2c2e;
 }
+
+@media (max-width: 768px) {
+  header #headerEditProfileBtn {
+    display: none;
+  }
+}

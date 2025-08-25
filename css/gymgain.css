@@ -455,6 +455,10 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
         border-radius: 5px;
         margin-bottom: 0;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
 
     .current-stats-personal .stat-item,
     .personal-gains-display .stat-item,

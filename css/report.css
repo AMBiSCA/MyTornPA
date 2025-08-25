@@ -351,6 +351,10 @@ header .header-btn {
     -ms-overflow-style: none;  /* Hides scrollbar on IE/Edge */
     scrollbar-width: none;     /* Hides scrollbar on Firefox */
   }
+  
+    header #headerEditProfileBtn {
+    display: none;
+  }
 
   /* 2. Hides scrollbar on Chrome, Safari, and Opera */
   body::-webkit-scrollbar {

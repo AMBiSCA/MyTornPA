@@ -334,6 +334,11 @@
         padding: 6px;
         font-size: 0.8em;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .action-button {
         padding: 5px 10px;
         font-size: 0.85em;

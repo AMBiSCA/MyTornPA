@@ -202,6 +202,11 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     main.terms-page-content section h3 { font-size: 1.3rem; }
     main.terms-page-content p { font-size: 0.95rem; }
     .image-glow, .image-glow-flipped { display: none; }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
 }
 
 @media (max-width: 480px) {

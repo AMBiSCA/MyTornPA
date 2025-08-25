@@ -804,6 +804,11 @@ ul li:last-child { border-bottom: none; }
     footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
     footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 
+  header #headerEditProfileBtn {
+    display: none !important;
+  }
+
+
     .main-content-wrapper {
         padding-top: 10px;
         padding-bottom: 10px;

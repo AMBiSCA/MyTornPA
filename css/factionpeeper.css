@@ -598,6 +598,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
   }
 }
 
+
+  header #headerEditProfileBtn {
+    display: none;
+  }
+
+
 @media (min-width: 768px) and (max-width: 1024px) {
     .faction-peeper-tool-container {
         margin-top: 50px; /* Adjust this value as needed */

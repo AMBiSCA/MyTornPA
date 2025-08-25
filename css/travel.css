@@ -501,6 +501,11 @@ header {
         min-height: unset;
         overflow: visible;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .page-specific-content-area {
         padding: 20px;
 		margin-top: 95px !important;

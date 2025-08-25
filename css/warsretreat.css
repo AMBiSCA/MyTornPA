@@ -208,6 +208,10 @@ body {
         grid-template-columns: 1fr;
         gap: 15px;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
 
     .faction-score {
         font-size: 2em;

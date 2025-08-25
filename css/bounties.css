@@ -226,6 +226,11 @@ body {
         overflow-y: auto !important; /* Allows the body to scroll on screens 768px or smaller */
     }
 	
+	  header #headerEditProfileBtn {
+    display: none !important;
+  }
+
+	
     .peeper-tool-container.bounty-page {
         margin-top: 20px;
         margin-bottom: 20px;

@@ -85,6 +85,11 @@
         margin: 15px;
         padding: 20px;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .faq-list {
         margin-bottom: 15px;
     }

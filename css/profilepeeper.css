@@ -329,6 +329,10 @@ label[for="userId"] { /* Updated for new input ID */
 		margin-top: 115px;
 	}
 	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
 	
 	
     .modal-content {

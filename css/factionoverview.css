@@ -979,6 +979,11 @@ padding-right: 5px;
         max-height: 50px;
         margin-top: 0;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .header-left h1 {
         font-size: 1.4rem;
     }

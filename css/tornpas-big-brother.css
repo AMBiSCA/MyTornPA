@@ -729,6 +729,11 @@ h2 {
     .tab-navigation-bb {
         flex-direction: column;
     }
+	
+	  header #headerEditProfileBtn {
+    display: none;
+  }
+	
     .tab-button-bb {
         border-radius: 5px;
         margin-bottom: 5px;
