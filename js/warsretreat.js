@@ -4,8 +4,7 @@
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// --- HTML Element References ---
-const factionNameEl = document.getElementById('faction-name');
+// --- HTML Element References (Updated for the new layout) ---
 const warTimerEl = document.getElementById('war-timer');
 const factionOneScoreEl = document.getElementById('faction-one-score');
 const factionTwoScoreEl = document.getElementById('faction-two-score');
@@ -53,18 +52,16 @@ function formatDuration(seconds) {
 // --- Main Data Fetching and UI Update Functions ---
 async function fetchAllData() {
     if (!userApiKey || !globalYourFactionID) {
-        // Set all UI elements to reflect a logged-out/unconfigured state
-        factionNameEl.textContent = 'Login Required';
-        warTimerEl.textContent = 'N/A';
-        factionOneScoreEl.textContent = 'N/A';
-        factionTwoScoreEl.textContent = 'N/A';
-        chainHitsEl.textContent = 'N/A';
-        chainTimerEl.textContent = 'N/A';
-        chainStartedEl.textContent = 'N/A';
-        friendlyMembersCountEl.textContent = 'N/A';
-        enemyMembersCountEl.textContent = 'N/A';
-        friendlyMembersListEl.innerHTML = '<p class="loading-message">Login & setup profile.</p>';
-        enemyMembersListEl.innerHTML = '<p class="loading-message">Login & setup profile.</p>';
+        if (warTimerEl) warTimerEl.textContent = 'N/A';
+        if (factionOneScoreEl) factionOneScoreEl.textContent = 'N/A';
+        if (factionTwoScoreEl) factionTwoScoreEl.textContent = 'N/A';
+        if (chainHitsEl) chainHitsEl.textContent = 'N/A';
+        if (chainTimerEl) chainTimerEl.textContent = 'N/A';
+        if (chainStartedEl) chainStartedEl.textContent = 'N/A';
+        if (friendlyMembersCountEl) friendlyMembersCountEl.textContent = 'N/A';
+        if (enemyMembersCountEl) enemyMembersCountEl.textContent = 'N/A';
+        if (friendlyMembersListEl) friendlyMembersListEl.innerHTML = '<p class="loading-message">Login & setup profile.</p>';
+        if (enemyMembersListEl) enemyMembersListEl.innerHTML = '<p class="loading-message">Login & setup profile.</p>';
         return;
     }
 
@@ -99,42 +96,39 @@ async function fetchAllData() {
 function updateUI() {
     if (!yourFactionData) return;
 
-    // Update Header
-    factionNameEl.textContent = yourFactionData.basic.name;
-
     // Update Main War Status
     if (yourFactionData.wars && yourFactionData.wars.ranked) {
         const rankedWar = yourFactionData.wars.ranked;
         const yourScore = rankedWar.factions.find(f => f.id == globalYourFactionID)?.score || 0;
         const enemyScore = rankedWar.factions.find(f => f.id == globalEnemyFactionID)?.score || 0;
 
-        factionOneScoreEl.textContent = yourScore.toLocaleString();
-        factionTwoScoreEl.textContent = enemyScore.toLocaleString();
+        if (factionOneScoreEl) factionOneScoreEl.textContent = yourScore.toLocaleString();
+        if (factionTwoScoreEl) factionTwoScoreEl.textContent = enemyScore.toLocaleString();
 
         const totalScore = yourScore + enemyScore;
         const progressYour = totalScore > 0 ? (yourScore / totalScore) * 100 : 50;
         const progressEnemy = 100 - progressYour;
-        warProgressLeftEl.style.width = `${progressYour}%`;
-        warProgressRightEl.style.width = `${progressEnemy}%`;
+        if (warProgressLeftEl) warProgressLeftEl.style.width = `${progressYour}%`;
+        if (warProgressRightEl) warProgressRightEl.style.width = `${progressEnemy}%`;
         
         lastWarFetchTime = Date.now();
         currentWarDuration = Math.floor(Date.now() / 1000) - rankedWar.start;
-        warTimerEl.textContent = formatDuration(currentWarDuration);
+        if (warTimerEl) warTimerEl.textContent = formatDuration(currentWarDuration);
     } else {
-        factionOneScoreEl.textContent = 'N/A';
-        factionTwoScoreEl.textContent = 'N/A';
-        warProgressLeftEl.style.width = '50%';
-        warProgressRightEl.style.width = '50%';
-        warTimerEl.textContent = 'No War';
+        if (factionOneScoreEl) factionOneScoreEl.textContent = 'N/A';
+        if (factionTwoScoreEl) factionTwoScoreEl.textContent = 'N/A';
+        if (warProgressLeftEl) warProgressLeftEl.style.width = '50%';
+        if (warProgressRightEl) warProgressRightEl.style.width = '50%';
+        if (warTimerEl) warTimerEl.textContent = 'No War';
     }
 
     // Update Chain Status
     if (yourFactionData.chain) {
         const chain = yourFactionData.chain;
-        chainHitsEl.textContent = `${chain.current.toLocaleString()} Hits`;
+        if (chainHitsEl) chainHitsEl.textContent = `${chain.current.toLocaleString()} Hits`;
         lastChainFetchTime = Date.now();
         currentChainTimeout = chain.timeout;
-        chainStartedEl.textContent = `Start: ${new Date(chain.start * 1000).toLocaleTimeString()}`;
+        if (chainStartedEl) chainStartedEl.textContent = `Start: ${new Date(chain.start * 1000).toLocaleTimeString()}`;
         
         const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
         const prevMilestone = milestones.slice().reverse().find(m => m <= chain.current) || 0;
@@ -146,9 +140,9 @@ function updateUI() {
         }
         
     } else {
-        chainHitsEl.textContent = '0 Hits';
+        if (chainHitsEl) chainHitsEl.textContent = '0 Hits';
         currentChainTimeout = 0;
-        chainStartedEl.textContent = 'Start: N/A';
+        if (chainStartedEl) chainStartedEl.textContent = 'Start: N/A';
         const chainProgressBarEl = document.getElementById('chain-progress-bar');
         if (chainProgressBarEl) {
             chainProgressBarEl.style.width = '0%';
@@ -160,14 +154,14 @@ function updateUI() {
     if (enemyFactionData) {
         updateMemberList(enemyFactionData.members, enemyMembersListEl, enemyMembersCountEl, false);
     } else {
-        enemyMembersCountEl.textContent = 'N/A';
-        enemyMembersListEl.innerHTML = '<p class="loading-message">No faction data.</p>';
+        if (enemyMembersCountEl) enemyMembersCountEl.textContent = 'N/A';
+        if (enemyMembersListEl) enemyMembersListEl.innerHTML = '<p class="loading-message">No faction data.</p>';
     }
 }
 
 function updateMemberList(members, listEl, countEl, isFriendly) {
-    if (!members) {
-        listEl.innerHTML = '<p class="loading-message">No member data.</p>';
+    if (!members || !listEl) {
+        if (listEl) listEl.innerHTML = '<p class="loading-message">No member data.</p>';
         return;
     }
     const membersArray = Object.values(members);
@@ -191,7 +185,7 @@ function updateMemberList(members, listEl, countEl, isFriendly) {
         listEl.appendChild(memberItem);
     });
 
-    countEl.textContent = `${onlineCount}/${membersArray.length} Online`;
+    if (countEl) countEl.textContent = `${onlineCount}/${membersArray.length} Online`;
 }
 
 // --- Timers and Initialization ---
@@ -201,13 +195,13 @@ function updateTimers() {
     if (currentChainTimeout > 0 && lastChainFetchTime > 0) {
         const elapsedSeconds = Math.floor((now - lastChainFetchTime) / 1000);
         const timeLeft = Math.max(0, currentChainTimeout - elapsedSeconds);
-        chainTimerEl.textContent = formatTime(timeLeft);
+        if (chainTimerEl) chainTimerEl.textContent = formatTime(timeLeft);
     }
 
     if (yourFactionData && yourFactionData.wars && yourFactionData.wars.ranked) {
         const elapsedSeconds = Math.floor((now - lastWarFetchTime) / 1000);
         const newDuration = currentWarDuration + elapsedSeconds;
-        warTimerEl.textContent = formatDuration(newDuration);
+        if (warTimerEl) warTimerEl.textContent = formatDuration(newDuration);
     }
 }
 
@@ -223,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = userData.tornApiKey || null;
                 globalYourFactionID = userData.faction_id || null;
 
-                // Get Enemy Faction ID from Firestore's 'currentWar' document
                 const warDoc = await db.collection('factionWars').doc('currentWar').get();
                 globalEnemyFactionID = warDoc.exists ? warDoc.data().enemyFactionID || null : null;
                 
