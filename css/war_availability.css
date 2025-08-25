@@ -366,6 +366,10 @@ body {
         font-size: 1.5em;
 		margin-top: 10px;
     }
+	
+	.footer {
+    display: none !important;
+}
 
     .user-status-panel h4,
     .team-roster-panel h4 {
