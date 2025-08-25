@@ -286,6 +286,10 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
+	
+	  .btn#headerEditProfileBtn {
+        display: none;
+    }
 
     .btn .btn-icon {
         margin: 0;
