@@ -255,8 +255,7 @@ body {
 }
 #searchInput {
 	
-width: 350px;
-padding: 10px 15px;
+padding: 5px 15px;
 background-color: rgba(0, 0, 0, 0.4);
 border: 1px solid #00a8ff;
 border-radius: 5px;
@@ -264,6 +263,7 @@ color: #eee;
 font-size: 1rem;
 outline: none;
 transition: box-shadow 0.3s ease;
+margin-left: 5px;
 }
 
 #searchInput:focus {
