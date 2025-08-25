@@ -225,7 +225,7 @@ header {
     header .header-buttons {
         gap: 12px;
     }
-	
+
 	.btn#signUpButtonHeader:hover {
         background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
         color: #ffffff; /* Keep the text white for contrast */
@@ -257,11 +257,6 @@ header {
         justify-content: center;
         text-align: center;
     }
-	
-	 .btn#headerEditProfileBtn {
-        display: none !important;
-    }
-	
     .header-left, .header-center, .header-right-controls {
         flex-basis: 100%;
         width: 100%;
@@ -293,7 +288,7 @@ header {
         flex-shrink: 1;
         flex-basis: auto;
     }
-    
+
     .btn .btn-icon {
         margin: 0;
         font-size: 1.6em;
