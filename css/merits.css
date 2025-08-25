@@ -248,9 +248,10 @@ body {
 }
 
 .search-container {
-display: flex;
-justify-content: center;
-margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-start; /* This moves it to the left */
+    align-items: center; /* This keeps the label and box vertically aligned */
+    margin-bottom: 20px;
 }
 #searchInput {
 	

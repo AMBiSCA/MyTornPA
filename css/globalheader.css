@@ -189,7 +189,10 @@ header {
 /* === Media Queries for Responsiveness === */
 /* ================================================================================= */
 
-/* Desktop layout has already been set, so we only need to handle tablet and mobile. */
+/* Add this rule to explicitly hide the settings button by default everywhere */
+.btn#headerEditProfileBtn {
+    display: none !important;
+}
 
 /* Tablet Header Customization (769px to 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
