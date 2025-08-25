@@ -189,11 +189,6 @@ header {
 /* === Media Queries for Responsiveness === */
 /* ================================================================================= */
 
-/* Add this rule to explicitly hide the settings button by default everywhere */
-.btn#headerEditProfileBtn {
-    display: none !important;
-}
-
 /* Tablet Header Customization (769px to 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
     header .header-center,
@@ -229,7 +224,7 @@ header {
         gap: 12px;
     }
 
-	.btn#signUpButtonHeader:hover {
+    .btn#signUpButtonHeader:hover {
         background-color: #2e6b8c; /* Dark blue, a color that would fit the theme */
         color: #ffffff; /* Keep the text white for contrast */
         cursor: pointer;
