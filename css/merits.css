@@ -247,6 +247,30 @@ body {
     grid-column: auto; /* Allow panels to take their natural place in the two-column grid */
 }
 
+/* --- Search Bar Styles --- */
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+#searchInput {
+  width: 50%;
+  max-width: 500px;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid #00a8ff;
+  border-radius: 5px;
+  color: #eee;
+  font-size: 1rem;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+#searchInput:focus {
+  box-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+}
+
 /* ... (rest of CSS code) ... */
 
 @media (min-width: 1200px) {
