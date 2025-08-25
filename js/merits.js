@@ -1,4 +1,3 @@
-
 const allHonors = [
     // --- Chaining Honors ---
     { id: 253, name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chains", threshold: 10, category: "honors-chaining-list", type: "count" },
@@ -42,7 +41,6 @@ const allHonors = [
     { id: 902, name: "Gone Fishing", requirement: "Be defeated by a Trout", statKey: "personalstats.untrackable_fishing", threshold: 1, category: "honors-weapons-list", type: "boolean" },
 
     // --- Attacking / General Honors ---
-    // CORRECTED: Kill Streaker honors now correctly check 'bestkillstreak' for accurate progress.
     { id: 15, name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.bestkillstreak", threshold: 10, category: "honors-attacking-list", type: "count" },
     { id: 16, name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.bestkillstreak", threshold: 100, category: "honors-attacking-list", type: "count" },
     { id: 17, name: "Kill Streaker 3", requirement: "Achieve a 500 kill streak", statKey: "personalstats.bestkillstreak", threshold: 500, category: "honors-attacking-list", type: "count" },
@@ -248,12 +246,12 @@ const allHonors = [
     { id: 717, name: "Foul Play", requirement: "Successfully prank someone with Dog Poop", statKey: "personalstats.untrackable_foulplay", threshold: 1, category: "misc-awards-list", type: "count" },
     { id: 1, name: "I'm Watching You", requirement: "Find 50 items in the city", statKey: "personalstats.cityfinds", threshold: 50, category: "misc-awards-list", type: "count" },
     { id: 239, name: "Middleman", requirement: "Have 100 different customers buy from your bazaar", statKey: "personalstats.bazaarcustomers", threshold: 100, category: "misc-awards-list", type: "count" },
-    // CORRECTED: "Collector" is subjective and untrackable, so its statKey is now specific.
+    // CORRECTED: "Collector" is subjective and untrackable, so its statKey is now specific.
     { id: 699, name: "Collector", requirement: "Maintain an impressive display case of collectible items", statKey: "personalstats.untrackable_collector", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 882, name: "Radaway", requirement: "Use a Neumune Tablet to reduce radiation poisoning", statKey: "personalstats.untrackable_radaway", threshold: 1, category: "misc-awards-list", type: "count" },
 
     // Miscellaneous
-    // CORRECTED: "Energize" now correctly points to energy refills, not nerve refills.
+    // CORRECTED: "Energize" now correctly points to energy refills, not nerve refills.
     { id: 266, name: "Energize", requirement: "Use 250 Energy Refills", statKey: "personalstats.energyrefills", threshold: 250, category: "misc-awards-list", type: "count" },
     { id: 566, name: "You've Got Some Nerve", requirement: "Use 250 Nerve Refills", statKey: "personalstats.nerverefills", threshold: 250, category: "misc-awards-list", type: "count" },
     { id: 334, name: "Compulsive", requirement: "Use 250 Casino Refills", statKey: "personalstats.tokenrefills", threshold: 250, category: "misc-awards-list", type: "count" },
@@ -278,7 +276,7 @@ const allHonors = [
     { id: 700, name: "Leaderboard", requirement: "Achieve top 250 in one of the personal Hall of Fame leaderboards", statKey: "personalstats.untrackable_leaderboard", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 839, name: "RNG", requirement: "Who knows?", statKey: "personalstats.untrackable_rng", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 845, name: "Historian", requirement: "Read a chronicle", statKey: "personalstats.untrackable_historian", threshold: 1, category: "misc-awards-list", type: "count" },
-    // CORRECTED: "Nice" honor (69 kill streak) now points to 'bestkillstreak'.
+    // CORRECTED: "Nice" honor (69 kill streak) now points to 'bestkillstreak'.
     { id: 888, name: "Nice", requirement: "Achieve a 69 kill streak", statKey: "personalstats.bestkillstreak", threshold: 69, category: "honors-attacking-list", type: "count" },
     { id: 164, name: "Stuck In a Rut", requirement: "1,000 job points used", statKey: "personalstats.jobpointsused", threshold: 1000, category: "misc-awards-list", type: "count" },
     { id: 742, name: "Overtime", requirement: "10,000 job points used", statKey: "personalstats.jobpointsused", threshold: 10000, category: "misc-awards-list", type: "count" },
@@ -288,7 +286,7 @@ const allHonors = [
     { id: 167, name: "Velutinous", requirement: "Have a comic published", statKey: "personalstats.untrackable_velutinous", threshold: 1, category: "misc-awards-list", type: "count" },
 
     // Properties
-    // CORRECTED: Property honors are untrackable and now have specific statKeys.
+    // CORRECTED: Property honors are untrackable and now have specific statKeys.
     { id: 9, name: "Luxury Real Estate", requirement: "Own a Private Island with a Airstrip", statKey: "personalstats.untrackable_luxury", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 258, name: "High Life", requirement: "Own a Private Island with a Yacht", statKey: "personalstats.untrackable_highlife", threshold: 1, category: "misc-awards-list", type: "boolean" },
     { id: 860, name: "Landlord", requirement: "Lease one of your properties to someone.", statKey: "personalstats.untrackable_landlord", threshold: 1, category: "misc-awards-list", type: "count" },
@@ -375,267 +373,267 @@ const allHonors = [
 ];
 
 const allMedals = [
-    // --- Combat Medals ---
-    { id: 174, name: "Anti Social", requirement: "Win 50 attacks", statKey: "personalstats.attackswon", threshold: 50, category: "medals-combat-list", type: "count" },
-    { id: 175, name: "Happy Slapper", requirement: "Win 250 attacks", statKey: "personalstats.attackswon", threshold: 250, category: "medals-combat-list", type: "count" },
-    { id: 176, name: "Scar Maker", requirement: "Win 500 attacks", statKey: "personalstats.attackswon", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 205, name: "Finders Keepers", requirement: "Win 2,500 attacks", statKey: "personalstats.attackswon", threshold: 2500, category: "medals-combat-list", type: "count" }, // Name changed to match map
-    { id: 178, name: "Somebody Call 911", requirement: "Win 10,000 attacks", statKey: "personalstats.attackswon", threshold: 10000, category: "medals-combat-list", type: "count" },
-    { id: 201, name: "Hired Gun", requirement: "Collect 25 bounties", statKey: "personalstats.bountiescollected", threshold: 25, category: "medals-combat-list", type: "count" },
-    { id: 202, name: "Bone Collector", requirement: "Collect 100 bounties", statKey: "personalstats.bountiescollected", threshold: 100, category: "medals-combat-list", type: "count" },
-    { id: 203, name: "The Fett", requirement: "Collect 500 bounties", statKey: "personalstats.bountiescollected", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 195, name: "Boom Headshot", requirement: "Deal 500 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 196, name: "Pwned in the face", requirement: "Deal 2,500 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 2500, category: "medals-combat-list", type: "count" },
-    { id: 197, name: "Lee Harvey Oswald", requirement: "Deal 10,000 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 10000, category: "medals-combat-list", type: "count" },
-    { id: 179, name: "Bouncer", requirement: "Win 50 defends", statKey: "personalstats.defendswon", threshold: 50, category: "medals-combat-list", type: "count" },
-    { id: 180, name: "Brick wall", requirement: "Win 250 defends", statKey: "personalstats.defendswon", threshold: 250, category: "medals-combat-list", type: "count" },
-    { id: 181, name: "Turtle", requirement: "Win 500 defends", statKey: "personalstats.defendswon", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 182, name: "Solid as a Rock", requirement: "Win 2,500 defends", statKey: "personalstats.defendswon", threshold: 2500, category: "medals-combat-list", type: "count" },
-    { id: 183, name: "Fortress", requirement: "Win 10,000 defends", statKey: "personalstats.defendswon", threshold: 10000, category: "medals-combat-list", type: "count" },
-    { id: 187, name: "Ego Smashing", requirement: "50 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 50, category: "medals-combat-list", type: "count" },
-    { id: 188, name: "Underestimated", requirement: "250 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 250, category: "medals-combat-list", type: "count" },
-    { id: 189, name: "Run Forrest Run", requirement: "1,000 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 1000, category: "medals-combat-list", type: "count" },
-    { id: 190, name: "Strike", requirement: "Win 25 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 25, category: "medals-combat-list", type: "count" },
-    { id: 191, name: "Barrage", requirement: "Win 50 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 50, category: "medals-combat-list", type: "count" },
-    { id: 192, name: "Skirmish", requirement: "Win 100 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 100, category: "medals-combat-list", type: "count" },
-    { id: 193, name: "Blitzkrieg", requirement: "Win 250 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 250, category: "medals-combat-list", type: "count" },
-    { id: 194, name: "Onslaught", requirement: "Win 500 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 215, name: "Recruit", requirement: "Earn 100 respect", statKey: "personalstats.respectforfaction", threshold: 100, category: "medals-combat-list", type: "count" },
-    { id: 216, name: "Associate", requirement: "Earn 500 respect", statKey: "personalstats.respectforfaction", threshold: 500, category: "medals-combat-list", type: "count" },
-    { id: 217, name: "Picciotto", requirement: "Earn 1,000 respect", statKey: "personalstats.respectforfaction", threshold: 1000, category: "medals-combat-list", type: "count" },
-    { id: 218, name: "Soldier", requirement: "Earn 2,500 respect", statKey: "personalstats.respectforfaction", threshold: 2500, category: "medals-combat-list", type: "count" },
-    { id: 219, name: "Capo", requirement: "Earn 5,000 respect", statKey: "personalstats.respectforfaction", threshold: 5000, category: "medals-combat-list", type: "count" },
-    { id: 220, name: "Contabile", requirement: "Earn 10,000 respect", statKey: "personalstats.respectforfaction", threshold: 10000, category: "medals-combat-list", type: "count" },
-    { id: 221, name: "Consigliere", requirement: "Earn 25,000 respect", statKey: "personalstats.respectforfaction", threshold: 25000, category: "medals-combat-list", type: "count" },
-    { id: 222, name: "Underboss", requirement: "Earn 50,000 respect", statKey: "personalstats.respectforfaction", threshold: 50000, category: "medals-combat-list", type: "count" },
-    { id: 223, name: "Boss", requirement: "Earn 75,000 respect", statKey: "personalstats.respectforfaction", threshold: 75000, category: "medals-combat-list", type: "count" },
-    { id: 224, name: "Boss Of All Bosses", requirement: "Earn 100,000 respect", statKey: "personalstats.respectforfaction", threshold: 100000, category: "medals-combat-list", type: "count" },
-    { id: 184, name: "Close Escape", requirement: "Escape from 50 enemies", statKey: "personalstats.yourunaway", threshold: 50, category: "medals-combat-list", type: "count" },
-    { id: 185, name: "Blind Judgement", requirement: "Escape from 250 enemies", statKey: "personalstats.yourunaway", threshold: 250, category: "medals-combat-list", type: "count" },
-    { id: 186, name: "Overzealous", requirement: "Escape from 1,000 enemies", statKey: "personalstats.yourunaway", threshold: 1000, category: "medals-combat-list", type: "count" },
+    // --- Combat Medals ---
+    { id: 174, name: "Anti Social", requirement: "Win 50 attacks", statKey: "personalstats.attackswon", threshold: 50, category: "medals-combat-list", type: "count" },
+    { id: 175, name: "Happy Slapper", requirement: "Win 250 attacks", statKey: "personalstats.attackswon", threshold: 250, category: "medals-combat-list", type: "count" },
+    { id: 176, name: "Scar Maker", requirement: "Win 500 attacks", statKey: "personalstats.attackswon", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 205, name: "Finders Keepers", requirement: "Win 2,500 attacks", statKey: "personalstats.attackswon", threshold: 2500, category: "medals-combat-list", type: "count" }, // Name changed to match map
+    { id: 178, name: "Somebody Call 911", requirement: "Win 10,000 attacks", statKey: "personalstats.attackswon", threshold: 10000, category: "medals-combat-list", type: "count" },
+    { id: 201, name: "Hired Gun", requirement: "Collect 25 bounties", statKey: "personalstats.bountiescollected", threshold: 25, category: "medals-combat-list", type: "count" },
+    { id: 202, name: "Bone Collector", requirement: "Collect 100 bounties", statKey: "personalstats.bountiescollected", threshold: 100, category: "medals-combat-list", type: "count" },
+    { id: 203, name: "The Fett", requirement: "Collect 500 bounties", statKey: "personalstats.bountiescollected", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 195, name: "Boom Headshot", requirement: "Deal 500 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 196, name: "Pwned in the face", requirement: "Deal 2,500 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 2500, category: "medals-combat-list", type: "count" },
+    { id: 197, name: "Lee Harvey Oswald", requirement: "Deal 10,000 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 10000, category: "medals-combat-list", type: "count" },
+    { id: 179, name: "Bouncer", requirement: "Win 50 defends", statKey: "personalstats.defendswon", threshold: 50, category: "medals-combat-list", type: "count" },
+    { id: 180, name: "Brick wall", requirement: "Win 250 defends", statKey: "personalstats.defendswon", threshold: 250, category: "medals-combat-list", type: "count" },
+    { id: 181, name: "Turtle", requirement: "Win 500 defends", statKey: "personalstats.defendswon", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 182, name: "Solid as a Rock", requirement: "Win 2,500 defends", statKey: "personalstats.defendswon", threshold: 2500, category: "medals-combat-list", type: "count" },
+    { id: 183, name: "Fortress", requirement: "Win 10,000 defends", statKey: "personalstats.defendswon", threshold: 10000, category: "medals-combat-list", type: "count" },
+    { id: 187, name: "Ego Smashing", requirement: "50 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 50, category: "medals-combat-list", type: "count" },
+    { id: 188, name: "Underestimated", requirement: "250 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 250, category: "medals-combat-list", type: "count" },
+    { id: 189, name: "Run Forrest Run", requirement: "1,000 enemies Escape from you", statKey: "personalstats.theyrunaway", threshold: 1000, category: "medals-combat-list", type: "count" },
+    { id: 190, name: "Strike", requirement: "Win 25 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 25, category: "medals-combat-list", type: "count" },
+    { id: 191, name: "Barrage", requirement: "Win 50 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 50, category: "medals-combat-list", type: "count" },
+    { id: 192, name: "Skirmish", requirement: "Win 100 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 100, category: "medals-combat-list", type: "count" },
+    { id: 193, name: "Blitzkrieg", requirement: "Win 250 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 250, category: "medals-combat-list", type: "count" },
+    { id: 194, name: "Onslaught", requirement: "Win 500 consecutive fights", statKey: "personalstats.bestkillstreak", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 215, name: "Recruit", requirement: "Earn 100 respect", statKey: "personalstats.respectforfaction", threshold: 100, category: "medals-combat-list", type: "count" },
+    { id: 216, name: "Associate", requirement: "Earn 500 respect", statKey: "personalstats.respectforfaction", threshold: 500, category: "medals-combat-list", type: "count" },
+    { id: 217, name: "Picciotto", requirement: "Earn 1,000 respect", statKey: "personalstats.respectforfaction", threshold: 1000, category: "medals-combat-list", type: "count" },
+    { id: 218, name: "Soldier", requirement: "Earn 2,500 respect", statKey: "personalstats.respectforfaction", threshold: 2500, category: "medals-combat-list", type: "count" },
+    { id: 219, name: "Capo", requirement: "Earn 5,000 respect", statKey: "personalstats.respectforfaction", threshold: 5000, category: "medals-combat-list", type: "count" },
+    { id: 220, name: "Contabile", requirement: "Earn 10,000 respect", statKey: "personalstats.respectforfaction", threshold: 10000, category: "medals-combat-list", type: "count" },
+    { id: 221, name: "Consigliere", requirement: "Earn 25,000 respect", statKey: "personalstats.respectforfaction", threshold: 25000, category: "medals-combat-list", type: "count" },
+    { id: 222, name: "Underboss", requirement: "Earn 50,000 respect", statKey: "personalstats.respectforfaction", threshold: 50000, category: "medals-combat-list", type: "count" },
+    { id: 223, name: "Boss", requirement: "Earn 75,000 respect", statKey: "personalstats.respectforfaction", threshold: 75000, category: "medals-combat-list", type: "count" },
+    { id: 224, name: "Boss Of All Bosses", requirement: "Earn 100,000 respect", statKey: "personalstats.respectforfaction", threshold: 100000, category: "medals-combat-list", type: "count" },
+    { id: 184, name: "Close Escape", requirement: "Escape from 50 enemies", statKey: "personalstats.yourunaway", threshold: 50, category: "medals-combat-list", type: "count" },
+    { id: 185, name: "Blind Judgement", requirement: "Escape from 250 enemies", statKey: "personalstats.yourunaway", threshold: 250, category: "medals-combat-list", type: "count" },
+    { id: 186, name: "Overzealous", requirement: "Escape from 1,000 enemies", statKey: "personalstats.yourunaway", threshold: 1000, category: "medals-combat-list", type: "count" },
 
-    // --- Level / Commitment Medals ---
-    // Commitment
-    { id: 210, name: "Citizenship", requirement: "Be a donator for 30 days", statKey: "personalstats.daysbeendonator", threshold: 30, category: "medals-commitment-list", type: "count" },
-    { id: 211, name: "Devoted", requirement: "Be a donator for 100 days", statKey: "personalstats.daysbeendonator", threshold: 100, category: "medals-commitment-list", type: "count" },
-    { id: 212, name: "Diligent", requirement: "Be a donator for 250 days", statKey: "personalstats.daysbeendonator", threshold: 250, category: "medals-commitment-list", type: "count" },
-    { id: 213, name: "Valiant", requirement: "Be a donator for 500 days", statKey: "personalstats.daysbeendonator", threshold: 500, category: "medals-commitment-list", type: "count" },
-    { id: 214, name: "Patriotic", requirement: "Be a donator for 1,000 days", statKey: "personalstats.daysbeendonator", threshold: 1000, category: "medals-commitment-list", type: "count" },
-    { id: 26, name: "Apprentice Faction Member", requirement: "Same faction for 100 days", statKey: "personalstats.faction_loyalty_days", threshold: 100, category: "medals-commitment-list", type: "count" },
-    { id: 27, name: "Committed Faction Member", requirement: "Same faction for 200 days", statKey: "personalstats.faction_loyalty_days", threshold: 200, category: "medals-commitment-list", type: "count" },
-    { id: 28, name: "Loyal Faction Member", requirement: "Same faction for 300 days", statKey: "personalstats.faction_loyalty_days", threshold: 300, category: "medals-commitment-list", type: "count" },
-    { id: 29, name: "Dedicated Faction Member", requirement: "Same faction for 400 days", statKey: "personalstats.faction_loyalty_days", threshold: 400, category: "medals-commitment-list", type: "count" },
-    { id: 108, name: "Faithful Faction Member", requirement: "Same faction for 500 days", statKey: "personalstats.faction_loyalty_days", threshold: 500, category: "medals-commitment-list", type: "count" },
-    { id: 109, name: "Allegiant Faction Member", requirement: "Same faction for 600 days", statKey: "personalstats.faction_loyalty_days", threshold: 600, category: "medals-commitment-list", type: "count" },
-    { id: 148, name: "Devoted Faction Member", requirement: "Same faction for 700 days", statKey: "personalstats.faction_loyalty_days", threshold: 700, category: "medals-commitment-list", type: "count" },
-    { id: 149, name: "Dutiful Faction Member", requirement: "Same faction for 800 days", statKey: "personalstats.faction_loyalty_days", threshold: 800, category: "medals-commitment-list", type: "count" },
-    { id: 150, name: "Flawless Faction Member", requirement: "Same faction for 900 days", statKey: "personalstats.faction_loyalty_days", threshold: 900, category: "medals-commitment-list", type: "count" },
-    { id: 151, name: "Honorable Faction Member", requirement: "Same faction for 1,000 days", statKey: "personalstats.faction_loyalty_days", threshold: 1000, category: "medals-commitment-list", type: "count" },
-    { id: 74, name: "Silver Anniversary", requirement: "Same spouse for 50 consecutive days", statKey: "personalstats.spousetime", threshold: 4320000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 75, name: "Ruby Anniversary", requirement: "Same spouse for 100 consecutive days", statKey: "personalstats.spousetime", threshold: 8640000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 76, name: "Sapphire Anniversary", requirement: "Same spouse for 150 consecutive days", statKey: "personalstats.spousetime", threshold: 12960000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 77, name: "Emerald Anniversary", requirement: "Same spouse for 200 consecutive days", statKey: "personalstats.spousetime", threshold: 17280000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 78, name: "Gold Anniversary", requirement: "Same spouse for 250 consecutive days", statKey: "personalstats.spousetime", threshold: 21600000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 79, name: "Diamond Anniversary", requirement: "Same spouse for 300 consecutive days", statKey: "personalstats.spousetime", threshold: 25920000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 80, name: "Platinum Anniversary", requirement: "Same spouse for 350 consecutive days", statKey: "personalstats.spousetime", threshold: 30240000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 110, name: "Double Silver Anniversary", requirement: "Same spouse for 400 consecutive days", statKey: "personalstats.spousetime", threshold: 34560000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 111, name: "Double Ruby Anniversary", requirement: "Same spouse for 450 consecutive days", statKey: "personalstats.spousetime", threshold: 38880000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 112, name: "Double Sapphire Anniversary", requirement: "Same spouse for 500 consecutive days", statKey: "personalstats.spousetime", threshold: 43200000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 113, name: "Double Emerald Anniversary", requirement: "Same spouse for 550 consecutive days", statKey: "personalstats.spousetime", threshold: 47520000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 114, name: "Double Gold Anniversary", requirement: "Same spouse for 600 consecutive days", statKey: "personalstats.spousetime", threshold: 51840000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 115, name: "Double Diamond Anniversary", requirement: "Same spouse for 650 consecutive days", statKey: "personalstats.spousetime", threshold: 56160000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 116, name: "Double Platinum Anniversary", requirement: "Same spouse for 700 consecutive days", statKey: "personalstats.spousetime", threshold: 60480000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 156, name: "Triple Silver Anniversary", requirement: "Same spouse for 750 consecutive days", statKey: "personalstats.spousetime", threshold: 64800000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 157, name: "Triple Ruby Anniversary", requirement: "Same spouse for 800 consecutive days", statKey: "personalstats.spousetime", threshold: 69120000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 158, name: "Triple Sapphire Anniversary", requirement: "Same spouse for 850 consecutive days", statKey: "personalstats.spousetime", threshold: 73440000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 159, name: "Triple Emerald Anniversary", requirement: "Same spouse for 900 consecutive days", statKey: "personalstats.spousetime", threshold: 77760000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 160, name: "Triple Gold Anniversary", requirement: "Same spouse for 1,000 consecutive days", statKey: "personalstats.spousetime", threshold: 86400000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 161, name: "Triple Diamond Anniversary", requirement: "Same spouse for 1,500 consecutive days", statKey: "personalstats.spousetime", threshold: 129600000, category: "medals-commitment-list", type: "count_time_convert" },
-    { id: 162, name: "Triple Platinum Anniversary", requirement: "Same spouse for 2,000 consecutive days", statKey: "personalstats.spousetime", threshold: 172800000, category: "medals-commitment-list", type: "count_time_convert" },
-    // Age
-    { id: 225, name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" },
-    { id: 226, name: "Two Years of Service", requirement: "Live in Torn for Two Years", statKey: "personalstats.days_old", threshold: 730, category: "medals-commitment-list", type: "count" },
-    { id: 227, name: "Three Years of Service", requirement: "Live in Torn for Three Years", statKey: "personalstats.days_old", threshold: 1095, category: "medals-commitment-list", type: "count" },
-    { id: 228, name: "Four Years of Service", requirement: "Live in Torn for Four Years", statKey: "personalstats.days_old", threshold: 1460, category: "medals-commitment-list", type: "count" },
-    { id: 229, name: "Five Years of Service", requirement: "Live in Torn for Five Years", statKey: "personalstats.days_old", threshold: 1825, category: "medals-commitment-list", type: "count" },
-    { id: 230, name: "Six Years of Service", requirement: "Live in Torn for Six Years", statKey: "personalstats.days_old", threshold: 2190, category: "medals-commitment-list", type: "count" },
-    { id: 231, name: "Seven Years of Service", requirement: "Live in Torn for Seven Years", statKey: "personalstats.days_old", threshold: 2555, category: "medals-commitment-list", type: "count" },
-    { id: 232, name: "Eight Years of Service", requirement: "Live in Torn for Eight Years", statKey: "personalstats.days_old", threshold: 2920, category: "medals-commitment-list", type: "count" },
-    { id: 234, name: "Nine Years of Service", requirement: "Live in Torn for Nine Years", statKey: "personalstats.days_old", threshold: 3285, category: "medals-commitment-list", type: "count" },
-    { id: 235, name: "Ten Years of Service", requirement: "Live in Torn for Ten Years", statKey: "personalstats.days_old", threshold: 3650, category: "medals-commitment-list", type: "count" },
-    // Level Medals - Now combined with Commitment
-    { id: 34, name: "Level Five", requirement: "Reach level Five", statKey: "level", threshold: 5, category: "medals-commitment-list", type: "level" },
-    { id: 35, name: "Level Ten", requirement: "Reach level Ten", statKey: "level", threshold: 10, category: "medals-commitment-list", type: "level" },
-    { id: 36, name: "Level Fifteen", requirement: "Reach level Fifteen", statKey: "level", threshold: 15, category: "medals-commitment-list", type: "level" },
-    { id: 37, name: "Level Twenty", requirement: "Reach level Twenty", statKey: "level", threshold: 20, category: "medals-commitment-list", type: "level" },
-    { id: 38, name: "Level Twenty Five", requirement: "Reach level Twenty Five", statKey: "level", threshold: 25, category: "medals-commitment-list", type: "level" },
-    { id: 39, name: "Level Thirty", requirement: "Reach level Thirty", statKey: "level", threshold: 30, category: "medals-commitment-list", type: "level" },
-    { id: 40, name: "Level Thirty Five", requirement: "Reach level Thirty Five", statKey: "level", threshold: 35, category: "medals-commitment-list", type: "level" },
-    { id: 41, name: "Level Forty", requirement: "Reach level Forty", statKey: "level", threshold: 40, category: "medals-commitment-list", type: "level" },
-    { id: 42, name: "Level Forty Five", requirement: "Reach level Forty Five", statKey: "level", threshold: 45, category: "medals-commitment-list", type: "level" },
-    { id: 43, name: "Level Fifty", requirement: "Reach level Fifty", statKey: "level", threshold: 50, category: "medals-commitment-list", type: "level" },
-    { id: 44, name: "Level Fifty Five", requirement: "Reach level Fifty Five", statKey: "level", threshold: 55, category: "medals-commitment-list", type: "level" },
-    { id: 45, name: "Level Sixty", requirement: "Reach level Sixty", statKey: "level", threshold: 60, category: "medals-commitment-list", type: "level" },
-    { id: 46, name: "Level Sixty Five", requirement: "Reach level Sixty Five", statKey: "level", threshold: 65, category: "medals-commitment-list", type: "level" },
-    { id: 47, name: "Level Seventy", requirement: "Reach level Seventy", statKey: "level", threshold: 70, category: "medals-commitment-list", type: "level" },
-    { id: 48, name: "Level Seventy Five", requirement: "Reach level Seventy Five", statKey: "level", threshold: 75, category: "medals-commitment-list", type: "level" },
-    { id: 49, name: "Level Eighty", requirement: "Reach level Eighty", statKey: "level", threshold: 80, category: "medals-commitment-list", type: "level" },
-    { id: 50, name: "Level Eighty Five", requirement: "Reach level Eighty Five", statKey: "level", threshold: 85, category: "medals-commitment-list", type: "level" },
-    { id: 51, name: "Level Ninety", requirement: "Reach level Ninety", statKey: "level", threshold: 90, category: "medals-commitment-list", type: "level" },
-    { id: 52, name: "Level Ninety Five", requirement: "Reach level Ninety Five", statKey: "level", threshold: 95, category: "medals-commitment-list", type: "level" },
-    { id: 53, name: "Level One Hundred", requirement: "Reach level One Hundred", statKey: "level", threshold: 100, category: "medals-commitment-list", type: "level" },
+    // --- Level / Commitment Medals ---
+    // Commitment
+    { id: 210, name: "Citizenship", requirement: "Be a donator for 30 days", statKey: "personalstats.daysbeendonator", threshold: 30, category: "medals-commitment-list", type: "count" },
+    { id: 211, name: "Devoted", requirement: "Be a donator for 100 days", statKey: "personalstats.daysbeendonator", threshold: 100, category: "medals-commitment-list", type: "count" },
+    { id: 212, name: "Diligent", requirement: "Be a donator for 250 days", statKey: "personalstats.daysbeendonator", threshold: 250, category: "medals-commitment-list", type: "count" },
+    { id: 213, name: "Valiant", requirement: "Be a donator for 500 days", statKey: "personalstats.daysbeendonator", threshold: 500, category: "medals-commitment-list", type: "count" },
+    { id: 214, name: "Patriotic", requirement: "Be a donator for 1,000 days", statKey: "personalstats.daysbeendonator", threshold: 1000, category: "medals-commitment-list", type: "count" },
+    { id: 26, name: "Apprentice Faction Member", requirement: "Same faction for 100 days", statKey: "personalstats.faction_loyalty_days", threshold: 100, category: "medals-commitment-list", type: "count" },
+    { id: 27, name: "Committed Faction Member", requirement: "Same faction for 200 days", statKey: "personalstats.faction_loyalty_days", threshold: 200, category: "medals-commitment-list", type: "count" },
+    { id: 28, name: "Loyal Faction Member", requirement: "Same faction for 300 days", statKey: "personalstats.faction_loyalty_days", threshold: 300, category: "medals-commitment-list", type: "count" },
+    { id: 29, name: "Dedicated Faction Member", requirement: "Same faction for 400 days", statKey: "personalstats.faction_loyalty_days", threshold: 400, category: "medals-commitment-list", type: "count" },
+    { id: 108, name: "Faithful Faction Member", requirement: "Same faction for 500 days", statKey: "personalstats.faction_loyalty_days", threshold: 500, category: "medals-commitment-list", type: "count" },
+    { id: 109, name: "Allegiant Faction Member", requirement: "Same faction for 600 days", statKey: "personalstats.faction_loyalty_days", threshold: 600, category: "medals-commitment-list", type: "count" },
+    { id: 148, name: "Devoted Faction Member", requirement: "Same faction for 700 days", statKey: "personalstats.faction_loyalty_days", threshold: 700, category: "medals-commitment-list", type: "count" },
+    { id: 149, name: "Dutiful Faction Member", requirement: "Same faction for 800 days", statKey: "personalstats.faction_loyalty_days", threshold: 800, category: "medals-commitment-list", type: "count" },
+    { id: 150, name: "Flawless Faction Member", requirement: "Same faction for 900 days", statKey: "personalstats.faction_loyalty_days", threshold: 900, category: "medals-commitment-list", type: "count" },
+    { id: 151, name: "Honorable Faction Member", requirement: "Same faction for 1,000 days", statKey: "personalstats.faction_loyalty_days", threshold: 1000, category: "medals-commitment-list", type: "count" },
+    { id: 74, name: "Silver Anniversary", requirement: "Same spouse for 50 consecutive days", statKey: "personalstats.spousetime", threshold: 4320000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 75, name: "Ruby Anniversary", requirement: "Same spouse for 100 consecutive days", statKey: "personalstats.spousetime", threshold: 8640000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 76, name: "Sapphire Anniversary", requirement: "Same spouse for 150 consecutive days", statKey: "personalstats.spousetime", threshold: 12960000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 77, name: "Emerald Anniversary", requirement: "Same spouse for 200 consecutive days", statKey: "personalstats.spousetime", threshold: 17280000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 78, name: "Gold Anniversary", requirement: "Same spouse for 250 consecutive days", statKey: "personalstats.spousetime", threshold: 21600000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 79, name: "Diamond Anniversary", requirement: "Same spouse for 300 consecutive days", statKey: "personalstats.spousetime", threshold: 25920000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 80, name: "Platinum Anniversary", requirement: "Same spouse for 350 consecutive days", statKey: "personalstats.spousetime", threshold: 30240000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 110, name: "Double Silver Anniversary", requirement: "Same spouse for 400 consecutive days", statKey: "personalstats.spousetime", threshold: 34560000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 111, name: "Double Ruby Anniversary", requirement: "Same spouse for 450 consecutive days", statKey: "personalstats.spousetime", threshold: 38880000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 112, name: "Double Sapphire Anniversary", requirement: "Same spouse for 500 consecutive days", statKey: "personalstats.spousetime", threshold: 43200000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 113, name: "Double Emerald Anniversary", requirement: "Same spouse for 550 consecutive days", statKey: "personalstats.spousetime", threshold: 47520000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 114, name: "Double Gold Anniversary", requirement: "Same spouse for 600 consecutive days", statKey: "personalstats.spousetime", threshold: 51840000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 115, name: "Double Diamond Anniversary", requirement: "Same spouse for 650 consecutive days", statKey: "personalstats.spousetime", threshold: 56160000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 116, name: "Double Platinum Anniversary", requirement: "Same spouse for 700 consecutive days", statKey: "personalstats.spousetime", threshold: 60480000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 156, name: "Triple Silver Anniversary", requirement: "Same spouse for 750 consecutive days", statKey: "personalstats.spousetime", threshold: 64800000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 157, name: "Triple Ruby Anniversary", requirement: "Same spouse for 800 consecutive days", statKey: "personalstats.spousetime", threshold: 69120000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 158, name: "Triple Sapphire Anniversary", requirement: "Same spouse for 850 consecutive days", statKey: "personalstats.spousetime", threshold: 73440000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 159, name: "Triple Emerald Anniversary", requirement: "Same spouse for 900 consecutive days", statKey: "personalstats.spousetime", threshold: 77760000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 160, name: "Triple Gold Anniversary", requirement: "Same spouse for 1,000 consecutive days", statKey: "personalstats.spousetime", threshold: 86400000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 161, name: "Triple Diamond Anniversary", requirement: "Same spouse for 1,500 consecutive days", statKey: "personalstats.spousetime", threshold: 129600000, category: "medals-commitment-list", type: "count_time_convert" },
+    { id: 162, name: "Triple Platinum Anniversary", requirement: "Same spouse for 2,000 consecutive days", statKey: "personalstats.spousetime", threshold: 172800000, category: "medals-commitment-list", type: "count_time_convert" },
+    // Age
+    { id: 225, name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" },
+    { id: 226, name: "Two Years of Service", requirement: "Live in Torn for Two Years", statKey: "personalstats.days_old", threshold: 730, category: "medals-commitment-list", type: "count" },
+    { id: 227, name: "Three Years of Service", requirement: "Live in Torn for Three Years", statKey: "personalstats.days_old", threshold: 1095, category: "medals-commitment-list", type: "count" },
+    { id: 228, name: "Four Years of Service", requirement: "Live in Torn for Four Years", statKey: "personalstats.days_old", threshold: 1460, category: "medals-commitment-list", type: "count" },
+    { id: 229, name: "Five Years of Service", requirement: "Live in Torn for Five Years", statKey: "personalstats.days_old", threshold: 1825, category: "medals-commitment-list", type: "count" },
+    { id: 230, name: "Six Years of Service", requirement: "Live in Torn for Six Years", statKey: "personalstats.days_old", threshold: 2190, category: "medals-commitment-list", type: "count" },
+    { id: 231, name: "Seven Years of Service", requirement: "Live in Torn for Seven Years", statKey: "personalstats.days_old", threshold: 2555, category: "medals-commitment-list", type: "count" },
+    { id: 232, name: "Eight Years of Service", requirement: "Live in Torn for Eight Years", statKey: "personalstats.days_old", threshold: 2920, category: "medals-commitment-list", type: "count" },
+    { id: 234, name: "Nine Years of Service", requirement: "Live in Torn for Nine Years", statKey: "personalstats.days_old", threshold: 3285, category: "medals-commitment-list", type: "count" },
+    { id: 235, name: "Ten Years of Service", requirement: "Live in Torn for Ten Years", statKey: "personalstats.days_old", threshold: 3650, category: "medals-commitment-list", type: "count" },
+    // Level Medals - Now combined with Commitment
+    { id: 34, name: "Level Five", requirement: "Reach level Five", statKey: "level", threshold: 5, category: "medals-commitment-list", type: "level" },
+    { id: 35, name: "Level Ten", requirement: "Reach level Ten", statKey: "level", threshold: 10, category: "medals-commitment-list", type: "level" },
+    { id: 36, name: "Level Fifteen", requirement: "Reach level Fifteen", statKey: "level", threshold: 15, category: "medals-commitment-list", type: "level" },
+    { id: 37, name: "Level Twenty", requirement: "Reach level Twenty", statKey: "level", threshold: 20, category: "medals-commitment-list", type: "level" },
+    { id: 38, name: "Level Twenty Five", requirement: "Reach level Twenty Five", statKey: "level", threshold: 25, category: "medals-commitment-list", type: "level" },
+    { id: 39, name: "Level Thirty", requirement: "Reach level Thirty", statKey: "level", threshold: 30, category: "medals-commitment-list", type: "level" },
+    { id: 40, name: "Level Thirty Five", requirement: "Reach level Thirty Five", statKey: "level", threshold: 35, category: "medals-commitment-list", type: "level" },
+    { id: 41, name: "Level Forty", requirement: "Reach level Forty", statKey: "level", threshold: 40, category: "medals-commitment-list", type: "level" },
+    { id: 42, name: "Level Forty Five", requirement: "Reach level Forty Five", statKey: "level", threshold: 45, category: "medals-commitment-list", type: "level" },
+    { id: 43, name: "Level Fifty", requirement: "Reach level Fifty", statKey: "level", threshold: 50, category: "medals-commitment-list", type: "level" },
+    { id: 44, name: "Level Fifty Five", requirement: "Reach level Fifty Five", statKey: "level", threshold: 55, category: "medals-commitment-list", type: "level" },
+    { id: 45, name: "Level Sixty", requirement: "Reach level Sixty", statKey: "level", threshold: 60, category: "medals-commitment-list", type: "level" },
+    { id: 46, name: "Level Sixty Five", requirement: "Reach level Sixty Five", statKey: "level", threshold: 65, category: "medals-commitment-list", type: "level" },
+    { id: 47, name: "Level Seventy", requirement: "Reach level Seventy", statKey: "level", threshold: 70, category: "medals-commitment-list", type: "level" },
+    { id: 48, name: "Level Seventy Five", requirement: "Reach level Seventy Five", statKey: "level", threshold: 75, category: "medals-commitment-list", type: "level" },
+    { id: 49, name: "Level Eighty", requirement: "Reach level Eighty", statKey: "level", threshold: 80, category: "medals-commitment-list", type: "level" },
+    { id: 50, name: "Level Eighty Five", requirement: "Reach level Eighty Five", statKey: "level", threshold: 85, category: "medals-commitment-list", type: "level" },
+    { id: 51, name: "Level Ninety", requirement: "Reach level Ninety", statKey: "level", threshold: 90, category: "medals-commitment-list", type: "level" },
+    { id: 52, name: "Level Ninety Five", requirement: "Reach level Ninety Five", statKey: "level", threshold: 95, category: "medals-commitment-list", type: "level" },
+    { id: 53, name: "Level One Hundred", requirement: "Reach level One Hundred", statKey: "level", threshold: 100, category: "medals-commitment-list", type: "level" },
 
-    // --- Crimes Medals ---
-    { id: 242, name: "Trainee Troublemaker", requirement: "Commit 100 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 243, name: "Budding Bandit", requirement: "Commit 200 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 244, name: "Aspiring Assailant", requirement: "Commit 300 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 245, name: "Fledgling Felon", requirement: "Commit 500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 246, name: "Freshman Fiend", requirement: "Commit 750 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 247, name: "Despicable Deviant", requirement: "Commit 1,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 248, name: "Conniving Culprit", requirement: "Commit 1,500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 249, name: "Sordid Sinner", requirement: "Commit 2,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 250, name: "Polished Perpetrator", requirement: "Commit 2,500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 251, name: "Relentless Reprobate", requirement: "Commit 3,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 252, name: "Resolute Rogue", requirement: "Commit 4,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 253, name: "Veteran Villain", requirement: "Commit 5,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 254, name: "Masterful Miscreant", statKey: "personalstats.criminaloffenses", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 255, name: "Merciless Malefactor", statKey: "personalstats.criminaloffenses", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 256, name: "Legendary Lawbreaker", statKey: "personalstats.criminaloffenses", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 272, name: "Petty Pilferer", requirement: "Commit 100 Theft offenses", statKey: "personalstats.theft", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 273, name: "Crafty Crook", requirement: "Commit 200 Theft offenses", statKey: "personalstats.theft", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 274, name: "Nifty Nicker", requirement: "Commit 300 Theft offenses", statKey: "personalstats.theft", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 275, name: "Sneaky Snatcher", requirement: "Commit 500 Theft offenses", statKey: "personalstats.theft", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 276, name: "Brazen Booster", statKey: "personalstats.theft", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 277, name: "Stealthy Stealer", statKey: "personalstats.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 278, name: "Rampant Robber", statKey: "personalstats.theft", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 279, name: "Bold Burglar", statKey: "personalstats.theft", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 280, name: "Invisible Intruder", statKey: "personalstats.theft", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 281, name: "Lucrative Larcenist", statKey: "personalstats.theft", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 282, name: "Looting Luminary", statKey: "personalstats.theft", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 283, name: "Formidable Filcher", statKey: "personalstats.theft", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 284, name: "Sophisticated Swiper", statKey: "personalstats.theft", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 285, name: "Notorious Nabber", statKey: "personalstats.theft", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 286, name: "Prolific Plunderer", statKey: "personalstats.theft", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 257, name: "Sinister Scoundrel", requirement: "Commit 100 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 258, name: "Devious Delinquent", requirement: "Commit 200 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 259, name: "Rebellious Ruffian", requirement: "Commit 300 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 260, name: "Artistic Anarchist", statKey: "personalstats.vandalism", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 261, name: "Renegade Rascal", statKey: "personalstats.vandalism", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 262, name: "Decisive Defacer", statKey: "personalstats.vandalism", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 263, name: "Villainous Vandal", statKey: "personalstats.vandalism", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 264, name: "Menacing Misfit", statKey: "personalstats.vandalism", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 265, name: "Radical Rebel", statKey: "personalstats.vandalism", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 266, name: "Urban Upsetter", statKey: "personalstats.vandalism", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 267, name: "Malicious Maverick", statKey: "personalstats.vandalism", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 268, name: "Reckless Renovator", statKey: "personalstats.vandalism", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 269, name: "Dynamic Destructor", statKey: "personalstats.vandalism", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 270, name: "Infernal Instigator", statKey: "personalstats.vandalism", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 271, name: "Nefarious Nihilist", statKey: "personalstats.vandalism", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 287, name: "Digital Duplicator", requirement: "Commit 100 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 288, name: "Covert Copier", requirement: "Commit 200 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 289, name: "Resourceful Replicator", requirement: "Commit 300 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 290, name: "Mimicking Maestro", statKey: "personalstats.counterfeiting", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 291, name: "Faux Fabricator", statKey: "personalstats.counterfeiting", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 292, name: "Mock Manufacturer", statKey: "personalstats.counterfeiting", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 293, name: "Furtive Faker", statKey: "personalstats.counterfeiting", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 294, name: "Duplicitous Designer", statKey: "personalstats.counterfeiting", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 295, name: "Counterfeit Crafter", statKey: "personalstats.counterfeiting", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 296, name: "Emphatic Emulator", statKey: "personalstats.counterfeiting", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 297, name: "Meticulous Maker", statKey: "personalstats.counterfeiting", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 298, name: "Artificial Artisan", statKey: "personalstats.counterfeiting", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 299, name: "Impeccable Imitator", statKey: "personalstats.counterfeiting", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 300, name: "Bogus Buccaneer", statKey: "personalstats.counterfeiting", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 301, name: "Famed Forger", statKey: "personalstats.counterfeiting", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 302, name: "Troublesome Trickster", statKey: "personalstats.fraud", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 303, name: "Shameless Shyster", statKey: "personalstats.fraud", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 304, name: "Greedy Grifter", statKey: "personalstats.fraud", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 305, name: "Daring Deceiver", statKey: "personalstats.fraud", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 306, name: "Provocative Persuader", statKey: "personalstats.fraud", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 307, name: "Dexterous Defrauder", statKey: "personalstats.fraud", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 308, name: "Enterprising Enticer", statKey: "personalstats.fraud", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 309, name: "Blackhearted Bluffer", statKey: "personalstats.fraud", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 310, name: "Scheming Scammer", statKey: "personalstats.fraud", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 311, name: "Swanky Swindler", statKey: "personalstats.fraud", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 312, name: "Impressive Imposter", statKey: "personalstats.fraud", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 313, name: "Canny Conman", statKey: "personalstats.fraud", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 314, name: "Frenzied Fraudster", statKey: "personalstats.fraud", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 315, name: "Bankrupting Bilker", statKey: "personalstats.fraud", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 316, name: "Misdirection Master", statKey: "personalstats.fraud", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 317, name: "Underworld Upstart", statKey: "personalstats.illicitservices", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 318, name: "Murky Middleman", statKey: "personalstats.illicitservices", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 319, name: "Grievous Goon", statKey: "personalstats.illicitservices", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 320, name: "Heinous Henchman", statKey: "personalstats.illicitservices", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 321, name: "Hardworking Heavy", statKey: "personalstats.illicitservices", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 322, name: "Intrepid Intermediary", statKey: "personalstats.illicitservices", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 323, name: "Crooked Connector", statKey: "personalstats.illicitservices", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 324, name: "Belligerent Broker", statKey: "personalstats.illicitservices", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 325, name: "Criminal Contractor", statKey: "personalstats.illicitservices", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 326, name: "Dark Dealmaker", statKey: "personalstats.illicitservices", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 327, name: "Lawless Liaison", statKey: "personalstats.illicitservices", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 328, name: "Clandestine Collaborator", statKey: "personalstats.illicitservices", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 329, name: "Felonious Facilitator", statKey: "personalstats.illicitservices", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 330, name: "Amoral Arbitrator", statKey: "personalstats.illicitservices", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 331, name: "Vice Vendor", statKey: "personalstats.illicitservices", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 332, name: "Web Wizard", statKey: "personalstats.cybercrime", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 333, name: "Digital Desperado", statKey: "personalstats.cybercrime", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 334, name: "Tech Tinkerer", statKey: "personalstats.cybercrime", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 335, name: "Virtual Virtuoso", statKey: "personalstats.cybercrime", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 336, name: "Phishing Phenom", statKey: "personalstats.cybercrime", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 337, name: "Network Ninja", statKey: "personalstats.cybercrime", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 338, name: "Expert Exploiter", statKey: "personalstats.cybercrime", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 339, name: "Data Dynamo", statKey: "personalstats.cybercrime", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 340, name: "Code Commando", statKey: "personalstats.cybercrime", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 341, name: "Online Outlaw", statKey: "personalstats.cybercrime", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 342, name: "Malware Mogul", statKey: "personalstats.cybercrime", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 343, name: "System Saboteur", statKey: "personalstats.cybercrime", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 344, name: "Heinous Hacker", statKey: "personalstats.cybercrime", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 345, name: "Backdoor Baron", statKey: "personalstats.cybercrime", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 346, name: "Byte Boss", statKey: "personalstats.cybercrime", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 347, name: "Budding Bully", statKey: "personalstats.extortion", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 348, name: "Novice Negotiator", statKey: "personalstats.extortion", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 349, name: "Cunning Coercer", statKey: "personalstats.extortion", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 350, name: "Professional Pressurer", statKey: "personalstats.extortion", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 351, name: "Haughty Harasser", statKey: "personalstats.extortion", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 352, name: "Calculating Coaxer", statKey: "personalstats.extortion", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 353, name: "Exceptional Extortionist", statKey: "personalstats.extortion", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 354, name: "Polished Persuader", statKey: "personalstats.extortion", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 355, name: "Effective Enforcer", statKey: "personalstats.extortion", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 356, name: "Industrious Intimidator", statKey: "personalstats.extortion", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 357, name: "Ruthless Racketeer", statKey: "personalstats.extortion", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 358, name: "Ominous Oppressor", statKey: "personalstats.extortion", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 359, name: "Vindictive Victimizer", statKey: "personalstats.extortion", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 360, name: "Master Manipulator", statKey: "personalstats.extortion", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 361, name: "Tyrannical Terrorizer", statKey: "personalstats.extortion", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 362, name: "Grass Grower", statKey: "personalstats.illegalproduction", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { id: 363, name: "Dope Developer", statKey: "personalstats.illegalproduction", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { id: 364, name: "Seedy Supplier", statKey: "personalstats.illegalproduction", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { id: 365, name: "Blackmarket Botanist", statKey: "personalstats.illegalproduction", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { id: 366, name: "Narcotics Nurturer", statKey: "personalstats.illegalproduction", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { id: 367, name: "Revered Refiner", statKey: "personalstats.illegalproduction", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { id: 368, name: "Forbidden Fabricator", statKey: "personalstats.illegalproduction", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { id: 369, name: "Back-alley Builder", statKey: "personalstats.illegalproduction", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { id: 370, name: "Contraband Creator", statKey: "personalstats.illegalproduction", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { id: 371, name: "Covert Craftsman", statKey: "personalstats.illegalproduction", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { id: 372, name: "Illicit Innovator", statKey: "personalstats.illegalproduction", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { id: 373, name: "Prohibited Producer", statKey: "personalstats.illegalproduction", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { id: 374, name: "Workshop Wizard", statKey: "personalstats.illegalproduction", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { id: 375, name: "Synthetic Scientist", statKey: "personalstats.illegalproduction", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { id: 376, name: "Production Prodigy", statKey: "personalstats.illegalproduction", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    // --- Crimes Medals ---
+    { id: 242, name: "Trainee Troublemaker", requirement: "Commit 100 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 243, name: "Budding Bandit", requirement: "Commit 200 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 244, name: "Aspiring Assailant", requirement: "Commit 300 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 245, name: "Fledgling Felon", requirement: "Commit 500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 246, name: "Freshman Fiend", requirement: "Commit 750 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 247, name: "Despicable Deviant", requirement: "Commit 1,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 248, name: "Conniving Culprit", requirement: "Commit 1,500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 249, name: "Sordid Sinner", requirement: "Commit 2,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 250, name: "Polished Perpetrator", requirement: "Commit 2,500 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 251, name: "Relentless Reprobate", requirement: "Commit 3,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 252, name: "Resolute Rogue", requirement: "Commit 4,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 253, name: "Veteran Villain", requirement: "Commit 5,000 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 254, name: "Masterful Miscreant", statKey: "personalstats.criminaloffenses", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 255, name: "Merciless Malefactor", statKey: "personalstats.criminaloffenses", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 256, name: "Legendary Lawbreaker", statKey: "personalstats.criminaloffenses", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 272, name: "Petty Pilferer", requirement: "Commit 100 Theft offenses", statKey: "personalstats.theft", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 273, name: "Crafty Crook", requirement: "Commit 200 Theft offenses", statKey: "personalstats.theft", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 274, name: "Nifty Nicker", requirement: "Commit 300 Theft offenses", statKey: "personalstats.theft", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 275, name: "Sneaky Snatcher", requirement: "Commit 500 Theft offenses", statKey: "personalstats.theft", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 276, name: "Brazen Booster", statKey: "personalstats.theft", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 277, name: "Stealthy Stealer", statKey: "personalstats.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 278, name: "Rampant Robber", statKey: "personalstats.theft", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 279, name: "Bold Burglar", statKey: "personalstats.theft", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 280, name: "Invisible Intruder", statKey: "personalstats.theft", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 281, name: "Lucrative Larcenist", statKey: "personalstats.theft", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 282, name: "Looting Luminary", statKey: "personalstats.theft", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 283, name: "Formidable Filcher", statKey: "personalstats.theft", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 284, name: "Sophisticated Swiper", statKey: "personalstats.theft", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 285, name: "Notorious Nabber", statKey: "personalstats.theft", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 286, name: "Prolific Plunderer", statKey: "personalstats.theft", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 257, name: "Sinister Scoundrel", requirement: "Commit 100 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 258, name: "Devious Delinquent", requirement: "Commit 200 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 259, name: "Rebellious Ruffian", requirement: "Commit 300 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 260, name: "Artistic Anarchist", statKey: "personalstats.vandalism", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 261, name: "Renegade Rascal", statKey: "personalstats.vandalism", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 262, name: "Decisive Defacer", statKey: "personalstats.vandalism", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 263, name: "Villainous Vandal", statKey: "personalstats.vandalism", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 264, name: "Menacing Misfit", statKey: "personalstats.vandalism", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 265, name: "Radical Rebel", statKey: "personalstats.vandalism", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 266, name: "Urban Upsetter", statKey: "personalstats.vandalism", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 267, name: "Malicious Maverick", statKey: "personalstats.vandalism", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 268, name: "Reckless Renovator", statKey: "personalstats.vandalism", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 269, name: "Dynamic Destructor", statKey: "personalstats.vandalism", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 270, name: "Infernal Instigator", statKey: "personalstats.vandalism", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 271, name: "Nefarious Nihilist", statKey: "personalstats.vandalism", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 287, name: "Digital Duplicator", requirement: "Commit 100 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 288, name: "Covert Copier", requirement: "Commit 200 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 289, name: "Resourceful Replicator", requirement: "Commit 300 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 290, name: "Mimicking Maestro", statKey: "personalstats.counterfeiting", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 291, name: "Faux Fabricator", statKey: "personalstats.counterfeiting", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 292, name: "Mock Manufacturer", statKey: "personalstats.counterfeiting", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 293, name: "Furtive Faker", statKey: "personalstats.counterfeiting", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 294, name: "Duplicitous Designer", statKey: "personalstats.counterfeiting", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 295, name: "Counterfeit Crafter", statKey: "personalstats.counterfeiting", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 296, name: "Emphatic Emulator", statKey: "personalstats.counterfeiting", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 297, name: "Meticulous Maker", statKey: "personalstats.counterfeiting", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 298, name: "Artificial Artisan", statKey: "personalstats.counterfeiting", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 299, name: "Impeccable Imitator", statKey: "personalstats.counterfeiting", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 300, name: "Bogus Buccaneer", statKey: "personalstats.counterfeiting", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 301, name: "Famed Forger", statKey: "personalstats.counterfeiting", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 302, name: "Troublesome Trickster", statKey: "personalstats.fraud", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 303, name: "Shameless Shyster", statKey: "personalstats.fraud", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 304, name: "Greedy Grifter", statKey: "personalstats.fraud", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 305, name: "Daring Deceiver", statKey: "personalstats.fraud", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 306, name: "Provocative Persuader", statKey: "personalstats.fraud", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 307, name: "Dexterous Defrauder", statKey: "personalstats.fraud", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 308, name: "Enterprising Enticer", statKey: "personalstats.fraud", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 309, name: "Blackhearted Bluffer", statKey: "personalstats.fraud", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 310, name: "Scheming Scammer", statKey: "personalstats.fraud", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 311, name: "Swanky Swindler", statKey: "personalstats.fraud", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 312, name: "Impressive Imposter", statKey: "personalstats.fraud", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 313, name: "Canny Conman", statKey: "personalstats.fraud", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 314, name: "Frenzied Fraudster", statKey: "personalstats.fraud", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 315, name: "Bankrupting Bilker", statKey: "personalstats.fraud", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 316, name: "Misdirection Master", statKey: "personalstats.fraud", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 317, name: "Underworld Upstart", statKey: "personalstats.illicitservices", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 318, name: "Murky Middleman", statKey: "personalstats.illicitservices", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 319, name: "Grievous Goon", statKey: "personalstats.illicitservices", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 320, name: "Heinous Henchman", statKey: "personalstats.illicitservices", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 321, name: "Hardworking Heavy", statKey: "personalstats.illicitservices", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 322, name: "Intrepid Intermediary", statKey: "personalstats.illicitservices", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 323, name: "Crooked Connector", statKey: "personalstats.illicitservices", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 324, name: "Belligerent Broker", statKey: "personalstats.illicitservices", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 325, name: "Criminal Contractor", statKey: "personalstats.illicitservices", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 326, name: "Dark Dealmaker", statKey: "personalstats.illicitservices", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 327, name: "Lawless Liaison", statKey: "personalstats.illicitservices", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 328, name: "Clandestine Collaborator", statKey: "personalstats.illicitservices", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 329, name: "Felonious Facilitator", statKey: "personalstats.illicitservices", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 330, name: "Amoral Arbitrator", statKey: "personalstats.illicitservices", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 331, name: "Vice Vendor", statKey: "personalstats.illicitservices", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 332, name: "Web Wizard", statKey: "personalstats.cybercrime", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 333, name: "Digital Desperado", statKey: "personalstats.cybercrime", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 334, name: "Tech Tinkerer", statKey: "personalstats.cybercrime", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 335, name: "Virtual Virtuoso", statKey: "personalstats.cybercrime", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 336, name: "Phishing Phenom", statKey: "personalstats.cybercrime", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 337, name: "Network Ninja", statKey: "personalstats.cybercrime", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 338, name: "Expert Exploiter", statKey: "personalstats.cybercrime", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 339, name: "Data Dynamo", statKey: "personalstats.cybercrime", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 340, name: "Code Commando", statKey: "personalstats.cybercrime", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 341, name: "Online Outlaw", statKey: "personalstats.cybercrime", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 342, name: "Malware Mogul", statKey: "personalstats.cybercrime", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 343, name: "System Saboteur", statKey: "personalstats.cybercrime", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 344, name: "Heinous Hacker", statKey: "personalstats.cybercrime", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 345, name: "Backdoor Baron", statKey: "personalstats.cybercrime", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 346, name: "Byte Boss", statKey: "personalstats.cybercrime", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 347, name: "Budding Bully", statKey: "personalstats.extortion", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 348, name: "Novice Negotiator", statKey: "personalstats.extortion", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 349, name: "Cunning Coercer", statKey: "personalstats.extortion", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 350, name: "Professional Pressurer", statKey: "personalstats.extortion", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 351, name: "Haughty Harasser", statKey: "personalstats.extortion", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 352, name: "Calculating Coaxer", statKey: "personalstats.extortion", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 353, name: "Exceptional Extortionist", statKey: "personalstats.extortion", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 354, name: "Polished Persuader", statKey: "personalstats.extortion", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 355, name: "Effective Enforcer", statKey: "personalstats.extortion", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 356, name: "Industrious Intimidator", statKey: "personalstats.extortion", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 357, name: "Ruthless Racketeer", statKey: "personalstats.extortion", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 358, name: "Ominous Oppressor", statKey: "personalstats.extortion", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 359, name: "Vindictive Victimizer", statKey: "personalstats.extortion", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 360, name: "Master Manipulator", statKey: "personalstats.extortion", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 361, name: "Tyrannical Terrorizer", statKey: "personalstats.extortion", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { id: 362, name: "Grass Grower", statKey: "personalstats.illegalproduction", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { id: 363, name: "Dope Developer", statKey: "personalstats.illegalproduction", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { id: 364, name: "Seedy Supplier", statKey: "personalstats.illegalproduction", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { id: 365, name: "Blackmarket Botanist", statKey: "personalstats.illegalproduction", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { id: 366, name: "Narcotics Nurturer", statKey: "personalstats.illegalproduction", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { id: 367, name: "Revered Refiner", statKey: "personalstats.illegalproduction", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { id: 368, name: "Forbidden Fabricator", statKey: "personalstats.illegalproduction", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { id: 369, name: "Back-alley Builder", statKey: "personalstats.illegalproduction", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { id: 370, name: "Contraband Creator", statKey: "personalstats.illegalproduction", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { id: 371, name: "Covert Craftsman", statKey: "personalstats.illegalproduction", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { id: 372, name: "Illicit Innovator", statKey: "personalstats.illegalproduction", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { id: 373, name: "Prohibited Producer", statKey: "personalstats.illegalproduction", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { id: 374, name: "Workshop Wizard", statKey: "personalstats.illegalproduction", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { id: 375, name: "Synthetic Scientist", statKey: "personalstats.illegalproduction", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { id: 376, name: "Production Prodigy", statKey: "personalstats.illegalproduction", threshold: 10000, category: "medals-crimes-list", type: "count" },
 
-    { id: 89, name: "Apprentice", requirement: "$100,000 for 3 days", statKey: "personalstats.networth", threshold: 100000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 90, name: "Entrepreneur", requirement: "$250,000 for 3 days", statKey: "personalstats.networth", threshold: 250000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 91, name: "Executive", requirement: "$500,000 for 3 days", statKey: "personalstats.networth", threshold: 500000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 92, name: "Millionaire", requirement: "$1,000,000 for 3 days", statKey: "personalstats.networth", threshold: 1000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 93, name: "Multimillionaire", requirement: "$2,500,000 for 7 days", statKey: "personalstats.networth", threshold: 2500000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 94, name: "Capitalist", requirement: "$10,000,000 for 7 days", statKey: "personalstats.networth", threshold: 10000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 95, name: "Plutocrat", requirement: "$25,000,000 for 14 days", statKey: "personalstats.networth", threshold: 25000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 96, name: "Aristocrat", requirement: "$100,000,000 for 14 days", statKey: "personalstats.networth", threshold: 100000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 236, name: "Mogul", requirement: "$250,000,000 for 28 days", statKey: "personalstats.networth", threshold: 250000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 237, name: "Billionaire", requirement: "$1,000,000,000 for 28 days", statKey: "personalstats.networth", threshold: 1000000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 238, name: "Multibillionaire", requirement: "$2,500,000,000 for 56 days", statKey: "personalstats.networth", threshold: 2500000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 239, name: "Baron", requirement: "$10,000,000,000 for 56 days", statKey: "personalstats.networth", threshold: 10000000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 240, name: "Oligarch", requirement: "$25,000,000,000 for 112 days", statKey: "personalstats.networth", threshold: 25000000000, category: "misc-awards-list", type: "count_networth_time" },
-    { id: 241, name: "Tycoon", requirement: "$100,000,000,000 for 112 days", statKey: "personalstats.networth", threshold: 100000000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 89, name: "Apprentice", requirement: "$100,000 for 3 days", statKey: "personalstats.networth", threshold: 100000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 90, name: "Entrepreneur", requirement: "$250,000 for 3 days", statKey: "personalstats.networth", threshold: 250000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 91, name: "Executive", requirement: "$500,000 for 3 days", statKey: "personalstats.networth", threshold: 500000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 92, name: "Millionaire", requirement: "$1,000,000 for 3 days", statKey: "personalstats.networth", threshold: 1000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 93, name: "Multimillionaire", requirement: "$2,500,000 for 7 days", statKey: "personalstats.networth", threshold: 2500000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 94, name: "Capitalist", requirement: "$10,000,000 for 7 days", statKey: "personalstats.networth", threshold: 10000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 95, name: "Plutocrat", requirement: "$25,000,000 for 14 days", statKey: "personalstats.networth", threshold: 25000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 96, name: "Aristocrat", requirement: "$100,000,000 for 14 days", statKey: "personalstats.networth", threshold: 100000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 236, name: "Mogul", requirement: "$250,000,000 for 28 days", statKey: "personalstats.networth", threshold: 250000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 237, name: "Billionaire", requirement: "$1,000,000,000 for 28 days", statKey: "personalstats.networth", threshold: 1000000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 238, name: "Multibillionaire", requirement: "$2,500,000,000 for 56 days", statKey: "personalstats.networth", threshold: 2500000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 239, name: "Baron", requirement: "$10,000,000,000 for 56 days", statKey: "personalstats.networth", threshold: 10000000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 240, name: "Oligarch", requirement: "$25,000,000,000 for 112 days", statKey: "personalstats.networth", threshold: 25000000000, category: "misc-awards-list", type: "count_networth_time" },
+    { id: 241, name: "Tycoon", requirement: "$100,000,000,000 for 112 days", statKey: "personalstats.networth", threshold: 100000000000, category: "misc-awards-list", type: "count_networth_time" },
 ];
 
 
@@ -670,556 +668,540 @@ const awardsProgressList = document.getElementById('awards-progress-list'); // N
 // --- Helper Functions (keep unchanged) ---
 
 /**
- * Shows the loading indicator.
- */
+ * Shows the loading indicator.
+ */
 function showLoading() {
-    loadingIndicator.classList.remove('js-hidden-initially');
-    errorDisplay.classList.add('js-hidden-initially'); // Hide any previous errors
+    loadingIndicator.classList.remove('js-hidden-initially');
+    errorDisplay.classList.add('js-hidden-initially'); // Hide any previous errors
 }
 
 /**
- * Hides the loading indicator.
- */
+ * Hides the loading indicator.
+ */
 function hideLoading() {
-    loadingIndicator.classList.add('js-hidden-initially');
+    loadingIndicator.classList.add('js-hidden-initially');
 }
 
 /**
- * Shows an error message.
- * @param {string} message - The error message to display.
- */
+ * Shows an error message.
+ * @param {string} message - The error message to display.
+ */
 function showError(message) {
-    errorDisplay.textContent = `Error: ${message}`;
-    errorDisplay.classList.remove('js-hidden-initially');
-    hideLoading();
+    errorDisplay.textContent = `Error: ${message}`;
+    errorDisplay.classList.remove('js-hidden-initially');
+    hideLoading();
 }
 
 /**
- * Hides the error message.
- */
+ * Hides the error message.
+ */
 function hideError() {
-    errorDisplay.classList.add('js-hidden-initially');
-    errorDisplay.textContent = '';
+    errorDisplay.classList.add('js-hidden-initially');
+    errorDisplay.textContent = '';
 }
 
 /**
- * Formats a number with commas.
- * @param {number} num - The number to format.
- * @returns {string} The formatted number.
- */
+ * Formats a number with commas.
+ * @param {number} num - The number to format.
+ * @returns {string} The formatted number.
+ */
 function formatNumber(num) {
-    if (typeof num !== 'number' || isNaN(num)) {
-        return 'N/A';
-    }
-    return num.toLocaleString();
+    if (typeof num !== 'number' || isNaN(num)) {
+        return 'N/A';
+    }
+    return num.toLocaleString();
 }
 
 /**
- * Gets a nested property from an object using a dot-notation string.
- * E.g., getNestedProperty(playerData, "personalstats.attackswon")
- * @param {object} obj - The object to search within.
- * @param {string} path - The dot-notation path to the property.
- * @returns {*} The value of the property, or undefined if not found.
- */
+ * Gets a nested property from an object using a dot-notation string.
+ * E.g., getNestedProperty(playerData, "personalstats.attackswon")
+ * @param {object} obj - The object to search within.
+ * @param {string} path - The dot-notation path to the property.
+ * @returns {*} The value of the property, or undefined if not found.
+ */
 function getNestedProperty(obj, path) {
-    // Special handling for 'rank_text' as it's a custom derivation, not directly from API path
-    if (path === "rank_text") {
-        return (obj.basic && obj.basic.rank) ? obj.basic.rank : (obj.rank || 'N/A');
-    }
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    // Special handling for 'rank_text' as it's a custom derivation, not directly from API path
+    if (path === "rank_text") {
+        return (obj.basic && obj.basic.rank) ? obj.basic.rank : (obj.rank || 'N/A');
+    }
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
 /**
- * Clears all dynamic content lists.
- */
+ * Clears all dynamic content lists.
+ */
 function clearAllLists() {
-    honorsAttackingList.innerHTML = '';
-    honorsWeaponsList.innerHTML = '';
-    honorsChainingList.innerHTML = '';
+    honorsAttackingList.innerHTML = '';
+    honorsWeaponsList.innerHTML = '';
+    honorsChainingList.innerHTML = '';
 
-    medalsCombatList.innerHTML = '';
-    medalsCommitmentList.innerHTML = '';
+    medalsCombatList.innerHTML = '';
+    medalsCommitmentList.innerHTML = '';
 
-    medalsCrimesList.innerHTML = '';
+    medalsCrimesList.innerHTML = '';
 
-    playerStatsList.innerHTML = '';
-    miscAwardsList.innerHTML = ''; // Clear the new miscellaneous awards list
-    awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
+    playerStatsList.innerHTML = '';
+    miscAwardsList.innerHTML = ''; // Clear the new miscellaneous awards list
+    awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
 /**
- * Fetches Torn player data directly from the Torn API.
- * This function assumes the API key is retrieved from Firestore.
- * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object>} A promise that resolves with the player data.
- */
+ * Fetches Torn player data directly from the Torn API.
+ * This function assumes the API key is retrieved from Firestore.
+ * @param {string} apiKey - The Torn API key for the current user.
+ * @returns {Promise<object>} A promise that resolves with the player data.
+ */
 async function fetchTornDataDirectly(apiKey) {
-    if (!apiKey) {
-        throw new Error("No Torn API key found.");
-    }
+    if (!apiKey) {
+        throw new Error("No Torn API key found.");
+    }
 
-    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
-    // ADDED 'medals' AND 'honors' selections to fetch the awarded IDs directly.
-    const selections = "basic,personalstats,medals,honors"; 
-    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
+    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
+    // ADDED 'medals' AND 'honors' selections to fetch the awarded IDs directly.
+    const selections = "basic,personalstats,medals,honors"; 
+    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
-    try {
-        const response = await fetch(tornApiUrl);
+    try {
+        const response = await fetch(tornApiUrl);
 
-        if (!response.ok) {
-            let errorDetail = await response.text();
-            try {
-                const errorJson = JSON.parse(errorDetail);
-                if (errorJson && errorJson.error && errorJson.error.error) {
-                    errorDetail = errorJson.error.error;
-                }
-            } catch (e) {
-                // Not JSON, use raw text
-            }
-            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
-        }
+        if (!response.ok) {
+            let errorDetail = await response.text();
+            try {
+                const errorJson = JSON.parse(errorDetail);
+                if (errorJson && errorJson.error && errorJson.error.error) {
+                    errorDetail = errorJson.error.error;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+            }
+            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
+        }
 
-        const data = await response.json();
+        const data = await response.json();
 
-        if (data.error && data.error.error) {
-            throw new Error(`Torn API error: ${data.error.error}`);
-        }
+        if (data.error && data.error.error) {
+            throw new Error(`Torn API error: ${data.error.error}`);
+        }
 
-        console.log('Torn API Data fetched:', data); // For debugging
-        hideLoading();
-        return data;
+        console.log('Torn API Data fetched:', data); // For debugging
+        hideLoading();
+        return data;
 
-    } catch (error) {
-        console.error('Error fetching Torn data:', error);
-        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
-            showError('Invalid Torn API key. Please update your API key in your profile settings.');
-        } else if (error.message.includes("Too many requests")) {
-            showError('Torn API rate limit hit. Please wait a moment and refresh.');
-        } else if (error.message.includes("wrongfields")) {
-            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
-        } else {
-            showError(`Failed to load Torn data: ${error.message}.`);
-        }
-        return null;
-    }
+    } catch (error) {
+        console.error('Error fetching Torn data:', error);
+        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
+            showError('Invalid Torn API key. Please update your API key in your profile settings.');
+        } else if (error.message.includes("Too many requests")) {
+            showError('Torn API rate limit hit. Please wait a moment and refresh.');
+        } else if (error.message.includes("wrongfields")) {
+            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
+        } else {
+            showError(`Failed to load Torn data: ${error.message}.`);
+        }
+        return null;
+    }
 }
 
 function displayPlayerSummary(playerData) {
-    console.log("displayPlayerSummary: Processing playerData:", playerData);
+    console.log("displayPlayerSummary: Processing playerData:", playerData);
 
-    if (playerData) {
-        playerNameSpan.textContent = playerData.name || 'N/A';
-        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
+    if (playerData) {
+        playerNameSpan.textContent = playerData.name || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
 
-        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
-        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
+        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
 
-        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
-        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
-        
-        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
-        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
+        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
+        
+        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
 
 
-        // More granular logging for debugging specific values
-        console.log(`  Name: ${playerNameSpan.textContent}`);
-        console.log(`  Level: ${playerLevelSpan.textContent}`);
-        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
-        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
-        console.log(`  Awards: ${playerAwardsSpan.textContent}`);
+        // More granular logging for debugging specific values
+        console.log(`  Name: ${playerNameSpan.textContent}`);
+        console.log(`  Level: ${playerLevelSpan.textContent}`);
+        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
+        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
+        console.log(`  Awards: ${playerAwardsSpan.textContent}`);
 
-    } else {
-        console.warn("displayPlayerSummary: playerData is missing.");
-        playerNameSpan.textContent = 'N/A';
-        playerLevelSpan.textContent = 'N/A';
-        playerTotalStatsSpan.textContent = 'N/A';
-        playerNetworthSpan.textContent = 'N/A';
-        playerAwardsSpan.textContent = 'N/A';
-    }
+    } else {
+        console.warn("displayPlayerSummary: playerData is missing.");
+        playerNameSpan.textContent = 'N/A';
+        playerLevelSpan.textContent = 'N/A';
+        playerTotalStatsSpan.textContent = 'N/A';
+        playerNetworthSpan.textContent = 'N/A';
+        playerAwardsSpan.textContent = 'N/A';
+    }
 }
 
 /**
- * Processes a single achievement to determine its status and progress.
- * @param {object} achievement - The achievement object from allHonors/allMedals.
- * @param {object} playerData - The full player data from Torn API.
- * @returns {object} An object containing statusIconClass, statusSymbol, progressText, isCompleted, and calculatedPercentage.
- */
+ * Processes a single achievement to determine its status and progress.
+ * @param {object} achievement - The achievement object from allHonors/allMedals.
+ * @param {object} playerData - The full player data from Torn API.
+ * @returns {object} An object containing statusIconClass, statusSymbol, progressText, isCompleted, and calculatedPercentage.
+ */
 function getAchievementStatus(achievement, playerData) {
-    const value = getNestedProperty(playerData, achievement.statKey);
-    let statusIconClass = 'not-started';
-    let statusSymbol = '◎';
-    let progressText = '';
-    let isCompleted = false;
-    let calculatedPercentage = 0;
+    const value = getNestedProperty(playerData, achievement.statKey);
+    let statusIconClass = 'not-started';
+    let statusSymbol = '◎';
+    let progressText = '';
+    let isCompleted = false;
+    let calculatedPercentage = 0;
 
-    if (value !== undefined && value !== null) {
-        if (achievement.type === 'count' || achievement.type === 'level') {
-            if (value >= achievement.threshold) {
-                statusIconClass = 'completed';
-                statusSymbol = '✔';
-                isCompleted = true;
-                calculatedPercentage = 100;
-            } else {
-                statusIconClass = 'in-progress';
-                statusSymbol = '';
-                calculatedPercentage = (value / achievement.threshold) * 100;
-                progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
-                if (achievement.type === 'level') {
-                    progressText = ` (Current Level: ${formatNumber(value)})`;
-                }
-            }
-        } else if (achievement.type === 'boolean') {
-            if (value > 0) { // Assuming 1 for true, 0 for false for a boolean stat
-                statusIconClass = 'completed';
-                statusSymbol = '✔';
-                isCompleted = true;
-                calculatedPercentage = 100;
-            }
-        } else if (achievement.type === 'count_complex' && achievement.name === "007") {
-            const attacksWon = getNestedProperty(playerData, achievement.statKey);
-            const defendsWon = getNestedProperty(playerData, achievement.checkAlso);
-            const attacksThreshold = achievement.threshold;
-            const defendsThreshold = achievement.thresholdAlso;
+    if (value !== undefined && value !== null) {
+        if (achievement.type === 'count' || achievement.type === 'level') {
+            if (value >= achievement.threshold) {
+                statusIconClass = 'completed';
+                statusSymbol = '✔';
+                isCompleted = true;
+                calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress';
+                statusSymbol = '';
+                calculatedPercentage = (value / achievement.threshold) * 100;
+                progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
+                if (achievement.type === 'level') {
+                    progressText = ` (Current Level: ${formatNumber(value)})`;
+                }
+            }
+        } else if (achievement.type === 'boolean') {
+            if (value > 0) { // Assuming 1 for true, 0 for false for a boolean stat
+                statusIconClass = 'completed';
+                statusSymbol = '✔';
+                isCompleted = true;
+                calculatedPercentage = 100;
+            }
+        } else if (achievement.type === 'count_complex' && achievement.name === "007") {
+            const attacksWon = getNestedProperty(playerData, achievement.statKey);
+            const defendsWon = getNestedProperty(playerData, achievement.checkAlso);
+            const attacksThreshold = achievement.threshold;
+            const defendsThreshold = achievement.thresholdAlso;
 
-            if (attacksWon >= attacksThreshold && defendsWon >= defendsThreshold) {
-                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
-            } else {
-                statusIconClass = 'in-progress'; statusSymbol = '';
-                const progressAttacks = (attacksWon / attacksThreshold) * 100;
-                const progressDefends = (defendsWon / defendsThreshold) * 100;
-                calculatedPercentage = Math.min(progressAttacks, progressDefends); // Take the lower percentage
-                progressText = ` (Attacks: ${formatNumber(attacksWon)}/${formatNumber(attacksThreshold)}, Defends: ${formatNumber(defendsWon)}/${formatNumber(defendsThreshold)})`;
-            }
-        } else if (achievement.type === 'count_time_convert') {
-            const valueInDays = value / (24 * 60 * 60); // Convert seconds to days
-             if (valueInDays >= achievement.threshold) {
-                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
-            } else {
-                statusIconClass = 'in-progress'; statusSymbol = '';
-                calculatedPercentage = (valueInDays / achievement.threshold) * 100;
-                progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(1))}/${formatNumber(achievement.threshold)} days)`;
-            }
-        } else if (achievement.type === 'rank') {
-             let currentRankValue = getNestedProperty(playerData, achievement.statKey);
-             if (currentRankValue === achievement.threshold) {
-                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
-             } else {
-                 statusIconClass = 'not-started';
-             }
-             progressText = ` (Current: ${currentRankValue || 'N/A'})`;
-             // For ranks, closeness is harder to calculate numerically, so percentage might not be meaningful
-        }
-        else if (value > 0 && !isCompleted) { // Generic check for non-zero progress for other types
-            statusIconClass = 'in-progress';
-            statusSymbol = '';
-            progressText = ` (Current: ${formatNumber(value)})`;
-            // For general 'count' where threshold isn't clear, just show current value
-            calculatedPercentage = 1; // Indicate some progress but not quantifiable
-        }
-    }
+            if (attacksWon >= attacksThreshold && defendsWon >= defendsThreshold) {
+                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress'; statusSymbol = '';
+                const progressAttacks = (attacksWon / attacksThreshold) * 100;
+                const progressDefends = (defendsWon / defendsThreshold) * 100;
+                calculatedPercentage = Math.min(progressAttacks, progressDefends); // Take the lower percentage
+                progressText = ` (Attacks: ${formatNumber(attacksWon)}/${formatNumber(attacksThreshold)}, Defends: ${formatNumber(defendsWon)}/${formatNumber(defendsThreshold)})`;
+            }
+        } else if (achievement.type === 'count_time_convert') {
+            const valueInDays = value / (24 * 60 * 60); // Convert seconds to days
+             if (valueInDays >= achievement.threshold) {
+                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress'; statusSymbol = '';
+                calculatedPercentage = (valueInDays / achievement.threshold) * 100;
+                progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(1))}/${formatNumber(achievement.threshold)} days)`;
+            }
+        } else if (achievement.type === 'rank') {
+             let currentRankValue = getNestedProperty(playerData, achievement.statKey);
+             if (currentRankValue === achievement.threshold) {
+                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+             } else {
+                 statusIconClass = 'not-started';
+             }
+             progressText = ` (Current: ${currentRankValue || 'N/A'})`;
+             // For ranks, closeness is harder to calculate numerically, so percentage might not be meaningful
+        }
+        else if (value > 0 && !isCompleted) { // Generic check for non-zero progress for other types
+            statusIconClass = 'in-progress';
+            statusSymbol = '';
+            progressText = ` (Current: ${formatNumber(value)})`;
+            // For general 'count' where threshold isn't clear, just show current value
+            calculatedPercentage = 1; // Indicate some progress but not quantifiable
+        }
+    }
 
-    return { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage };
+    return { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage };
 }
 
 
-// --- merits.js (UPDATED updateAchievementsDisplay function - Single Tick) ---
-
-// ... (keep all code above this function as it is) ...
-
 /**
- * Updates the display for Honors and Medals based on player data.
- * Displays a single, integrated tick for awarded items, replacing progress symbols.
- * @param {object} playerData - The full player data from the Torn API.
- */
+ * Updates the display for Honors and Medals based on player data.
+ * This version uses the API's awarded lists as the single source of truth for completion.
+ * @param {object} playerData - The full player data from the Torn API.
+ */
 function updateAchievementsDisplay(playerData) {
-    clearAllLists(); // Clear previous content
+    clearAllLists(); // Clear previous content
 
-    const achievementLists = {
-        'honors-attacking-list': honorsAttackingList,
-        'honors-weapons-list': honorsWeaponsList,
-        'honors-chaining-list': honorsChainingList,
+    const achievementLists = {
+        'honors-attacking-list': honorsAttackingList,
+        'honors-weapons-list': honorsWeaponsList,
+        'honors-chaining-list': honorsChainingList,
+        'medals-combat-list': medalsCombatList,
+        'medals-commitment-list': medalsCommitmentList,
+        'medals-crimes-list': medalsCrimesList,
+        'misc-awards-list': miscAwardsList,
+    };
 
-        'medals-combat-list': medalsCombatList,
-        'medals-commitment-list': medalsCommitmentList,
+    // The definitive lists of what the user has ACTUALLY been awarded.
+    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []);
+    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
 
-        'medals-crimes-list': medalsCrimesList,
-        'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
-    };
+    const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
-    // Extract user's awarded IDs from the API response
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
-    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
+    const processAndDisplay = (achievement, type) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('achievement-item');
+        listItem.dataset.id = achievement.id;
+        listItem.dataset.type = type;
 
+        const isAwardedByApi = (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) ||
+                             (type === 'medal' && userOwnedMedalsIds.has(achievement.id));
 
-    const allAchievementsWithStatus = []; // Used for Awards Progress tab
+        if (isAwardedByApi) {
+            listItem.classList.add('awarded-by-api');
+            listItem.innerHTML = `
+                <span class="merit-status-icon completed">✔</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                </span>
+            `;
+        } else {
+            const { statusIconClass, statusSymbol, progressText, calculatedPercentage } = getAchievementStatus(achievement, playerData);
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                    <span class="merit-progress">${progressText}</span>
+                </span>
+            `;
+            allAchievementsWithStatus.push({
+                achievement, statusIconClass, statusSymbol, progressText, calculatedPercentage
+            });
+        }
 
-    const processAndDisplay = (achievement, type) => {
-        const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
-        
-        const listItem = document.createElement('li');
-        listItem.classList.add('achievement-item'); 
+        if (achievementLists[achievement.category]) {
+            achievementLists[achievement.category].appendChild(listItem);
+        } else {
+            console.warn(`Category list not found for: ${achievement.category}.`);
+        }
+    };
 
-        // Add data-id and data-type attributes (essential for any future external lookup/styling)
-        listItem.dataset.id = achievement.id; 
-        listItem.dataset.type = type; 
+    allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
+    allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
 
-        // Determine if the award is owned by the API response
-        let isAwardedByApi = false;
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        }
-
-        // --- MODIFIED LOGIC: Show Font Awesome tick IF AWARDED, else show progress symbol ---
-        let finalDisplayIconHtml = ''; // Will contain the HTML for the icon/symbol
-        let finalIconClass = statusIconClass; // Keep original progress class by default
-
-        if (isAwardedByApi) {
-            finalDisplayIconHtml = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
-            finalIconClass = 'completed'; // Force to 'completed' color (green)
-            listItem.classList.add('awarded-by-api'); // Keep for overall row styling
-        } else {
-            finalDisplayIconHtml = statusSymbol;
-            // finalIconClass remains statusIconClass
-        }
-        // --- END MODIFIED LOGIC ---
-
-
-        listItem.innerHTML = `
-            <span class="merit-status-icon ${finalIconClass}">${finalDisplayIconHtml}</span>
-            <span class="merit-details">
-                <span class="merit-name">${achievement.name}</span> -
-                <span class="merit-requirement">${achievement.requirement}</span>
-                <span class="merit-progress">${progressText}</span>
-            </span>
-            `;
-
-        if (achievementLists[achievement.category]) {
-            achievementLists[achievement.category].appendChild(listItem);
-        } else {
-            console.warn(`Category list not found for: ${achievement.category}. Check HTML ID or allHonors/allMedals category assignment.`);
-        }
-
-        // Add to the Awards Progress tab if not completed by stat threshold
-        if (!isCompleted) { // Use original isCompleted, not affected by isAwardedByApi
-            allAchievementsWithStatus.push({
-                achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
-                progressText,
-                calculatedPercentage
-            });
-        }
-    };
-
-    // Process all honors and medals. Pass 'honor' or 'medal' type to the helper.
-    allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
-    allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
-
-    // Populate the Awards Progress tab after all other lists are processed
-    populateAwardsProgressTab(allAchievementsWithStatus);
+    populateAwardsProgressTab(allAchievementsWithStatus);
 }
 
-// ... (The separate applyAwardedTicks function should be completely removed from your file) ...
-
 /**
- * Handles the search input to filter honors and medals on the active tab.
+ * Handles the search input to filter items across ALL tabs
+ * and automatically switches to the tab of the first found item.
  */
 function handleSearch() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const activeTab = document.querySelector('.tab-pane.active');
+    const allItems = document.querySelectorAll('.achievement-item');
+    let firstMatchTabId = null;
 
-    if (!activeTab) {
-        return; // Exit if there's no active tab
-    }
+    allItems.forEach(item => {
+        const itemNameElement = item.querySelector('.merit-name');
 
-    const items = activeTab.querySelectorAll('.achievement-item');
+        // --- ADDED SAFETY CHECK ---
+        // If an item is found that doesn't have a name, just skip it and continue.
+        if (!itemNameElement) {
+            return; 
+        }
 
-    items.forEach(item => {
-        const itemName = item.querySelector('.merit-name').textContent.toLowerCase();
-        
+        const itemName = itemNameElement.textContent.toLowerCase();
+
         if (itemName.includes(searchTerm)) {
-            item.style.display = ''; // Show the item if it matches
+            item.style.display = ''; // Show the item
+
+            if (!firstMatchTabId) {
+                const parentTabPane = item.closest('.tab-pane');
+                if (parentTabPane) {
+                    firstMatchTabId = parentTabPane.id;
+                }
+            }
         } else {
             item.style.display = 'none'; // Hide the item if it doesn't match
         }
     });
-}
-// --- END OF NEW FUNCTION ---
 
-function populateAwardsProgressTab(achievementsInPrgoress) {
-    // ... your existing function starts here ...
-
-function populateAwardsProgressTab(achievementsInPrgoress) {
-    awardsProgressList.innerHTML = ''; // Clear previous content
-
-    if (achievementsInPrgoress.length === 0) {
-        awardsProgressList.innerHTML = '<li>No awards currently in progress. Start working on some!</li>';
-        return;
+    if (firstMatchTabId) {
+        const activeTab = document.querySelector('.tab-pane.active');
+        // Only switch if the target tab is not already the active one
+        if (!activeTab || activeTab.id !== firstMatchTabId) {
+            switchTab(firstMatchTabId);
+        }
     }
+}
 
-    // Sort achievements: Closest to 100% completion first
-    achievementsInPrgoress.sort((a, b) => b.calculatedPercentage - a.calculatedPercentage);
+function populateAwardsProgressTab(achievementsInPrgoress) {
+    awardsProgressList.innerHTML = ''; // Clear previous content
 
-    achievementsInPrgoress.forEach(item => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <span class="merit-status-icon ${item.statusIconClass}">${item.statusSymbol}</span>
-            <span class="merit-details">
-                <span class="merit-name">${item.achievement.name}</span> -
-                <span class="merit-requirement">${item.achievement.requirement}</span>
-                <span class="merit-progress">${item.progressText || ''} (${item.calculatedPercentage.toFixed(1)}% complete)</span>
-            </span>
-        `;
-        awardsProgressList.appendChild(listItem);
-    });
+    if (achievementsInPrgoress.length === 0) {
+        awardsProgressList.innerHTML = '<li>No awards currently in progress. Start working on some!</li>';
+        return;
+    }
+
+    // Sort achievements: Closest to 100% completion first
+    achievementsInPrgoress.sort((a, b) => b.calculatedPercentage - a.calculatedPercentage);
+
+    achievementsInPrgoress.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <span class="merit-status-icon ${item.statusIconClass}">${item.statusSymbol}</span>
+            <span class="merit-details">
+                <span class="merit-name">${item.achievement.name}</span> -
+                <span class="merit-requirement">${item.achievement.requirement}</span>
+                <span class="merit-progress">${item.progressText || ''} (${item.calculatedPercentage.toFixed(1)}% complete)</span>
+            </span>
+        `;
+        awardsProgressList.appendChild(listItem);
+    });
 }
 
 function populatePlayerStats(playerData) {
-    const statsContainer = document.getElementById('player-stats-list');
-    statsContainer.innerHTML = ''; // Clear previous stats
+    const statsContainer = document.getElementById('player-stats-list');
+    statsContainer.innerHTML = ''; // Clear previous stats
 
-    if (!playerData || !playerData.personalstats) {
-        statsContainer.innerHTML = '<li>No detailed stats available.</li>';
-        return;
-    }
+    if (!playerData || !playerData.personalstats) {
+        statsContainer.innerHTML = '<li>No detailed stats available.</li>';
+        return;
+    }
 
-    const statsMapping = {
-        'Attacks Won': 'personalstats.attackswon',
-        'Defends Won': 'personalstats.defendswon',
-        'Crimes Committed (Total)': 'personalstats.criminaloffenses',
-        'Items Found': 'personalstats.cityfinds',
-        'Medical Items Used': 'personalstats.medicalitemsused',
-        'Times Hospitalized': 'personalstats.hospital',
-        'Times Jailed': 'personalstats.jailed',
-        'Travels Made': 'personalstats.traveltimes',
-        'Bounties Collected': 'personalstats.bountiescollected',
-        'Busted People from Jail': 'personalstats.peoplebusted',
-        'Revives Given': 'personalstats.revives',
-        'Max Chain Hits (Personal)': 'personalstats.max_chain',
-        'Total Damage Dealt': 'personalstats.attackdamage',
-        'Total Critical Hits': 'personalstats.attackcriticalhits',
-        'Total Respect Earned': 'personalstats.respectforfaction',
-        'Networth': 'personalstats.networth',
-        'Strength': 'personalstats.strength',
-        'Defense': 'personalstats.defense',
-        'Speed': 'personalstats.speed',
-        'Dexterity': 'personalstats.dexterity',
-        'Life': 'personalstats.life',
-        'Level': 'level', // Path is direct from playerData
-        'Rank': (playerData.basic && playerData.basic.rank) ? 'basic.rank' : 'rank' // Path for rank, conditional check
-    };
+    const statsMapping = {
+        'Attacks Won': 'personalstats.attackswon',
+        'Defends Won': 'personalstats.defendswon',
+        'Crimes Committed (Total)': 'personalstats.criminaloffenses',
+        'Items Found': 'personalstats.cityfinds',
+        'Medical Items Used': 'personalstats.medicalitemsused',
+        'Times Hospitalized': 'personalstats.hospital',
+        'Times Jailed': 'personalstats.jailed',
+        'Travels Made': 'personalstats.traveltimes',
+        'Bounties Collected': 'personalstats.bountiescollected',
+        'Busted People from Jail': 'personalstats.peoplebusted',
+        'Revives Given': 'personalstats.revives',
+        'Max Chain Hits (Personal)': 'personalstats.max_chain',
+        'Total Damage Dealt': 'personalstats.attackdamage',
+        'Total Critical Hits': 'personalstats.attackcriticalhits',
+        'Total Respect Earned': 'personalstats.respectforfaction',
+        'Networth': 'personalstats.networth',
+        'Strength': 'personalstats.strength',
+        'Defense': 'personalstats.defense',
+        'Speed': 'personalstats.speed',
+        'Dexterity': 'personalstats.dexterity',
+        'Life': 'personalstats.life',
+        'Level': 'level', // Path is direct from playerData
+        'Rank': (playerData.basic && playerData.basic.rank) ? 'basic.rank' : 'rank' // Path for rank, conditional check
+    };
 
-    for (const [displayName, statPath] of Object.entries(statsMapping)) {
-        let value;
-        // Special handling for 'Rank' as its path might be conditional
-        if (displayName === 'Rank') {
-            value = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : playerData.rank;
-        } else if (typeof statPath === 'string') {
-            value = getNestedProperty(playerData, statPath);
-        } else {
-            value = 'N/A';
-        }
+    for (const [displayName, statPath] of Object.entries(statsMapping)) {
+        let value;
+        // Special handling for 'Rank' as its path might be conditional
+        if (displayName === 'Rank') {
+            value = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : playerData.rank;
+        } else if (typeof statPath === 'string') {
+            value = getNestedProperty(playerData, statPath);
+        } else {
+            value = 'N/A';
+        }
 
-        const li = document.createElement('li');
-        const spanId = `stat-${displayName.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}`;
+        const li = document.createElement('li');
+        const spanId = `stat-${displayName.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}`;
 li.innerHTML = `<span class="stat-label"><strong>${displayName}:</strong></span><span class="stat-value" id="${spanId}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
-        statsContainer.appendChild(li);
-    }
+        statsContainer.appendChild(li);
+    }
 
-    const totalAwardsLi = document.createElement('li');
-    totalAwardsLi.innerHTML = `<strong>Total Awards Tracked:</strong> <span id="total-awards-tracked">${formatNumber(allHonors.length + allMedals.length)}</span>`;
-    statsContainer.appendChild(totalAwardsLi);
+    const totalAwardsLi = document.createElement('li');
+    totalAwardsLi.innerHTML = `<strong>Total Awards Tracked:</strong> <span id="total-awards-tracked">${formatNumber(allHonors.length + allMedals.length)}</span>`;
+    statsContainer.appendChild(totalAwardsLi);
 }
 
 function switchTab(tabId) {
 
-    tabsContainer.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-    });
-    tabContents.forEach(pane => {
-        pane.classList.remove('active');
-        pane.style.display = 'none'; // Directly set display to none
-    });
+    tabsContainer.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    tabContents.forEach(pane => {
+        pane.classList.remove('active');
+        pane.style.display = 'none'; // Directly set display to none
+    });
 
-    const activeButton = tabsContainer.querySelector(`[data-tab="${tabId.replace('-tab', '')}"]`);
-    const activePane = document.getElementById(tabId);
+    const activeButton = tabsContainer.querySelector(`[data-tab="${tabId.replace('-tab', '')}"]`);
+    const activePane = document.getElementById(tabId);
 
-    if (activeButton) {
-        activeButton.classList.add('active');
-    }
-    if (activePane) {
-        activePane.style.display = 'flex'; // Directly set display to flex for active pane
-        activePane.classList.add('active'); // Add active class if your CSS uses it for styling beyond just display
-    }
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+    if (activePane) {
+        activePane.style.display = 'flex'; // Directly set display to flex for active pane
+        activePane.classList.add('active'); // Add active class if your CSS uses it for styling beyond just display
+    }
 }
 
 // Event listener for tab buttons
 tabsContainer.addEventListener('click', (event) => {
-    const targetButton = event.target.closest('.tab-button');
-    if (targetButton) {
-        const tabName = targetButton.dataset.tab;
-        switchTab(`${tabName}-tab`);
-    }
+    const targetButton = event.target.closest('.tab-button');
+    if (targetButton) {
+        const tabName = targetButton.dataset.tab;
+        switchTab(`${tabName}-tab`);
+    }
 });
 
 
 // --- Initialization Function (Modified to fetch specific awarded IDs) ---
 
 /**
- * Initializes the Merits page, fetches data, and updates UI.
- */
+ * Initializes the Merits page, fetches data, and updates UI.
+ */
 async function initializeMeritsPage() {
-    hideError();
-    showLoading(); // Show loading initially
+    hideError();
+    showLoading(); // Show loading initially
 
-    // Listen for Firebase authentication state changes
-    firebase.auth().onAuthStateChanged(async (user) => {
-        if (user) {
-            console.log("User is logged in:", user.uid);
-            const db = firebase.firestore();
-            try {
-                const userDocRef = db.collection('userProfiles').doc(user.uid);
-                const doc = await userDocRef.get();
+    // Listen for Firebase authentication state changes
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            console.log("User is logged in:", user.uid);
+            const db = firebase.firestore();
+            try {
+                const userDocRef = db.collection('userProfiles').doc(user.uid);
+                const doc = await userDocRef.get();
 
-                if (doc.exists && doc.data() && doc.data().tornApiKey) {
-                    const tornApiKey = doc.data().tornApiKey;
-                    console.log("Torn API Key retrieved from Firestore.");
+                if (doc.exists && doc.data() && doc.data().tornApiKey) {
+                    const tornApiKey = doc.data().tornApiKey;
+                    console.log("Torn API Key retrieved from Firestore.");
 
-                    const playerData = await fetchTornDataDirectly(tornApiKey);
-                    if (playerData) {
-                        displayPlayerSummary(playerData);
-                        updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
-                        populatePlayerStats(playerData)
+                    const playerData = await fetchTornDataDirectly(tornApiKey);
+                    if (playerData) {
+                        displayPlayerSummary(playerData);
+                        updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
+                        populatePlayerStats(playerData)
 						
 
 
-                        
-                        switchTab('honors-tab'); 
-                    } else {
-                        console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
-                    }
-                } else {
-                    hideLoading();
-                    showError('No Torn API key found for your account. Please set it in your profile settings.');
-                    console.warn("tornApiKey field is missing in user's Firestore document or document does not exist.");
-                }
-            } catch (firestoreError) {
-                console.error("Error fetching API key from Firestore:", firestoreError);
-                hideLoading();
-                if (firestoreError.code === 'permission-denied') {
-                    showError('Permission denied to access your data. Please check Firebase Security Rules.');
-                } else {
-                    showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
-                }
-            }
-        } else {
-            console.log("No user logged in. Redirecting or prompting login.");
-            hideLoading();
-            showError('Please log in to view your Torn Honors & Medals.');
-        }
-    });
+                        
+                        switchTab('honors-tab'); 
+                    } else {
+                        console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
+                    }
+                } else {
+                    hideLoading();
+                    showError('No Torn API key found for your account. Please set it in your profile settings.');
+                    console.warn("tornApiKey field is missing in user's Firestore document or document does not exist.");
+                }
+          .catch (firestoreError) {
+                console.error("Error fetching API key from Firestore:", firestoreError);
+                hideLoading();
+                if (firestoreError.code === 'permission-denied') {
+                    showError('Permission denied to access your data. Please check Firebase Security Rules.');
+                } else {
+                    showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
+                }
+            }
+        } else {
+            console.log("No user logged in. Redirecting or prompting login.");
+            hideLoading();
+            showError('Please log in to view your Torn Honors & Medals.');
+        }
+    });
 }
 
 // Run initialization when the DOM is fully loaded
@@ -1227,101 +1209,101 @@ document.addEventListener('DOMContentLoaded', initializeMeritsPage);
 
 // --- START: Desktop-Only Device Blocker ---
 function initializeDeviceBlocker() {
-    // This function will only run once
-    if (document.getElementById('device-blocker')) {
-        return;
-    }
+    // This function will only run once
+    if (document.getElementById('device-blocker')) {
+        return;
+    }
 
-    // 1. --- Define the Button Styles ---
-    const buttonStyles = {
-        backgroundColor: '#007bff',
-        color: 'black',
-        padding: '8px 15px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        marginTop: '20px',
-        textDecoration: 'none',
-        fontSize: '16px'
-    };
+    // 1. --- Define the Button Styles ---
+    const buttonStyles = {
+        backgroundColor: '#007bff',
+        color: 'black',
+        padding: '8px 15px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        marginTop: '20px',
+        textDecoration: 'none',
+        fontSize: '16px'
+    };
 
-    // 2. --- Create the Blocker Elements ---
-    const blocker = document.createElement('div');
-    blocker.id = 'device-blocker';
+    // 2. --- Create the Blocker Elements ---
+    const blocker = document.createElement('div');
+    blocker.id = 'device-blocker';
 
-    const contentWrapper = document.createElement('div');
-    
-    const heading = document.createElement('h2');
-    heading.textContent = 'Desktop View Required';
+    const contentWrapper = document.createElement('div');
+    
+    const heading = document.createElement('h2');
+    heading.textContent = 'Desktop View Required';
 
-    const paragraph = document.createElement('p');
-    paragraph.textContent = 'For the best experience, this tool is designed for desktop computers. Please switch to a larger device.';
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'For the best experience, this tool is designed for desktop computers. Please switch to a larger device.';
 
-    const homeButton = document.createElement('a');
-    homeButton.href = 'home.html';
-    homeButton.textContent = 'Return to Home';
-    
-    // Apply the styles from your object to the button
-    Object.assign(homeButton.style, buttonStyles);
-    
-    // Add a simple hover effect
-    homeButton.addEventListener('mouseover', () => homeButton.style.backgroundColor = '#0056b3');
-    homeButton.addEventListener('mouseout', () => homeButton.style.backgroundColor = '#007bff');
+    const homeButton = document.createElement('a');
+    homeButton.href = 'home.html';
+    homeButton.textContent = 'Return to Home';
+    
+    // Apply the styles from your object to the button
+    Object.assign(homeButton.style, buttonStyles);
+    
+    // Add a simple hover effect
+    homeButton.addEventListener('mouseover', () => homeButton.style.backgroundColor = '#0056b3');
+    homeButton.addEventListener('mouseout', () => homeButton.style.backgroundColor = '#007bff');
 
-    // Put all the content together
-    contentWrapper.appendChild(heading);
-    contentWrapper.appendChild(paragraph);
-    contentWrapper.appendChild(homeButton);
-    blocker.appendChild(contentWrapper);
-    document.body.appendChild(blocker);
+    // Put all the content together
+    contentWrapper.appendChild(heading);
+    contentWrapper.appendChild(paragraph);
+    contentWrapper.appendChild(homeButton);
+    blocker.appendChild(contentWrapper);
+    document.body.appendChild(blocker);
 
-    // 3. --- Add CSS for the Blocker Overlay ---
-    const style = document.createElement('style');
-    style.textContent = `
-        #device-blocker {
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: #222;
-            color: #eee;
-            text-align: center;
-            z-index: 99999;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        /* --- NEW STYLE ADDED FOR THE HEADING --- */
-        #device-blocker h2 {
-            color: #00a8ff; /* This makes the heading text blue */
-        }
-        /* Hide main content when blocker is active */
-        body.blocked-device #mainHomepageContent,
-        body.blocked-device header,
-        body.blocked-device footer {
-            display: none !important;
-        }
-    `;
-    document.head.appendChild(style);
+    // 3. --- Add CSS for the Blocker Overlay ---
+    const style = document.createElement('style');
+    style.textContent = `
+        #device-blocker {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #222;
+            color: #eee;
+            text-align: center;
+            z-index: 99999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* --- NEW STYLE ADDED FOR THE HEADING --- */
+        #device-blocker h2 {
+            color: #00a8ff; /* This makes the heading text blue */
+        }
+        /* Hide main content when blocker is active */
+        body.blocked-device #mainHomepageContent,
+        body.blocked-device header,
+        body.blocked-device footer {
+            display: none !important;
+        }
+    `;
+    document.head.appendChild(style);
 
-    // 4. --- Logic to Show/Hide the Blocker ---
-    function checkScreenSize() {
-        // Blocks any screen 1024px wide or smaller
-        if (window.innerWidth <= 1024) {
-            blocker.style.display = 'flex';
-            document.body.classList.add('blocked-device');
-        } else {
-            blocker.style.display = 'none';
-            document.body.classList.remove('blocked-device');
-        }
-    }
+    // 4. --- Logic to Show/Hide the Blocker ---
+    function checkScreenSize() {
+        // Blocks any screen 1024px wide or smaller
+        if (window.innerWidth <= 1024) {
+            blocker.style.display = 'flex';
+            document.body.classList.add('blocked-device');
+        } else {
+            blocker.style.display = 'none';
+            document.body.classList.remove('blocked-device');
+        }
+    }
 
-    // 5. --- Run the Blocker ---
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
+    // 5. --- Run the Blocker ---
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
 }
 
 // Call the function to set everything up
