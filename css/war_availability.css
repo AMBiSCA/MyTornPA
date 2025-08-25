@@ -371,7 +371,7 @@ body {
     display: none !important;
 }
 
- .user-status-panel h4 {
+ .user-status-panel h4:first-of-type {
         display: none;
     }
 
